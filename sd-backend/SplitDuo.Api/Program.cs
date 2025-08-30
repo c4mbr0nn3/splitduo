@@ -1,23 +1,23 @@
+using Microsoft.EntityFrameworkCore;
+using SplitDuo.Api.Extensions;
+using SplitDuo.Core.Extensions;
+using SplitDuo.Core.Persistence;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
-builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.AddServices();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+using (var scope = app.Services.CreateScope())
 {
-    app.MapOpenApi();
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    context.Database.MigrateAsync().Wait();
 }
 
-app.UseHttpsRedirection();
+if (app.Environment.IsDevelopment()) app.MapOpenApi();
 
-app.UseAuthorization();
-
-app.MapControllers();
+app.ConfigureServices();
 
 app.Run();

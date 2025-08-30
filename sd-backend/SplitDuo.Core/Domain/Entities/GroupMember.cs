@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using SplitDuo.Core.Entities.Abstract;
+using SplitDuo.Core.Domain.Base;
 
-namespace SplitDuo.Core.Entities;
+namespace SplitDuo.Core.Domain.Entities;
 
 [Table("group_members")]
 public class GroupMember : AuditableAndSoftDeletableEntity

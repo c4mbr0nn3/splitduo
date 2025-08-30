@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using SplitDuo.Core.Domain.Interfaces;
 
-namespace SplitDuo.Core.Entities.Abstract;
+namespace SplitDuo.Core.Domain.Base;
 
 public class AuditableAndSoftDeletableEntity : IAuditableEntity, ISoftDeletableEntity
 {

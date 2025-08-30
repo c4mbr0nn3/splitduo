@@ -1,0 +1,314 @@
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+
+#nullable disable
+
+namespace SplitDuo.Core.Migrations
+{
+    /// <inheritdoc />
+    public partial class Initial : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.CreateTable(
+                name: "users",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    guid = table.Column<Guid>(type: "uuid", nullable: false),
+                    email = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    password_hash = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    first_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    last_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    created_at = table.Column<long>(type: "bigint", nullable: false),
+                    updated_at = table.Column<long>(type: "bigint", nullable: false),
+                    deleted_at = table.Column<long>(type: "bigint", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_users", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "groups",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    guid = table.Column<Guid>(type: "uuid", nullable: false),
+                    name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    description = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    created_by = table.Column<int>(type: "integer", nullable: false),
+                    created_at = table.Column<long>(type: "bigint", nullable: false),
+                    updated_at = table.Column<long>(type: "bigint", nullable: false),
+                    deleted_at = table.Column<long>(type: "bigint", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_groups", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_groups_users_created_by",
+                        column: x => x.created_by,
+                        principalTable: "users",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "expenses",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    guid = table.Column<Guid>(type: "uuid", nullable: false),
+                    group_id = table.Column<int>(type: "integer", nullable: false),
+                    title = table.Column<string>(type: "text", nullable: false),
+                    description = table.Column<string>(type: "text", nullable: true),
+                    amount = table.Column<decimal>(type: "numeric", nullable: false),
+                    paid_by = table.Column<int>(type: "integer", nullable: false),
+                    expense_date = table.Column<DateOnly>(type: "date", nullable: false),
+                    category_id = table.Column<int>(type: "integer", nullable: false),
+                    created_at = table.Column<long>(type: "bigint", nullable: false),
+                    updated_at = table.Column<long>(type: "bigint", nullable: false),
+                    deleted_at = table.Column<long>(type: "bigint", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_expenses", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_expenses_groups_group_id",
+                        column: x => x.group_id,
+                        principalTable: "groups",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_expenses_users_paid_by",
+                        column: x => x.paid_by,
+                        principalTable: "users",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "group_members",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    group_id = table.Column<int>(type: "integer", nullable: false),
+                    user_id = table.Column<int>(type: "integer", nullable: false),
+                    role_id = table.Column<int>(type: "integer", nullable: false),
+                    created_at = table.Column<long>(type: "bigint", nullable: false),
+                    updated_at = table.Column<long>(type: "bigint", nullable: false),
+                    deleted_at = table.Column<long>(type: "bigint", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_group_members", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_group_members_groups_group_id",
+                        column: x => x.group_id,
+                        principalTable: "groups",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_group_members_users_user_id",
+                        column: x => x.user_id,
+                        principalTable: "users",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "imports",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    guid = table.Column<Guid>(type: "uuid", nullable: false),
+                    group_id = table.Column<int>(type: "integer", nullable: false),
+                    user_id = table.Column<int>(type: "integer", nullable: false),
+                    filename = table.Column<string>(type: "text", nullable: false),
+                    import_date = table.Column<DateOnly>(type: "date", nullable: false),
+                    records_count = table.Column<int>(type: "integer", nullable: false),
+                    status_id = table.Column<int>(type: "integer", nullable: false),
+                    error_details = table.Column<string>(type: "text", nullable: false),
+                    created_at = table.Column<long>(type: "bigint", nullable: false),
+                    updated_at = table.Column<long>(type: "bigint", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_imports", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_imports_groups_group_id",
+                        column: x => x.group_id,
+                        principalTable: "groups",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_imports_users_user_id",
+                        column: x => x.user_id,
+                        principalTable: "users",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "settlements",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    guid = table.Column<Guid>(type: "uuid", nullable: false),
+                    group_id = table.Column<int>(type: "integer", nullable: false),
+                    from_user_id = table.Column<int>(type: "integer", nullable: false),
+                    to_user_id = table.Column<int>(type: "integer", nullable: false),
+                    amount = table.Column<decimal>(type: "numeric", nullable: false),
+                    settlement_date = table.Column<DateOnly>(type: "date", nullable: false),
+                    description = table.Column<string>(type: "text", nullable: true),
+                    created_at = table.Column<long>(type: "bigint", nullable: false),
+                    updated_at = table.Column<long>(type: "bigint", nullable: false),
+                    deleted_at = table.Column<long>(type: "bigint", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_settlements", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_settlements_groups_group_id",
+                        column: x => x.group_id,
+                        principalTable: "groups",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_settlements_users_from_user_id",
+                        column: x => x.from_user_id,
+                        principalTable: "users",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_settlements_users_to_user_id",
+                        column: x => x.to_user_id,
+                        principalTable: "users",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "expense_splits",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    expense_id = table.Column<int>(type: "integer", nullable: false),
+                    user_id = table.Column<int>(type: "integer", nullable: false),
+                    split_amount = table.Column<decimal>(type: "numeric", nullable: false),
+                    created_at = table.Column<long>(type: "bigint", nullable: false),
+                    updated_at = table.Column<long>(type: "bigint", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_expense_splits", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_expense_splits_expenses_expense_id",
+                        column: x => x.expense_id,
+                        principalTable: "expenses",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_expense_splits_users_user_id",
+                        column: x => x.user_id,
+                        principalTable: "users",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_expense_splits_expense_id",
+                table: "expense_splits",
+                column: "expense_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_expense_splits_user_id",
+                table: "expense_splits",
+                column: "user_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_expenses_group_id",
+                table: "expenses",
+                column: "group_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_expenses_paid_by",
+                table: "expenses",
+                column: "paid_by");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_group_members_group_id",
+                table: "group_members",
+                column: "group_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_group_members_user_id",
+                table: "group_members",
+                column: "user_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_groups_created_by",
+                table: "groups",
+                column: "created_by");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_imports_group_id",
+                table: "imports",
+                column: "group_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_imports_user_id",
+                table: "imports",
+                column: "user_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_settlements_from_user_id",
+                table: "settlements",
+                column: "from_user_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_settlements_group_id",
+                table: "settlements",
+                column: "group_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_settlements_to_user_id",
+                table: "settlements",
+                column: "to_user_id");
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropTable(
+                name: "expense_splits");
+
+            migrationBuilder.DropTable(
+                name: "group_members");
+
+            migrationBuilder.DropTable(
+                name: "imports");
+
+            migrationBuilder.DropTable(
+                name: "settlements");
+
+            migrationBuilder.DropTable(
+                name: "expenses");
+
+            migrationBuilder.DropTable(
+                name: "groups");
+
+            migrationBuilder.DropTable(
+                name: "users");
+        }
+    }
+}

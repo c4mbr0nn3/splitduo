@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace SplitDuo.Core.Entities.Abstract;
+namespace SplitDuo.Core.Domain.Interfaces;
 
 public interface ISoftDeletableEntity
 {
