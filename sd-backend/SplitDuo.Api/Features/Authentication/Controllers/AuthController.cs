@@ -15,18 +15,14 @@ public class AuthController(
     public async Task<ActionResult<ApiResponseDto<AuthResponseDto>>> Login([FromBody] LoginRequestDto request)
     {
         logger.LogInformation("Login attempt for email: {Email}", request.Email);
-        
+
         var result = await authenticationService.LoginAsync(request);
-        
+
         if (result.IsFailure)
-        {
             logger.LogWarning("Login failed for email: {Email}. Error: {Error}", request.Email, result.Error);
-        }
         else
-        {
             logger.LogInformation("Login successful for email: {Email}", request.Email);
-        }
-        
+
         return HandleResult(result, "Login successful");
     }
 
@@ -34,18 +30,14 @@ public class AuthController(
     public async Task<ActionResult<ApiResponseDto<AuthResponseDto>>> Refresh([FromBody] RefreshTokenRequestDto request)
     {
         logger.LogInformation("Token refresh attempt");
-        
+
         var result = await authenticationService.RefreshTokenAsync(request);
-        
+
         if (result.IsFailure)
-        {
             logger.LogWarning("Token refresh failed. Error: {Error}", result.Error);
-        }
         else
-        {
             logger.LogInformation("Token refresh successful");
-        }
-        
+
         return HandleResult(result, "Token refreshed successfully");
     }
 }
