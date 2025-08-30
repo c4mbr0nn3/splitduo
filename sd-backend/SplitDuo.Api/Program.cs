@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using SplitDuo.Api.Extensions;
-using SplitDuo.Core.Extensions;
 using SplitDuo.Core.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);

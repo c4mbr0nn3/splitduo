@@ -12,7 +12,7 @@ using SplitDuo.Core.Persistence;
 namespace SplitDuo.Core.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250830135446_Initial")]
+    [Migration("20250830150643_Initial")]
     partial class Initial
     {
         /// <inheritdoc />

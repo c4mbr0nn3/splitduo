@@ -11,6 +11,7 @@ using SplitDuo.Core.Options;
 using SplitDuo.Core.Options.Setup;
 using SplitDuo.Core.Persistence;
 using SplitDuo.Core.Persistence.Interceptors;
+using SplitDuo.Core.Services;
 
 namespace SplitDuo.Core.Extensions;
 
@@ -49,6 +50,7 @@ public static class ApiProgramExtensions
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddScoped<AuditSaveChangesInterceptor>();
         builder.Services.AddScoped<SoftDeleteSaveChangesInterceptor>();
+        builder.Services.AddHostedService<DataSeederService>();
     }
 
 
