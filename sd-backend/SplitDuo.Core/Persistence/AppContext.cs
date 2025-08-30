@@ -10,6 +10,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Group> Groups { get; set; }
     public DbSet<GroupMember> GroupMembers { get; set; }
     public DbSet<Import> Imports { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<Settlement> Settlements { get; set; }
     public DbSet<User> Users { get; set; }
 }
