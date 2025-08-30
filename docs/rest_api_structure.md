@@ -15,69 +15,69 @@ The SplitDuo REST API follows RESTful conventions and uses JSON for request/resp
 
 ### Authentication
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST   | `/auth/login` | User login |
+| Method | Endpoint         | Description       |
+| ------ | ---------------- | ----------------- |
+| POST   | `/auth/login`    | User login        |
 | POST   | `/auth/register` | User registration |
-| POST   | `/auth/refresh` | Refresh JWT token |
-| POST   | `/auth/logout` | User logout |
+| POST   | `/auth/refresh`  | Refresh JWT token |
+| POST   | `/auth/logout`   | User logout       |
 
 ### Users
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET    | `/users/me` | Get current user profile |
+| Method | Endpoint    | Description                 |
+| ------ | ----------- | --------------------------- |
+| GET    | `/users/me` | Get current user profile    |
 | PUT    | `/users/me` | Update current user profile |
 | DELETE | `/users/me` | Delete current user account |
 
 ### Groups
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET    | `/groups` | Get user's groups |
-| POST   | `/groups` | Create new group |
-| GET    | `/groups/{groupId}` | Get group details |
-| PUT    | `/groups/{groupId}` | Update group |
-| DELETE | `/groups/{groupId}` | Delete group |
-| GET    | `/groups/{groupId}/members` | Get group members |
-| POST   | `/groups/{groupId}/members` | Add member to group |
+| Method | Endpoint                             | Description              |
+| ------ | ------------------------------------ | ------------------------ |
+| GET    | `/groups`                            | Get user's groups        |
+| POST   | `/groups`                            | Create new group         |
+| GET    | `/groups/{groupId}`                  | Get group details        |
+| PUT    | `/groups/{groupId}`                  | Update group             |
+| DELETE | `/groups/{groupId}`                  | Delete group             |
+| GET    | `/groups/{groupId}/members`          | Get group members        |
+| POST   | `/groups/{groupId}/members`          | Add member to group      |
 | DELETE | `/groups/{groupId}/members/{userId}` | Remove member from group |
 
 ### Expenses
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET    | `/groups/{groupId}/expenses` | Get group expenses |
-| POST   | `/groups/{groupId}/expenses` | Create new expense |
+| Method | Endpoint                                 | Description         |
+| ------ | ---------------------------------------- | ------------------- |
+| GET    | `/groups/{groupId}/expenses`             | Get group expenses  |
+| POST   | `/groups/{groupId}/expenses`             | Create new expense  |
 | GET    | `/groups/{groupId}/expenses/{expenseId}` | Get expense details |
-| PUT    | `/groups/{groupId}/expenses/{expenseId}` | Update expense |
-| DELETE | `/groups/{groupId}/expenses/{expenseId}` | Delete expense |
+| PUT    | `/groups/{groupId}/expenses/{expenseId}` | Update expense      |
+| DELETE | `/groups/{groupId}/expenses/{expenseId}` | Delete expense      |
 
 ### Settlements
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET    | `/groups/{groupId}/settlements` | Get group settlements |
-| POST   | `/groups/{groupId}/settlements` | Create new settlement |
-| PUT    | `/groups/{groupId}/settlements/{settlementId}` | Update settlement |
-| DELETE | `/groups/{groupId}/settlements/{settlementId}` | Delete settlement |
-| POST   | `/groups/{groupId}/settlements/{settlementId}/confirm` | Confirm settlement |
+| Method | Endpoint                                               | Description           |
+| ------ | ------------------------------------------------------ | --------------------- |
+| GET    | `/groups/{groupId}/settlements`                        | Get group settlements |
+| POST   | `/groups/{groupId}/settlements`                        | Create new settlement |
+| PUT    | `/groups/{groupId}/settlements/{settlementId}`         | Update settlement     |
+| DELETE | `/groups/{groupId}/settlements/{settlementId}`         | Delete settlement     |
+| POST   | `/groups/{groupId}/settlements/{settlementId}/confirm` | Confirm settlement    |
 
 ### Balances
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET    | `/groups/{groupId}/balances` | Get current balances |
-| GET    | `/groups/{groupId}/balances/summary` | Get balance summary |
+| Method | Endpoint                             | Description          |
+| ------ | ------------------------------------ | -------------------- |
+| GET    | `/groups/{groupId}/balances`         | Get current balances |
+| GET    | `/groups/{groupId}/balances/summary` | Get balance summary  |
 
 ### Data Import/Export
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
+| Method | Endpoint                           | Description           |
+| ------ | ---------------------------------- | --------------------- |
 | POST   | `/groups/{groupId}/import/cospend` | Import Cospend backup |
-| GET    | `/groups/{groupId}/export/csv` | Export to CSV |
+| GET    | `/groups/{groupId}/export/csv`     | Export to CSV         |
 | GET    | `/groups/{groupId}/export/cospend` | Export Cospend format |
-| GET    | `/imports/{importId}/status` | Get import status |
+| GET    | `/imports/{importId}/status`       | Get import status     |
 
 ## Error Handling
 
@@ -148,14 +148,18 @@ For list endpoints that return multiple items:
 
 ### Example
 
-```
+```bash
 GET /api/v1/groups/123/expenses?startDate=2024-01-01&endDate=2024-01-31&category=food
 ```
 
 ## Rate Limiting
 
+```bash
+GET /api/v1/groups/123/expenses?startDate=2024-01-01&endDate=2024-01-31&category=food
+```
+
 - **Limit**: 100 requests per minute per user
-- **Headers**: 
+- **Headers**:
   - `X-RateLimit-Limit`: Request limit
   - `X-RateLimit-Remaining`: Remaining requests
   - `X-RateLimit-Reset`: Reset timestamp

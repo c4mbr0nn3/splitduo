@@ -5,8 +5,9 @@
 **SplitDuo** is a lightweight, open-source expense splitting application designed initially for couples and two-person households. It provides a slim alternative to existing solutions like Splitwise (proprietary) and Cospend (requires full Nextcloud installation).
 
 ## App Name & Domain
+
 - **App Name**: SplitDuo
-- **Available Domains**: 
+- **Available Domains**:
   - splitduo.io
   - splitduo.app *(recommended)*
   - splitduo.me
@@ -15,16 +16,19 @@
 ## Technology Stack
 
 ### Backend
+
 - **.NET** - Web API backend
 - **PostgreSQL** - Database
 - **Authentication System** - Required for public internet access
 
 ### Frontend
+
 - **Vue.js** - JavaScript framework
 - **Nuxt UI** - UI component library
 - **Mobile-First Design** - Responsive design optimized for mobile usage
 
 ### Infrastructure
+
 - **Single Docker Container** - Backend and frontend served from one container for simplicity
 - **PostgreSQL Database** - Separate database container
 - **Docker Compose** - For easy multi-container deployment and management
@@ -34,6 +38,7 @@
 ## Core Features
 
 ### Initial Scope (v1.0)
+
 - **Two-User Focus**: Designed primarily for couples/partners
 - **Mobile-First UI**: Optimized for on-the-go expense tracking via smartphones
 - **Expense Tracking**: Add, edit, and delete shared expenses
@@ -43,6 +48,7 @@
 - **Data Export**: Export/backup splitting data to CSV with Cospend backup file structure compatibility
 
 ### Future Expansion Possibilities
+
 - **Multi-User Support**: Expand to support groups of more than 2 people
 - **Advanced Features**: Categories, recurring expenses, payment tracking, etc.
 - **Native Mobile App**: Dedicated iOS/Android applications
@@ -50,10 +56,12 @@
 ## Data Migration & Compatibility
 
 ### Import Functionality
+
 - **Cospend Backup Import**: Users can migrate from Cospend by importing their backup files
 - **Seamless Transition**: Preserve existing expense history and user data
 
 ### Export Functionality
+
 - **CSV Export**: Export all expense and splitting data
 - **Cospend Compatibility**: Export format matches Cospend backup file structure
 - **Data Portability**: Users can migrate away from SplitDuo if needed
@@ -69,6 +77,7 @@
 ## Development Phases
 
 ### Phase 1: Core MVP
+
 - [ ] Set up .NET backend with PostgreSQL
 - [ ] Implement user authentication
 - [ ] Create mobile-first Vue.js frontend with Nuxt UI
@@ -77,17 +86,20 @@
 - [ ] Deploy with Docker Compose (single app container + PostgreSQL container)
 
 ### Phase 2: Data Compatibility
+
 - [ ] Implement Cospend backup file import
 - [ ] Create CSV export with Cospend structure compatibility
 - [ ] Add data validation and error handling
 
 ### Phase 3: Polish & Enhancement
+
 - [ ] Improve mobile UI/UX and responsive design
 - [ ] Add expense categories and filtering
 - [ ] Basic performance optimization for mobile devices
 - [ ] Comprehensive testing across devices
 
 ### Phase 4: Future Expansion
+
 - [ ] Multi-user group support
 - [ ] Advanced features (recurring expenses, payment tracking)
 - [ ] Implement data visualization (charts, reports)
@@ -97,16 +109,19 @@
 ## Technical Considerations
 
 ### Security
+
 - Secure authentication for public internet access
 - HTTPS enforcement (especially with .app domain)
 - Input validation and SQL injection prevention
 - Rate limiting and abuse prevention
 
 ### Performance
+
 - Efficient database queries
 - Optimized Docker images
 
 ### Backup & Recovery
+
 - Database backup strategies
 - Docker Compose deployment management
 - Data recovery procedures
@@ -115,12 +130,14 @@
 ## Success Metrics
 
 ### Initial Goals
+
 - Successfully replace existing Cospend usage
 - Smooth migration of existing expense data
 - Reliable two-person expense tracking
 - Stable self-hosted deployment
 
 ### Growth Metrics
+
 - User satisfaction with simplified setup vs. Cospend
 - Data migration success rate
 - System uptime and reliability
