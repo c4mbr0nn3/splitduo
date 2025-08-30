@@ -10,6 +10,20 @@ namespace SplitDuo.Api.Features.Users.Controllers;
 [Authorize]
 public class UsersController : ControllerBase
 {
+    [HttpGet]
+    public async Task<ActionResult<ApiResponseDto<List<UserDto>>>> GetUsers()
+    {
+        // TODO: Implement get all users logic
+        throw new NotImplementedException();
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<ApiResponseDto<UserDto>>> CreateUser([FromBody] CreateUserRequestDto request)
+    {
+        // TODO: Implement create user logic
+        throw new NotImplementedException();
+    }
+
     [HttpGet("me")]
     public async Task<ActionResult<ApiResponseDto<UserDto>>> GetCurrentUser()
     {
@@ -24,10 +38,33 @@ public class UsersController : ControllerBase
         throw new NotImplementedException();
     }
 
-    [HttpDelete("me")]
-    public async Task<ActionResult<ApiResponseDto<object>>> DeleteCurrentUser()
+    [HttpPut("me/password")]
+    public async Task<ActionResult<ApiResponseDto<object>>> ChangeCurrentUserPassword(
+        [FromBody] ChangePasswordRequestDto request)
     {
-        // TODO: Implement delete current user logic
+        // TODO: Implement change current user password logic
+        throw new NotImplementedException();
+    }
+
+    [HttpGet("{userId}")]
+    public async Task<ActionResult<ApiResponseDto<UserDto>>> GetUser(string userId)
+    {
+        // TODO: Implement get user by ID logic
+        throw new NotImplementedException();
+    }
+
+    [HttpPut("{userId}")]
+    public async Task<ActionResult<ApiResponseDto<UserDto>>> UpdateUser(string userId,
+        [FromBody] UpdateUserRequestDto request)
+    {
+        // TODO: Implement update user by ID logic
+        throw new NotImplementedException();
+    }
+
+    [HttpDelete("{userId}")]
+    public async Task<ActionResult<ApiResponseDto<object>>> DeleteUser(string userId)
+    {
+        // TODO: Implement delete user by ID logic
         throw new NotImplementedException();
     }
 }

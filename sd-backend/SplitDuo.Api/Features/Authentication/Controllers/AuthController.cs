@@ -15,24 +15,10 @@ public class AuthController : ControllerBase
         throw new NotImplementedException();
     }
 
-    [HttpPost("register")]
-    public async Task<ActionResult<ApiResponseDto<AuthResponseDto>>> Register([FromBody] RegisterRequestDto request)
-    {
-        // TODO: Implement registration logic
-        throw new NotImplementedException();
-    }
-
     [HttpPost("refresh")]
     public async Task<ActionResult<ApiResponseDto<AuthResponseDto>>> Refresh([FromBody] RefreshTokenRequestDto request)
     {
         // TODO: Implement token refresh logic
-        throw new NotImplementedException();
-    }
-
-    [HttpPost("logout")]
-    public async Task<ActionResult<ApiResponseDto<object>>> Logout()
-    {
-        // TODO: Implement logout logic
         throw new NotImplementedException();
     }
 }

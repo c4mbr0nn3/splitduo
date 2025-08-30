@@ -15,20 +15,23 @@ The SplitDuo REST API follows RESTful conventions and uses JSON for request/resp
 
 ### Authentication
 
-| Method | Endpoint         | Description       |
-| ------ | ---------------- | ----------------- |
-| POST   | `/auth/login`    | User login        |
-| POST   | `/auth/register` | User registration |
-| POST   | `/auth/refresh`  | Refresh JWT token |
-| POST   | `/auth/logout`   | User logout       |
+| Method | Endpoint        | Description       |
+| ------ | --------------- | ----------------- |
+| POST   | `/auth/login`   | User login        |
+| POST   | `/auth/refresh` | Refresh JWT token |
 
 ### Users
 
-| Method | Endpoint    | Description                 |
-| ------ | ----------- | --------------------------- |
-| GET    | `/users/me` | Get current user profile    |
-| PUT    | `/users/me` | Update current user profile |
-| DELETE | `/users/me` | Delete current user account |
+| Method | Endpoint                    | Description                 |
+| ------ | --------------------------- | --------------------------- |
+| GET    | `/users`                    | List all users              |
+| POST   | `/users`                    | Create new user             |
+| GET    | `/users/me`                 | Get current user profile    |
+| PUT    | `/users/me`                 | Update current user profile |
+| PUT    | `/users/me/password`        | Change current user password|
+| GET    | `/users/{userId}`           | Get user by ID              |
+| PUT    | `/users/{userId}`           | Update user by ID           |
+| DELETE | `/users/{userId}`           | Delete user by ID           |
 
 ### Groups
 
