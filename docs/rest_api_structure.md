@@ -146,6 +146,11 @@ For list endpoints that return multiple items:
 - `category`: Filter by expense category
 - `userId`: Filter by user (where applicable)
 
+### Date vs Timestamp Fields
+
+- **Date-only fields** (expense_date, settlement_date, import_date): Sent and returned as ISO 8601 dates (e.g., "2024-01-15")
+- **Timestamp fields** (created_at, updated_at, deleted_at, joined_at): Returned as unix timestamps in seconds
+
 ### Example
 
 ```bash
@@ -154,15 +159,11 @@ GET /api/v1/groups/123/expenses?startDate=2024-01-01&endDate=2024-01-31&category
 
 ## Rate Limiting
 
-```bash
-GET /api/v1/groups/123/expenses?startDate=2024-01-01&endDate=2024-01-31&category=food
-```
-
 - **Limit**: 100 requests per minute per user
 - **Headers**:
   - `X-RateLimit-Limit`: Request limit
   - `X-RateLimit-Remaining`: Remaining requests
-  - `X-RateLimit-Reset`: Reset timestamp
+  - `X-RateLimit-Reset`: Reset unix timestamp
 
 ## Versioning
 

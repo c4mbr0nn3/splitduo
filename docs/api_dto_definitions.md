@@ -149,7 +149,7 @@
     "firstName": "string",
     "lastName": "string"
   },
-  "expenseDate": "number (unix timestamp in seconds)",
+  "expenseDate": "string (ISO 8601 date)",
   "category": "string",
   "splits": [
     {
@@ -230,7 +230,7 @@
     "lastName": "string"
   },
   "amount": "number (decimal)",
-  "settlementDate": "number (unix timestamp in seconds)",
+  "settlementDate": "string (ISO 8601 date)",
   "description": "string",
   "isConfirmed": "boolean",
   "createdAt": "number (unix timestamp in seconds)",
@@ -325,7 +325,7 @@
   "status": "string (pending|completed|failed)",
   "recordsImported": "number",
   "errorDetails": "string",
-  "importDate": "number (unix timestamp in seconds)"
+  "importDate": "string (ISO 8601 date)"
 }
 ```
 
@@ -390,7 +390,8 @@
 - All decimal amounts must be positive and have max 2 decimal places
 - All required fields must be present and non-empty
 - Email fields must be valid email format
-- Input dates sent by frontend must be ISO 8601 format, response timestamps are unix timestamps in seconds
+- Date-only fields (expense_date, settlement_date, import_date): ISO 8601 dates both ways
+- Timestamp fields (created_at, updated_at, joined_at, etc.): Unix timestamps in responses
 
 ### Business Rules
 
