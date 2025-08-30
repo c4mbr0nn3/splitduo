@@ -29,12 +29,14 @@ A lightweight, open-source expense splitting application designed for couples an
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/yourusername/splitduo.git
 cd splitduo
 ```
 
 2. Start the application:
+
 ```bash
 docker-compose up -d
 ```
@@ -72,7 +74,7 @@ Base URL: `https://splitduo.app/api/v1`
 
 ## License
 
-This project is open source. License details to be determined.
+SplitDuo is licensed under the MIT License.
 
 ## Support
 
