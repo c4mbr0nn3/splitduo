@@ -35,6 +35,7 @@ SplitDuo.Api/
 │   │   ├── Controllers/
 │   │   └── Dto/
 │   └── Common/
+│       ├── Controllers/  # BaseApiController
 │       └── Dto/
 ```
 
@@ -58,17 +59,18 @@ Controllers → Services → Unit of Work → AppDbContext → Database
 - Handle HTTP requests/responses
 - Validate input via DTOs
 - Delegate business logic to Services
-- Handle Result pattern responses from Services
+- Use centralized Result handling via BaseApiController
 - Manage Unit of Work SaveChanges operations
-- Return standardized API responses
+- Return standardized API responses with proper HTTP status codes
 
 **Services:**
 
 - Contain business logic and rules
-- Use Result pattern for error handling
+- Use enhanced Result pattern with HTTP status codes for error handling
 - Queue database operations via Unit of Work
 - Handle data validation and transformation
 - Do NOT perform save operations (handled by Controllers)
+- Return appropriate HTTP status codes (401, 404, 409, etc.) via Result pattern
 
 **Unit of Work:**
 
@@ -79,9 +81,10 @@ Controllers → Services → Unit of Work → AppDbContext → Database
 - Exposes DbSets directly for entity access without repository layer
 - Provides transaction management methods (BeginTransaction, Commit, Rollback)
 
-**Example Service Structure:**
+**Example Service and Controller Structure:**
 
 ```csharp
+// Service with enhanced Result pattern
 public class UsersService
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -94,8 +97,11 @@ public class UsersService
     public async Task<Result<UserDto>> CreateUserAsync(CreateUserRequestDto request)
     {
         // Business logic and validation
-        if (validation fails)
-            return Result<UserDto>.Failure("Validation error");
+        if (await EmailExistsAsync(request.Email))
+            return Result<UserDto>.Conflict("Email already exists");
+
+        if (!IsValidEmail(request.Email))
+            return Result<UserDto>.UnprocessableEntity("Invalid email format");
 
         // Queue database operations (no save)
         _unitOfWork.Users.Add(user);
@@ -105,16 +111,170 @@ public class UsersService
     }
 }
 
-// Controller handles save
-public async Task<ActionResult> CreateUser(CreateUserRequestDto request)
+// Controller with centralized Result handling
+public class UsersController : BaseApiController
 {
-    var result = await _usersService.CreateUserAsync(request);
-    if (result.IsFailure) return BadRequest(result.Error);
+    private readonly UsersService _usersService;
+    private readonly IUnitOfWork _unitOfWork;
 
-    await _unitOfWork.SaveChangesAsync();
-    return Ok(result.Value);
+    public async Task<ActionResult<ApiResponseDto<UserDto>>> CreateUser(CreateUserRequestDto request)
+    {
+        var result = await _usersService.CreateUserAsync(request);
+
+        if (result.IsSuccess)
+            await _unitOfWork.SaveChangesAsync();
+
+        return HandleResult(result, "User created successfully");
+    }
 }
 ```
+
+## Enhanced Result Pattern & Centralized Response Handling
+
+### Result Pattern with HTTP Status Codes
+
+The application uses an enhanced Result pattern that includes HTTP status codes for precise error handling and response mapping.
+
+**Location**: `SplitDuo.Core/Common/Result.cs`
+
+**Features:**
+
+- **HTTP Status Code Integration**: Each Result includes an `HttpStatusCode` property
+- **Type Safety**: Uses `System.Net.HttpStatusCode` enum for consistent status mapping
+- **Convenience Methods**: Static methods for common HTTP status codes
+- **Backward Compatibility**: Default status codes maintain existing behavior
+
+**Enhanced Result Structure:**
+
+```csharp
+public class Result<T>
+{
+    public bool IsSuccess { get; private set; }
+    public bool IsFailure => !IsSuccess;
+    public T? Value { get; private set; }
+    public string Error { get; private set; } = "";
+    public HttpStatusCode StatusCode { get; private set; } = HttpStatusCode.OK;
+
+    // Convenience methods for common status codes
+    public static Result<T> Success(T value, HttpStatusCode statusCode = HttpStatusCode.OK);
+    public static Result<T> Failure(string error, HttpStatusCode statusCode = HttpStatusCode.BadRequest);
+    public static Result<T> NotFound(string error = "Resource not found");
+    public static Result<T> Unauthorized(string error = "Unauthorized access");
+    public static Result<T> Forbidden(string error = "Forbidden access");
+    public static Result<T> Conflict(string error = "Resource conflict");
+    public static Result<T> UnprocessableEntity(string error = "Unprocessable entity");
+    public static Result<T> InternalServerError(string error = "Internal server error");
+}
+```
+
+**Service Usage Examples:**
+
+```csharp
+// Authentication scenarios
+if (user == null)
+    return Result<AuthResponseDto>.Unauthorized("Invalid email or password");
+
+// Resource not found
+if (expense == null)
+    return Result<ExpenseDto>.NotFound("Expense not found");
+
+// Business logic violations
+if (await EmailExistsAsync(email))
+    return Result<UserDto>.Conflict("Email already exists");
+
+// Validation errors
+if (!IsValidInput(request))
+    return Result<UserDto>.UnprocessableEntity("Invalid input data");
+```
+
+### BaseApiController
+
+**Location**: `SplitDuo.Api/Features/Common/Controllers/BaseApiController.cs`
+
+The `BaseApiController` provides centralized Result handling, eliminating repetitive response mapping code in controllers.
+
+**Features:**
+
+- **Automatic Status Code Mapping**: Converts Result status codes to appropriate ActionResult responses
+- **Consistent API Responses**: Maintains standardized response format using `ApiResponseDto<T>`
+- **Error Code Generation**: Automatically generates error codes from HTTP status codes
+- **Generic Support**: Handles both `Result<T>` and non-generic `Result` types
+
+**Controller Base Implementation:**
+
+```csharp
+[ApiController]
+public abstract class BaseApiController : ControllerBase
+{
+    protected ActionResult<ApiResponseDto<T>> HandleResult<T>(Result<T> result, string? successMessage = null)
+    {
+        if (result.IsSuccess)
+        {
+            var response = ApiResponseDto<T>.SuccessResponse(result.Value!, successMessage);
+            return result.StatusCode switch
+            {
+                HttpStatusCode.OK => Ok(response),
+                HttpStatusCode.Created => Created(string.Empty, response),
+                HttpStatusCode.NoContent => NoContent(),
+                _ => StatusCode((int)result.StatusCode, response)
+            };
+        }
+
+        var errorResponse = ApiResponseDto<T>.ErrorResponse(
+            GetErrorCodeFromStatus(result.StatusCode),
+            result.Error
+        );
+
+        return result.StatusCode switch
+        {
+            HttpStatusCode.BadRequest => BadRequest(errorResponse),
+            HttpStatusCode.Unauthorized => Unauthorized(errorResponse),
+            HttpStatusCode.Forbidden => StatusCode(403, errorResponse),
+            HttpStatusCode.NotFound => NotFound(errorResponse),
+            HttpStatusCode.Conflict => Conflict(errorResponse),
+            HttpStatusCode.UnprocessableEntity => StatusCode(422, errorResponse),
+            HttpStatusCode.InternalServerError => StatusCode(500, errorResponse),
+            _ => StatusCode((int)result.StatusCode, errorResponse)
+        };
+    }
+}
+```
+
+**Controller Usage:**
+
+```csharp
+[Route("api/v1/auth")]
+public class AuthController : BaseApiController
+{
+    [HttpPost("login")]
+    public async Task<ActionResult<ApiResponseDto<AuthResponseDto>>> Login([FromBody] LoginRequestDto request)
+    {
+        var result = await _authenticationService.LoginAsync(request);
+        return HandleResult(result, "Login successful");
+    }
+}
+```
+
+**Benefits:**
+
+- **Reduced Boilerplate**: Single line response handling: `return HandleResult(result, "Success message");`
+- **Consistent Status Codes**: Automatic mapping from service-defined status codes to HTTP responses
+- **Centralized Logic**: All response mapping logic in one place for easy maintenance
+- **Type Safety**: Compile-time checking of status code handling
+- **Standardized Responses**: Uniform API response structure across all endpoints
+
+**HTTP Status Code Mapping:**
+
+| Result Method              | HTTP Status              | Response Method   |
+| -------------------------- | ------------------------ | ----------------- |
+| `Success()`                | 200 OK                   | `Ok()`            |
+| `Success()` with `Created` | 201 Created              | `Created()`       |
+| `NotFound()`               | 404 Not Found            | `NotFound()`      |
+| `Unauthorized()`           | 401 Unauthorized         | `Unauthorized()`  |
+| `Forbidden()`              | 403 Forbidden            | `StatusCode(403)` |
+| `Conflict()`               | 409 Conflict             | `Conflict()`      |
+| `UnprocessableEntity()`    | 422 Unprocessable Entity | `StatusCode(422)` |
+| `Failure()`                | 400 Bad Request          | `BadRequest()`    |
 
 ### Required Services for v1.0 MVP
 
@@ -342,16 +502,17 @@ The application uses a **Global Exception Handler** for centralized error manage
 ## Technical Decisions Summary
 
 1. **Vertical Slice Architecture** - Feature-based organization over technical layers
-2. **Service Layer with Result Pattern** - Business logic separation with explicit error handling
-3. **Unit of Work Pattern** - Centralized transaction and save operations management
-4. **Single DbContext** - Centralized data access point
-5. **No Registration Endpoint** - Admin-managed user creation only
-6. **Hosted Service Seeding** - Post-migration data initialization
-7. **Options Pattern** - Strongly-typed configuration management
-8. **JWT Authentication** - Stateless authentication for API access
-9. **Global Exception Handler** - Centralized error handling and logging across all endpoints
-10. **Email Notification System** - Outbox pattern with background processing
-11. **Logging System** - Serilog with environment-specific sinks and database storage
+2. **Enhanced Result Pattern with HTTP Status Codes** - Business logic separation with explicit error handling and precise HTTP status mapping
+3. **BaseApiController with Centralized Response Handling** - Eliminates response mapping boilerplate and ensures consistent API responses
+4. **Unit of Work Pattern** - Centralized transaction and save operations management
+5. **Single DbContext** - Centralized data access point
+6. **No Registration Endpoint** - Admin-managed user creation only
+7. **Hosted Service Seeding** - Post-migration data initialization
+8. **Options Pattern** - Strongly-typed configuration management
+9. **JWT Authentication** - Stateless authentication for API access
+10. **Global Exception Handler** - Centralized error handling and logging across all endpoints
+11. **Email Notification System** - Outbox pattern with background processing
+12. **Logging System** - Serilog with environment-specific sinks and database storage
 
 ## Email Notification System
 
