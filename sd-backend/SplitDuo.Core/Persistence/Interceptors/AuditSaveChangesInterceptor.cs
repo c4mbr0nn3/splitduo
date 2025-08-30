@@ -1,10 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Logging;
 using SplitDuo.Core.Domain.Interfaces;
 
 namespace SplitDuo.Core.Persistence.Interceptors;
 
-public class AuditSaveChangesInterceptor : SaveChangesInterceptor
+public class AuditSaveChangesInterceptor(ILogger<AuditSaveChangesInterceptor> logger) : SaveChangesInterceptor
 {
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
@@ -24,18 +25,27 @@ public class AuditSaveChangesInterceptor : SaveChangesInterceptor
         if (context == null) return;
 
         var entries = context.ChangeTracker.Entries<IAuditableEntity>()
-            .Where(e => e.State is EntityState.Added or EntityState.Modified);
+            .Where(e => e.State is EntityState.Added or EntityState.Modified)
+            .ToList();
+
+        if (entries.Count > 0)
+        {
+            logger.LogDebug("Auditing {EntityCount} entities", entries.Count);
+        }
 
         foreach (var entry in entries)
         {
             var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            var entityType = entry.Entity.GetType().Name;
 
             if (entry.State == EntityState.Added)
             {
                 entry.Entity.CreatedAt = now;
+                logger.LogDebug("Setting CreatedAt for new {EntityType}", entityType);
             }
 
             entry.Entity.UpdatedAt = now;
+            logger.LogDebug("Setting UpdatedAt for {EntityType}", entityType);
         }
     }
 }

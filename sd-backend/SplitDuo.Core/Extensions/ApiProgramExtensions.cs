@@ -4,14 +4,17 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Quartz;
 using Serilog;
 using SplitDuo.Core.Options;
 using SplitDuo.Core.Options.Setup;
 using SplitDuo.Core.Persistence;
 using SplitDuo.Core.Persistence.Interceptors;
 using SplitDuo.Core.Services;
+using SplitDuo.Core.Services.Cron;
 
 namespace SplitDuo.Core.Extensions;
 
@@ -19,8 +22,23 @@ public static class ApiProgramExtensions
 {
     public static void AddInfrastructure(this WebApplicationBuilder builder)
     {
-        builder.Host.UseSerilog((context, configuration) =>
-            configuration.ReadFrom.Configuration(context.Configuration));
+        builder.Host.UseSerilog((context, serviceProvider, configuration) =>
+        {
+            configuration.ReadFrom.Configuration(context.Configuration);
+
+            if (context.HostingEnvironment.IsDevelopment()) return;
+
+            var dbOptions = serviceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value;
+            configuration.WriteTo.PostgreSQL(
+                connectionString: dbOptions.ConnectionString,
+                tableName: "logs",
+                schemaName: "logging",
+                columnOptions: null,
+                needAutoCreateTable: true,
+                needAutoCreateSchema: true,
+                period: TimeSpan.FromSeconds(30),
+                batchSizeLimit: 100);
+        });
 
         builder.ConfigureOptions();
         builder.ConfigureServices();
@@ -51,6 +69,28 @@ public static class ApiProgramExtensions
         builder.Services.AddScoped<AuditSaveChangesInterceptor>();
         builder.Services.AddScoped<SoftDeleteSaveChangesInterceptor>();
         builder.Services.AddHostedService<DataSeederService>();
+
+        builder.AddQuartz();
+    }
+
+    private static void AddQuartz(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddQuartz(q =>
+        {
+            q.SchedulerId = "SplitDuo-Scheduler";
+            q.UseSimpleTypeLoader();
+            q.UseInMemoryStore();
+            q.UseDefaultThreadPool(tp => { tp.MaxConcurrency = 5; });
+
+            var logCleanupJobKey = new JobKey("LogCleanupJob");
+            q.AddJob<LogCleanupJob>(opts => opts.WithIdentity(logCleanupJobKey));
+            q.AddTrigger(opts => opts
+                .ForJob(logCleanupJobKey)
+                .WithIdentity("LogCleanupTrigger")
+                .WithCronSchedule("0 0 2 * * ?"));
+        });
+
+        builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
     }
 
 

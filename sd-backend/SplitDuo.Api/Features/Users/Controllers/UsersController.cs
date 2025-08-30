@@ -8,7 +8,7 @@ namespace SplitDuo.Api.Features.Users.Controllers;
 [ApiController]
 [Route("api/v1/users")]
 [Authorize]
-public class UsersController : ControllerBase
+public class UsersController(ILogger<UsersController> logger) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<ApiResponseDto<List<UserDto>>>> GetUsers()
@@ -20,8 +20,18 @@ public class UsersController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<ApiResponseDto<UserDto>>> CreateUser([FromBody] CreateUserRequestDto request)
     {
-        // TODO: Implement create user logic
-        throw new NotImplementedException();
+        logger.LogInformation("Creating user with email: {Email}", request.Email);
+        
+        try
+        {
+            // TODO: Implement create user logic
+            throw new NotImplementedException();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to create user with email: {Email}", request.Email);
+            throw;
+        }
     }
 
     [HttpGet("me")]
@@ -42,8 +52,18 @@ public class UsersController : ControllerBase
     public async Task<ActionResult<ApiResponseDto<object>>> ChangeCurrentUserPassword(
         [FromBody] ChangePasswordRequestDto request)
     {
-        // TODO: Implement change current user password logic
-        throw new NotImplementedException();
+        logger.LogInformation("Password change attempt for current user");
+        
+        try
+        {
+            // TODO: Implement change current user password logic
+            throw new NotImplementedException();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to change password for current user");
+            throw;
+        }
     }
 
     [HttpGet("{userId}")]

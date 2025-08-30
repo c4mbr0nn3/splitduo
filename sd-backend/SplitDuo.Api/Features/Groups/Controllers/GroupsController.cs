@@ -8,7 +8,7 @@ namespace SplitDuo.Api.Features.Groups.Controllers;
 [ApiController]
 [Route("api/v1/groups")]
 [Authorize]
-public class GroupsController : ControllerBase
+public class GroupsController(ILogger<GroupsController> logger) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<ApiResponseDto<List<GroupDto>>>> GetUserGroups()
@@ -20,8 +20,18 @@ public class GroupsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<ApiResponseDto<GroupDto>>> CreateGroup([FromBody] CreateGroupRequestDto request)
     {
-        // TODO: Implement create group logic
-        throw new NotImplementedException();
+        logger.LogInformation("Creating group: {GroupName}", request.Name);
+        
+        try
+        {
+            // TODO: Implement create group logic
+            throw new NotImplementedException();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to create group: {GroupName}", request.Name);
+            throw;
+        }
     }
 
     [HttpGet("{groupId}")]
@@ -41,8 +51,18 @@ public class GroupsController : ControllerBase
     [HttpDelete("{groupId}")]
     public async Task<ActionResult<ApiResponseDto<object>>> DeleteGroup(string groupId)
     {
-        // TODO: Implement delete group logic
-        throw new NotImplementedException();
+        logger.LogWarning("Deleting group: {GroupId}", groupId);
+        
+        try
+        {
+            // TODO: Implement delete group logic
+            throw new NotImplementedException();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to delete group: {GroupId}", groupId);
+            throw;
+        }
     }
 
     [HttpGet("{groupId}/members")]
