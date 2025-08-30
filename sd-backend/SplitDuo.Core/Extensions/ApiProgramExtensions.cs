@@ -9,6 +9,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Quartz;
 using Serilog;
+using SplitDuo.Core.Exceptions;
 using SplitDuo.Core.Options;
 using SplitDuo.Core.Options.Setup;
 using SplitDuo.Core.Persistence;
@@ -66,6 +67,10 @@ public static class ApiProgramExtensions
     private static void ConfigureServices(this WebApplicationBuilder builder)
     {
         builder.Services.AddHttpContextAccessor();
+        
+        builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+        builder.Services.AddProblemDetails();
+        
         builder.Services.AddScoped<AuditSaveChangesInterceptor>();
         builder.Services.AddScoped<SoftDeleteSaveChangesInterceptor>();
         builder.Services.AddHostedService<DataSeederService>();

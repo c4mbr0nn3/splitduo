@@ -22,16 +22,8 @@ public class UsersController(ILogger<UsersController> logger) : ControllerBase
     {
         logger.LogInformation("Creating user with email: {Email}", request.Email);
         
-        try
-        {
-            // TODO: Implement create user logic
-            throw new NotImplementedException();
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Failed to create user with email: {Email}", request.Email);
-            throw;
-        }
+        // TODO: Implement create user logic
+        throw new NotImplementedException();
     }
 
     [HttpGet("me")]
@@ -54,16 +46,8 @@ public class UsersController(ILogger<UsersController> logger) : ControllerBase
     {
         logger.LogInformation("Password change attempt for current user");
         
-        try
-        {
-            // TODO: Implement change current user password logic
-            throw new NotImplementedException();
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Failed to change password for current user");
-            throw;
-        }
+        // TODO: Implement change current user password logic
+        throw new NotImplementedException();
     }
 
     [HttpGet("{userId}")]

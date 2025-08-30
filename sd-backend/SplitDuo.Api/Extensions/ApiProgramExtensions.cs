@@ -15,6 +15,8 @@ public static class ApiProgramExtensions
 
     public static void ConfigureServices(this WebApplication app)
     {
+        app.UseExceptionHandler();
+        
         if (app.Environment.IsDevelopment())
         {
             app.MapOpenApi();

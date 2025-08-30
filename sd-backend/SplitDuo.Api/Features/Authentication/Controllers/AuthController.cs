@@ -13,16 +13,8 @@ public class AuthController(ILogger<AuthController> logger) : ControllerBase
     {
         logger.LogInformation("Login attempt for email: {Email}", request.Email);
         
-        try
-        {
-            // TODO: Implement login logic
-            throw new NotImplementedException();
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Login failed for email: {Email}", request.Email);
-            throw;
-        }
+        // TODO: Implement login logic
+        throw new NotImplementedException();
     }
 
     [HttpPost("refresh")]
@@ -30,15 +22,7 @@ public class AuthController(ILogger<AuthController> logger) : ControllerBase
     {
         logger.LogInformation("Token refresh attempt");
         
-        try
-        {
-            // TODO: Implement token refresh logic
-            throw new NotImplementedException();
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Token refresh failed");
-            throw;
-        }
+        // TODO: Implement token refresh logic
+        throw new NotImplementedException();
     }
 }
