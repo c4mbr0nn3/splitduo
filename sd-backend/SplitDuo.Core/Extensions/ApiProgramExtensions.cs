@@ -93,7 +93,6 @@ public static class ApiProgramExtensions
         builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
     }
 
-
     private static void AddAuthentication(this WebApplicationBuilder builder)
     {
         var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>();
