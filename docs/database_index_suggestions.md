@@ -16,8 +16,8 @@ The schema already includes these composite unique indexes:
 ### Users Table
 
 ```sql
--- Fast lookup by email for authentication
-CREATE INDEX idx_users_email ON users(email) WHERE deleted_at IS NULL;
+-- Unique constraint on email for authentication and user uniqueness
+CREATE UNIQUE INDEX idx_users_email ON users(email) WHERE deleted_at IS NULL;
 
 -- Fast lookup by GUID for frontend operations
 CREATE INDEX idx_users_guid ON users(guid) WHERE deleted_at IS NULL;
@@ -96,9 +96,6 @@ CREATE INDEX idx_settlements_group_date ON settlements(group_id, settlement_date
 -- Query settlements by participants
 CREATE INDEX idx_settlements_from_user ON settlements(from_user_id, settlement_date DESC) WHERE deleted_at IS NULL;
 CREATE INDEX idx_settlements_to_user ON settlements(to_user_id, settlement_date DESC) WHERE deleted_at IS NULL;
-
--- Query unconfirmed settlements
-CREATE INDEX idx_settlements_confirmation ON settlements(group_id, is_confirmed) WHERE deleted_at IS NULL;
 
 -- Query active settlements efficiently
 CREATE INDEX idx_settlements_deleted_at ON settlements(deleted_at);

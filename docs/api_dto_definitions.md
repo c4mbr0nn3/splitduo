@@ -400,6 +400,7 @@
 - Only group admins can add/remove members
 - Settlement amounts must be positive
 - Users cannot settle with themselves
+- Email addresses must be unique across all users
 
 ## Headers
 
