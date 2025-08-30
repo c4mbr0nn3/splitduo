@@ -1,10 +1,16 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 using SplitDuo.Core.Domain.Base;
 
 namespace SplitDuo.Core.Domain.Entities;
 
 [Table("settlements")]
+[Index(nameof(Guid))]
+[Index(nameof(GroupId), nameof(SettlementDate))]
+[Index(nameof(FromUserId), nameof(SettlementDate))]
+[Index(nameof(ToUserId), nameof(SettlementDate))]
+[Index(nameof(DeletedAt))]
 public class Settlement : AuditableAndSoftDeletableEntity
 {
     [Column("id"), Key] public int Id { get; set; }

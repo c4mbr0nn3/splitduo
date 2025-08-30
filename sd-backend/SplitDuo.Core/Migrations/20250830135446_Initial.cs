@@ -236,14 +236,39 @@ namespace SplitDuo.Core.Migrations
                 column: "user_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_expenses_group_id",
+                name: "IX_expenses_deleted_at",
                 table: "expenses",
-                column: "group_id");
+                column: "deleted_at");
 
             migrationBuilder.CreateIndex(
-                name: "IX_expenses_paid_by",
+                name: "IX_expenses_expense_date",
                 table: "expenses",
-                column: "paid_by");
+                column: "expense_date");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_expenses_group_id_category_id_expense_date",
+                table: "expenses",
+                columns: new[] { "group_id", "category_id", "expense_date" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_expenses_group_id_expense_date",
+                table: "expenses",
+                columns: new[] { "group_id", "expense_date" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_expenses_guid",
+                table: "expenses",
+                column: "guid");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_expenses_paid_by_expense_date",
+                table: "expenses",
+                columns: new[] { "paid_by", "expense_date" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_group_members_deleted_at",
+                table: "group_members",
+                column: "deleted_at");
 
             migrationBuilder.CreateIndex(
                 name: "IX_group_members_group_id",
@@ -261,29 +286,75 @@ namespace SplitDuo.Core.Migrations
                 column: "created_by");
 
             migrationBuilder.CreateIndex(
-                name: "IX_imports_group_id",
+                name: "IX_groups_deleted_at",
+                table: "groups",
+                column: "deleted_at");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_groups_guid",
+                table: "groups",
+                column: "guid");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_imports_group_id_import_date",
                 table: "imports",
-                column: "group_id");
+                columns: new[] { "group_id", "import_date" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_imports_user_id",
+                name: "IX_imports_guid",
                 table: "imports",
-                column: "user_id");
+                column: "guid");
 
             migrationBuilder.CreateIndex(
-                name: "IX_settlements_from_user_id",
-                table: "settlements",
-                column: "from_user_id");
+                name: "IX_imports_status_id_import_date",
+                table: "imports",
+                columns: new[] { "status_id", "import_date" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_settlements_group_id",
-                table: "settlements",
-                column: "group_id");
+                name: "IX_imports_user_id_import_date",
+                table: "imports",
+                columns: new[] { "user_id", "import_date" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_settlements_to_user_id",
+                name: "IX_settlements_deleted_at",
                 table: "settlements",
-                column: "to_user_id");
+                column: "deleted_at");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_settlements_from_user_id_settlement_date",
+                table: "settlements",
+                columns: new[] { "from_user_id", "settlement_date" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_settlements_group_id_settlement_date",
+                table: "settlements",
+                columns: new[] { "group_id", "settlement_date" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_settlements_guid",
+                table: "settlements",
+                column: "guid");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_settlements_to_user_id_settlement_date",
+                table: "settlements",
+                columns: new[] { "to_user_id", "settlement_date" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_users_deleted_at",
+                table: "users",
+                column: "deleted_at");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_users_email",
+                table: "users",
+                column: "email",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_users_guid",
+                table: "users",
+                column: "guid");
         }
 
         /// <inheritdoc />

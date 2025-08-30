@@ -12,7 +12,7 @@ using SplitDuo.Core.Persistence;
 namespace SplitDuo.Core.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250830134201_Initial")]
+    [Migration("20250830135446_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -81,9 +81,17 @@ namespace SplitDuo.Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("GroupId");
+                    b.HasIndex("DeletedAt");
 
-                    b.HasIndex("PaidBy");
+                    b.HasIndex("ExpenseDate");
+
+                    b.HasIndex("Guid");
+
+                    b.HasIndex("GroupId", "ExpenseDate");
+
+                    b.HasIndex("PaidBy", "ExpenseDate");
+
+                    b.HasIndex("GroupId", "CategoryId", "ExpenseDate");
 
                     b.ToTable("expenses");
                 });
@@ -170,6 +178,10 @@ namespace SplitDuo.Core.Migrations
 
                     b.HasIndex("CreatedBy");
 
+                    b.HasIndex("DeletedAt");
+
+                    b.HasIndex("Guid");
+
                     b.ToTable("groups");
                 });
 
@@ -207,6 +219,8 @@ namespace SplitDuo.Core.Migrations
                         .HasColumnName("user_id");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DeletedAt");
 
                     b.HasIndex("GroupId");
 
@@ -268,9 +282,13 @@ namespace SplitDuo.Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("GroupId");
+                    b.HasIndex("Guid");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("GroupId", "ImportDate");
+
+                    b.HasIndex("StatusId", "ImportDate");
+
+                    b.HasIndex("UserId", "ImportDate");
 
                     b.ToTable("imports");
                 });
@@ -326,11 +344,15 @@ namespace SplitDuo.Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("FromUserId");
+                    b.HasIndex("DeletedAt");
 
-                    b.HasIndex("GroupId");
+                    b.HasIndex("Guid");
 
-                    b.HasIndex("ToUserId");
+                    b.HasIndex("FromUserId", "SettlementDate");
+
+                    b.HasIndex("GroupId", "SettlementDate");
+
+                    b.HasIndex("ToUserId", "SettlementDate");
 
                     b.ToTable("settlements");
                 });
@@ -385,6 +407,13 @@ namespace SplitDuo.Core.Migrations
                         .HasColumnName("updated_at");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DeletedAt");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("Guid");
 
                     b.ToTable("users");
                 });

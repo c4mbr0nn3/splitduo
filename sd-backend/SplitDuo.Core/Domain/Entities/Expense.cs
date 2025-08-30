@@ -1,10 +1,17 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 using SplitDuo.Core.Domain.Base;
 
 namespace SplitDuo.Core.Domain.Entities;
 
 [Table("expenses")]
+[Index(nameof(Guid))]
+[Index(nameof(GroupId), nameof(ExpenseDate))]
+[Index(nameof(PaidBy), nameof(ExpenseDate))]
+[Index(nameof(GroupId), nameof(CategoryId), nameof(ExpenseDate))]
+[Index(nameof(ExpenseDate))]
+[Index(nameof(DeletedAt))]
 public class Expense : AuditableAndSoftDeletableEntity
 {
     [Column("id"), Key] public int Id { get; set; }

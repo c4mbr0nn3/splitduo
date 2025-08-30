@@ -1,10 +1,13 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 using SplitDuo.Core.Domain.Base;
 
 namespace SplitDuo.Core.Domain.Entities;
 
 [Table("expense_splits")]
+[Index(nameof(UserId))]
+[Index(nameof(ExpenseId))]
 public class ExpenseSplit : AuditableEntity
 {
     [Column("id"), Key] public int Id { get; set; }

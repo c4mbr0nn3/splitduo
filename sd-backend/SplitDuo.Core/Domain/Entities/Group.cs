@@ -1,10 +1,14 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 using SplitDuo.Core.Domain.Base;
 
 namespace SplitDuo.Core.Domain.Entities;
 
 [Table("groups")]
+[Index(nameof(Guid))]
+[Index(nameof(CreatedBy))]
+[Index(nameof(DeletedAt))]
 public class Group : AuditableAndSoftDeletableEntity
 {
     [Column("id"), Key] public int Id { get; set; }

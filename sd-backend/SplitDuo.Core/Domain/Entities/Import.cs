@@ -1,10 +1,15 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 using SplitDuo.Core.Domain.Base;
 
 namespace SplitDuo.Core.Domain.Entities;
 
 [Table("imports")]
+[Index(nameof(Guid))]
+[Index(nameof(UserId), nameof(ImportDate))]
+[Index(nameof(GroupId), nameof(ImportDate))]
+[Index(nameof(StatusId), nameof(ImportDate))]
 public class Import : AuditableEntity
 {
     [Column("id"), Key] public int Id { get; set; }

@@ -1,10 +1,14 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 using SplitDuo.Core.Domain.Base;
 
 namespace SplitDuo.Core.Domain.Entities;
 
 [Table("users")]
+[Index(nameof(Email), IsUnique = true)]
+[Index(nameof(Guid))]
+[Index(nameof(DeletedAt))]
 public class User : AuditableAndSoftDeletableEntity
 {
     [Column("id"), Key] public int Id { get; set; }
