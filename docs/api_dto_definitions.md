@@ -177,7 +177,7 @@
   "description": "string (optional)",
   "amount": "number (required, decimal, positive)",
   "paidByUserId": "string (required, GUID)",
-  "expenseDate": "string (required, ISO 8601 date)",
+  "expenseDate": "string (required, ISO 8601 date sent by frontend)",
   "category": "string (optional, max 100 chars)",
   "splits": [
     {
@@ -197,7 +197,7 @@
   "description": "string (optional)",
   "amount": "number (optional, decimal, positive)",
   "paidByUserId": "string (optional, GUID)",
-  "expenseDate": "string (optional, ISO 8601 date)",
+  "expenseDate": "string (optional, ISO 8601 date sent by frontend)",
   "category": "string (optional, max 100 chars)",
   "splits": [
     {
@@ -245,7 +245,7 @@
   "fromUserId": "string (required, GUID)",
   "toUserId": "string (required, GUID)",
   "amount": "number (required, decimal, positive)",
-  "settlementDate": "string (required, ISO 8601 date)",
+  "settlementDate": "string (required, ISO 8601 date sent by frontend)",
   "description": "string (optional)"
 }
 ```
@@ -255,7 +255,7 @@
 ```json
 {
   "amount": "number (optional, decimal, positive)",
-  "settlementDate": "string (optional, ISO 8601 date)",
+  "settlementDate": "string (optional, ISO 8601 date sent by frontend)",
   "description": "string (optional)"
 }
 ```
@@ -334,8 +334,8 @@
 ```json
 {
   "format": "string (csv|cospend)",
-  "startDate": "string (optional, ISO 8601 date)",
-  "endDate": "string (optional, ISO 8601 date)",
+  "startDate": "string (optional, ISO 8601 date sent by frontend)",
+  "endDate": "string (optional, ISO 8601 date sent by frontend)",
   "includeSettlements": "boolean (optional, default: true)"
 }
 ```
@@ -390,7 +390,7 @@
 - All decimal amounts must be positive and have max 2 decimal places
 - All required fields must be present and non-empty
 - Email fields must be valid email format
-- Input dates must be ISO 8601 format, response timestamps are unix timestamps in seconds
+- Input dates sent by frontend must be ISO 8601 format, response timestamps are unix timestamps in seconds
 
 ### Business Rules
 

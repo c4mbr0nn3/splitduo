@@ -141,8 +141,8 @@ For list endpoints that return multiple items:
 
 ### Common Query Parameters
 
-- `startDate`: Filter by start date (ISO 8601)
-- `endDate`: Filter by end date (ISO 8601)
+- `startDate`: Filter by start date (ISO 8601 format sent by frontend)
+- `endDate`: Filter by end date (ISO 8601 format sent by frontend)
 - `category`: Filter by expense category
 - `userId`: Filter by user (where applicable)
 
