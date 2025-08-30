@@ -76,6 +76,8 @@ Controllers → Services → Unit of Work → AppDbContext → Database
 - Centralizes SaveChanges operations
 - Enables chaining multiple operations before committing
 - Ensures transactional consistency across operations
+- Exposes DbSets directly for entity access without repository layer
+- Provides transaction management methods (BeginTransaction, Commit, Rollback)
 
 **Example Service Structure:**
 
@@ -97,7 +99,7 @@ public class UsersService
 
         // Queue database operations (no save)
         _unitOfWork.Users.Add(user);
-        _unitOfWork.Notifications.Add(notification);
+        // Note: Notification system would be implemented separately
 
         return Result<UserDto>.Success(userDto);
     }
@@ -120,6 +122,7 @@ public async Task<ActionResult> CreateUser(CreateUserRequestDto request)
 
 - **ORM**: Entity Framework Core with PostgreSQL
 - **Context**: Single `AppDbContext` for all data operations
+- **Unit of Work**: `IUnitOfWork` implementation wrapping `AppDbContext`
 - **Interceptors**: Audit and soft delete functionality
 - **Migrations**: Code-first approach
 
@@ -128,6 +131,27 @@ public async Task<ActionResult> CreateUser(CreateUserRequestDto request)
 - Soft delete interceptor for safe data removal
 - Audit interceptor for tracking changes
 - Centralized configuration in `OnModelCreating`
+
+### Unit of Work Implementation
+
+**Location**: `SplitDuo.Core/Persistence/UnitOfWork.cs`
+
+**Features**:
+- Interface and implementation in single file for tidiness
+- Direct DbSet exposure: `Users`, `Groups`, `GroupMembers`, `Expenses`, `ExpenseSplits`, `Settlements`, `Imports`
+- Transaction management: `BeginTransactionAsync`, `CommitTransactionAsync`, `RollbackTransactionAsync`
+- Scoped lifetime registration in DI container
+- Proper disposal pattern implementation
+
+**Usage Pattern**:
+```csharp
+// In Services - queue operations
+_unitOfWork.Users.Add(newUser);
+_unitOfWork.Groups.Update(existingGroup);
+
+// In Controllers - commit changes
+await _unitOfWork.SaveChangesAsync();
+```
 
 ## Application Initialization
 
