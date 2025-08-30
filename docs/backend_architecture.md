@@ -122,11 +122,13 @@ The following services are needed to implement the core features outlined in the
 
 #### Core Business Services
 
-1. **AuthenticationService**
+1. **AuthenticationService** _(implemented)_
 
    - User login/logout functionality
    - JWT token generation and validation
    - Password verification and token refresh handling
+   - **Location**: `SplitDuo.Api/Services/AuthenticationService.cs`
+   - **Features**: Result pattern integration, Unit of Work data access, ASP.NET Core Identity password hashing
 
 2. **UsersService**
 
@@ -201,6 +203,19 @@ The following services are needed to implement the core features outlined in the
 - Controllers handle SaveChanges operations
 - Services queue notifications for background processing
 - Follow dependency injection patterns with scoped lifetimes
+
+#### Implementation Details
+
+**AuthenticationService Implementation:**
+
+- **Architecture**: Service located in API project (`SplitDuo.Api/Services/`) to be accessible by controllers
+- **Dependencies**: Uses `IUnitOfWork`, `IPasswordHasher<User>`, and `IOptions<JwtOptions>`
+- **DTOs**: Utilizes existing DTOs from `SplitDuo.Api/Features/Authentication/Dto/`
+- **Registration**: Registered in API layer DI container (`ApiProgramExtensions.cs`)
+- **Password Hashing**: Leverages ASP.NET Core Identity `PasswordHasher<User>` for secure password operations
+- **Token Management**: JWT generation with configurable expiration, refresh token support
+- **Error Handling**: Consistent error responses using Result pattern
+- **Integration**: DataSeederService updated to use injected `IPasswordHasher<User>` for consistency
 
 ## Data Access
 
