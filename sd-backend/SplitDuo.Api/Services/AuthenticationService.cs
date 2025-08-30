@@ -33,13 +33,13 @@ public class AuthenticationService(
             .FirstOrDefaultAsync(u => u.Email == request.Email);
 
         if (user == null)
-            return Result<AuthResponseDto>.Failure("Invalid email or password");
+            return Result<AuthResponseDto>.Unauthorized("Invalid email or password");
 
         var verificationResult = passwordHasher.VerifyHashedPassword(
             user, user.PasswordHash, request.Password);
 
         if (verificationResult == PasswordVerificationResult.Failed)
-            return Result<AuthResponseDto>.Failure("Invalid email or password");
+            return Result<AuthResponseDto>.Unauthorized("Invalid email or password");
 
         var token = GenerateJwtToken(user);
         var refreshToken = Guid.NewGuid().ToString();
@@ -85,13 +85,13 @@ public class AuthenticationService(
             var userIdClaim = principal.FindFirst("userId")?.Value;
 
             if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
-                return Result<AuthResponseDto>.Failure("Invalid token");
+                return Result<AuthResponseDto>.Unauthorized("Invalid token");
 
             var user = await unitOfWork.Users
                 .FirstOrDefaultAsync(u => u.Guid == userId);
 
             if (user == null)
-                return Result<AuthResponseDto>.Failure("User not found");
+                return Result<AuthResponseDto>.NotFound("User not found");
 
             var newToken = GenerateJwtToken(user);
             var newRefreshToken = Guid.NewGuid().ToString();
@@ -115,7 +115,7 @@ public class AuthenticationService(
         }
         catch (Exception)
         {
-            return Result<AuthResponseDto>.Failure("Invalid token");
+            return Result<AuthResponseDto>.Unauthorized("Invalid token");
         }
     }
 
