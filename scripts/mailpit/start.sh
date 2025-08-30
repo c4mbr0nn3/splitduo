@@ -7,9 +7,8 @@ IMAGE_NAME="ghcr.io/axllent/mailpit:latest"
 UI_PORT=8025
 SMTP_PORT=1025
 
-# Get directory of this script
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-DATA_DIR="${DIR}/mailpit-data"
+# Volume configuration
+VOLUME_NAME="splitduo-mailpit-data"
 
 # Check if container is already running
 if podman container exists "${CONTAINER_NAME}"; then
@@ -17,6 +16,10 @@ if podman container exists "${CONTAINER_NAME}"; then
     podman stop "${CONTAINER_NAME}" || true
     podman rm "${CONTAINER_NAME}" || true
 fi
+
+# Create volume if it doesn't exist
+echo "Creating volume ${VOLUME_NAME} if it doesn't exist..."
+podman volume create "${VOLUME_NAME}" || true
 
 # Pull the latest image
 echo "Pulling latest ${IMAGE_NAME} image..."
@@ -27,7 +30,7 @@ echo "Starting Mailpit container..."
 podman run -d \
 --name=${CONTAINER_NAME} \
 --restart unless-stopped \
--v "${DATA_DIR}:/data" \
+-v "${VOLUME_NAME}:/data" \
 -e MP_DATABASE=/data/mailpit.db \
 -e MP_SMTP_AUTH_ACCEPT_ANY=true \
 -e MP_SMTP_AUTH_ALLOW_INSECURE=true \
@@ -41,7 +44,7 @@ if [ $? -eq 0 ]; then
     echo "✅ Mailpit started successfully!"
     echo "📧 SMTP server running on port ${SMTP_PORT}"
     echo "🌐 Web UI available at http://localhost:${UI_PORT}"
-    echo "📁 Data directory: ${DATA_DIR}"
+    echo "📁 Data volume: ${VOLUME_NAME}"
 else
     echo "❌ Failed to start Mailpit container. Check the logs for details."
     exit 1
