@@ -1,4 +1,4 @@
-namespace SplitDuo.Api.Features.ImportExport.Dto;
+namespace SplitDuo.Api.Features.Export.Dto;
 
 public class ExportRequestDto
 {

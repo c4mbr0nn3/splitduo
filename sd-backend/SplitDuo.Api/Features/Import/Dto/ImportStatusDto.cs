@@ -1,4 +1,4 @@
-namespace SplitDuo.Api.Features.ImportExport.Dto;
+namespace SplitDuo.Api.Features.Import.Dto;
 
 public class ImportStatusDto
 {
