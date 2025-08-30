@@ -3,6 +3,7 @@
 ## Authentication DTOs
 
 ### LoginRequestDto
+
 ```json
 {
   "email": "string (required, email format)",
@@ -11,6 +12,7 @@
 ```
 
 ### RegisterRequestDto
+
 ```json
 {
   "email": "string (required, email format)",
@@ -21,11 +23,12 @@
 ```
 
 ### AuthResponseDto
+
 ```json
 {
   "token": "string (JWT token)",
   "refreshToken": "string",
-  "expiresAt": "string (ISO 8601 datetime)",
+  "expiresAt": "number (unix timestamp in seconds)",
   "user": {
     "id": "string (GUID)",
     "email": "string",
@@ -36,6 +39,7 @@
 ```
 
 ### RefreshTokenRequestDto
+
 ```json
 {
   "refreshToken": "string (required)"
@@ -45,18 +49,20 @@
 ## User DTOs
 
 ### UserDto
+
 ```json
 {
   "id": "string (GUID)",
   "email": "string",
   "firstName": "string",
   "lastName": "string",
-  "createdAt": "string (ISO 8601 datetime)",
-  "updatedAt": "string (ISO 8601 datetime)"
+  "createdAt": "number (unix timestamp in seconds)",
+  "updatedAt": "number (unix timestamp in seconds)"
 }
 ```
 
 ### UpdateUserRequestDto
+
 ```json
 {
   "firstName": "string (optional, max 100 chars)",
@@ -68,6 +74,7 @@
 ## Group DTOs
 
 ### GroupDto
+
 ```json
 {
   "id": "string (GUID)",
@@ -75,12 +82,13 @@
   "description": "string",
   "createdByUserId": "string (GUID)",
   "memberCount": "number",
-  "createdAt": "string (ISO 8601 datetime)",
-  "updatedAt": "string (ISO 8601 datetime)"
+  "createdAt": "number (unix timestamp in seconds)",
+  "updatedAt": "number (unix timestamp in seconds)"
 }
 ```
 
 ### CreateGroupRequestDto
+
 ```json
 {
   "name": "string (required, max 200 chars)",
@@ -89,6 +97,7 @@
 ```
 
 ### UpdateGroupRequestDto
+
 ```json
 {
   "name": "string (optional, max 200 chars)",
@@ -97,6 +106,7 @@
 ```
 
 ### GroupMemberDto
+
 ```json
 {
   "id": "string (GUID)",
@@ -109,11 +119,12 @@
     "lastName": "string"
   },
   "role": "string (member|admin)",
-  "joinedAt": "string (ISO 8601 datetime)"
+  "joinedAt": "number (unix timestamp in seconds)"
 }
 ```
 
 ### AddGroupMemberRequestDto
+
 ```json
 {
   "userEmail": "string (required, email format)",
@@ -124,6 +135,7 @@
 ## Expense DTOs
 
 ### ExpenseDto
+
 ```json
 {
   "id": "string (GUID)",
@@ -137,7 +149,7 @@
     "firstName": "string",
     "lastName": "string"
   },
-  "expenseDate": "string (ISO 8601 date)",
+  "expenseDate": "number (unix timestamp in seconds)",
   "category": "string",
   "splits": [
     {
@@ -152,12 +164,13 @@
       "splitPercentage": "number (decimal, optional)"
     }
   ],
-  "createdAt": "string (ISO 8601 datetime)",
-  "updatedAt": "string (ISO 8601 datetime)"
+  "createdAt": "number (unix timestamp in seconds)",
+  "updatedAt": "number (unix timestamp in seconds)"
 }
 ```
 
 ### CreateExpenseRequestDto
+
 ```json
 {
   "title": "string (required, max 255 chars)",
@@ -177,6 +190,7 @@
 ```
 
 ### UpdateExpenseRequestDto
+
 ```json
 {
   "title": "string (optional, max 255 chars)",
@@ -198,6 +212,7 @@
 ## Settlement DTOs
 
 ### SettlementDto
+
 ```json
 {
   "id": "string (GUID)",
@@ -215,15 +230,16 @@
     "lastName": "string"
   },
   "amount": "number (decimal)",
-  "settlementDate": "string (ISO 8601 date)",
+  "settlementDate": "number (unix timestamp in seconds)",
   "description": "string",
   "isConfirmed": "boolean",
-  "createdAt": "string (ISO 8601 datetime)",
-  "updatedAt": "string (ISO 8601 datetime)"
+  "createdAt": "number (unix timestamp in seconds)",
+  "updatedAt": "number (unix timestamp in seconds)"
 }
 ```
 
 ### CreateSettlementRequestDto
+
 ```json
 {
   "fromUserId": "string (required, GUID)",
@@ -235,6 +251,7 @@
 ```
 
 ### UpdateSettlementRequestDto
+
 ```json
 {
   "amount": "number (optional, decimal, positive)",
@@ -246,6 +263,7 @@
 ## Balance DTOs
 
 ### BalanceDto
+
 ```json
 {
   "userId": "string (GUID)",
@@ -261,6 +279,7 @@
 ```
 
 ### BalanceSummaryDto
+
 ```json
 {
   "groupId": "string (GUID)",
@@ -289,6 +308,7 @@
 ## Import/Export DTOs
 
 ### CospendImportRequestDto
+
 ```json
 {
   "file": "file (multipart/form-data)",
@@ -297,6 +317,7 @@
 ```
 
 ### ImportStatusDto
+
 ```json
 {
   "id": "string (GUID)",
@@ -304,11 +325,12 @@
   "status": "string (pending|completed|failed)",
   "recordsImported": "number",
   "errorDetails": "string",
-  "importDate": "string (ISO 8601 datetime)"
+  "importDate": "number (unix timestamp in seconds)"
 }
 ```
 
 ### ExportRequestDto
+
 ```json
 {
   "format": "string (csv|cospend)",
@@ -321,6 +343,7 @@
 ## Common Response Wrappers
 
 ### Success Response
+
 ```json
 {
   "success": true,
@@ -330,6 +353,7 @@
 ```
 
 ### Error Response
+
 ```json
 {
   "success": false,
@@ -342,6 +366,7 @@
 ```
 
 ### Paginated Response
+
 ```json
 {
   "success": true,
@@ -360,13 +385,15 @@
 ## Validation Rules
 
 ### General Rules
+
 - All GUID fields must be valid UUID v7 format
 - All decimal amounts must be positive and have max 2 decimal places
 - All required fields must be present and non-empty
 - Email fields must be valid email format
-- Dates must be ISO 8601 format
+- Input dates must be ISO 8601 format, response timestamps are unix timestamps in seconds
 
 ### Business Rules
+
 - Expense splits must sum to the total expense amount
 - Users can only access groups they are members of
 - Only group admins can add/remove members
@@ -376,13 +403,15 @@
 ## Headers
 
 ### Required Headers
-```
+
+```bash
 Authorization: Bearer {jwt_token}
 Content-Type: application/json
 ```
 
 ### Optional Headers
-```
+
+```bash
 X-Request-ID: string (for request tracing)
 Accept-Language: string (for localization)
 ```
@@ -390,6 +419,7 @@ Accept-Language: string (for localization)
 ## Examples
 
 ### Create Expense Example
+
 ```bash
 POST /api/v1/groups/550e8400-e29b-41d4-a716-446655440000/expenses
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -415,6 +445,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 ### Get Balances Example
+
 ```bash
 GET /api/v1/groups/550e8400-e29b-41d4-a716-446655440000/balances
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
