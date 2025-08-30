@@ -175,6 +175,43 @@ public async Task<ActionResult> CreateUser(CreateUserRequestDto request)
 - **JwtOptions**: JWT authentication settings
 - **Setup Classes**: Dedicated option configuration classes
 
+## Error Handling
+
+### Global Exception Handler
+
+The application uses a **Global Exception Handler** for centralized error management:
+
+**Implementation:**
+
+- **Handler Class**: `GlobalExceptionHandler` implementing `IExceptionHandler`
+- **Registration**: Configured via `AddExceptionHandler<GlobalExceptionHandler>()` in DI container
+- **Middleware Integration**: Uses ASP.NET Core's built-in exception handling middleware
+
+**Features:**
+
+- **Centralized Logging** - All unhandled exceptions logged automatically with full context
+- **Consistent Responses** - Standardized Problem Details format for all error responses
+- **Status Code Mapping** - Automatic HTTP status code assignment based on exception type
+- **Clean Controllers** - No try-catch boilerplate required in endpoint methods
+
+**Error Response Format:**
+
+```json
+{
+  "type": "ExceptionTypeName",
+  "title": "An unhandled exception occurred",
+  "status": 500,
+  "detail": "Exception message"
+}
+```
+
+**Benefits:**
+
+- **Reduced Boilerplate** - Controllers focus on business logic, not error handling
+- **Consistent Logging** - Single point for exception logging prevents duplicate entries
+- **Uniform API Responses** - All errors follow same response structure
+- **Maintainability** - Error handling logic centralized and easily modified
+
 ## Technical Decisions Summary
 
 1. **Vertical Slice Architecture** - Feature-based organization over technical layers
@@ -185,8 +222,9 @@ public async Task<ActionResult> CreateUser(CreateUserRequestDto request)
 6. **Hosted Service Seeding** - Post-migration data initialization
 7. **Options Pattern** - Strongly-typed configuration management
 8. **JWT Authentication** - Stateless authentication for API access
-9. **Email Notification System** - Outbox pattern with background processing
-10. **Logging System** - Serilog with environment-specific sinks and database storage
+9. **Global Exception Handler** - Centralized error handling and logging across all endpoints
+10. **Email Notification System** - Outbox pattern with background processing
+11. **Logging System** - Serilog with environment-specific sinks and database storage
 
 ## Email Notification System
 
