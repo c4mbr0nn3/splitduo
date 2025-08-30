@@ -284,11 +284,14 @@ The following services are needed to implement the core features outlined in the
 
 1. **AuthenticationService** _(implemented)_
 
-   - User login/logout functionality
-   - JWT token generation and validation
-   - Password verification and token refresh handling
+   - **Secure Authentication**: User login with credential validation
+   - **JWT Token Management**: Short-lived access tokens (15 min) with JTI claims
+   - **Refresh Token System**: Cryptographically secure refresh tokens with rotation
+   - **Token Revocation**: Individual and bulk token revocation capabilities
+   - **Security Features**: Breach detection, audit logging, token reuse prevention
    - **Location**: `SplitDuo.Api/Services/AuthenticationService.cs`
-   - **Features**: Result pattern integration, Unit of Work data access, ASP.NET Core Identity password hashing
+   - **Database**: RefreshToken entity for secure server-side token storage
+   - **Features**: Enhanced Result pattern with HTTP status codes, Unit of Work data access, ASP.NET Core Identity password hashing
 
 2. **UsersService**
 
@@ -440,18 +443,153 @@ await _unitOfWork.SaveChangesAsync();
 
 ## Authentication & Authorization
 
-### JWT-Based Authentication
+### Secure JWT-Based Authentication with Refresh Tokens
 
-- **Token Type**: JSON Web Tokens (JWT)
-- **Flow**: Login → JWT token → Protected endpoints
-- **No Registration**: Users created via admin endpoints only
-- **Password Management**: Individual password changes allowed
+The application implements a modern, secure authentication system using short-lived access tokens with refresh token rotation.
+
+#### Authentication Flow
+
+```bash
+1. Login → Access Token (15 min) + Refresh Token (7 days)
+2. API Calls → Bearer Access Token
+3. Token Expires → Refresh Token + Expired Access Token → New Tokens
+4. Logout/Revoke → Refresh Token Invalidation
+```
+
+#### Token Architecture
+
+**Access Tokens (JWT)**:
+
+- **Expiration**: 15 minutes (configurable via `Jwt:Expires`)
+- **Purpose**: API authorization for individual requests
+- **Claims**: User ID, email, name, JWT ID (JTI with GUID v7)
+- **Storage**: Client-side (memory/secure storage)
+
+**Refresh Tokens**:
+
+- **Expiration**: 7 days (configurable)
+- **Purpose**: Generate new access tokens without re-login
+- **Security**: Cryptographically secure 64-byte random tokens
+- **Storage**: Server-side database with SHA256 hashing
+- **Rotation**: New refresh token generated on each use (one-time use)
+
+#### Database Storage
+
+**RefreshToken Entity** (`SplitDuo.Core/Domain/Entities/RefreshToken.cs`):
+
+```csharp
+[Table("refresh_tokens")]
+[Index(nameof(TokenHash), IsUnique = true)]
+[Index(nameof(UserId), nameof(RevokedAt))]
+[Index(nameof(ExpiresAt))]
+[Index(nameof(JwtId))]
+public class RefreshToken : AuditableEntity
+{
+    [Column("id"), Key] public int Id { get; set; }
+    [Column("user_id")] public int UserId { get; set; }              // Foreign key to User.Id
+    [Column("token_hash"), MaxLength(255)] public string TokenHash { get; set; } = "";
+    [Column("jwt_id"), MaxLength(255)] public string JwtId { get; set; } = "";    // GUID v7 for ordering
+    [Column("expires_at")] public long ExpiresAt { get; set; }       // Unix timestamp seconds
+    [Column("revoked_at")] public long? RevokedAt { get; set; }      // Unix timestamp seconds
+    [Column("revoked_reason"), MaxLength(255)] public string? RevokedReason { get; set; }
+    [Column("replaced_by_token"), MaxLength(255)] public string? ReplacedByToken { get; set; }
+    [Column("client_info"), MaxLength(255)] public string ClientInfo { get; set; } = "";
+
+    // Navigation properties
+    [ForeignKey(nameof(UserId))] public virtual User User { get; set; } = null!;
+
+    // Computed properties
+    [NotMapped] public bool IsExpired => DateTimeOffset.UtcNow.ToUnixTimeSeconds() >= ExpiresAt;
+    [NotMapped] public bool IsRevoked => RevokedAt.HasValue;
+    [NotMapped] public bool IsActive => !IsRevoked && !IsExpired;
+}
+```
+
+#### Security Features
+
+**Token Rotation**:
+
+- Each refresh generates new access + refresh tokens
+- Old refresh token immediately invalidated
+- Prevents replay attacks and token reuse
+
+**Breach Detection**:
+
+- Revoked/expired token usage triggers security response
+- All user tokens revoked when suspicious activity detected
+- Comprehensive audit logging for forensic analysis
+
+**Cryptographic Security**:
+
+- Refresh tokens: `RandomNumberGenerator` (64-byte secure random)
+- Database storage: SHA256 hashed tokens
+- JWT signing: HMAC-SHA256 with configurable secret key
+
+#### API Endpoints
+
+**Authentication Endpoints**:
+
+- `POST /api/v1/auth/login` - User authentication with token generation
+- `POST /api/v1/auth/refresh` - Token refresh with rotation
+- `POST /api/v1/auth/revoke` - Individual token revocation
+
+**Token Management**:
+
+- Individual refresh token revocation
+- Bulk user token revocation (security breach response)
+- Automatic cleanup of expired tokens
+
+#### Implementation Details
+
+**AuthenticationService** (`SplitDuo.Api/Services/AuthenticationService.cs`):
+
+```csharp
+// Login flow
+public async Task<Result<AuthResponseDto>> LoginAsync(LoginRequestDto request)
+{
+    // 1. Validate user credentials
+    // 2. Generate JWT with unique JTI (GUID v7 for ordering)
+    // 3. Create cryptographically secure refresh token
+    // 4. Store hashed refresh token in database
+    // 5. Return both tokens to client
+}
+
+// Refresh flow
+public async Task<Result<AuthResponseDto>> RefreshTokenAsync(RefreshTokenRequestDto request)
+{
+    // 1. Validate expired JWT structure and extract claims
+    // 2. Verify refresh token exists and is active in database
+    // 3. Check JWT ID correlation between tokens
+    // 4. Revoke old refresh token (token rotation)
+    // 5. Generate new access token and refresh token
+    // 6. Store new hashed refresh token
+    // 7. Return new tokens to client
+}
+```
 
 ### Security Considerations
 
-- Password hashing using ASP.NET Core Identity
-- Bearer token authentication
-- Secure configuration via AppOptions
+**Enhanced Security Measures**:
+
+- **Short-lived access tokens** (15 minutes) minimize exposure window
+- **Token rotation** prevents refresh token replay attacks
+- **Database storage** enables centralized revocation and audit
+- **Breach detection** automatically revokes compromised token families
+- **Cryptographic hashing** protects stored refresh tokens
+- **Audit trail** tracks token lifecycle for security analysis
+
+**Password Security**:
+
+- Password hashing using ASP.NET Core Identity `PasswordHasher<User>`
+- Bearer token authentication for API access
+- No registration endpoint - admin-managed user creation only
+- Individual password change capabilities with proper validation
+
+**Configuration Security**:
+
+- JWT secrets via environment variables in production
+- Configurable token expiration times
+- Secure configuration via Options pattern
 
 ## Configuration Management
 
@@ -504,15 +642,16 @@ The application uses a **Global Exception Handler** for centralized error manage
 1. **Vertical Slice Architecture** - Feature-based organization over technical layers
 2. **Enhanced Result Pattern with HTTP Status Codes** - Business logic separation with explicit error handling and precise HTTP status mapping
 3. **BaseApiController with Centralized Response Handling** - Eliminates response mapping boilerplate and ensures consistent API responses
-4. **Unit of Work Pattern** - Centralized transaction and save operations management
-5. **Single DbContext** - Centralized data access point
-6. **No Registration Endpoint** - Admin-managed user creation only
-7. **Hosted Service Seeding** - Post-migration data initialization
-8. **Options Pattern** - Strongly-typed configuration management
-9. **JWT Authentication** - Stateless authentication for API access
-10. **Global Exception Handler** - Centralized error handling and logging across all endpoints
-11. **Email Notification System** - Outbox pattern with background processing
-12. **Logging System** - Serilog with environment-specific sinks and database storage
+4. **Secure JWT Authentication with Refresh Tokens** - Short-lived access tokens (15min) with cryptographically secure refresh token rotation
+5. **RefreshToken Database Storage** - Server-side token storage with SHA256 hashing, revocation, and audit capabilities
+6. **Unit of Work Pattern** - Centralized transaction and save operations management
+7. **Single DbContext** - Centralized data access point
+8. **No Registration Endpoint** - Admin-managed user creation only
+9. **Hosted Service Seeding** - Post-migration data initialization
+10. **Options Pattern** - Strongly-typed configuration management
+11. **Global Exception Handler** - Centralized error handling and logging across all endpoints
+12. **Email Notification System** - Outbox pattern with background processing
+13. **Logging System** - Serilog with environment-specific sinks and database storage
 
 ## Email Notification System
 

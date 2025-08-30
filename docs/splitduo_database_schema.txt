@@ -25,6 +25,29 @@ Table users {
   Note: 'User accounts - minimal custom implementation without Identity'
 }
 
+Table refresh_tokens {
+  id integer [primary key, increment]
+  user_id integer [ref: > users.id, not null, note: 'User who owns this refresh token']
+  token_hash varchar(255) [not null, unique, note: 'SHA256 hash of the refresh token']
+  jwt_id varchar(255) [not null, note: 'JWT ID for token correlation']
+  expires_at int [not null, note: 'Unix timestamp expiration (7 days)']
+  revoked_at int [null, note: 'Unix timestamp when revoked']
+  revoked_reason varchar(255) [null, note: 'Reason for revocation (audit)']
+  replaced_by_token varchar(255) [null, note: 'Hash of replacement token (audit trail)']
+  client_info varchar(255) [not null, note: 'Client identification']
+  created_at int [not null, note: 'Unix timestamp in seconds']
+  updated_at int [not null, note: 'Unix timestamp in seconds']
+
+  indexes {
+    token_hash [unique, name: 'idx_refresh_tokens_token_hash']
+    (user_id, revoked_at) [name: 'idx_refresh_tokens_user_revoked']
+    expires_at [name: 'idx_refresh_tokens_expires_at']
+    jwt_id [name: 'idx_refresh_tokens_jwt_id']
+  }
+
+  Note: 'Secure refresh token storage for JWT authentication with rotation'
+}
+
 Table groups {
   id integer [primary key, increment]
   guid uuid [unique, not null, note: 'Public identifier for frontend']

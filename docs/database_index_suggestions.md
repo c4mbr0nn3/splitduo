@@ -26,6 +26,26 @@ CREATE INDEX idx_users_guid ON users(guid) WHERE deleted_at IS NULL;
 CREATE INDEX idx_users_deleted_at ON users(deleted_at);
 ```
 
+### Refresh Tokens Table
+
+```sql
+-- Primary lookup for token validation (critical for auth performance)
+CREATE UNIQUE INDEX idx_refresh_tokens_token_hash ON refresh_tokens(token_hash);
+
+-- User token management for revocation scenarios
+CREATE INDEX idx_refresh_tokens_user_revoked ON refresh_tokens(user_id, revoked_at);
+
+-- Cleanup expired tokens (background maintenance)
+CREATE INDEX idx_refresh_tokens_expires_at ON refresh_tokens(expires_at);
+
+-- JWT correlation for token validation
+CREATE INDEX idx_refresh_tokens_jwt_id ON refresh_tokens(jwt_id);
+
+-- Active token lookup for security operations
+CREATE INDEX idx_refresh_tokens_active ON refresh_tokens(user_id)
+WHERE revoked_at IS NULL AND expires_at > EXTRACT(EPOCH FROM NOW());
+```
+
 ### Groups Table
 
 ```sql
@@ -189,10 +209,40 @@ WHERE group_id = $1 AND deleted_at IS NULL
 ORDER BY expense_date DESC;
 ```
 
+### Security Performance Considerations
+
+**RefreshToken Table Specific**:
+
+```sql
+-- Monitor authentication query performance
+EXPLAIN ANALYZE
+SELECT user_id, jwt_id, expires_at, revoked_at
+FROM refresh_tokens
+WHERE token_hash = $1;
+
+-- Monitor token cleanup performance
+EXPLAIN ANALYZE
+DELETE FROM refresh_tokens
+WHERE expires_at < EXTRACT(EPOCH FROM NOW() - INTERVAL '30 days');
+
+-- Monitor user token revocation performance
+EXPLAIN ANALYZE
+UPDATE refresh_tokens
+SET revoked_at = EXTRACT(EPOCH FROM NOW()), revoked_reason = 'Security breach'
+WHERE user_id = $1 AND revoked_at IS NULL;
+```
+
+**Authentication Performance Targets**:
+
+- Token validation queries: < 10ms
+- Token cleanup operations: < 100ms
+- Bulk token revocation: < 500ms
+
 ## Implementation Priority
 
 1. **High Priority** (implement immediately):
 
+   - **RefreshToken indexes** (critical for authentication performance and security)
    - GUID lookups for all tables
    - Group-based queries (expenses, settlements)
    - Soft delete indexes

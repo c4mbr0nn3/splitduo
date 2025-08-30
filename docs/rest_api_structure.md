@@ -15,10 +15,88 @@ The SplitDuo REST API follows RESTful conventions and uses JSON for request/resp
 
 ### Authentication
 
-| Method | Endpoint        | Description       |
-| ------ | --------------- | ----------------- |
-| POST   | `/auth/login`   | User login        |
-| POST   | `/auth/refresh` | Refresh JWT token |
+| Method | Endpoint        | Description                            |
+| ------ | --------------- | -------------------------------------- |
+| POST   | `/auth/login`   | User login with refresh token rotation |
+| POST   | `/auth/refresh` | Refresh access token with rotation     |
+| POST   | `/auth/revoke`  | Revoke specific refresh token          |
+
+#### Authentication Flow
+
+**Login Request**:
+
+```json
+POST /api/v1/auth/login
+{
+  "email": "user@example.com",
+  "password": "securePassword123"
+}
+```
+
+**Login Response**:
+
+```json
+{
+  "success": true,
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refreshToken": "cJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "expiresAt": 1704067200,
+    "user": {
+      "id": "123e4567-e89b-12d3-a456-426614174000",
+      "email": "user@example.com",
+      "firstName": "John",
+      "lastName": "Doe"
+    }
+  },
+  "message": "Login successful"
+}
+```
+
+**Refresh Request**:
+
+```json
+POST /api/v1/auth/refresh
+{
+  "token": "expired-jwt-token",
+  "refreshToken": "secure-refresh-token"
+}
+```
+
+**Refresh Response** (same format as login):
+
+```json
+{
+  "success": true,
+  "data": {
+    "token": "new-access-token",
+    "refreshToken": "new-refresh-token",
+    "expiresAt": 1704068100,
+    "user": {
+      /* user data */
+    }
+  },
+  "message": "Token refreshed successfully"
+}
+```
+
+**Revoke Request**:
+
+```json
+POST /api/v1/auth/revoke
+{
+  "token": "current-jwt-token",
+  "refreshToken": "refresh-token-to-revoke"
+}
+```
+
+**Security Features**:
+
+- Access tokens expire in 15 minutes
+- Refresh tokens expire in 7 days
+- Token rotation: Each refresh generates new tokens and invalidates old ones
+- Automatic revocation: Suspicious activity triggers token family revocation
+- Server-side storage: Refresh tokens stored securely with SHA256 hashing
 
 ### Users
 
