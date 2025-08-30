@@ -32,7 +32,9 @@ public class DataSeederService(IServiceProvider serviceProvider, ILogger<DataSee
             return;
         }
 
-        var passwordHasher = new PasswordHasher<User>();
+        using var scope = serviceProvider.CreateScope();
+        var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>();
+
         var firstUser = new User
         {
             Email = appOptions.Value.InitialUserEmail,

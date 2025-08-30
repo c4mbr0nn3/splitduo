@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,6 +10,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Quartz;
 using Serilog;
+using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Exceptions;
 using SplitDuo.Core.Options;
 using SplitDuo.Core.Options.Setup;
@@ -74,6 +76,7 @@ public static class ApiProgramExtensions
         builder.Services.AddScoped<AuditSaveChangesInterceptor>();
         builder.Services.AddScoped<SoftDeleteSaveChangesInterceptor>();
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+        builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
         builder.Services.AddHostedService<DataSeederService>();
 
         builder.AddQuartz();
