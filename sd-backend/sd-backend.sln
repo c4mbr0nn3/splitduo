@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SplitDuo.Core", "SplitDuo.Core\SplitDuo.Core.csproj", "{936B51F5-7AE5-4457-B8C6-6828BF54EA2C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SplitDuo.Api", "SplitDuo.Api\SplitDuo.Api.csproj", "{9D49F3B2-BB4A-4D82-BAA0-A1C1F6304F2D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{936B51F5-7AE5-4457-B8C6-6828BF54EA2C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{936B51F5-7AE5-4457-B8C6-6828BF54EA2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{936B51F5-7AE5-4457-B8C6-6828BF54EA2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{936B51F5-7AE5-4457-B8C6-6828BF54EA2C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D49F3B2-BB4A-4D82-BAA0-A1C1F6304F2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D49F3B2-BB4A-4D82-BAA0-A1C1F6304F2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D49F3B2-BB4A-4D82-BAA0-A1C1F6304F2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D49F3B2-BB4A-4D82-BAA0-A1C1F6304F2D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
