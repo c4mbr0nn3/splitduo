@@ -116,6 +116,92 @@ public async Task<ActionResult> CreateUser(CreateUserRequestDto request)
 }
 ```
 
+### Required Services for v1.0 MVP
+
+The following services are needed to implement the core features outlined in the project specification:
+
+#### Core Business Services
+
+1. **AuthenticationService**
+
+   - User login/logout functionality
+   - JWT token generation and validation
+   - Password verification and token refresh handling
+
+2. **UsersService**
+
+   - Create users (admin-only, no registration endpoint)
+   - Update user profiles and change passwords
+   - User management operations
+
+3. **GroupsService**
+
+   - Create and manage groups (primarily for couples)
+   - Add/remove group members
+   - Group settings management
+
+4. **ExpensesService**
+
+   - CRUD operations for expenses
+   - Expense validation and business rules
+   - Associate expenses with groups and users
+
+5. **ExpenseSplitsService**
+
+   - Calculate expense splits between users
+   - Handle split logic (equal splits, custom amounts)
+   - Generate split records for expenses
+
+6. **BalancesService**
+
+   - Calculate who owes what to whom
+   - Generate balance summaries for groups
+   - Real-time balance calculations
+
+7. **SettlementsService**
+   - Record payments between users
+   - Update balances when settlements occur
+   - Settlement history tracking
+
+#### Data Management Services
+
+8. **ImportService**
+
+   - Import Cospend backup files
+   - Data validation and transformation
+   - Batch import operations with status tracking
+
+9. **ExportService**
+   - Export data to CSV format
+   - Generate Cospend-compatible backup files
+   - Data formatting and serialization
+
+#### Infrastructure Services
+
+10. **NotificationService**
+
+    - Queue email notifications using outbox pattern
+    - Handle notification types: user created, expense added, settlement created
+    - Integration with background processing
+
+11. **EmailService**
+    - Send emails via email provider
+    - Email templating and delivery status tracking
+
+#### Existing Services
+
+- **DataSeederService** - Initial user creation from configuration _(implemented)_
+- **LogCleanupJob** - Background service for log maintenance _(implemented)_
+
+#### Service Implementation Guidelines
+
+- All services use `IUnitOfWork` for data access
+- Services return `Result<T>` pattern for error handling
+- Services contain business logic but do NOT call SaveChanges
+- Controllers handle SaveChanges operations
+- Services queue notifications for background processing
+- Follow dependency injection patterns with scoped lifetimes
+
 ## Data Access
 
 ### Entity Framework Core
@@ -137,6 +223,7 @@ public async Task<ActionResult> CreateUser(CreateUserRequestDto request)
 **Location**: `SplitDuo.Core/Persistence/UnitOfWork.cs`
 
 **Features**:
+
 - Interface and implementation in single file for tidiness
 - Direct DbSet exposure: `Users`, `Groups`, `GroupMembers`, `Expenses`, `ExpenseSplits`, `Settlements`, `Imports`
 - Transaction management: `BeginTransactionAsync`, `CommitTransactionAsync`, `RollbackTransactionAsync`
@@ -144,6 +231,7 @@ public async Task<ActionResult> CreateUser(CreateUserRequestDto request)
 - Proper disposal pattern implementation
 
 **Usage Pattern**:
+
 ```csharp
 // In Services - queue operations
 _unitOfWork.Users.Add(newUser);
