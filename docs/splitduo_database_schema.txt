@@ -21,7 +21,7 @@ Table users {
   deleted_at int [null, note: 'Soft delete unix timestamp']
   created_at int [not null, note: 'Unix timestamp in seconds']
   updated_at int [not null, note: 'Unix timestamp in seconds']
-  
+
   Note: 'User accounts - minimal custom implementation without Identity'
 }
 
@@ -34,25 +34,23 @@ Table groups {
   deleted_at int [null, note: 'Soft delete unix timestamp']
   created_at int [not null, note: 'Unix timestamp in seconds']
   updated_at int [not null, note: 'Unix timestamp in seconds']
-  
+
   Note: 'Groups for expense sharing - initially focused on couples (2 users)'
 }
 
 Table group_members {
   id integer [primary key, increment]
-  guid uuid [unique, not null, note: 'Public identifier for frontend']
   group_id integer [ref: > groups.id, not null]
   user_id integer [ref: > users.id, not null]
   role varchar(50) [not null, default: 'member', note: 'member, admin']
-  joined_at int [not null, note: 'Unix timestamp in seconds']
   deleted_at int [null, note: 'Soft delete unix timestamp']
   created_at int [not null, note: 'Unix timestamp in seconds']
   updated_at int [not null, note: 'Unix timestamp in seconds']
-  
+
   indexes {
     (group_id, user_id) [unique]
   }
-  
+
   Note: 'Group membership - links users to expense groups'
 }
 
@@ -69,7 +67,7 @@ Table expenses {
   deleted_at int [null, note: 'Soft delete unix timestamp']
   created_at int [not null, note: 'Unix timestamp in seconds']
   updated_at int [not null, note: 'Unix timestamp in seconds']
-  
+
   Note: 'Individual expenses within a group'
 }
 
@@ -82,11 +80,11 @@ Table expense_splits {
   split_percentage decimal(5,2) [note: 'Percentage of total expense (optional)']
   created_at timestamp [not null, default: `now()`]
   updated_at timestamp [not null, default: `now()`]
-  
+
   indexes {
     (expense_id, user_id) [unique]
   }
-  
+
   Note: 'How each expense is split between users'
 }
 
@@ -103,7 +101,7 @@ Table settlements {
   deleted_at int [null, note: 'Soft delete unix timestamp']
   created_at int [not null, note: 'Unix timestamp in seconds']
   updated_at int [not null, note: 'Unix timestamp in seconds']
-  
+
   Note: 'Settlements between users to balance expenses'
 }
 
@@ -119,6 +117,6 @@ Table cospend_imports {
   error_details text [note: 'Error information if import failed']
   created_at timestamp [not null, default: `now()`]
   updated_at timestamp [not null, default: `now()`]
-  
+
   Note: 'Track Cospend import operations for audit purposes'
 }
