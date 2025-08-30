@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SplitDuo.Api.Features.Users.Dto;
 using SplitDuo.Api.Features.Common.Dto;
+using SplitDuo.Api.Features.Users.Dto;
 
 namespace SplitDuo.Api.Features.Users.Controllers;
 

@@ -67,12 +67,13 @@ public static class ApiProgramExtensions
     private static void ConfigureServices(this WebApplicationBuilder builder)
     {
         builder.Services.AddHttpContextAccessor();
-        
+
         builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
         builder.Services.AddProblemDetails();
-        
+
         builder.Services.AddScoped<AuditSaveChangesInterceptor>();
         builder.Services.AddScoped<SoftDeleteSaveChangesInterceptor>();
+        builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
         builder.Services.AddHostedService<DataSeederService>();
 
         builder.AddQuartz();
