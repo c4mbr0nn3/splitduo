@@ -9,7 +9,7 @@
 - **App Name**: SplitDuo
 - **Available Domains**:
   - splitduo.io
-  - splitduo.app *(recommended)*
+  - splitduo.app _(recommended)_
   - splitduo.me
 - **Recommended Choice**: splitduo.app (matches the app nature and has built-in HTTPS requirements)
 
@@ -80,6 +80,7 @@
 
 - [ ] Set up .NET backend with PostgreSQL
 - [ ] Implement user authentication
+- [ ] Configure initial user creation via AppOptions (no registration endpoint)
 - [ ] Create mobile-first Vue.js frontend with Nuxt UI
 - [ ] Implement core expense CRUD operations
 - [ ] Add split calculation logic

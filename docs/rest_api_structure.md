@@ -22,16 +22,16 @@ The SplitDuo REST API follows RESTful conventions and uses JSON for request/resp
 
 ### Users
 
-| Method | Endpoint                    | Description                 |
-| ------ | --------------------------- | --------------------------- |
-| GET    | `/users`                    | List all users              |
-| POST   | `/users`                    | Create new user             |
-| GET    | `/users/me`                 | Get current user profile    |
-| PUT    | `/users/me`                 | Update current user profile |
-| PUT    | `/users/me/password`        | Change current user password|
-| GET    | `/users/{userId}`           | Get user by ID              |
-| PUT    | `/users/{userId}`           | Update user by ID           |
-| DELETE | `/users/{userId}`           | Delete user by ID           |
+| Method | Endpoint             | Description                  |
+| ------ | -------------------- | ---------------------------- |
+| GET    | `/users`             | List all users               |
+| POST   | `/users`             | Create new user              |
+| GET    | `/users/me`          | Get current user profile     |
+| PUT    | `/users/me`          | Update current user profile  |
+| PUT    | `/users/me/password` | Change current user password |
+| GET    | `/users/{userId}`    | Get user by ID               |
+| PUT    | `/users/{userId}`    | Update user by ID            |
+| DELETE | `/users/{userId}`    | Delete user by ID            |
 
 ### Groups
 
@@ -167,6 +167,19 @@ GET /api/v1/groups/123/expenses?startDate=2024-01-01&endDate=2024-01-31&category
   - `X-RateLimit-Limit`: Request limit
   - `X-RateLimit-Remaining`: Remaining requests
   - `X-RateLimit-Reset`: Reset unix timestamp
+
+## Initial Setup
+
+### User Creation
+
+- No registration endpoint available
+- Initial users created via AppOptions configuration
+- DataSeederService automatically creates first user on startup using:
+  - `App:InitialUserEmail`
+  - `App:InitialUserFirstName`
+  - `App:InitialUserLastName`
+  - `App:InitialUserPassword`
+- Additional users created through admin user management endpoints
 
 ## Versioning
 
