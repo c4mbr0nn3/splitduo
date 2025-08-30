@@ -74,7 +74,7 @@ The SplitDuo REST API follows RESTful conventions and uses JSON for request/resp
 
 | Method | Endpoint                           | Description           |
 | ------ | ---------------------------------- | --------------------- |
-| POST   | `/groups/{groupId}/import/cospend` | Import Cospend backup |
+| POST   | `/groups/{groupId}/import`         | Import data backup    |
 | GET    | `/groups/{groupId}/export/csv`     | Export to CSV         |
 | GET    | `/groups/{groupId}/export/cospend` | Export Cospend format |
 | GET    | `/imports/{importId}/status`       | Get import status     |

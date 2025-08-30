@@ -104,20 +104,20 @@ CREATE INDEX idx_settlements_confirmation ON settlements(group_id, is_confirmed)
 CREATE INDEX idx_settlements_deleted_at ON settlements(deleted_at);
 ```
 
-### Cospend Imports Table
+### Imports Table
 
 ```sql
 -- Fast lookup by GUID for frontend operations
-CREATE INDEX idx_cospend_imports_guid ON cospend_imports(guid);
+CREATE INDEX idx_imports_guid ON imports(guid);
 
 -- Query imports by user
-CREATE INDEX idx_cospend_imports_user ON cospend_imports(user_id, import_date DESC);
+CREATE INDEX idx_imports_user ON imports(user_id, import_date DESC);
 
 -- Query imports by group
-CREATE INDEX idx_cospend_imports_group ON cospend_imports(group_id, import_date DESC);
+CREATE INDEX idx_imports_group ON imports(group_id, import_date DESC);
 
 -- Query import status
-CREATE INDEX idx_cospend_imports_status ON cospend_imports(status, import_date DESC);
+CREATE INDEX idx_imports_status ON imports(status, import_date DESC);
 ```
 
 ## Performance Optimization Strategies

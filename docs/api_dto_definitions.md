@@ -307,7 +307,7 @@
 
 ## Import/Export DTOs
 
-### CospendImportRequestDto
+### ImportRequestDto
 
 ```json
 {
