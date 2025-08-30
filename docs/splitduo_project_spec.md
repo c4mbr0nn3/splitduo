@@ -81,6 +81,7 @@
 - [ ] Set up .NET backend with PostgreSQL
 - [ ] Implement user authentication
 - [ ] Configure initial user creation via AppOptions (no registration endpoint)
+- [ ] Implement email notification system (outbox pattern with background processing)
 - [ ] Create mobile-first Vue.js frontend with Nuxt UI
 - [ ] Implement core expense CRUD operations
 - [ ] Add split calculation logic

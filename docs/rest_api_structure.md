@@ -181,6 +181,14 @@ GET /api/v1/groups/123/expenses?startDate=2024-01-01&endDate=2024-01-31&category
   - `App:InitialUserPassword`
 - Additional users created through admin user management endpoints
 
+### Email Notifications
+
+- **Pattern**: Outbox pattern with background processing
+- **Storage**: Notifications table for reliable delivery
+- **Processing**: Background job sends emails asynchronously
+- **Cleanup**: Sent notifications automatically pruned after 30 days
+- **Triggers**: User management, expense operations, group changes, settlements
+
 ## Versioning
 
 - **Current Version**: v1
