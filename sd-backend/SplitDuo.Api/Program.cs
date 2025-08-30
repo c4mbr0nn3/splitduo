@@ -16,8 +16,6 @@ using (var scope = app.Services.CreateScope())
     context.Database.MigrateAsync().Wait();
 }
 
-if (app.Environment.IsDevelopment()) app.MapOpenApi();
-
 app.ConfigureServices();
 
 app.Run();

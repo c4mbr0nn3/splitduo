@@ -1,3 +1,4 @@
+using Scalar.AspNetCore;
 using Serilog;
 using SplitDuo.Core.Extensions;
 
@@ -14,6 +15,12 @@ public static class ApiProgramExtensions
 
     public static void ConfigureServices(this WebApplication app)
     {
+        if (app.Environment.IsDevelopment())
+        {
+            app.MapOpenApi();
+            app.MapScalarApiReference();
+        }
+
         app.UseHttpsRedirection();
         app.UseSerilogRequestLogging();
         app.UseAuthentication();
