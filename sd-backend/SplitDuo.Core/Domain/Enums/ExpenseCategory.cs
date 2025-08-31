@@ -3,7 +3,7 @@ namespace SplitDuo.Core.Domain.Enums;
 public enum ExpenseCategory
 {
     Other = 1,
-    Food = 2,
+    Groceries = 2,
     Transportation = 3,
     Utilities = 4,
     Entertainment = 5,
@@ -11,5 +11,6 @@ public enum ExpenseCategory
     Education = 7,
     Travel = 8,
     Shopping = 9,
-    Housing = 10
+    Housing = 10,
+    Dining = 11
 }

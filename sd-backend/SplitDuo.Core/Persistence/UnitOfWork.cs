@@ -4,7 +4,7 @@ using SplitDuo.Core.Domain.Entities;
 
 namespace SplitDuo.Core.Persistence;
 
-public interface IUnitOfWork : IDisposable
+public interface IUnitOfWork : IDisposable, IAsyncDisposable
 {
     DbSet<User> Users { get; }
     DbSet<Group> Groups { get; }
@@ -70,5 +70,11 @@ public class UnitOfWork(AppDbContext context) : IUnitOfWork
     {
         _transaction?.Dispose();
         context.Dispose();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_transaction != null) await _transaction.DisposeAsync();
+        await context.DisposeAsync();
     }
 }

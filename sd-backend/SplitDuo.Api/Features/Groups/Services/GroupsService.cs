@@ -48,6 +48,7 @@ public class GroupsService(IUnitOfWork unitOfWork) : IGroupsService
         var groupDtos = userGroups.Select(ug => new GroupDto
         {
             Id = ug.Group.Guid.ToString(),
+            OriginalId = ug.Group.Id,
             Name = ug.Group.Name,
             Description = ug.Group.Description,
             CreatedByUserId = ug.Group.CreatedByUser?.Guid.ToString() ?? "",
@@ -89,6 +90,7 @@ public class GroupsService(IUnitOfWork unitOfWork) : IGroupsService
         var groupDto = new GroupDto
         {
             Id = group.Guid.ToString(),
+            OriginalId = group.Id,
             Name = group.Name,
             Description = group.Description,
             CreatedByUserId = user.Guid.ToString(),
@@ -131,6 +133,7 @@ public class GroupsService(IUnitOfWork unitOfWork) : IGroupsService
         var groupDto = new GroupDto
         {
             Id = group.Guid.ToString(),
+            OriginalId = group.Id,
             Name = group.Name,
             Description = group.Description,
             CreatedByUserId = group.CreatedByUser?.Guid.ToString() ?? "",
@@ -184,6 +187,7 @@ public class GroupsService(IUnitOfWork unitOfWork) : IGroupsService
         var groupDto = new GroupDto
         {
             Id = group.Guid.ToString(),
+            OriginalId = group.Id,
             Name = group.Name,
             Description = group.Description,
             CreatedByUserId = group.CreatedByUser?.Guid.ToString() ?? "",

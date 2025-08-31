@@ -1,5 +1,3 @@
-using SplitDuo.Core.Common;
-
 namespace SplitDuo.Api.Features.Users.Dto;
 
 public class CreateUserDto

@@ -4,6 +4,7 @@ using SplitDuo.Api.Features.Authentication.Services;
 using SplitDuo.Api.Features.Common.Services;
 using SplitDuo.Api.Features.Expenses.Services;
 using SplitDuo.Api.Features.Groups.Services;
+using SplitDuo.Api.Features.Import.Services;
 using SplitDuo.Api.Features.Settlements.Services;
 using SplitDuo.Api.Features.Users.Services;
 using SplitDuo.Core.Extensions;
@@ -26,6 +27,7 @@ public static class ApiProgramExtensions
         builder.Services.AddScoped<IExpensesService, ExpensesService>();
         builder.Services.AddScoped<IBalancesService, BalancesService>();
         builder.Services.AddScoped<ISettlementsService, SettlementsService>();
+        builder.Services.AddScoped<IImportService, CospendImportService>();
     }
 
     public static void ConfigureServices(this WebApplication app)
