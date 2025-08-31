@@ -166,55 +166,39 @@ public class CospendExpenseDto
               .Select(name => name.Trim())
               .ToList();
 }
-
-public class CospendCategoryDto
-{
-    [Name("categoryname")]
-    public string CategoryName { get; set; } = "";
-
-    [Name("categoryid")]
-    public int CategoryId { get; set; }
-
-    [Name("icon")]
-    public string Icon { get; set; } = "";
-
-    [Name("color")]
-    public string Color { get; set; } = "";
-}
 ```
 
 #### 3. Import Service Structure
 
-**Service Location:** `SplitDuo.Api/Features/Import/Services/ImportService.cs`
+**Service Location:** `SplitDuo.Api/Features/Import/Services/CospendImportService.cs`
 
 **Interface:**
 
 ```csharp
 public interface IImportService
 {
-    Task<Result<ImportStatusDto>> ImportCospendFileAsync(string groupId, IFormFile file, Guid userId);
+    Task<Result<ImportStatusDto>> ImportFileAsync(IFormFile file, int groupId, int userId);
 }
 ```
 
 **Key Methods:**
 
 ```csharp
-public class ImportService : IImportService
+public class CospendImportService : IImportService
 {
     // Main import orchestration
-    public async Task<Result<ImportStatusDto>> ImportCospendFileAsync(string groupId, IFormFile file, Guid userId);
+    public async Task<Result<ImportStatusDto>> ImportFileAsync(IFormFile file, int groupId, int userId);
 
     // CSV parsing methods
-    private async Task<List<CospendMemberDto>> ParseMembersSection(StringReader reader);
-    private async Task<List<CospendExpenseDto>> ParseExpensesSection(StringReader reader);
-    private async Task<List<CospendCategoryDto>> ParseCategoriesSection(StringReader reader);
+    private async Task<List<CospendExpenseDto>> ParseExpensesSection(CsvReader reader);
 
     // Data transformation methods
-    private async Task<Result> CreateExpensesFromCospend(List<CospendExpenseDto> expenses, int groupId);
+    private async Task<Result<int>> CreateExpensesAsync(List<CospendExpenseDto> expenses, int groupId);
 
     // Helper methods
-    private Dictionary<int, ExpenseCategory> BuildCategoryMapping();
-    private Dictionary<string, int> BuildStaticUserMapping();
+    private static Dictionary<int, ExpenseCategory> BuildCategoryMapping();
+    private static Dictionary<int, PaymentMode> BuildPaymentModeMapping();
+    private static Dictionary<string, int> BuildStaticUserMapping();
     private ExpenseSplit[] CalculateEqualSplits(decimal amount, List<int> userIds);
 }
 ```
@@ -223,7 +207,7 @@ public class ImportService : IImportService
 
 #### 1. File Processing Pipeline
 
-```
+```bash
 1. Upload File → 2. Parse CSV → 3. Validate Data → 4. Transform Data → 5. Save to Database
 ```
 
@@ -239,37 +223,40 @@ public class ImportService : IImportService
 **Step 2: CSV Parsing with CsvHelper**
 
 ```csharp
-private async Task<List<CospendMemberDto>> ParseMembersSection(StringReader reader)
+public async Task<Result<ImportStatusDto>> ImportFileAsync(IFormFile file, int groupId, int userId)
 {
-    var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+    try
     {
-        HasHeaderRecord = true,
-        TrimOptions = TrimOptions.Trim,
-        MissingFieldFound = null // Ignore missing fields
-    };
-
-    using var csv = new CsvReader(reader, config);
-    var records = new List<CospendMemberDto>();
-
-    await csv.ReadAsync();
-    csv.ReadHeader();
-
-    while (await csv.ReadAsync())
-    {
-        var record = csv.GetRecord<CospendMemberDto>();
-        if (record != null && record.IsActive)
+        var import = new Core.Domain.Entities.Import
         {
-            records.Add(record);
-        }
-    }
+            FileName = file.FileName,
+            ImportDate = DateOnly.FromDateTime(DateTime.UtcNow),
+            GroupId = groupId,
+            UserId = userId
+        };
 
-    return records;
+        var reader = new CsvReader(new StreamReader(file.OpenReadStream()), CultureInfo.InvariantCulture);
+        var expenses = await ParseExpensesSection(reader);
+        var result = await CreateExpensesAsync(expenses, groupId);
+        if (result.IsFailure) throw new Exception(result.Error);
+
+        import.RecordsCount = result.Value;
+        import.Status = ImportStatus.Completed;
+        await unitOfWork.Imports.AddAsync(import);
+
+        var response = new ImportStatusDto(import);
+        return Result<ImportStatusDto>.Success(response);
+    }
+    catch (Exception e)
+    {
+        logger.LogError(e, "An error occured while importing Cospend file");
+        return Result<ImportStatusDto>.InternalServerError(e.Message);
+    }
 }
 ```
 
 **Step 3: Data Validation**
 
-- Validate known members exist in CSV (expected users)
 - Validate expense dates are parseable
 - Validate amounts are positive
 - Check for required fields
@@ -279,13 +266,12 @@ private async Task<List<CospendMemberDto>> ParseMembersSection(StringReader read
 **Static User Mapping (MVP Approach):**
 
 ```csharp
-private Dictionary<string, int> BuildStaticUserMapping()
+private static Dictionary<string, int> BuildStaticUserMapping()
 {
-    // Hard-coded mapping for MVP (2-person household)
     return new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
     {
-        { "User1", /* existing_user1_id */ },
-        { "User2", /* existing_user2_id */ }
+        { "Francesco", 1 },
+        { "Beatrice", 2 }
     };
 }
 ```
@@ -293,58 +279,61 @@ private Dictionary<string, int> BuildStaticUserMapping()
 **Expense Creation:**
 
 ```csharp
-private async Task<Result> CreateExpensesFromCospend(
-    List<CospendExpenseDto> expenses,
-    int groupId)
+private async Task<Result<int>> CreateExpensesAsync(List<CospendExpenseDto> expenses, int groupId)
 {
+    var recordsCount = 0;
     var categoryMapping = BuildCategoryMapping();
+    var paymentModeMapping = BuildPaymentModeMapping();
     var userNameMapping = BuildStaticUserMapping();
 
-    foreach (var cospendExpense in expenses.Where(e => !e.IsDeleted))
+    foreach (var exp in expenses.Where(e => !e.IsDeleted))
     {
         // Map category
-        var category = categoryMapping.GetValueOrDefault(cospendExpense.CategoryId, ExpenseCategory.Other);
+        var category = categoryMapping.GetValueOrDefault(exp.CategoryId, ExpenseCategory.Other);
+
+        // Map payment mode
+        var paymentMode = paymentModeMapping.GetValueOrDefault(exp.PaymentModeId, PaymentMode.Other);
 
         // Find payer using static mapping
-        if (!userNameMapping.TryGetValue(cospendExpense.PayerName, out var payerId))
-        {
-            continue; // Skip if payer not found in static mapping
-        }
+        // Skip if payer not found in static mapping
+        if (!userNameMapping.TryGetValue(exp.PayerName, out var payerId)) continue;
 
         // Create expense
         var expense = new Expense
         {
-            Guid = Guid.CreateVersion7(),
             GroupId = groupId,
-            Title = cospendExpense.What,
-            Description = cospendExpense.Comment,
-            Amount = cospendExpense.Amount,
-            PaidByUserId = payerId,
-            ExpenseDate = cospendExpense.ParsedDate,
-            CategoryId = (int)category
+            Title = exp.What,
+            Description = exp.Comment,
+            Amount = exp.Amount,
+            PaidBy = payerId,
+            ExpenseDate = exp.ParsedDate,
+            Category = category,
+            PaymentMode = paymentMode
         };
 
-        _unitOfWork.Expenses.Add(expense);
-        await _unitOfWork.SaveChangesAsync(); // Need ID for splits
+        await unitOfWork.Expenses.AddAsync(expense);
+        await unitOfWork.SaveChangesAsync(); // Need ID for splits
 
         // Create splits
-        var owersUserIds = cospendExpense.OwersNames
+        var owersUserIds = exp.OwersNames
             .Select(name => userNameMapping.GetValueOrDefault(name))
             .Where(id => id > 0)
             .ToList();
 
-        if (owersUserIds.Any())
+        if (owersUserIds.Count == 0) throw new Exception("No users were found for expense");
+
+        var splits = CalculateEqualSplits(expense.Amount, owersUserIds);
+        foreach (var split in splits)
         {
-            var splits = CalculateEqualSplits(expense.Amount, owersUserIds);
-            foreach (var split in splits)
-            {
-                split.ExpenseId = expense.Id;
-                _unitOfWork.ExpenseSplits.Add(split);
-            }
+            split.ExpenseId = expense.Id;
         }
+
+        await unitOfWork.ExpenseSplits.AddRangeAsync(splits);
+        await unitOfWork.SaveChangesAsync();
+        recordsCount++;
     }
 
-    return Result.Success();
+    return Result<int>.Success(recordsCount);
 }
 ```
 
@@ -354,10 +343,26 @@ private async Task<Result> CreateExpensesFromCospend(
 - Update Import entity status (Completed/Failed)
 - Record statistics (records imported, errors)
 
+### Payment Mode Mapping Implementation
+
+```csharp
+private static Dictionary<int, PaymentMode> BuildPaymentModeMapping()
+{
+    return new Dictionary<int, PaymentMode>
+    {
+        { 1, PaymentMode.Card },
+        { 2, PaymentMode.Cash },
+        { 3, PaymentMode.Other },
+        { 4, PaymentMode.Transfer },
+        { 5, PaymentMode.OnlineService }
+    };
+}
+```
+
 ### Category Mapping Implementation
 
 ```csharp
-private Dictionary<int, ExpenseCategory> BuildCategoryMapping()
+private static Dictionary<int, ExpenseCategory> BuildCategoryMapping()
 {
     return new Dictionary<int, ExpenseCategory>
     {
