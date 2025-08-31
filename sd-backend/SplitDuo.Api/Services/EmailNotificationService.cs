@@ -15,7 +15,7 @@ public interface INotificationService
 }
 
 public class EmailNotificationService(
-    Logger<EmailNotificationService> logger,
+    ILogger<EmailNotificationService> logger,
     ISmtpService smtpService,
     IUnitOfWork unitOfWork) : INotificationService
 {
