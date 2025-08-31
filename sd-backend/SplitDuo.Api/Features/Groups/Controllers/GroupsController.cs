@@ -1,72 +1,133 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SplitDuo.Api.Features.Common.Controllers;
 using SplitDuo.Api.Features.Common.Dto;
 using SplitDuo.Api.Features.Groups.Dto;
+using SplitDuo.Api.Features.Groups.Services;
+using SplitDuo.Core.Common;
+using SplitDuo.Core.Persistence;
 
 namespace SplitDuo.Api.Features.Groups.Controllers;
 
 [ApiController]
 [Route("api/v1/groups")]
 [Authorize]
-public class GroupsController(ILogger<GroupsController> logger) : ControllerBase
+public class GroupsController(
+    IGroupsService groupsService,
+    IUnitOfWork unitOfWork,
+    ILogger<GroupsController> logger) : BaseApiController
 {
     [HttpGet]
     public async Task<ActionResult<ApiResponseDto<List<GroupDto>>>> GetUserGroups()
     {
-        // TODO: Implement get user groups logic
-        throw new NotImplementedException();
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+            return HandleResult(Result<List<GroupDto>>.Unauthorized("User not authenticated"));
+
+        var result = await groupsService.GetUserGroupsAsync(currentUserId.Value);
+        return HandleResult(result, "User groups retrieved successfully");
     }
 
     [HttpPost]
     public async Task<ActionResult<ApiResponseDto<GroupDto>>> CreateGroup([FromBody] CreateGroupRequestDto request)
     {
         logger.LogInformation("Creating group: {GroupName}", request.Name);
-        
-        // TODO: Implement create group logic
-        throw new NotImplementedException();
+
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+            return HandleResult(Result<GroupDto>.Unauthorized("User not authenticated"));
+
+        var result = await groupsService.CreateGroupAsync(currentUserId.Value, request);
+
+        if (result.IsSuccess)
+            await unitOfWork.SaveChangesAsync();
+
+        return HandleResult(result, "Group created successfully");
     }
 
     [HttpGet("{groupId}")]
     public async Task<ActionResult<ApiResponseDto<GroupDto>>> GetGroup(string groupId)
     {
-        // TODO: Implement get group details logic
-        throw new NotImplementedException();
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+            return HandleResult(Result<GroupDto>.Unauthorized("User not authenticated"));
+
+        var result = await groupsService.GetGroupAsync(groupId, currentUserId.Value);
+        return HandleResult(result, "Group retrieved successfully");
     }
 
     [HttpPut("{groupId}")]
-    public async Task<ActionResult<ApiResponseDto<GroupDto>>> UpdateGroup(string groupId, [FromBody] UpdateGroupRequestDto request)
+    public async Task<ActionResult<ApiResponseDto<GroupDto>>> UpdateGroup(string groupId,
+        [FromBody] UpdateGroupRequestDto request)
     {
-        // TODO: Implement update group logic
-        throw new NotImplementedException();
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+            return HandleResult(Result<GroupDto>.Unauthorized("User not authenticated"));
+
+        var result = await groupsService.UpdateGroupAsync(groupId, currentUserId.Value, request);
+
+        if (result.IsSuccess)
+            await unitOfWork.SaveChangesAsync();
+
+        return HandleResult(result, "Group updated successfully");
     }
 
     [HttpDelete("{groupId}")]
-    public async Task<ActionResult<ApiResponseDto<object>>> DeleteGroup(string groupId)
+    public async Task<ActionResult> DeleteGroup(string groupId)
     {
         logger.LogWarning("Deleting group: {GroupId}", groupId);
-        
-        // TODO: Implement delete group logic
-        throw new NotImplementedException();
+
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+            return HandleResult(Result.Unauthorized("User not authenticated"));
+
+        var result = await groupsService.DeleteGroupAsync(groupId, currentUserId.Value);
+
+        if (result.IsSuccess)
+            await unitOfWork.SaveChangesAsync();
+
+        return HandleResult(result, "Group deleted successfully");
     }
 
     [HttpGet("{groupId}/members")]
     public async Task<ActionResult<ApiResponseDto<List<GroupMemberDto>>>> GetGroupMembers(string groupId)
     {
-        // TODO: Implement get group members logic
-        throw new NotImplementedException();
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+            return HandleResult(Result<List<GroupMemberDto>>.Unauthorized("User not authenticated"));
+
+        var result = await groupsService.GetGroupMembersAsync(groupId, currentUserId.Value);
+        return HandleResult(result, "Group members retrieved successfully");
     }
 
     [HttpPost("{groupId}/members")]
-    public async Task<ActionResult<ApiResponseDto<GroupMemberDto>>> AddGroupMember(string groupId, [FromBody] AddGroupMemberRequestDto request)
+    public async Task<ActionResult<ApiResponseDto<GroupMemberDto>>> AddGroupMember(string groupId,
+        [FromBody] AddGroupMemberRequestDto request)
     {
-        // TODO: Implement add group member logic
-        throw new NotImplementedException();
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+            return HandleResult(Result<GroupMemberDto>.Unauthorized("User not authenticated"));
+
+        var result = await groupsService.AddGroupMemberAsync(groupId, currentUserId.Value, request);
+
+        if (result.IsSuccess)
+            await unitOfWork.SaveChangesAsync();
+
+        return HandleResult(result, "Group member added successfully");
     }
 
     [HttpDelete("{groupId}/members/{userId}")]
-    public async Task<ActionResult<ApiResponseDto<object>>> RemoveGroupMember(string groupId, string userId)
+    public async Task<ActionResult> RemoveGroupMember(string groupId, string userId)
     {
-        // TODO: Implement remove group member logic
-        throw new NotImplementedException();
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+            return HandleResult(Result.Unauthorized("User not authenticated"));
+
+        var result = await groupsService.RemoveGroupMemberAsync(groupId, userId, currentUserId.Value);
+
+        if (result.IsSuccess)
+            await unitOfWork.SaveChangesAsync();
+
+        return HandleResult(result, "Group member removed successfully");
     }
 }
