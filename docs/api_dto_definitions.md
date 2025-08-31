@@ -312,7 +312,8 @@
 ```json
 {
   "file": "file (multipart/form-data)",
-  "groupId": "string (required, GUID)"
+  "groupId": "string (required, GUID)",
+  "importTypeId": "number (required, 1=Cospend)"
 }
 ```
 
@@ -321,8 +322,8 @@
 ```json
 {
   "id": "string (GUID)",
-  "filename": "string",
-  "status": "string (pending|completed|failed)",
+  "fileName": "string",
+  "importStatusId": "number",
   "recordsImported": "number",
   "errorDetails": "string",
   "importDate": "string (ISO 8601 date)"

@@ -158,7 +158,6 @@ POST /api/v1/auth/revoke
 | POST   | `/groups/{groupId}/import`         | Import data backup    |
 | GET    | `/groups/{groupId}/export/csv`     | Export to CSV         |
 | GET    | `/groups/{groupId}/export/cospend` | Export Cospend format |
-| GET    | `/imports/{importId}/status`       | Get import status     |
 
 ## Error Handling
 
