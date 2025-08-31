@@ -674,10 +674,34 @@ Controllers → Services → Notifications Table → Background Job → Email Pr
 
 ### Database Design
 
-- **Notifications Table** - Stores pending/sent notifications
+**Notifications Table Schema:**
+
+```csharp
+[Table("notifications")]
+[Index(nameof(SentAt))]                              // For unsent notifications query
+[Index(nameof(CreatedAt))]                           // For cleanup operations
+[Index(nameof(CreatedAt), nameof(SentAt))]          // For monitoring/reporting queries
+[Index(nameof(SentAt), nameof(RetryCount))]         // For failed notifications with retry < 3
+public class Notification
+{
+    [Column("id"), Key] public int Id { get; set; }
+    [Column("to")] public string To { get; set; } = "";
+    [Column("subject")] public string Subject { get; set; } = "";
+    [Column("body")] public string Body { get; set; } = "";
+    [Column("created_at")] public long CreatedAt { get; set; }
+    [Column("sent_at")] public long? SentAt { get; set; }
+    [Column("retry_count")] public int RetryCount { get; set; } = 0;
+    [Column("error_message")] public string? ErrorMessage { get; set; }
+}
+```
+
+**Database Features:**
+
 - **Transactional Consistency** - Notifications queued in same transaction as business data
-- **Status Tracking** - Pending, Processing, Sent, Failed states
-- **Retry Logic** - Failed notifications can be retried
+- **Status Tracking** - `SentAt` null = pending, populated = sent
+- **Retry Logic** - Maximum 3 retry attempts with `RetryCount` tracking
+- **Error Tracking** - `ErrorMessage` stores last failure reason
+- **Performance Indexes** - Optimized for common query patterns
 - **Cleanup Policy** - Sent notifications pruned after 30 days to maintain lightweight database
 
 ### Notification Types & Prioritization
@@ -706,12 +730,78 @@ Controllers → Services → Notifications Table → Background Job → Email Pr
 - **Group deleted** - Group lifecycle notifications
 - **User deleted** - Account deletion confirmation
 
+### Service Implementation
+
+**EmailNotificationService** (`SplitDuo.Api/Services/EmailNotificationService.cs`):
+
+```csharp
+public interface INotificationService
+{
+    Task<Result<List<Notification>>> GetUnsentNotifications();
+    Task<Result> SendAsync(Notification notification);
+    Task<Result> EnqueueAsync(Notification notification);
+}
+```
+
+**Key Methods:**
+
+- **`GetUnsentNotifications()`** - Returns notifications where `SentAt IS NULL AND RetryCount < 3`
+- **`SendAsync()`** - Attempts to send email via SMTP, handles retry logic and error tracking
+- **`EnqueueAsync()`** - Adds new notifications to the database queue
+
+**SmtpService** (`SplitDuo.Core/Services/SmtpService.cs`):
+
+- Uses MailKit for SMTP operations
+- Environment-based configuration via `SmtpOptions`
+- Comprehensive error handling with specific HTTP status codes
+- Supports HTML email bodies
+
+### Retry Logic & Error Handling
+
+**Retry Behavior:**
+
+1. **Fresh Notification**: `RetryCount = 0`, ready for processing
+2. **First Failure**: `RetryCount = 1`, error stored in `ErrorMessage`
+3. **Second Failure**: `RetryCount = 2`, error updated
+4. **Third Failure**: `RetryCount = 3`, final attempt
+5. **Max Retries Reached**: Notification excluded from `GetUnsentNotifications()`
+
+**Error Categories:**
+
+- **Authentication Failures**: 401 Unauthorized (SMTP credentials)
+- **Command Errors**: 400 Bad Request (SMTP protocol errors)
+- **Network Issues**: 503 Service Unavailable (connection failures)
+- **Invalid Emails**: 400 Bad Request (malformed addresses)
+- **General Failures**: 500 Internal Server Error (unexpected errors)
+
+**Logging:**
+
+- **Info Level**: Send attempts with retry count
+- **Error Level**: Failures with detailed error messages
+- **Debug Level**: Queue operations
+
+### SMTP Configuration
+
+**Environment Variables:**
+
+```bash
+SD_EMAIL_SENDER_NAME="SplitDuo"
+SD_EMAIL_SENDER_ADDRESS="noreply@splitduo.app"
+SD_EMAIL_SMTP_HOST="localhost"
+SD_EMAIL_SMTP_PORT="1025"
+SD_EMAIL_SMTP_USERNAME="any"
+SD_EMAIL_SMTP_PASSWORD=""
+SD_EMAIL_SSL="false"
+```
+
 ### Implementation Benefits
 
-- **Reliability** - Notifications survive application restarts
-- **Performance** - Non-blocking business operations
-- **Monitoring** - Track notification delivery status
+- **Reliability** - Notifications survive application restarts with retry logic
+- **Performance** - Non-blocking business operations with background processing
+- **Monitoring** - Comprehensive error tracking and logging
+- **Resilience** - Automatic retry with backoff for transient failures
 - **Scalability** - Background processing prevents bottlenecks
+- **Observability** - Detailed logging for debugging and monitoring
 
 ## Logging System
 
