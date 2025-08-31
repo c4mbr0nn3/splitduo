@@ -187,11 +187,11 @@ if (!IsValidInput(request))
     return Result<UserDto>.UnprocessableEntity("Invalid input data");
 ```
 
-### BaseApiController
+### BaseApiController with UserContext Integration
 
 **Location**: `SplitDuo.Api/Features/Common/Controllers/BaseApiController.cs`
 
-The `BaseApiController` provides centralized Result handling, eliminating repetitive response mapping code in controllers.
+The `BaseApiController` provides centralized Result handling and user context access, eliminating repetitive response mapping code in controllers.
 
 **Features:**
 
@@ -199,6 +199,8 @@ The `BaseApiController` provides centralized Result handling, eliminating repeti
 - **Consistent API Responses**: Maintains standardized response format using `ApiResponseDto<T>`
 - **Error Code Generation**: Automatically generates error codes from HTTP status codes
 - **Generic Support**: Handles both `Result<T>` and non-generic `Result` types
+- **User Context Access**: Built-in access to current user information via UserContextService
+- **Authentication Helpers**: Protected methods for common authentication checks
 
 **Controller Base Implementation:**
 
@@ -206,6 +208,15 @@ The `BaseApiController` provides centralized Result handling, eliminating repeti
 [ApiController]
 public abstract class BaseApiController : ControllerBase
 {
+    private IUserContextService? _userContextService;
+
+    private IUserContextService UserContextService =>
+        _userContextService ??= HttpContext.RequestServices.GetRequiredService<IUserContextService>();
+
+    protected Guid? GetCurrentUserId() => UserContextService.GetCurrentUserId();
+    protected Task<User?> GetCurrentUserAsync() => UserContextService.GetCurrentUserAsync();
+    protected bool IsUserAuthenticated() => UserContextService.IsAuthenticated();
+
     protected ActionResult<ApiResponseDto<T>> HandleResult<T>(Result<T> result, string? successMessage = null)
     {
         if (result.IsSuccess)
@@ -252,6 +263,18 @@ public class AuthController : BaseApiController
         var result = await _authenticationService.LoginAsync(request);
         return HandleResult(result, "Login successful");
     }
+
+    [HttpPost("revoke")]
+    [Authorize]
+    public async Task<ActionResult> RevokeToken([FromBody] RefreshTokenRequestDto request)
+    {
+        var userId = GetCurrentUserId(); // Using BaseApiController method
+        if (userId == null)
+            return HandleResult(Result.Unauthorized("User not authenticated"));
+
+        var result = await _authenticationService.RevokeTokenAsync(request.RefreshToken, userId.Value);
+        return HandleResult(result, "Token revoked successfully");
+    }
 }
 ```
 
@@ -275,6 +298,171 @@ public class AuthController : BaseApiController
 | `Conflict()`               | 409 Conflict             | `Conflict()`      |
 | `UnprocessableEntity()`    | 422 Unprocessable Entity | `StatusCode(422)` |
 | `Failure()`                | 400 Bad Request          | `BadRequest()`    |
+
+## User Context Service
+
+### UserContextService Implementation
+
+**Location**: `SplitDuo.Api/Features/Common/Services/UserContextService.cs`
+
+The `UserContextService` provides centralized access to current user information from HTTP context, eliminating the need for manual JWT claims parsing in controllers and services.
+
+### Service Interface
+
+```csharp
+public interface IUserContextService
+{
+    Guid? GetCurrentUserId();
+    Task<User?> GetCurrentUserAsync();
+    bool IsAuthenticated();
+}
+```
+
+### Implementation Features
+
+**JWT Claims Integration**:
+
+- Extracts user ID from `"userId"` claim in JWT token
+- Handles null/invalid claims gracefully
+- Uses `IHttpContextAccessor` for HTTP context access
+
+**Database Integration**:
+
+- `GetCurrentUserAsync()` queries database using `IUnitOfWork`
+- Returns full `User` entity based on GUID from JWT claims
+- Efficient single query with automatic caching by EF Core
+
+**Authentication Check**:
+
+- `IsAuthenticated()` verifies current request has valid authentication
+- Checks `HttpContext.User.Identity.IsAuthenticated` property
+
+### BaseApiController Integration
+
+**Service Access Pattern**:
+
+```csharp
+public abstract class BaseApiController : ControllerBase
+{
+    private IUserContextService? _userContextService;
+
+    private IUserContextService UserContextService =>
+        _userContextService ??= HttpContext.RequestServices.GetRequiredService<IUserContextService>();
+}
+```
+
+**Protected Helper Methods**:
+
+- `GetCurrentUserId()` - Returns current user's GUID or null
+- `GetCurrentUserAsync()` - Returns full User entity or null
+- `IsUserAuthenticated()` - Returns authentication status
+
+### Usage Patterns
+
+**In Controllers (via BaseApiController)**:
+
+```csharp
+[Authorize]
+[HttpGet("profile")]
+public async Task<ActionResult<ApiResponseDto<UserDto>>> GetCurrentUser()
+{
+    var userId = GetCurrentUserId();
+    if (userId == null)
+        return HandleResult(Result.Unauthorized("User not authenticated"));
+
+    var user = await GetCurrentUserAsync();
+    if (user == null)
+        return HandleResult(Result.NotFound("User not found"));
+
+    return HandleResult(Result.Success(userDto), "User retrieved successfully");
+}
+```
+
+**Direct Service Injection**:
+
+```csharp
+public class ExpensesService(IUnitOfWork unitOfWork, IUserContextService userContext)
+{
+    public async Task<Result<ExpenseDto>> CreateExpenseAsync(CreateExpenseRequestDto request)
+    {
+        var currentUserId = userContext.GetCurrentUserId();
+        if (currentUserId == null)
+            return Result<ExpenseDto>.Unauthorized("User not authenticated");
+
+        // Use currentUserId for authorization checks and audit trails
+        var expense = new Expense
+        {
+            CreatedBy = currentUserId.Value,
+            // ... other properties
+        };
+
+        unitOfWork.Expenses.Add(expense);
+        return Result<ExpenseDto>.Success(expenseDto);
+    }
+}
+```
+
+### Security Features
+
+**Claims Validation**:
+
+- Validates GUID format from JWT claims
+- Returns null for invalid or missing user IDs
+- No exceptions thrown for malformed data
+
+**Authentication Requirements**:
+
+- Works with `[Authorize]` attribute for endpoint protection
+- Gracefully handles unauthenticated requests
+- Provides clear authentication status checks
+
+**Database Consistency**:
+
+- User lookups use GUID from JWT (not integer ID)
+- Handles cases where JWT user doesn't exist in database
+- Returns null rather than throwing exceptions
+
+### Registration & Dependencies
+
+**Dependency Injection Registration**:
+
+```csharp
+// In ApiProgramExtensions.cs
+builder.Services.AddScoped<IUserContextService, UserContextService>();
+builder.Services.AddHttpContextAccessor(); // Already registered in Core
+```
+
+**Service Dependencies**:
+
+- `IHttpContextAccessor` - For accessing current HTTP context
+- `IUnitOfWork` - For database user lookups
+- Registered as Scoped lifetime for per-request consistency
+
+### Benefits
+
+**Centralized User Access**:
+
+- Single point of access for current user information
+- Consistent user ID extraction across all controllers
+- Eliminates duplicate JWT parsing code
+
+**Simplified Controllers**:
+
+- No need to inject `IUserContextService` directly when using `BaseApiController`
+- Clean, readable controller methods
+- Reduced constructor parameters
+
+**Enhanced Security**:
+
+- Centralized validation of user claims
+- Consistent handling of authentication edge cases
+- Clear separation between authentication and authorization logic
+
+**Maintainability**:
+
+- Changes to user context logic centralized in one service
+- Easy to modify JWT claim names or structure
+- Simplified unit testing with mockable interface
 
 ### Required Services for v1.0 MVP
 
@@ -343,13 +531,22 @@ The following services are needed to implement the core features outlined in the
 
 #### Infrastructure Services
 
-10. **NotificationService**
+10. **UserContextService** _(implemented)_
+
+    - **Current User Access**: Get authenticated user ID and entity from HTTP context
+    - **Authentication Check**: Verify if current request is authenticated
+    - **JWT Claims Integration**: Extract user information from JWT token claims
+    - **Location**: `SplitDuo.Api/Features/Common/Services/UserContextService.cs`
+    - **Integration**: Available through BaseApiController protected methods
+    - **Features**: Centralized user context access, simplified authentication checks
+
+11. **NotificationService**
 
     - Queue email notifications using outbox pattern
     - Handle notification types: user created, expense added, settlement created
     - Integration with background processing
 
-11. **EmailService**
+12. **EmailService**
     - Send emails via email provider
     - Email templating and delivery status tracking
 
