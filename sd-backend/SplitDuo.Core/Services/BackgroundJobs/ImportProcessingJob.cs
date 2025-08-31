@@ -17,10 +17,18 @@ public class ImportProcessingJob(
     {
         var importGuid = context.JobDetail.JobDataMap.GetString("ImportGuid");
         var filePath = context.JobDetail.JobDataMap.GetString("FilePath");
+        var importTypeString = context.JobDetail.JobDataMap.GetString("ImportType");
 
-        if (string.IsNullOrEmpty(importGuid) || string.IsNullOrEmpty(filePath))
+        if (string.IsNullOrEmpty(importGuid) || string.IsNullOrEmpty(filePath) ||
+            string.IsNullOrEmpty(importTypeString))
         {
-            logger.LogError("ImportProcessingJob: Missing required job data (ImportGuid or FilePath)");
+            logger.LogError("ImportProcessingJob: Missing required job data (ImportGuid, FilePath, or ImportType)");
+            return;
+        }
+
+        if (!Enum.TryParse<ImportType>(importTypeString, out var importType))
+        {
+            logger.LogError("ImportProcessingJob: Invalid ImportType: {ImportType}", importTypeString);
             return;
         }
 
@@ -44,7 +52,7 @@ public class ImportProcessingJob(
         try
         {
             // Get the appropriate import service using the factory
-            var importService = importServiceFactory.GetImportService(ImportType.Cospend); // TODO: Get from job data
+            var importService = importServiceFactory.GetImportService(importType);
 
             // Process import using the service
             var result = await importService.ProcessImportAsync(filePath, import.GroupId, import.UserId);

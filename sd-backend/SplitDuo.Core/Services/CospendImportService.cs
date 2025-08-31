@@ -7,12 +7,13 @@ using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Domain.Enums;
 using SplitDuo.Core.Persistence;
+using SplitDuo.Core.Services.BackgroundJobs;
 
 namespace SplitDuo.Core.Services;
 
 public class CospendImportService(
-    ILogger<CospendImportService> logger, 
-    IUnitOfWork unitOfWork, 
+    ILogger<CospendImportService> logger,
+    IUnitOfWork unitOfWork,
     ISchedulerFactory schedulerFactory) : IImportService
 {
     public async Task<Result<ImportStatusDto>> StartImportAsync(IFormFile file, int groupId, int userId)
@@ -51,10 +52,11 @@ public class CospendImportService(
             var jobData = new JobDataMap
             {
                 ["ImportGuid"] = import.Guid.ToString(),
-                ["FilePath"] = tempFilePath
+                ["FilePath"] = tempFilePath,
+                ["ImportType"] = nameof(ImportType.Cospend)
             };
 
-            var job = JobBuilder.Create<Core.Services.BackgroundJobs.ImportProcessingJob>()
+            var job = JobBuilder.Create<ImportProcessingJob>()
                 .WithIdentity($"import-{import.Guid}")
                 .UsingJobData(jobData)
                 .Build();
@@ -80,17 +82,17 @@ public class CospendImportService(
     {
         try
         {
-            using var fileStream = File.OpenRead(filePath);
+            await using var fileStream = File.OpenRead(filePath);
             using var streamReader = new StreamReader(fileStream);
             using var reader = new CsvReader(streamReader, CultureInfo.InvariantCulture);
-            
+
             // Configure CsvHelper to handle missing fields gracefully
             reader.Context.Configuration.MissingFieldFound = null;
             reader.Context.Configuration.HeaderValidated = null;
-            
+
             var expenses = await ParseExpensesSection(reader);
             var result = await CreateExpensesAsync(expenses, groupId);
-            
+
             return result;
         }
         catch (Exception e)
@@ -217,7 +219,7 @@ public class CospendImportService(
         await unitOfWork.SaveChangesAsync();
 
         var totalSplits = expensesToInsert.Sum(e => e.ExpenseSplits.Count);
-        logger.LogInformation("Successfully imported {ExpenseCount} expenses with {SplitCount} splits", 
+        logger.LogInformation("Successfully imported {ExpenseCount} expenses with {SplitCount} splits",
             expensesToInsert.Count, totalSplits);
 
         return Result<int>.Success(expensesToInsert.Count);
