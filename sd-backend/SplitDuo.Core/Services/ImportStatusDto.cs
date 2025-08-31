@@ -1,6 +1,6 @@
 using SplitDuo.Core.Domain.Enums;
 
-namespace SplitDuo.Api.Features.Import.Dto;
+namespace SplitDuo.Core.Services;
 
 public class ImportStatusDto
 {

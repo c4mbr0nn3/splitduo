@@ -1,16 +1,21 @@
 using System.Globalization;
 using CsvHelper;
-using SplitDuo.Api.Features.Import.Dto;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
+using Quartz;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Domain.Enums;
 using SplitDuo.Core.Persistence;
 
-namespace SplitDuo.Api.Features.Import.Services;
+namespace SplitDuo.Core.Services;
 
-public class CospendImportService(ILogger<CospendImportService> logger, IUnitOfWork unitOfWork) : IImportService
+public class CospendImportService(
+    ILogger<CospendImportService> logger, 
+    IUnitOfWork unitOfWork, 
+    ISchedulerFactory schedulerFactory) : IImportService
 {
-    public async Task<Result<ImportStatusDto>> ImportFileAsync(IFormFile file, int groupId, int userId)
+    public async Task<Result<ImportStatusDto>> StartImportAsync(IFormFile file, int groupId, int userId)
     {
         try
         {
@@ -21,37 +26,77 @@ public class CospendImportService(ILogger<CospendImportService> logger, IUnitOfW
                 return Result<ImportStatusDto>.BadRequest(validationResult.Error);
             }
 
+            // Create Import entity immediately with Pending status
             var import = new Core.Domain.Entities.Import
             {
                 FileName = file.FileName,
                 ImportDate = DateOnly.FromDateTime(DateTime.UtcNow),
                 GroupId = groupId,
-                UserId = userId
+                UserId = userId,
+                Status = ImportStatus.Pending
             };
 
-            var streamReader = new StreamReader(file.OpenReadStream());
-            var reader = new CsvReader(streamReader, CultureInfo.InvariantCulture);
-            
-            // Configure CsvHelper to handle missing fields gracefully
-            reader.Context.Configuration.MissingFieldFound = null;
-            reader.Context.Configuration.HeaderValidated = null;
-            var expenses = await ParseExpensesSection(reader);
-            var result = await CreateExpensesAsync(expenses, groupId);
-            if (result.IsFailure) throw new Exception(result.Error);
-
-            import.RecordsCount = result.Value;
-            import.Status = ImportStatus.Completed;
             await unitOfWork.Imports.AddAsync(import);
-            await unitOfWork.SaveChangesAsync();
+            // Note: SaveChanges will be called by the controller
+
+            // Save file temporarily for background processing
+            var tempFilePath = Path.GetTempFileName();
+            await using (var fileStream = new FileStream(tempFilePath, FileMode.Create))
+            {
+                await file.CopyToAsync(fileStream);
+            }
+
+            // Schedule background job
+            var scheduler = await schedulerFactory.GetScheduler();
+            var jobData = new JobDataMap
+            {
+                ["ImportGuid"] = import.Guid.ToString(),
+                ["FilePath"] = tempFilePath
+            };
+
+            var job = JobBuilder.Create<Core.Services.BackgroundJobs.ImportProcessingJob>()
+                .WithIdentity($"import-{import.Guid}")
+                .UsingJobData(jobData)
+                .Build();
+
+            var trigger = TriggerBuilder.Create()
+                .WithIdentity($"import-trigger-{import.Guid}")
+                .StartNow()
+                .Build();
+
+            await scheduler.ScheduleJob(job, trigger);
 
             var response = new ImportStatusDto(import);
-
             return Result<ImportStatusDto>.Success(response);
         }
         catch (Exception e)
         {
-            logger.LogError(e, "An error occured while importing Cospend file");
+            logger.LogError(e, "An error occurred while starting import job");
             return Result<ImportStatusDto>.InternalServerError(e.Message);
+        }
+    }
+
+    public async Task<Result<int>> ProcessImportAsync(string filePath, int groupId, int userId)
+    {
+        try
+        {
+            using var fileStream = File.OpenRead(filePath);
+            using var streamReader = new StreamReader(fileStream);
+            using var reader = new CsvReader(streamReader, CultureInfo.InvariantCulture);
+            
+            // Configure CsvHelper to handle missing fields gracefully
+            reader.Context.Configuration.MissingFieldFound = null;
+            reader.Context.Configuration.HeaderValidated = null;
+            
+            var expenses = await ParseExpensesSection(reader);
+            var result = await CreateExpensesAsync(expenses, groupId);
+            
+            return result;
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "An error occurred while processing import file: {FilePath}", filePath);
+            return Result<int>.InternalServerError(e.Message);
         }
     }
 

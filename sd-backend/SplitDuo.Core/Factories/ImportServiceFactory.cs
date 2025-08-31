@@ -1,7 +1,8 @@
+using Microsoft.Extensions.DependencyInjection;
 using SplitDuo.Core.Domain.Enums;
-using SplitDuo.Api.Features.Import.Services;
+using SplitDuo.Core.Services;
 
-namespace SplitDuo.Api.Features.Import.Factories;
+namespace SplitDuo.Core.Factories;
 
 public interface IImportServiceFactory
 {

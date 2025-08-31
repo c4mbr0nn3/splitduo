@@ -4,11 +4,11 @@ using SplitDuo.Api.Features.Common.Controllers;
 using SplitDuo.Api.Features.Common.Dto;
 using SplitDuo.Api.Features.Groups.Services;
 using SplitDuo.Api.Features.Import.Dto;
-using SplitDuo.Api.Features.Import.Services;
-using SplitDuo.Api.Features.Import.Factories;
 using SplitDuo.Core.Domain.Enums;
 using SplitDuo.Core.Common;
+using SplitDuo.Core.Factories;
 using SplitDuo.Core.Persistence;
+using SplitDuo.Core.Services;
 
 namespace SplitDuo.Api.Features.Import.Controllers;
 
@@ -51,11 +51,15 @@ public class ImportController(
             return HandleResult(Result<ImportStatusDto>.BadRequest(ex.Message));
         }
 
-        await unitOfWork.BeginTransactionAsync();
-        var importResult = await importService.ImportFileAsync(request.File, group!.OriginalId, user.Id);
-        if (importResult.IsSuccess) await unitOfWork.CommitTransactionAsync();
-        else await unitOfWork.RollbackTransactionAsync();
+        // Service handles entity creation and background job scheduling
+        var importResult = await importService.StartImportAsync(request.File, group!.OriginalId, user.Id);
+        
+        // Controller only handles SaveChanges
+        if (importResult.IsSuccess)
+        {
+            await unitOfWork.SaveChangesAsync();
+        }
 
-        return HandleResult(importResult, "Import completed successfully");
+        return HandleResult(importResult, "Import job started successfully");
     }
 }

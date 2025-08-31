@@ -1,6 +1,6 @@
 using CsvHelper.Configuration.Attributes;
 
-namespace SplitDuo.Api.Features.Import.Dto;
+namespace SplitDuo.Core.Services;
 
 public class CospendExpenseDto
 {

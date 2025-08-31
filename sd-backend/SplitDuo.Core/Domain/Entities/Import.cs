@@ -22,6 +22,9 @@ public class Import : AuditableEntity
     [Column("records_count")] public int RecordsCount { get; set; }
     [Column("status_id")] public int StatusId { get; set; } = (int)ImportStatus.Pending;
     [Column("error_details")] public string ErrorDetails { get; set; } = "";
+    [Column("started_at")] public long? StartedAt { get; set; }
+    [Column("completed_at")] public long? CompletedAt { get; set; }
+    [Column("duration_seconds")] public long? DurationSeconds { get; set; }
 
     [ForeignKey(nameof(GroupId))] public virtual Group Group { get; set; }
     [ForeignKey(nameof(UserId))] public virtual User User { get; set; }

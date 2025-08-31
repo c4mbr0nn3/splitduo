@@ -4,12 +4,12 @@ using SplitDuo.Api.Features.Authentication.Services;
 using SplitDuo.Api.Features.Common.Services;
 using SplitDuo.Api.Features.Expenses.Services;
 using SplitDuo.Api.Features.Groups.Services;
-using SplitDuo.Api.Features.Import.Services;
-using SplitDuo.Api.Features.Import.Factories;
 using SplitDuo.Core.Domain.Enums;
 using SplitDuo.Api.Features.Settlements.Services;
 using SplitDuo.Api.Features.Users.Services;
 using SplitDuo.Core.Extensions;
+using SplitDuo.Core.Factories;
+using SplitDuo.Core.Services;
 
 namespace SplitDuo.Api.Extensions;
 
