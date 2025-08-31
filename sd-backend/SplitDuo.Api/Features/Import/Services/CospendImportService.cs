@@ -42,6 +42,7 @@ public class CospendImportService(ILogger<CospendImportService> logger, IUnitOfW
             import.RecordsCount = result.Value;
             import.Status = ImportStatus.Completed;
             await unitOfWork.Imports.AddAsync(import);
+            await unitOfWork.SaveChangesAsync();
 
             var response = new ImportStatusDto(import);
 
@@ -109,24 +110,34 @@ public class CospendImportService(ILogger<CospendImportService> logger, IUnitOfW
     // Data transformation methods
     private async Task<Result<int>> CreateExpensesAsync(List<CospendExpenseDto> expenses, int groupId)
     {
-        var recordsCount = 0;
         var categoryMapping = BuildCategoryMapping();
         var paymentModeMapping = BuildPaymentModeMapping();
         var userNameMapping = BuildStaticUserMapping();
 
+        var expensesToInsert = new List<Expense>();
+
         foreach (var exp in expenses.Where(e => !e.IsDeleted))
         {
-            // Map category
+            // Map category and payment mode
             var category = categoryMapping.GetValueOrDefault(exp.CategoryId, ExpenseCategory.Other);
-
-            // Map payment mode
             var paymentMode = paymentModeMapping.GetValueOrDefault(exp.PaymentModeId, PaymentMode.Other);
 
-            // Find payer using static mapping
-            // Skip if payer not found in static mapping
+            // Find payer using static mapping - skip if not found
             if (!userNameMapping.TryGetValue(exp.PayerName, out var payerId)) continue;
 
-            // Create expense
+            // Prepare owers list
+            var owersUserIds = exp.OwersNames
+                .Select(name => userNameMapping.GetValueOrDefault(name))
+                .Where(id => id > 0)
+                .ToList();
+
+            if (owersUserIds.Count == 0)
+            {
+                logger.LogWarning("No valid users found for expense '{ExpenseTitle}', skipping", exp.What);
+                continue;
+            }
+
+            // Create expense with splits using navigation property
             var expense = new Expense
             {
                 GroupId = groupId,
@@ -139,29 +150,32 @@ public class CospendImportService(ILogger<CospendImportService> logger, IUnitOfW
                 PaymentMode = paymentMode
             };
 
-            await unitOfWork.Expenses.AddAsync(expense);
-            await unitOfWork.SaveChangesAsync(); // Need ID for splits
-
-            // Create splits
-            var owersUserIds = exp.OwersNames
-                .Select(name => userNameMapping.GetValueOrDefault(name))
-                .Where(id => id > 0)
-                .ToList();
-
-            if (owersUserIds.Count == 0) throw new Exception("No users were found for expense");
-
+            // Add splits using navigation property - EF Core will handle the relationships
             var splits = CalculateEqualSplits(expense.Amount, owersUserIds);
             foreach (var split in splits)
             {
-                split.ExpenseId = expense.Id;
+                expense.ExpenseSplits.Add(split);
             }
 
-            await unitOfWork.ExpenseSplits.AddRangeAsync(splits);
-            await unitOfWork.SaveChangesAsync();
-            recordsCount++;
+            expensesToInsert.Add(expense);
         }
 
-        return Result<int>.Success(recordsCount);
+        if (expensesToInsert.Count == 0)
+        {
+            logger.LogWarning("No valid expenses to import");
+            return Result<int>.Success(0);
+        }
+
+        // Bulk insert expenses with their splits - single SaveChanges call
+        logger.LogInformation("Bulk inserting {Count} expenses with their splits", expensesToInsert.Count);
+        await unitOfWork.Expenses.AddRangeAsync(expensesToInsert);
+        await unitOfWork.SaveChangesAsync();
+
+        var totalSplits = expensesToInsert.Sum(e => e.ExpenseSplits.Count);
+        logger.LogInformation("Successfully imported {ExpenseCount} expenses with {SplitCount} splits", 
+            expensesToInsert.Count, totalSplits);
+
+        return Result<int>.Success(expensesToInsert.Count);
     }
 
     private static Dictionary<int, PaymentMode> BuildPaymentModeMapping()
