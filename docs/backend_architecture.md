@@ -278,6 +278,60 @@ public class AuthController : BaseApiController
 }
 ```
 
+**Groups Controller Example:**
+
+```csharp
+[Route("api/v1/groups")]
+public class GroupsController(
+    IGroupsService groupsService,
+    IUnitOfWork unitOfWork,
+    ILogger<GroupsController> logger) : BaseApiController
+{
+    [HttpGet]
+    public async Task<ActionResult<ApiResponseDto<List<GroupDto>>>> GetUserGroups()
+    {
+        var currentUserId = GetCurrentUserId(); // BaseApiController method
+        if (currentUserId == null)
+            return HandleResult(Result<List<GroupDto>>.Unauthorized("User not authenticated"));
+
+        var result = await groupsService.GetUserGroupsAsync(currentUserId.Value);
+        return HandleResult(result, "User groups retrieved successfully");
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<ApiResponseDto<GroupDto>>> CreateGroup([FromBody] CreateGroupRequestDto request)
+    {
+        logger.LogInformation("Creating group: {GroupName}", request.Name);
+
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+            return HandleResult(Result<GroupDto>.Unauthorized("User not authenticated"));
+
+        var result = await groupsService.CreateGroupAsync(currentUserId.Value, request);
+
+        if (result.IsSuccess)
+            await unitOfWork.SaveChangesAsync(); // Controller handles database commits
+
+        return HandleResult(result, "Group created successfully");
+    }
+
+    [HttpDelete("{groupId}")]
+    public async Task<ActionResult> DeleteGroup(string groupId)
+    {
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+            return HandleResult(Result.Unauthorized("User not authenticated"));
+
+        var result = await groupsService.DeleteGroupAsync(groupId, currentUserId.Value);
+
+        if (result.IsSuccess)
+            await unitOfWork.SaveChangesAsync();
+
+        return HandleResult(result, "Group deleted successfully");
+    }
+}
+```
+
 **Benefits:**
 
 - **Reduced Boilerplate**: Single line response handling: `return HandleResult(result, "Success message");`
@@ -428,7 +482,10 @@ public class ExpensesService(IUnitOfWork unitOfWork, IUserContextService userCon
 
 ```csharp
 // In ApiProgramExtensions.cs
+builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IUserContextService, UserContextService>();
+builder.Services.AddScoped<IUsersService, UsersService>();
+builder.Services.AddScoped<IGroupsService, GroupsService>();
 builder.Services.AddHttpContextAccessor(); // Already registered in Core
 ```
 
@@ -492,11 +549,15 @@ The following services are needed to implement the core features outlined in the
    - **Features**: Enhanced Result pattern with HTTP status codes, UserDto constructor mapping, Unit of Work data access
    - **Password Generation**: Cryptographically secure passwords (uppercase, lowercase, digits, special chars) with Fisher-Yates shuffle
 
-3. **GroupsService**
+3. **GroupsService** _(implemented)_
 
-   - Create and manage groups (primarily for couples)
-   - Add/remove group members
-   - Group settings management
+   - **Group Management**: Create, read, update, and delete groups with comprehensive authorization
+   - **Member Management**: Add/remove group members with email-based invitation and role assignment
+   - **Access Control**: Group membership validation, admin-only operations, self-removal permissions
+   - **Business Rules**: Creator automatically becomes admin, soft delete operations, duplicate prevention
+   - **Security Features**: Member authorization checks, admin permission validation, protection against removing last admin
+   - **Location**: `SplitDuo.Api/Features/Groups/Services/GroupsService.cs`
+   - **Features**: Enhanced Result pattern with HTTP status codes, Unit of Work data access, comprehensive DTO mapping
 
 4. **ExpensesService**
 
@@ -609,6 +670,26 @@ The following services are needed to implement the core features outlined in the
 - **Error Handling**: Enhanced Result pattern with appropriate HTTP status codes (Conflict, NotFound, Unauthorized)
 - **Data Access**: Direct Unit of Work usage without repository pattern, controllers handle SaveChanges operations
 - **Mapping Pattern**: UserDto constructor pattern for clean entity-to-DTO conversion
+
+**GroupsService Implementation:**
+
+- **Architecture**: Service located in feature folder following Vertical Slice Architecture (`SplitDuo.Api/Features/Groups/Services/`)
+- **Dependencies**: Uses `IUnitOfWork` for data access and comprehensive Entity Framework Include operations
+- **DTOs**: Utilizes DTOs from `SplitDuo.Api/Features/Groups/Dto/` with manual DTO mapping and nested UserInfoDto construction
+- **Authorization Pattern**: Multi-layered authorization with user authentication, group membership validation, and role-based permissions
+  - **Membership Validation**: Verifies user belongs to group before allowing access to group data
+  - **Admin Operations**: Create, update, delete groups and manage members require admin role
+  - **Self-Management**: Users can remove themselves from groups regardless of role
+  - **Last Admin Protection**: Prevents removal of the only admin in a group
+- **Business Logic**: Comprehensive group lifecycle management with automatic admin assignment and soft delete cascading
+  - **Group Creation**: Creator automatically assigned as admin member upon group creation
+  - **Member Management**: Email-based member addition with role assignment (admin/member)
+  - **Soft Delete Cascade**: Group deletion soft-deletes all associated memberships
+  - **Duplicate Prevention**: Prevents adding existing members to groups
+- **Error Handling**: Enhanced Result pattern with contextual HTTP status codes (NotFound, Forbidden, Conflict, Unauthorized)
+- **Data Access**: Advanced EF Core usage with Include operations, projection queries for performance, and transactional consistency
+- **Query Optimization**: Uses projection and selective loading to minimize database round trips
+- **API Methods**: Complete CRUD operations with 8 distinct service methods covering all group management scenarios
 
 **NotificationService (EmailNotificationService) Implementation:**
 
@@ -931,6 +1012,7 @@ The application uses a **Global Exception Handler** for centralized error manage
 11. **Global Exception Handler** - Centralized error handling and logging across all endpoints
 12. **Email Notification System** - Outbox pattern with background processing
 13. **Logging System** - Serilog with environment-specific sinks and database storage
+14. **Groups Service Implementation** - Comprehensive group management with multi-layered authorization, role-based permissions, and advanced EF Core usage
 
 ## Email Notification System
 

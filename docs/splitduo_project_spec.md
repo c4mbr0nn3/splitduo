@@ -78,10 +78,12 @@
 
 ### Phase 1: Core MVP
 
-- [ ] Set up .NET backend with PostgreSQL
-- [ ] Implement user authentication
-- [ ] Configure initial user creation via AppOptions (no registration endpoint)
-- [ ] Implement email notification system (outbox pattern with background processing)
+- [x] Set up .NET backend with PostgreSQL
+- [x] Implement user authentication (JWT + refresh token rotation)
+- [x] Configure initial user creation via AppOptions (no registration endpoint)
+- [x] Implement email notification system (outbox pattern with background processing)
+- [x] Implement user management service (CRUD operations)
+- [x] Implement groups management service (create, manage members, authorization)
 - [ ] Create mobile-first Vue.js frontend with Nuxt UI
 - [ ] Implement core expense CRUD operations
 - [ ] Add split calculation logic
