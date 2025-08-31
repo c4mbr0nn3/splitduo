@@ -52,7 +52,6 @@ public class UsersService(IUnitOfWork unitOfWork, IPasswordHasher<User> password
         };
 
         unitOfWork.Users.Add(user);
-        await unitOfWork.SaveChangesAsync();
 
         var response = new CreateUserResponseDto
         {
@@ -151,8 +150,6 @@ public class UsersService(IUnitOfWork unitOfWork, IPasswordHasher<User> password
 
         if (request.LastName != null)
             user.LastName = request.LastName;
-
-        await unitOfWork.SaveChangesAsync();
 
         return Result<UserDto>.Success(new UserDto(user));
     }
