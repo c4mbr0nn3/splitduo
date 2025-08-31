@@ -5,7 +5,7 @@ using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Persistence;
 using SplitDuo.Core.Services;
 
-namespace SplitDuo.Api.Services;
+namespace SplitDuo.Api.Features.Common.Services;
 
 public interface INotificationService
 {

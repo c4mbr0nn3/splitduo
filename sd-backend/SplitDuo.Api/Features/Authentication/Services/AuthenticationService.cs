@@ -13,7 +13,7 @@ using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Options;
 using SplitDuo.Core.Persistence;
 
-namespace SplitDuo.Api.Services;
+namespace SplitDuo.Api.Features.Authentication.Services;
 
 public interface IAuthenticationService
 {

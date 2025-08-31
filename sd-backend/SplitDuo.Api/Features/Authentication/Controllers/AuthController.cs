@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using SplitDuo.Api.Features.Authentication.Dto;
+using SplitDuo.Api.Features.Authentication.Services;
 using SplitDuo.Api.Features.Common.Controllers;
 using SplitDuo.Api.Features.Common.Dto;
-using SplitDuo.Api.Services;
 using SplitDuo.Core.Persistence;
 
 namespace SplitDuo.Api.Features.Authentication.Controllers;

@@ -1,6 +1,7 @@
 using Scalar.AspNetCore;
 using Serilog;
-using SplitDuo.Api.Services;
+using SplitDuo.Api.Features.Authentication.Services;
+using SplitDuo.Api.Features.Common.Services;
 using SplitDuo.Core.Extensions;
 
 namespace SplitDuo.Api.Extensions;
