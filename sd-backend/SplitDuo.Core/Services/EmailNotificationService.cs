@@ -1,16 +1,18 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Persistence;
-using SplitDuo.Core.Services;
 
-namespace SplitDuo.Api.Features.Common.Services;
+namespace SplitDuo.Core.Services;
 
 public interface INotificationService
 {
     public Task<Result<List<Notification>>> GetUnsentNotifications();
+    public Task<Result<List<Notification>>> GetPrunableNotifications();
     public Task<Result> SendAsync(Notification notification);
     public Task<Result> EnqueueAsync(Notification notification);
+    public Result Prune(Notification notification);
 }
 
 public class EmailNotificationService(
@@ -19,12 +21,24 @@ public class EmailNotificationService(
     IUnitOfWork unitOfWork) : INotificationService
 {
     private const int MaxRetryCount = 3;
+    private const int PruneThresholdDays = 30;
 
     public async Task<Result<List<Notification>>> GetUnsentNotifications()
     {
         var notifications = await unitOfWork.Notifications
             .Where(x => !x.SentAt.HasValue && x.RetryCount < MaxRetryCount)
             .ToListAsync();
+        return Result<List<Notification>>.Success(notifications);
+    }
+
+    public async Task<Result<List<Notification>>> GetPrunableNotifications()
+    {
+        var threshold = DateTimeOffset.UtcNow.AddDays(-PruneThresholdDays).ToUnixTimeSeconds();
+        var notifications = await unitOfWork.Notifications
+            .Where(x => x.SentAt.HasValue || x.RetryCount == MaxRetryCount)
+            .Where(x => x.SentAt < threshold)
+            .ToListAsync();
+
         return Result<List<Notification>>.Success(notifications);
     }
 
@@ -93,6 +107,23 @@ public class EmailNotificationService(
         {
             logger.LogError(ex, "Exception occurred while enqueuing email notification to {Email}", notification.To);
             return Result.InternalServerError("Failed to enqueue email notification");
+        }
+    }
+
+    public Result Prune(Notification notification)
+    {
+        try
+        {
+            logger.LogInformation("Pruning email notification {Id}",notification.Id);
+
+            unitOfWork.Notifications.Remove(notification);
+            
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Exception occurred while pruning notification {Id}", notification.Id);
+            return Result.InternalServerError("Failed to prune email notification");
         }
     }
 }

@@ -17,7 +17,7 @@ using SplitDuo.Core.Options.Setup;
 using SplitDuo.Core.Persistence;
 using SplitDuo.Core.Persistence.Interceptors;
 using SplitDuo.Core.Services;
-using SplitDuo.Core.Services.Cron;
+using SplitDuo.Core.Services.BackgroundJobs;
 
 namespace SplitDuo.Core.Extensions;
 
@@ -79,6 +79,7 @@ public static class ApiProgramExtensions
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
         builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
         builder.Services.AddScoped<ISmtpService, SmtpService>();
+        builder.Services.AddScoped<INotificationService, EmailNotificationService>();
 
         // hosted services
         builder.Services.AddHostedService<DataSeederService>();
@@ -100,7 +101,21 @@ public static class ApiProgramExtensions
             q.AddTrigger(opts => opts
                 .ForJob(logCleanupJobKey)
                 .WithIdentity("LogCleanupTrigger")
-                .WithCronSchedule("0 0 2 * * ?"));
+                .WithCronSchedule("0 0 2 * * ?")); // every day at 02:00
+
+            var emailNotificationProcessingJobKey = new JobKey("EmailNotificationProcessingJob");
+            q.AddJob<EmailNotificationProcessingJob>(opts => opts.WithIdentity(emailNotificationProcessingJobKey));
+            q.AddTrigger(opts => opts
+                .ForJob(logCleanupJobKey)
+                .WithIdentity("EmailNotificationProcessingTrigger")
+                .WithCronSchedule("0 */2 * ? * *")); // every 2 minutes
+
+            var emailNotificationPruneJobKey = new JobKey("EmailNotificationPruneJob");
+            q.AddJob<EmailNotificationProcessingJob>(opts => opts.WithIdentity(emailNotificationPruneJobKey));
+            q.AddTrigger(opts => opts
+                .ForJob(logCleanupJobKey)
+                .WithIdentity("EmailNotificationPruneTrigger")
+                .WithCronSchedule("0 0 1 * * ?")); // every day at 01:00
         });
 
         builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);

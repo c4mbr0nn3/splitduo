@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Npgsql;
 using Quartz;
 
-namespace SplitDuo.Core.Services.Cron;
+namespace SplitDuo.Core.Services.BackgroundJobs;
 
 [DisallowConcurrentExecution]
 public class LogCleanupJob(ILogger<LogCleanupJob> logger, IConfiguration configuration) : IJob
