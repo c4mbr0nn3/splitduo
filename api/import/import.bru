@@ -1,0 +1,25 @@
+meta {
+  name: import
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:5198/api/v1/groups/019901eb-d2f3-7e18-8711-0b09c627b456/import
+  body: multipartForm
+  auth: inherit
+}
+
+body:form-urlencoded {
+  File: 
+  : 
+}
+
+body:multipart-form {
+  file: @file(/home/j1mm0/Workspace/splitduo/cospend/ciccionetti-club_2023-11-11_export_2025-01-26.csv)
+  importTypeId: 1
+}
+
+settings {
+  encodeUrl: true
+}

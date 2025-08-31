@@ -1,0 +1,22 @@
+meta {
+  name: list
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:5198/api/v1/groups
+  body: none
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "orova",
+    "description": "iasd"
+  }
+}
+
+settings {
+  encodeUrl: true
+}
