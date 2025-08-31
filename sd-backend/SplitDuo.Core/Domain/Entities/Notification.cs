@@ -8,6 +8,7 @@ namespace SplitDuo.Core.Domain.Entities;
 [Index(nameof(SentAt))]
 [Index(nameof(CreatedAt))]
 [Index(nameof(CreatedAt), nameof(SentAt))]
+[Index(nameof(SentAt), nameof(RetryCount))]
 public class Notification
 {
     [Column("id"), Key] public int Id { get; set; }
@@ -16,4 +17,6 @@ public class Notification
     [Column("body")] public string Body { get; set; } = "";
     [Column("created_at")] public long CreatedAt { get; set; } = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
     [Column("sent_at")] public long? SentAt { get; set; }
+    [Column("retry_count")] public int RetryCount { get; set; } = 0;
+    [Column("error_message")] public string? ErrorMessage { get; set; }
 }

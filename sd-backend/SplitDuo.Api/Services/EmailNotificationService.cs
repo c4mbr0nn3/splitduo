@@ -19,9 +19,13 @@ public class EmailNotificationService(
     ISmtpService smtpService,
     IUnitOfWork unitOfWork) : INotificationService
 {
+    private const int MaxRetryCount = 3;
+
     public async Task<Result<List<Notification>>> GetUnsentNotifications()
     {
-        var notifications = await unitOfWork.Notifications.Where(x => !x.SentAt.HasValue).ToListAsync();
+        var notifications = await unitOfWork.Notifications
+            .Where(x => !x.SentAt.HasValue && x.RetryCount < MaxRetryCount)
+            .ToListAsync();
         return Result<List<Notification>>.Success(notifications);
     }
 
@@ -29,26 +33,47 @@ public class EmailNotificationService(
     {
         try
         {
-            logger.LogInformation("Attempting to send email to {Email} with subject: {Subject}", 
-                notification.To, notification.Subject);
-            
+            logger.LogInformation(
+                "Attempting to send email to {Email} with subject: {Subject} (Retry: {RetryCount}/{MaxRetry})",
+                notification.To, notification.Subject, notification.RetryCount, MaxRetryCount);
+
             var result = await smtpService.SendEmailAsync(notification.To, notification.Subject, notification.Body);
-            
+
             if (result.IsFailure)
             {
-                logger.LogError("Failed to send email to {Email}: {Error}", 
-                    notification.To, result.Error);
+                notification.RetryCount++;
+                notification.ErrorMessage = result.Error;
+
+                logger.LogError("Failed to send email to {Email} (Retry {RetryCount}/{MaxRetry}): {Error}",
+                    notification.To, notification.RetryCount, MaxRetryCount, result.Error);
+
+                if (notification.RetryCount >= MaxRetryCount)
+                {
+                    logger.LogError("Max retry count reached for email to {Email}. Giving up.", notification.To);
+                }
+
                 return result;
             }
-            
+
             notification.SentAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            
+            notification.ErrorMessage = null;
+
             logger.LogInformation("Successfully sent email to {Email}", notification.To);
             return Result.Success();
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Exception occurred while sending email to {Email}", notification.To);
+            notification.RetryCount++;
+            notification.ErrorMessage = ex.Message;
+
+            logger.LogError(ex, "Exception occurred while sending email to {Email} (Retry {RetryCount}/{MaxRetry})",
+                notification.To, notification.RetryCount, MaxRetryCount);
+
+            if (notification.RetryCount >= MaxRetryCount)
+            {
+                logger.LogError("Max retry count reached for email to {Email}. Giving up.", notification.To);
+            }
+
             return Result.Failure("Failed to send email due to unexpected error", HttpStatusCode.InternalServerError);
         }
     }
@@ -57,11 +82,11 @@ public class EmailNotificationService(
     {
         try
         {
-            logger.LogInformation("Enqueuing email notification to {Email} with subject: {Subject}", 
+            logger.LogInformation("Enqueuing email notification to {Email} with subject: {Subject}",
                 notification.To, notification.Subject);
-            
+
             await unitOfWork.Notifications.AddAsync(notification);
-            
+
             logger.LogDebug("Successfully enqueued email notification to {Email}", notification.To);
             return Result.Success();
         }

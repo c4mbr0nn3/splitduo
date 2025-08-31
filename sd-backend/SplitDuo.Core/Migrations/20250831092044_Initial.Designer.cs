@@ -12,7 +12,7 @@ using SplitDuo.Core.Persistence;
 namespace SplitDuo.Core.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250831091114_Initial")]
+    [Migration("20250831092044_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -311,6 +311,14 @@ namespace SplitDuo.Core.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("created_at");
 
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("text")
+                        .HasColumnName("error_message");
+
+                    b.Property<int>("RetryCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("retry_count");
+
                     b.Property<long?>("SentAt")
                         .HasColumnType("bigint")
                         .HasColumnName("sent_at");
@@ -332,6 +340,8 @@ namespace SplitDuo.Core.Migrations
                     b.HasIndex("SentAt");
 
                     b.HasIndex("CreatedAt", "SentAt");
+
+                    b.HasIndex("SentAt", "RetryCount");
 
                     b.ToTable("notifications");
                 });

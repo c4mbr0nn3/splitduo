@@ -22,7 +22,9 @@ namespace SplitDuo.Core.Migrations
                     subject = table.Column<string>(type: "text", nullable: false),
                     body = table.Column<string>(type: "text", nullable: false),
                     created_at = table.Column<long>(type: "bigint", nullable: false),
-                    sent_at = table.Column<long>(type: "bigint", nullable: true)
+                    sent_at = table.Column<long>(type: "bigint", nullable: true),
+                    retry_count = table.Column<int>(type: "integer", nullable: false),
+                    error_message = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -374,6 +376,11 @@ namespace SplitDuo.Core.Migrations
                 name: "IX_notifications_sent_at",
                 table: "notifications",
                 column: "sent_at");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_notifications_sent_at_retry_count",
+                table: "notifications",
+                columns: new[] { "sent_at", "retry_count" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_refresh_tokens_expires_at",
