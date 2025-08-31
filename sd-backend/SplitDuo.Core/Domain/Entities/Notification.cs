@@ -6,6 +6,8 @@ namespace SplitDuo.Core.Domain.Entities;
 
 [Table("notifications")]
 [Index(nameof(SentAt))]
+[Index(nameof(CreatedAt))]
+[Index(nameof(CreatedAt), nameof(SentAt))]
 public class Notification
 {
     [Column("id"), Key] public int Id { get; set; }

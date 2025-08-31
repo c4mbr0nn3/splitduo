@@ -12,7 +12,7 @@ using SplitDuo.Core.Persistence;
 namespace SplitDuo.Core.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250830204036_Initial")]
+    [Migration("20250831091114_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -291,6 +291,49 @@ namespace SplitDuo.Core.Migrations
                     b.HasIndex("UserId", "ImportDate");
 
                     b.ToTable("imports");
+                });
+
+            modelBuilder.Entity("SplitDuo.Core.Domain.Entities.Notification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("body");
+
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("created_at");
+
+                    b.Property<long?>("SentAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("sent_at");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("subject");
+
+                    b.Property<string>("To")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("to");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("SentAt");
+
+                    b.HasIndex("CreatedAt", "SentAt");
+
+                    b.ToTable("notifications");
                 });
 
             modelBuilder.Entity("SplitDuo.Core.Domain.Entities.RefreshToken", b =>

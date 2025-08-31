@@ -13,6 +13,23 @@ namespace SplitDuo.Core.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "notifications",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    to = table.Column<string>(type: "text", nullable: false),
+                    subject = table.Column<string>(type: "text", nullable: false),
+                    body = table.Column<string>(type: "text", nullable: false),
+                    created_at = table.Column<long>(type: "bigint", nullable: false),
+                    sent_at = table.Column<long>(type: "bigint", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_notifications", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "users",
                 columns: table => new
                 {
@@ -344,6 +361,21 @@ namespace SplitDuo.Core.Migrations
                 columns: new[] { "user_id", "import_date" });
 
             migrationBuilder.CreateIndex(
+                name: "IX_notifications_created_at",
+                table: "notifications",
+                column: "created_at");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_notifications_created_at_sent_at",
+                table: "notifications",
+                columns: new[] { "created_at", "sent_at" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_notifications_sent_at",
+                table: "notifications",
+                column: "sent_at");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_refresh_tokens_expires_at",
                 table: "refresh_tokens",
                 column: "expires_at");
@@ -417,6 +449,9 @@ namespace SplitDuo.Core.Migrations
 
             migrationBuilder.DropTable(
                 name: "imports");
+
+            migrationBuilder.DropTable(
+                name: "notifications");
 
             migrationBuilder.DropTable(
                 name: "refresh_tokens");
