@@ -26,6 +26,7 @@ public class Expense : AuditableAndSoftDeletableEntity
 
     [ForeignKey(nameof(GroupId))] public virtual Group Group { get; set; }
     [ForeignKey(nameof(PaidBy))] public virtual User PaidByUser { get; set; }
+    public virtual ICollection<ExpenseSplit> ExpenseSplits { get; set; } = new List<ExpenseSplit>();
 
     [NotMapped]
     public ExpenseCategory Category
