@@ -523,20 +523,20 @@ The following services are needed to implement the core features outlined in the
 
 #### Data Management Services
 
-8. **ImportService**
+1. **ImportService**
 
    - Import Cospend backup files
    - Data validation and transformation
    - Batch import operations with status tracking
 
-9. **ExportService**
+2. **ExportService**
    - Export data to CSV format
    - Generate Cospend-compatible backup files
    - Data formatting and serialization
 
 #### Infrastructure Services
 
-10. **UserContextService** _(implemented)_
+1. **UserContextService** _(implemented)_
 
     - **Current User Access**: Get authenticated user ID and entity from HTTP context
     - **Authentication Check**: Verify if current request is authenticated
@@ -545,7 +545,7 @@ The following services are needed to implement the core features outlined in the
     - **Integration**: Available through BaseApiController protected methods
     - **Features**: Centralized user context access, simplified authentication checks
 
-11. **NotificationService** _(implemented)_
+2. **NotificationService** _(implemented)_
 
     - **Outbox Pattern Implementation**: Queue email notifications with database persistence
     - **Retry Logic**: Maximum 3 attempts with error tracking and logging
@@ -556,7 +556,7 @@ The following services are needed to implement the core features outlined in the
     - **Features**: Enhanced Result pattern, comprehensive logging, transaction safety
     - **Background Processing**: Integrated with Quartz.NET job scheduler for automatic processing
 
-12. **EmailService** _(implemented)_
+3. **EmailService** _(implemented)_
     - **SMTP Integration**: MailKit-based email sending with SSL/TLS support
     - **Error Handling**: Comprehensive exception handling with specific HTTP status codes
     - **HTML Email Support**: Rich email formatting with BodyBuilder
@@ -564,10 +564,15 @@ The following services are needed to implement the core features outlined in the
     - **Location**: `SplitDuo.Core/Services/SmtpService.cs`
     - **Features**: Authentication support, connection management, detailed error categorization
 
-#### Existing Services
+#### Other Services
 
 - **DataSeederService** - Initial user creation from configuration _(implemented)_
+
+#### Background Jobs
+
 - **LogCleanupJob** - Background service for log maintenance _(implemented)_
+- **EmailNotificationProcessingJob** - Background service for processing email notifications _(implemented)_
+- **EmailNotificationPruneJob** - Background service for pruning old email notifications _(implemented)_
 
 #### Service Implementation Guidelines
 
@@ -577,22 +582,6 @@ The following services are needed to implement the core features outlined in the
 - Controllers handle SaveChanges operations
 - Services queue notifications for background processing
 - Follow dependency injection patterns with scoped lifetimes
-
-#### Outstanding Implementation Requirements
-
-**Background Job System** _(implemented)_:
-
-- **Job Scheduler**: Quartz.NET-based background job processing
-- **EmailNotificationProcessingJob**: Automatic processing of queued email notifications
-  - **Scheduling**: Configurable interval for processing notification queue
-  - **Concurrency**: `[DisallowConcurrentExecution]` prevents overlapping executions
-  - **Functionality**: Retrieves unsent notifications and processes them sequentially
-  - **Error Handling**: Comprehensive logging and exception handling with job continuation
-  - **Location**: `SplitDuo.Core/Services/BackgroundJobs/EmailNotificationProcessingJob.cs`
-- **EmailNotificationPruneJob**: Automatic cleanup of processed notifications
-  - **Purpose**: Remove sent notifications older than 30 days to maintain database performance
-  - **Functionality**: Identifies and removes notifications that are sent or have reached max retry count
-  - **Location**: `SplitDuo.Core/Services/BackgroundJobs/EmailNotificationPruneJob.cs`
 
 #### Implementation Details
 
