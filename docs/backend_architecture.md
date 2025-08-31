@@ -571,19 +571,13 @@ The following services are needed to implement the core features outlined in the
    - **Location**: `SplitDuo.Api/Features/Expenses/Services/ExpensesService.cs`
    - **Features**: Enhanced Result pattern with HTTP status codes, comprehensive DTO mapping, transaction safety
 
-5. **ExpenseSplitsService**
-
-   - Calculate expense splits between users
-   - Handle split logic (equal splits, custom amounts)
-   - Generate split records for expenses
-
-6. **BalancesService**
+5. **BalancesService**
 
    - Calculate who owes what to whom
    - Generate balance summaries for groups
    - Real-time balance calculations
 
-7. **SettlementsService**
+6. **SettlementsService**
    - Record payments between users
    - Update balances when settlements occur
    - Settlement history tracking
