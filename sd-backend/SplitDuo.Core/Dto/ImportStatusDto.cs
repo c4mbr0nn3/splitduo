@@ -1,6 +1,7 @@
+using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Domain.Enums;
 
-namespace SplitDuo.Core.Services;
+namespace SplitDuo.Core.Dto;
 
 public class ImportStatusDto
 {
@@ -14,7 +15,7 @@ public class ImportStatusDto
     {
     }
 
-    public ImportStatusDto(Core.Domain.Entities.Import import)
+    public ImportStatusDto(Import import)
     {
         FileName = import.FileName;
         ImportStatusId = import.StatusId;

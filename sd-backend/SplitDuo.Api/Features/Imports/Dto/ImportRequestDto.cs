@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace SplitDuo.Api.Features.Import.Dto;
+namespace SplitDuo.Api.Features.Imports.Dto;
 
 public class ImportRequestDto
 {

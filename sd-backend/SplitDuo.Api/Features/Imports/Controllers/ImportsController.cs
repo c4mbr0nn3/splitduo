@@ -3,19 +3,20 @@ using Microsoft.AspNetCore.Mvc;
 using SplitDuo.Api.Features.Common.Controllers;
 using SplitDuo.Api.Features.Common.Dto;
 using SplitDuo.Api.Features.Groups.Services;
-using SplitDuo.Api.Features.Import.Dto;
-using SplitDuo.Core.Domain.Enums;
+using SplitDuo.Api.Features.Imports.Dto;
 using SplitDuo.Core.Common;
+using SplitDuo.Core.Domain.Enums;
+using SplitDuo.Core.Dto;
 using SplitDuo.Core.Factories;
 using SplitDuo.Core.Persistence;
-using SplitDuo.Core.Services;
+using SplitDuo.Core.Services.Imports;
 
-namespace SplitDuo.Api.Features.Import.Controllers;
+namespace SplitDuo.Api.Features.Imports.Controllers;
 
 [ApiController]
 [Route("api/v1/groups/{groupId}/import")]
 [Authorize]
-public class ImportController(
+public class ImportsController(
     IUnitOfWork unitOfWork,
     IGroupsService groupsService,
     IImportServiceFactory importServiceFactory) : BaseApiController

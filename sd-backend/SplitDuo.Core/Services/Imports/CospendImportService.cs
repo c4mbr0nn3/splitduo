@@ -6,10 +6,11 @@ using Quartz;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Domain.Enums;
+using SplitDuo.Core.Dto;
 using SplitDuo.Core.Persistence;
 using SplitDuo.Core.Services.BackgroundJobs;
 
-namespace SplitDuo.Core.Services;
+namespace SplitDuo.Core.Services.Imports;
 
 public class CospendImportService(
     ILogger<CospendImportService> logger,
@@ -28,7 +29,7 @@ public class CospendImportService(
             }
 
             // Create Import entity immediately with Pending status
-            var import = new Core.Domain.Entities.Import
+            var import = new Import
             {
                 FileName = file.FileName,
                 ImportDate = DateOnly.FromDateTime(DateTime.UtcNow),
