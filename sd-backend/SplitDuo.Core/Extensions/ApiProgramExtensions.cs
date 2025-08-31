@@ -106,14 +106,14 @@ public static class ApiProgramExtensions
             var emailNotificationProcessingJobKey = new JobKey("EmailNotificationProcessingJob");
             q.AddJob<EmailNotificationProcessingJob>(opts => opts.WithIdentity(emailNotificationProcessingJobKey));
             q.AddTrigger(opts => opts
-                .ForJob(logCleanupJobKey)
+                .ForJob(emailNotificationProcessingJobKey)
                 .WithIdentity("EmailNotificationProcessingTrigger")
                 .WithCronSchedule("0 */2 * ? * *")); // every 2 minutes
 
             var emailNotificationPruneJobKey = new JobKey("EmailNotificationPruneJob");
-            q.AddJob<EmailNotificationProcessingJob>(opts => opts.WithIdentity(emailNotificationPruneJobKey));
+            q.AddJob<EmailNotificationPruneJob>(opts => opts.WithIdentity(emailNotificationPruneJobKey));
             q.AddTrigger(opts => opts
-                .ForJob(logCleanupJobKey)
+                .ForJob(emailNotificationPruneJobKey)
                 .WithIdentity("EmailNotificationPruneTrigger")
                 .WithCronSchedule("0 0 1 * * ?")); // every day at 01:00
         });
