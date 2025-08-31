@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 using SplitDuo.Core.Domain.Base;
+using SplitDuo.Core.Domain.Enums;
 
 namespace SplitDuo.Core.Domain.Entities;
 
@@ -25,10 +26,4 @@ public class GroupMember : AuditableAndSoftDeletableEntity
         get => (GroupRole)RoleId;
         set => RoleId = (int)value;
     }
-}
-
-public enum GroupRole
-{
-    Admin = 1,
-    Member = 2
 }

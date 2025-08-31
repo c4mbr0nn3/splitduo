@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 using SplitDuo.Core.Domain.Base;
+using SplitDuo.Core.Domain.Enums;
 
 namespace SplitDuo.Core.Domain.Entities;
 
@@ -34,18 +35,4 @@ public class Expense : AuditableAndSoftDeletableEntity
         get => (ExpenseCategory)CategoryId;
         set => CategoryId = (int)value;
     }
-}
-
-public enum ExpenseCategory
-{
-    Other = 1,
-    Food = 2,
-    Transportation = 3,
-    Utilities = 4,
-    Entertainment = 5,
-    Health = 6,
-    Education = 7,
-    Travel = 8,
-    Shopping = 9,
-    Housing = 10
 }

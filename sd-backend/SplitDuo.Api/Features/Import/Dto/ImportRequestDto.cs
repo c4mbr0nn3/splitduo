@@ -8,8 +8,3 @@ public class ImportRequestDto
     [Required] public string GroupId { get; set; } = "";
     [Required] public int ImportTypeId {get; set;}
 }
-
-public enum ImportType
-{
-    Cospend = 1
-}

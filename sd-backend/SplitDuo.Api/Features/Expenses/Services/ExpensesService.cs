@@ -3,6 +3,7 @@ using SplitDuo.Api.Features.Common.Dto;
 using SplitDuo.Api.Features.Expenses.Dto;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Entities;
+using SplitDuo.Core.Domain.Enums;
 using SplitDuo.Core.Persistence;
 
 namespace SplitDuo.Api.Features.Expenses.Services;

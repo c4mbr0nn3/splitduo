@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 using SplitDuo.Core.Domain.Base;
+using SplitDuo.Core.Domain.Enums;
 
 namespace SplitDuo.Core.Domain.Entities;
 
@@ -31,11 +32,4 @@ public class Import : AuditableEntity
         get => (ImportStatus)StatusId;
         set => StatusId = (int)value;
     }
-}
-
-public enum ImportStatus
-{
-    Pending = 1,
-    Completed = 2,
-    Failed = 3
 }
