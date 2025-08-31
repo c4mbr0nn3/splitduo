@@ -64,6 +64,7 @@ public static class ApiProgramExtensions
         builder.Services.ConfigureOptions<AppOptionsSetup>();
         builder.Services.ConfigureOptions<DatabaseOptionsSetup>();
         builder.Services.ConfigureOptions<JwtOptionsSetup>();
+        builder.Services.ConfigureOptions<SmtpOptionsSetup>();
     }
 
     private static void ConfigureServices(this WebApplicationBuilder builder)
@@ -77,6 +78,9 @@ public static class ApiProgramExtensions
         builder.Services.AddScoped<SoftDeleteSaveChangesInterceptor>();
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
         builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+        builder.Services.AddScoped<ISmtpService, SmtpService>();
+
+        // hosted services
         builder.Services.AddHostedService<DataSeederService>();
 
         builder.AddQuartz();

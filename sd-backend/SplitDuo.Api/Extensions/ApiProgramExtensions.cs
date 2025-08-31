@@ -15,6 +15,7 @@ public static class ApiProgramExtensions
 
         // Register API layer services
         builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+        builder.Services.AddScoped<INotificationService, EmailNotificationService>();
     }
 
     public static void ConfigureServices(this WebApplication app)

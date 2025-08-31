@@ -14,6 +14,7 @@ public interface IUnitOfWork : IDisposable
     DbSet<RefreshToken> RefreshTokens { get; }
     DbSet<Settlement> Settlements { get; }
     DbSet<Import> Imports { get; }
+    DbSet<Notification> Notifications { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task BeginTransactionAsync(CancellationToken cancellationToken = default);
@@ -33,6 +34,7 @@ public class UnitOfWork(AppDbContext context) : IUnitOfWork
     public DbSet<RefreshToken> RefreshTokens => context.RefreshTokens;
     public DbSet<Settlement> Settlements => context.Settlements;
     public DbSet<Import> Imports => context.Imports;
+    public DbSet<Notification> Notifications => context.Notifications;
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
