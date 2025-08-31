@@ -5,6 +5,8 @@ using SplitDuo.Api.Features.Common.Services;
 using SplitDuo.Api.Features.Expenses.Services;
 using SplitDuo.Api.Features.Groups.Services;
 using SplitDuo.Api.Features.Import.Services;
+using SplitDuo.Api.Features.Import.Factories;
+using SplitDuo.Core.Domain.Enums;
 using SplitDuo.Api.Features.Settlements.Services;
 using SplitDuo.Api.Features.Users.Services;
 using SplitDuo.Core.Extensions;
@@ -27,7 +29,12 @@ public static class ApiProgramExtensions
         builder.Services.AddScoped<IExpensesService, ExpensesService>();
         builder.Services.AddScoped<IBalancesService, BalancesService>();
         builder.Services.AddScoped<ISettlementsService, SettlementsService>();
-        builder.Services.AddScoped<IImportService, CospendImportService>();
+
+        // Register keyed services
+        builder.Services.AddKeyedScoped<IImportService, CospendImportService>(ImportType.Cospend);
+
+        // Register factories
+        builder.Services.AddScoped<IImportServiceFactory, ImportServiceFactory>();
     }
 
     public static void ConfigureServices(this WebApplication app)

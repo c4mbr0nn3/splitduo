@@ -289,7 +289,7 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
 
         // Create splits
         var expenseSplits = new List<ExpenseSplit>();
-        for (int i = 0; i < request.Splits.Count; i++)
+        for (var i = 0; i < request.Splits.Count; i++)
         {
             var split = request.Splits[i];
             var splitUser = splitUsers[i];
@@ -589,7 +589,7 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
                     $"Split amounts ({totalSplitAmount:F2}) do not sum up to expense amount ({expense.Amount:F2})");
 
             // Create new splits
-            for (int i = 0; i < request.Splits.Count; i++)
+            for (var i = 0; i < request.Splits.Count; i++)
             {
                 var split = request.Splits[i];
                 var splitUser = splitUsers[i];

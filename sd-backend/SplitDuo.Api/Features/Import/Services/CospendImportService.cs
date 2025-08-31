@@ -14,6 +14,13 @@ public class CospendImportService(ILogger<CospendImportService> logger, IUnitOfW
     {
         try
         {
+            // Validate file type
+            var validationResult = ValidateFile(file);
+            if (validationResult.IsFailure)
+            {
+                return Result<ImportStatusDto>.BadRequest(validationResult.Error);
+            }
+
             var import = new Core.Domain.Entities.Import
             {
                 FileName = file.FileName,
@@ -44,7 +51,56 @@ public class CospendImportService(ILogger<CospendImportService> logger, IUnitOfW
 
     private async Task<List<CospendExpenseDto>> ParseExpensesSection(CsvReader reader)
     {
-        throw new NotImplementedException();
+        var expenses = new List<CospendExpenseDto>();
+
+        // Skip members section by reading until we find the expenses header
+        var foundExpensesSection = false;
+
+        while (await reader.ReadAsync())
+        {
+            // Check if current line is the expenses header
+            var currentRecord = reader.Parser.Record;
+            if (currentRecord is not { Length: > 0 }) continue;
+            var firstField = currentRecord[0].Trim('"');
+            if (firstField != "what") continue;
+            foundExpensesSection = true;
+            break;
+        }
+
+        if (!foundExpensesSection)
+        {
+            throw new InvalidOperationException("Expenses section not found in CSV file");
+        }
+
+        // Now read expenses until we hit an empty line (end of expenses section)
+        while (await reader.ReadAsync())
+        {
+            var currentRecord = reader.Parser.Record;
+
+            // Stop if we hit an empty line (section separator)
+            if (currentRecord == null
+                || currentRecord.Length == 0
+                || string.IsNullOrWhiteSpace(string.Join("", currentRecord)))
+            {
+                break;
+            }
+
+            try
+            {
+                var expense = reader.GetRecord<CospendExpenseDto>();
+                expenses.Add(expense);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(
+                    ex,
+                    "Failed to parse expense record at line {LineNumber}",
+                    reader.Parser.RawRow);
+            }
+        }
+
+        logger.LogInformation("Successfully parsed {Count} expense records", expenses.Count);
+        return expenses;
     }
 
     // Data transformation methods
@@ -173,6 +229,64 @@ public class CospendImportService(ILogger<CospendImportService> logger, IUnitOfW
 
     private ExpenseSplit[] CalculateEqualSplits(decimal amount, List<int> userIds)
     {
-        throw new NotImplementedException();
+        if (userIds.Count == 0)
+            throw new ArgumentException("User list cannot be empty", nameof(userIds));
+
+        var splitAmount = Math.Round(amount / userIds.Count, 2, MidpointRounding.AwayFromZero);
+        var splits = new List<ExpenseSplit>();
+        var totalAssigned = 0m;
+
+        // Assign equal amounts to all but the last user
+        for (var i = 0; i < userIds.Count - 1; i++)
+        {
+            splits.Add(new ExpenseSplit
+            {
+                UserId = userIds[i],
+                SplitAmount = splitAmount
+            });
+            totalAssigned += splitAmount;
+        }
+
+        // Assign the remainder to the last user to handle rounding differences
+        var remainingAmount = amount - totalAssigned;
+        splits.Add(new ExpenseSplit
+        {
+            UserId = userIds[userIds.Count - 1],
+            SplitAmount = remainingAmount
+        });
+
+        return splits.ToArray();
+    }
+
+    private static Result ValidateFile(IFormFile file)
+    {
+        // Validate file is provided
+        if (file == null)
+        {
+            return Result.BadRequest("No file provided");
+        }
+
+        // Validate file extension
+        var fileName = file.FileName?.ToLowerInvariant();
+        if (string.IsNullOrEmpty(fileName) || !fileName.EndsWith(".csv"))
+        {
+            return Result.BadRequest("File must have a .csv extension");
+        }
+
+        // Validate file size (max 10MB as per specification)
+        const long maxFileSizeBytes = 10 * 1024 * 1024; // 10MB
+        if (file.Length > maxFileSizeBytes)
+        {
+            return Result.BadRequest(
+                $"File size must not exceed 10MB. Current size: {file.Length / 1024.0 / 1024.0:F2}MB");
+        }
+
+        // Validate file is not empty
+        if (file.Length == 0)
+        {
+            return Result.BadRequest("File cannot be empty");
+        }
+
+        return Result.Success();
     }
 }
