@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SplitDuo.Api.Features.Users.Dto;
@@ -10,7 +11,7 @@ namespace SplitDuo.Api.Features.Users.Services;
 public interface IUsersService
 {
     Task<Result<List<UserDto>>> GetUsersAsync();
-    Task<Result<UserDto>> CreateUserAsync(CreateUserRequestDto request);
+    Task<Result<CreateUserResponseDto>> CreateUserAsync(CreateUserRequestDto request);
     Task<Result<UserDto>> UpdateCurrentUserAsync(Guid currentUserId, UpdateUserRequestDto request);
     Task<Result> ChangeCurrentUserPasswordAsync(Guid currentUserId, ChangePasswordRequestDto request);
     Task<Result<UserDto>> GetUserAsync(string userId);
@@ -34,30 +35,34 @@ public class UsersService(
         return Result<List<UserDto>>.Success(userDtos);
     }
 
-    public async Task<Result<UserDto>> CreateUserAsync(CreateUserRequestDto request)
+    public async Task<Result<CreateUserResponseDto>> CreateUserAsync(CreateUserRequestDto request)
     {
         var existingUser = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Email == request.Email);
 
         if (existingUser != null)
-            return Result<UserDto>.Conflict("User with this email already exists");
+            return Result<CreateUserResponseDto>.Conflict("User with this email already exists");
 
-        var nameParts = request.Name.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
-        var firstName = nameParts[0];
-        var lastName = nameParts.Length > 1 ? nameParts[1] : "";
+        var generatedPassword = GenerateSecurePassword();
 
         var user = new User
         {
             Email = request.Email,
-            FirstName = firstName,
-            LastName = lastName,
-            PasswordHash = passwordHasher.HashPassword(null!, request.Password)
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            PasswordHash = passwordHasher.HashPassword(null!, generatedPassword)
         };
 
         unitOfWork.Users.Add(user);
         await unitOfWork.SaveChangesAsync();
 
-        return Result<UserDto>.Success(MapToUserDto(user));
+        var response = new CreateUserResponseDto
+        {
+            User = MapToUserDto(user),
+            GeneratedPassword = generatedPassword
+        };
+
+        return Result<CreateUserResponseDto>.Success(response);
     }
 
 
@@ -119,10 +124,9 @@ public class UsersService(
         var user = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == userGuid && u.DeletedAt == null);
 
-        if (user == null)
-            return Result<UserDto>.NotFound("User not found");
-
-        return Result<UserDto>.Success(MapToUserDto(user));
+        return user == null
+            ? Result<UserDto>.NotFound("User not found")
+            : Result<UserDto>.Success(MapToUserDto(user));
     }
 
     public async Task<Result<UserDto>> UpdateUserAsync(string userId, UpdateUserRequestDto request)
@@ -173,6 +177,51 @@ public class UsersService(
         await unitOfWork.SaveChangesAsync();
 
         return Result.Success();
+    }
+
+    private static string GenerateSecurePassword()
+    {
+        const string upperCase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const string lowerCase = "abcdefghijklmnopqrstuvwxyz";
+        const string digits = "0123456789";
+        const string specialChars = "!@#$%^&*";
+
+        const string allChars = upperCase + lowerCase + digits + specialChars;
+        const int passwordLength = 12;
+
+        using var rng = RandomNumberGenerator.Create();
+        var password = new char[passwordLength];
+
+        // Ensure at least one character from each category
+        password[0] = GetRandomChar(upperCase, rng);
+        password[1] = GetRandomChar(lowerCase, rng);
+        password[2] = GetRandomChar(digits, rng);
+        password[3] = GetRandomChar(specialChars, rng);
+
+        // Fill the rest randomly
+        for (var i = 4; i < passwordLength; i++)
+        {
+            password[i] = GetRandomChar(allChars, rng);
+        }
+
+        // Shuffle the password to avoid predictable patterns
+        for (var i = passwordLength - 1; i > 0; i--)
+        {
+            var randomBytes = new byte[4];
+            rng.GetBytes(randomBytes);
+            var j = Math.Abs(BitConverter.ToInt32(randomBytes, 0)) % (i + 1);
+            (password[i], password[j]) = (password[j], password[i]);
+        }
+
+        return new string(password);
+    }
+
+    private static char GetRandomChar(string chars, RandomNumberGenerator rng)
+    {
+        var randomBytes = new byte[4];
+        rng.GetBytes(randomBytes);
+        var randomIndex = Math.Abs(BitConverter.ToInt32(randomBytes, 0)) % chars.Length;
+        return chars[randomIndex];
     }
 
     private static UserDto MapToUserDto(User user)

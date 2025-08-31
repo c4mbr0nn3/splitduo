@@ -40,9 +40,8 @@ public class DataSeederService(IServiceProvider serviceProvider, ILogger<DataSee
             Email = appOptions.Value.InitialUserEmail,
             FirstName = appOptions.Value.InitialUserFirstName,
             LastName = appOptions.Value.InitialUserLastName,
+            PasswordHash = passwordHasher.HashPassword(null!, appOptions.Value.InitialUserPassword)
         };
-
-        firstUser.PasswordHash = passwordHasher.HashPassword(firstUser, appOptions.Value.InitialUserPassword);
 
         context.Users.Add(firstUser);
         await context.SaveChangesAsync();
