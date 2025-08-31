@@ -35,15 +35,17 @@ public class UsersController(
 
         var result = await usersService.CreateUserAsync(request);
 
-        if (!result.IsSuccess) return HandleResult(result);
+        if (!result.IsSuccess) return HandleResult(result.MapTo<CreateUserResponseDto>());
 
         await unitOfWork.SaveChangesAsync();
 
+        var data = result.Value!;
+
         var notification = new Notification
         {
-            To = result.Value!.User.Email,
+            To = data.User.Email,
             Subject = "Welcome to SplitDuo - Your Account Has Been Created",
-            Body = CreateWelcomeEmailBody(result.Value.User, result.Value.GeneratedPassword)
+            Body = CreateWelcomeEmailBody(data.User, data.GeneratedPassword)
         };
 
         var emailResult = await notificationService.SendAsync(notification);
@@ -53,7 +55,9 @@ public class UsersController(
         else
             logger.LogInformation("Welcome email sent successfully to {Email}", request.Email);
 
-        return HandleResult(result, "User created successfully");
+        var response = Result<CreateUserResponseDto>.Success(new CreateUserResponseDto { User = data.User });
+
+        return HandleResult(response, "User created successfully");
     }
 
     [HttpGet("me")]

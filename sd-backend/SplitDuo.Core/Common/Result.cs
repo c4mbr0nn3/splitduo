@@ -10,6 +10,10 @@ public class Result<T>
     public string Error { get; private set; } = "";
     public HttpStatusCode StatusCode { get; private set; }
 
+    public Result()
+    {
+    }
+
     private Result(T value, HttpStatusCode statusCode = HttpStatusCode.OK)
     {
         IsSuccess = true;
@@ -23,6 +27,8 @@ public class Result<T>
         Error = error;
         StatusCode = statusCode;
     }
+
+    public Result<TK> MapTo<TK>() => new() { IsSuccess = IsSuccess, Error = Error, StatusCode = StatusCode };
 
     public static Result<T> Success(T value, HttpStatusCode statusCode = HttpStatusCode.OK) => new(value, statusCode);
 

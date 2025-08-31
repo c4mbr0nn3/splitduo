@@ -11,7 +11,7 @@ namespace SplitDuo.Api.Features.Users.Services;
 public interface IUsersService
 {
     Task<Result<List<UserDto>>> GetUsersAsync();
-    Task<Result<CreateUserResponseDto>> CreateUserAsync(CreateUserRequestDto request);
+    Task<Result<CreateUserDto>> CreateUserAsync(CreateUserRequestDto request);
     Task<Result<UserDto>> UpdateCurrentUserAsync(Guid currentUserId, UpdateUserRequestDto request);
     Task<Result> ChangeCurrentUserPasswordAsync(Guid currentUserId, ChangePasswordRequestDto request);
     Task<Result<UserDto>> GetUserAsync(string userId);
@@ -33,13 +33,13 @@ public class UsersService(IUnitOfWork unitOfWork, IPasswordHasher<User> password
         return Result<List<UserDto>>.Success(response);
     }
 
-    public async Task<Result<CreateUserResponseDto>> CreateUserAsync(CreateUserRequestDto request)
+    public async Task<Result<CreateUserDto>> CreateUserAsync(CreateUserRequestDto request)
     {
         var existingUser = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Email == request.Email);
 
         if (existingUser != null)
-            return Result<CreateUserResponseDto>.Conflict("User with this email already exists");
+            return Result<CreateUserDto>.Conflict("User with this email already exists");
 
         var generatedPassword = GenerateSecurePassword();
 
@@ -52,14 +52,14 @@ public class UsersService(IUnitOfWork unitOfWork, IPasswordHasher<User> password
         };
 
         unitOfWork.Users.Add(user);
-
-        var response = new CreateUserResponseDto
+        
+        var response = new CreateUserDto
         {
             User = new UserDto(user),
             GeneratedPassword = generatedPassword
         };
 
-        return Result<CreateUserResponseDto>.Success(response);
+        return Result<CreateUserDto>.Success(response);
     }
 
 
