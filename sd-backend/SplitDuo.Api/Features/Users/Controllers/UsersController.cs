@@ -5,7 +5,9 @@ using SplitDuo.Api.Features.Common.Dto;
 using SplitDuo.Api.Features.Users.Dto;
 using SplitDuo.Api.Features.Users.Services;
 using SplitDuo.Core.Common;
+using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Persistence;
+using SplitDuo.Core.Services;
 
 namespace SplitDuo.Api.Features.Users.Controllers;
 
@@ -15,6 +17,7 @@ namespace SplitDuo.Api.Features.Users.Controllers;
 public class UsersController(
     IUsersService usersService,
     IUnitOfWork unitOfWork,
+    INotificationService notificationService,
     ILogger<UsersController> logger) : BaseApiController
 {
     [HttpGet]
@@ -32,8 +35,23 @@ public class UsersController(
 
         var result = await usersService.CreateUserAsync(request);
 
-        if (result.IsSuccess)
-            await unitOfWork.SaveChangesAsync();
+        if (!result.IsSuccess) return HandleResult(result);
+
+        await unitOfWork.SaveChangesAsync();
+
+        var notification = new Notification
+        {
+            To = result.Value!.User.Email,
+            Subject = "Welcome to SplitDuo - Your Account Has Been Created",
+            Body = CreateWelcomeEmailBody(result.Value.User, result.Value.GeneratedPassword)
+        };
+
+        var emailResult = await notificationService.SendAsync(notification);
+
+        if (emailResult.IsFailure)
+            logger.LogWarning("Failed to send welcome email to {Email}: {Error}", request.Email, emailResult.Error);
+        else
+            logger.LogInformation("Welcome email sent successfully to {Email}", request.Email);
 
         return HandleResult(result, "User created successfully");
     }
@@ -110,5 +128,24 @@ public class UsersController(
             await unitOfWork.SaveChangesAsync();
 
         return HandleResult(result, "User deleted successfully");
+    }
+
+    private static string CreateWelcomeEmailBody(UserDto user, string generatedPassword)
+    {
+        return $"""
+                <p>Hello {user.FullName},</p>
+                <p>Your SplitDuo account has been successfully created. You can now start tracking and splitting expenses with your partner or group.</p>
+                <p><strong>Your Login Credentials:</strong><br>
+                Email: {user.Email}<br>
+                Password: <strong>{generatedPassword}</strong></p>
+                <p><strong>Important:</strong> Please change your password after your first login for security reasons.</p>
+                <p>To get started:<br>
+                1. Log in to SplitDuo using the credentials above<br>
+                2. Change your password in your profile settings<br>
+                3. Create or join a group to start splitting expenses</p>
+                <p>If you didn't expect this email, please contact your administrator.</p>
+                <p>Best regards,<br>
+                The SplitDuo Team</p>
+                """;
     }
 }

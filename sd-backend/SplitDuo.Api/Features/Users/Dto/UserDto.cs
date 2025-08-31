@@ -10,8 +10,11 @@ public class UserDto
     public string? LastName { get; set; }
     public long CreatedAt { get; set; }
     public long UpdatedAt { get; set; }
-    
-    public UserDto(){}
+    public string FullName => $"{FirstName} {LastName ?? ""}";
+
+    public UserDto()
+    {
+    }
 
     public UserDto(User user)
     {
