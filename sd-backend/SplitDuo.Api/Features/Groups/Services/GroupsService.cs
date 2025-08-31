@@ -72,20 +72,16 @@ public class GroupsService(IUnitOfWork unitOfWork) : IGroupsService
         {
             Name = request.Name,
             Description = request.Description,
-            CreatedBy = user.Id
+            CreatedBy = user.Id,
         };
 
-        unitOfWork.Groups.Add(group);
-
-        // Add creator as admin member
-        var groupMember = new GroupMember
+        group.GroupMembers.Add(new GroupMember
         {
-            GroupId = group.Id,
             UserId = user.Id,
             Role = GroupRole.Admin
-        };
+        });
 
-        unitOfWork.GroupMembers.Add(groupMember);
+        unitOfWork.Groups.Add(group);
 
         var groupDto = new GroupDto
         {
@@ -94,7 +90,7 @@ public class GroupsService(IUnitOfWork unitOfWork) : IGroupsService
             Name = group.Name,
             Description = group.Description,
             CreatedByUserId = user.Guid.ToString(),
-            MemberCount = 1,
+            MemberCount = group.GroupMembers.Count,
             CreatedAt = group.CreatedAt,
             UpdatedAt = group.UpdatedAt
         };

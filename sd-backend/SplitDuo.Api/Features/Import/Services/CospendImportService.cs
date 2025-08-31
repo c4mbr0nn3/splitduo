@@ -29,7 +29,12 @@ public class CospendImportService(ILogger<CospendImportService> logger, IUnitOfW
                 UserId = userId
             };
 
-            var reader = new CsvReader(new StreamReader(file.OpenReadStream()), CultureInfo.InvariantCulture);
+            var streamReader = new StreamReader(file.OpenReadStream());
+            var reader = new CsvReader(streamReader, CultureInfo.InvariantCulture);
+            
+            // Configure CsvHelper to handle missing fields gracefully
+            reader.Context.Configuration.MissingFieldFound = null;
+            reader.Context.Configuration.HeaderValidated = null;
             var expenses = await ParseExpensesSection(reader);
             var result = await CreateExpensesAsync(expenses, groupId);
             if (result.IsFailure) throw new Exception(result.Error);
@@ -72,18 +77,16 @@ public class CospendImportService(ILogger<CospendImportService> logger, IUnitOfW
             throw new InvalidOperationException("Expenses section not found in CSV file");
         }
 
+        // Read the header to set up CsvHelper's mapping
+        reader.ReadHeader();
+
         // Now read expenses until we hit an empty line (end of expenses section)
         while (await reader.ReadAsync())
         {
             var currentRecord = reader.Parser.Record;
 
             // Stop if we hit an empty line (section separator)
-            if (currentRecord == null
-                || currentRecord.Length == 0
-                || string.IsNullOrWhiteSpace(string.Join("", currentRecord)))
-            {
-                break;
-            }
+            if (IsEmptyOrSectionSeparator(currentRecord)) break;
 
             try
             {
@@ -288,5 +291,12 @@ public class CospendImportService(ILogger<CospendImportService> logger, IUnitOfW
         }
 
         return Result.Success();
+    }
+
+    private static bool IsEmptyOrSectionSeparator(string[]? record)
+    {
+        return record == null
+               || record.Length == 0
+               || string.IsNullOrWhiteSpace(string.Join("", record));
     }
 }

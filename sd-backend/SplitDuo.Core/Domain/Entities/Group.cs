@@ -21,4 +21,5 @@ public class Group : AuditableAndSoftDeletableEntity
     [Column("created_by")] public int CreatedBy { get; set; }
 
     [ForeignKey(nameof(CreatedBy))] public virtual User? CreatedByUser { get; set; }
+    public virtual ICollection<GroupMember> GroupMembers { get; set; } = new List<GroupMember>();
 }
