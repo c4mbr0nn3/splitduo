@@ -55,6 +55,7 @@ public class AuthController(
         return HandleResult(result, "Token refreshed successfully");
     }
 
+    // TODO: check this method
     [Authorize]
     [HttpPost("revoke")]
     public async Task<ActionResult> RevokeToken([FromBody] RefreshTokenRequestDto request)
@@ -67,6 +68,7 @@ public class AuthController(
             return HandleResult(Result.Unauthorized("User not authenticated"));
         }
 
+        // why user should revoke its own tokens? it should be an administrative endpoint i think
         var result = await authenticationService.RevokeTokenAsync(request.RefreshToken, userId.Value);
 
         if (result.IsSuccess)

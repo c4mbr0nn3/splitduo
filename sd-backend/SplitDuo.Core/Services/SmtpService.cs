@@ -1,5 +1,6 @@
-using System.Net;
+using System.Net.Sockets;
 using MailKit.Net.Smtp;
+using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using SplitDuo.Core.Common;
@@ -39,25 +40,25 @@ public class SmtpService(IOptions<SmtpOptions> options) : ISmtpService
             await client.DisconnectAsync(true);
             return Result.Success();
         }
-        catch (Exception ex) when (ex is MailKit.Security.AuthenticationException)
+        catch (Exception ex) when (ex is AuthenticationException)
         {
-            return Result.Failure("SMTP authentication failed", HttpStatusCode.Unauthorized);
+            return Result.Unauthorized("SMTP authentication failed");
         }
-        catch (Exception ex) when (ex is MailKit.Net.Smtp.SmtpCommandException)
+        catch (Exception ex) when (ex is SmtpCommandException)
         {
-            return Result.Failure($"SMTP command failed: {ex.Message}", HttpStatusCode.BadRequest);
+            return Result.BadRequest($"SMTP command failed: {ex.Message}");
         }
-        catch (Exception ex) when (ex is System.Net.Sockets.SocketException)
+        catch (Exception ex) when (ex is SocketException)
         {
-            return Result.Failure("Failed to connect to SMTP server", HttpStatusCode.ServiceUnavailable);
+            return Result.ServiceUnavailable("Failed to connect to SMTP server");
         }
         catch (ParseException ex)
         {
-            return Result.Failure($"Invalid email address: {ex.Message}", HttpStatusCode.BadRequest);
+            return Result.BadRequest($"Invalid email address: {ex.Message}");
         }
         catch (Exception ex)
         {
-            return Result.Failure($"Failed to send email: {ex.Message}", HttpStatusCode.InternalServerError);
+            return Result.InternalServerError($"Failed to send email: {ex.Message}");
         }
     }
 }

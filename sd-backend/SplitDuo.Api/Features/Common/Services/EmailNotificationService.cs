@@ -1,4 +1,3 @@
-using System.Net;
 using Microsoft.EntityFrameworkCore;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Entities;
@@ -74,7 +73,7 @@ public class EmailNotificationService(
                 logger.LogError("Max retry count reached for email to {Email}. Giving up.", notification.To);
             }
 
-            return Result.Failure("Failed to send email due to unexpected error", HttpStatusCode.InternalServerError);
+            return Result.InternalServerError("Failed to send email due to unexpected error");
         }
     }
 
@@ -93,7 +92,7 @@ public class EmailNotificationService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Exception occurred while enqueuing email notification to {Email}", notification.To);
-            return Result.Failure("Failed to enqueue email notification", HttpStatusCode.InternalServerError);
+            return Result.InternalServerError("Failed to enqueue email notification");
         }
     }
 }
