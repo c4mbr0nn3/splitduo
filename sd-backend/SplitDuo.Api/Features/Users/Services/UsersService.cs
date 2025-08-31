@@ -19,20 +19,18 @@ public interface IUsersService
     Task<Result> DeleteUserAsync(string userId);
 }
 
-public class UsersService(
-    IUnitOfWork unitOfWork,
-    IPasswordHasher<User> passwordHasher) : IUsersService
+public class UsersService(IUnitOfWork unitOfWork, IPasswordHasher<User> passwordHasher) : IUsersService
 {
     public async Task<Result<List<UserDto>>> GetUsersAsync()
     {
         var users = await unitOfWork.Users
             .Where(u => u.DeletedAt == null)
-            .OrderBy(u => u.FirstName)
-            .ThenBy(u => u.LastName)
+            .OrderBy(u => u.LastName)
+            .ThenBy(u => u.FirstName)
             .ToListAsync();
 
-        var userDtos = users.Select(MapToUserDto).ToList();
-        return Result<List<UserDto>>.Success(userDtos);
+        var response = users.Select(x => new UserDto(x)).ToList();
+        return Result<List<UserDto>>.Success(response);
     }
 
     public async Task<Result<CreateUserResponseDto>> CreateUserAsync(CreateUserRequestDto request)
@@ -58,7 +56,7 @@ public class UsersService(
 
         var response = new CreateUserResponseDto
         {
-            User = MapToUserDto(user),
+            User = new UserDto(user),
             GeneratedPassword = generatedPassword
         };
 
@@ -91,9 +89,7 @@ public class UsersService(
         if (request.LastName != null)
             user.LastName = request.LastName;
 
-        await unitOfWork.SaveChangesAsync();
-
-        return Result<UserDto>.Success(MapToUserDto(user));
+        return Result<UserDto>.Success(new UserDto(user));
     }
 
     public async Task<Result> ChangeCurrentUserPasswordAsync(Guid currentUserId, ChangePasswordRequestDto request)
@@ -111,7 +107,6 @@ public class UsersService(
             return Result.Unauthorized("Current password is incorrect");
 
         user.PasswordHash = passwordHasher.HashPassword(user, request.NewPassword);
-        await unitOfWork.SaveChangesAsync();
 
         return Result.Success();
     }
@@ -126,7 +121,7 @@ public class UsersService(
 
         return user == null
             ? Result<UserDto>.NotFound("User not found")
-            : Result<UserDto>.Success(MapToUserDto(user));
+            : Result<UserDto>.Success(new UserDto(user));
     }
 
     public async Task<Result<UserDto>> UpdateUserAsync(string userId, UpdateUserRequestDto request)
@@ -159,7 +154,7 @@ public class UsersService(
 
         await unitOfWork.SaveChangesAsync();
 
-        return Result<UserDto>.Success(MapToUserDto(user));
+        return Result<UserDto>.Success(new UserDto(user));
     }
 
     public async Task<Result> DeleteUserAsync(string userId)
@@ -174,7 +169,6 @@ public class UsersService(
             return Result.NotFound("User not found");
 
         user.DeletedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        await unitOfWork.SaveChangesAsync();
 
         return Result.Success();
     }
@@ -222,18 +216,5 @@ public class UsersService(
         rng.GetBytes(randomBytes);
         var randomIndex = Math.Abs(BitConverter.ToInt32(randomBytes, 0)) % chars.Length;
         return chars[randomIndex];
-    }
-
-    private static UserDto MapToUserDto(User user)
-    {
-        return new UserDto
-        {
-            Id = user.Guid.ToString(),
-            Email = user.Email,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            CreatedAt = user.CreatedAt,
-            UpdatedAt = user.UpdatedAt
-        };
     }
 }
