@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SplitDuo.Api.Features.Authentication.Dto;
 using SplitDuo.Api.Features.Authentication.Services;
 using SplitDuo.Api.Features.Common.Controllers;
 using SplitDuo.Api.Features.Common.Dto;
+using SplitDuo.Core.Common;
 using SplitDuo.Core.Persistence;
 
 namespace SplitDuo.Api.Features.Authentication.Controllers;
@@ -53,23 +55,19 @@ public class AuthController(
         return HandleResult(result, "Token refreshed successfully");
     }
 
+    [Authorize]
     [HttpPost("revoke")]
     public async Task<ActionResult> RevokeToken([FromBody] RefreshTokenRequestDto request)
     {
         logger.LogInformation("Token revoke attempt");
 
-        // Extract user ID from current JWT (this would require authentication)
-        // For now, we'll extract from the expired token in the request
-        var tokenHandler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
-        var jwt = tokenHandler.ReadJwtToken(request.Token);
-        var userIdClaim = jwt.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
-
-        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+        var userId = GetCurrentUserId();
+        if (userId == null)
         {
-            return HandleResult(Core.Common.Result.Unauthorized("Invalid token"), null);
+            return HandleResult(Result.Unauthorized("User not authenticated"));
         }
 
-        var result = await authenticationService.RevokeTokenAsync(request.RefreshToken, userId);
+        var result = await authenticationService.RevokeTokenAsync(request.RefreshToken, userId.Value);
 
         if (result.IsSuccess)
         {

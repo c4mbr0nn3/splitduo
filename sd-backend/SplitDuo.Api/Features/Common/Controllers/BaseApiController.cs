@@ -1,13 +1,26 @@
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using SplitDuo.Api.Features.Common.Dto;
+using SplitDuo.Api.Features.Common.Services;
 using SplitDuo.Core.Common;
+using SplitDuo.Core.Domain.Entities;
 
 namespace SplitDuo.Api.Features.Common.Controllers;
 
 [ApiController]
 public abstract class BaseApiController : ControllerBase
 {
+    private IUserContextService? _userContextService;
+
+    private IUserContextService UserContextService => 
+        _userContextService ??= HttpContext.RequestServices.GetRequiredService<IUserContextService>();
+
+    protected Guid? GetCurrentUserId() => UserContextService.GetCurrentUserId();
+    
+    protected Task<User?> GetCurrentUserAsync() => UserContextService.GetCurrentUserAsync();
+    
+    protected bool IsUserAuthenticated() => UserContextService.IsAuthenticated();
+
     protected ActionResult<ApiResponseDto<T>> HandleResult<T>(Result<T> result, string? successMessage = null)
     {
         if (result.IsSuccess)
