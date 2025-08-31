@@ -118,6 +118,7 @@ namespace SplitDuo.Core.Migrations
                     paid_by = table.Column<int>(type: "integer", nullable: false),
                     expense_date = table.Column<DateOnly>(type: "date", nullable: false),
                     category_id = table.Column<int>(type: "integer", nullable: false),
+                    payment_mode_id = table.Column<int>(type: "integer", nullable: false),
                     created_at = table.Column<long>(type: "bigint", nullable: false),
                     updated_at = table.Column<long>(type: "bigint", nullable: false),
                     deleted_at = table.Column<long>(type: "bigint", nullable: true)
@@ -301,6 +302,11 @@ namespace SplitDuo.Core.Migrations
                 name: "IX_expenses_group_id_expense_date",
                 table: "expenses",
                 columns: new[] { "group_id", "expense_date" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_expenses_group_id_payment_mode_id_expense_date",
+                table: "expenses",
+                columns: new[] { "group_id", "payment_mode_id", "expense_date" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_expenses_guid",

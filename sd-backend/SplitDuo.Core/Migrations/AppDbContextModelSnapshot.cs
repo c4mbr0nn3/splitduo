@@ -67,6 +67,10 @@ namespace SplitDuo.Core.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("paid_by");
 
+                    b.Property<int>("PaymentModeId")
+                        .HasColumnType("integer")
+                        .HasColumnName("payment_mode_id");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("text")
@@ -89,6 +93,8 @@ namespace SplitDuo.Core.Migrations
                     b.HasIndex("PaidBy", "ExpenseDate");
 
                     b.HasIndex("GroupId", "CategoryId", "ExpenseDate");
+
+                    b.HasIndex("GroupId", "PaymentModeId", "ExpenseDate");
 
                     b.ToTable("expenses");
                 });
@@ -561,7 +567,7 @@ namespace SplitDuo.Core.Migrations
             modelBuilder.Entity("SplitDuo.Core.Domain.Entities.ExpenseSplit", b =>
                 {
                     b.HasOne("SplitDuo.Core.Domain.Entities.Expense", "Expense")
-                        .WithMany()
+                        .WithMany("ExpenseSplits")
                         .HasForeignKey("ExpenseId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -662,6 +668,11 @@ namespace SplitDuo.Core.Migrations
                     b.Navigation("Group");
 
                     b.Navigation("ToUser");
+                });
+
+            modelBuilder.Entity("SplitDuo.Core.Domain.Entities.Expense", b =>
+                {
+                    b.Navigation("ExpenseSplits");
                 });
 #pragma warning restore 612, 618
         }
