@@ -571,16 +571,27 @@ The following services are needed to implement the core features outlined in the
    - **Location**: `SplitDuo.Api/Features/Expenses/Services/ExpensesService.cs`
    - **Features**: Enhanced Result pattern with HTTP status codes, comprehensive DTO mapping, transaction safety
 
-5. **BalancesService**
+5. **BalancesService** _(implemented)_
 
-   - Calculate who owes what to whom
-   - Generate balance summaries for groups
-   - Real-time balance calculations
+   - **Balance Calculations**: Calculate who owes what to whom across all group members
+   - **Settlement Optimization**: Generate optimal settlement suggestions using greedy algorithm to minimize transactions
+   - **Balance Summaries**: Provide comprehensive balance overviews with settlement recommendations
+   - **Multi-Source Calculations**: Integrates expenses and settlements data for accurate balance computation
+   - **Service Integration**: Uses SettlementsService for settlement data via dedicated balance calculation method
+   - **Location**: `SplitDuo.Api/Features/Expenses/Services/BalancesService.cs`
+   - **Features**: Enhanced Result pattern, separation of concerns architecture, debt optimization algorithms
+   - **API Methods**: 2 distinct service methods for balance retrieval and summary generation with settlement suggestions
 
-6. **SettlementsService**
-   - Record payments between users
-   - Update balances when settlements occur
-   - Settlement history tracking
+6. **SettlementsService** _(implemented)_
+
+   - **Settlement Management**: Complete CRUD operations for recording payments between group members
+   - **Paginated Retrieval**: Advanced filtering by date range with efficient pagination support
+   - **Authorization**: Multi-layered group membership validation and user permission enforcement
+   - **Business Logic**: Payment validation, user membership verification, amount and date validation
+   - **Data Separation**: Dedicated balance calculation method for service-to-service communication
+   - **Location**: `SplitDuo.Api/Features/Settlements/Services/SettlementsService.cs`
+   - **Features**: Enhanced Result pattern, comprehensive validation, internal service communication patterns
+   - **API Methods**: 5 distinct service methods covering settlement lifecycle with balance calculation support
 
 #### Data Management Services
 
@@ -719,6 +730,57 @@ The following services are needed to implement the core features outlined in the
 - **Error Handling**: Enhanced Result pattern with comprehensive HTTP status codes (BadRequest, Unauthorized, Forbidden, NotFound)
 - **Data Operations**: Complete CRUD functionality with soft delete support
 - **API Methods**: 5 distinct service methods covering expense lifecycle management with advanced filtering
+
+**BalancesService Implementation:**
+
+- **Architecture**: Service located in Expenses feature folder following Vertical Slice Architecture (`SplitDuo.Api/Features/Expenses/Services/`)
+- **Dependencies**: Uses `IUnitOfWork` and `ISettlementsService` for separation of concerns
+- **Balance Calculation Engine**: Multi-source balance computation integrating expenses and settlements
+  - **Expense Integration**: Calculates amounts paid by users vs. amounts owed through expense splits
+  - **Settlement Integration**: Incorporates settlement payments through dedicated SettlementsService method
+  - **Member Filtering**: Processes only active group members with proper navigation property loading
+  - **Final Balance**: Computed as `TotalPaid - TotalOwed` (positive = owed money, negative = owes money)
+- **Settlement Optimization Algorithm**: Debt settlement optimization using greedy algorithm
+  - **Creditor/Debtor Separation**: Identifies users with positive vs. negative balances
+  - **Queue-Based Matching**: Uses priority queues to pair largest creditors with largest debtors
+  - **Transaction Minimization**: Generates minimum number of payments to settle all debts
+  - **Suggestion Generation**: Creates `BalanceSuggestionDto` with user-friendly payment descriptions
+- **Authorization Pattern**: Group membership validation with consistent user authentication
+- **Service Integration**: Proper separation of concerns using SettlementsService for settlement data
+  - **Internal Communication**: Uses `GetSettlementsForBalanceCalculationAsync` for data access
+  - **Data Transfer**: Uses `SettlementBalanceData` DTO for minimal data transfer
+  - **Loose Coupling**: No direct database access to settlement entities
+- **Error Handling**: Enhanced Result pattern with HTTP status codes (BadRequest, Unauthorized, Forbidden, NotFound)
+- **API Methods**: 2 distinct service methods for balance retrieval and summary with optimization suggestions
+
+**SettlementsService Implementation:**
+
+- **Architecture**: Service located in feature folder following Vertical Slice Architecture (`SplitDuo.Api/Features/Settlements/Services/`)
+- **Dependencies**: Uses `IUnitOfWork` for comprehensive data access with Entity Framework operations
+- **Settlement Management**: Complete CRUD operations for payment recording between group members
+  - **Payment Validation**: Ensures positive amounts, valid dates, and prevents self-payments
+  - **User Verification**: Validates both from/to users exist and are active group members
+  - **Business Rules**: Enforces payment constraints and data integrity
+- **Pagination Support**: Advanced pagination with date range filtering capabilities
+  - **Date Filtering**: Supports `startDate` and `endDate` parameters for settlement history
+  - **Efficient Queries**: Database-level pagination with proper ordering by settlement date
+  - **Response Metadata**: Complete pagination information with total counts and navigation flags
+- **Authorization Pattern**: Multi-layered group membership validation
+  - **Group Access**: Verifies user membership before allowing any settlement operations
+  - **Member Validation**: Ensures settlement participants are active group members
+  - **User Context**: Integrates with authentication for current user operations
+- **Service-to-Service Communication**: Dedicated method for balance calculations
+  - **Balance Integration**: `GetSettlementsForBalanceCalculationAsync` provides settlement data to BalancesService
+  - **Data Projection**: Uses efficient SELECT projection to minimize data transfer
+  - **Internal Interface**: Separation between public API methods and internal service communication
+- **Business Logic**: Comprehensive validation and business rule enforcement
+  - **Date Handling**: DateOnly parsing and validation for settlement dates
+  - **Amount Validation**: Positive amount enforcement and decimal precision handling
+  - **Update Operations**: Partial update support for settlement modifications
+- **Performance Optimization**: EF Core query optimization with Include operations and proper indexing
+- **Error Handling**: Enhanced Result pattern with comprehensive HTTP status codes (BadRequest, Unauthorized, Forbidden, NotFound, Conflict)
+- **Data Operations**: Complete CRUD functionality with soft delete support
+- **API Methods**: 5 distinct service methods covering settlement lifecycle with balance calculation support
 
 **NotificationService (EmailNotificationService) Implementation:**
 

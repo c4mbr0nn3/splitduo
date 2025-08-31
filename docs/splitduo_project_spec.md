@@ -42,7 +42,10 @@
 - **Two-User Focus**: Designed primarily for couples/partners
 - **Mobile-First UI**: Optimized for on-the-go expense tracking via smartphones
 - **Expense Tracking**: Add, edit, and delete shared expenses
-- **Split Calculations**: Automatic calculation of who owes what
+- **Split Calculations**: Automatic calculation of who owes what with balance optimization
+- **Balance Management**: Real-time balance tracking across all expenses and settlements
+- **Settlement Optimization**: Smart suggestions to minimize the number of transactions needed
+- **Payment Tracking**: Record settlements between users with comprehensive history
 - **User Authentication**: Secure login system for public access
 - **Data Import**: Import existing data from Cospend backup files
 - **Data Export**: Export/backup splitting data to CSV with Cospend backup file structure compatibility
@@ -85,6 +88,9 @@
 - [x] Implement user management service (CRUD operations)
 - [x] Implement groups management service (create, manage members, authorization)
 - [x] Implement core expense CRUD operations (with integrated split calculation)
+- [x] Implement balance calculation service (automatic debt calculation)
+- [x] Implement settlement optimization (minimize transaction suggestions)
+- [x] Implement settlements management (payment recording between users)
 - [ ] Create mobile-first Vue.js frontend with Nuxt UI
 - [ ] Deploy with Docker Compose (single app container + PostgreSQL container)
 
