@@ -84,9 +84,8 @@
 - [x] Implement email notification system (outbox pattern with background processing)
 - [x] Implement user management service (CRUD operations)
 - [x] Implement groups management service (create, manage members, authorization)
+- [x] Implement core expense CRUD operations (with integrated split calculation)
 - [ ] Create mobile-first Vue.js frontend with Nuxt UI
-- [ ] Implement core expense CRUD operations
-- [ ] Add split calculation logic
 - [ ] Deploy with Docker Compose (single app container + PostgreSQL container)
 
 ### Phase 2: Data Compatibility

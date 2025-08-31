@@ -486,6 +486,7 @@ builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IUserContextService, UserContextService>();
 builder.Services.AddScoped<IUsersService, UsersService>();
 builder.Services.AddScoped<IGroupsService, GroupsService>();
+builder.Services.AddScoped<IExpensesService, ExpensesService>();
 builder.Services.AddHttpContextAccessor(); // Already registered in Core
 ```
 
@@ -559,11 +560,16 @@ The following services are needed to implement the core features outlined in the
    - **Location**: `SplitDuo.Api/Features/Groups/Services/GroupsService.cs`
    - **Features**: Enhanced Result pattern with HTTP status codes, Unit of Work data access, comprehensive DTO mapping
 
-4. **ExpensesService**
+4. **ExpensesService** _(implemented)_
 
-   - CRUD operations for expenses
-   - Expense validation and business rules
-   - Associate expenses with groups and users
+   - **Expense Management**: Complete CRUD operations with comprehensive validation and business rule enforcement
+   - **Paginated Retrieval**: Advanced filtering by date range, category, and user with efficient pagination
+   - **Split Calculation**: Automatic expense split creation with amount-based and percentage-based distribution
+   - **Business Logic**: Split validation (sum equals expense amount), member participation validation, category management
+   - **Authorization**: Group membership validation, multi-layered access control, member-only expense access
+   - **Performance**: Optimized EF Core queries with includes, efficient split loading, proper indexing utilization
+   - **Location**: `SplitDuo.Api/Features/Expenses/Services/ExpensesService.cs`
+   - **Features**: Enhanced Result pattern with HTTP status codes, comprehensive DTO mapping, transaction safety
 
 5. **ExpenseSplitsService**
 
@@ -599,31 +605,31 @@ The following services are needed to implement the core features outlined in the
 
 1. **UserContextService** _(implemented)_
 
-    - **Current User Access**: Get authenticated user ID and entity from HTTP context
-    - **Authentication Check**: Verify if current request is authenticated
-    - **JWT Claims Integration**: Extract user information from JWT token claims
-    - **Location**: `SplitDuo.Api/Features/Common/Services/UserContextService.cs`
-    - **Integration**: Available through BaseApiController protected methods
-    - **Features**: Centralized user context access, simplified authentication checks
+   - **Current User Access**: Get authenticated user ID and entity from HTTP context
+   - **Authentication Check**: Verify if current request is authenticated
+   - **JWT Claims Integration**: Extract user information from JWT token claims
+   - **Location**: `SplitDuo.Api/Features/Common/Services/UserContextService.cs`
+   - **Integration**: Available through BaseApiController protected methods
+   - **Features**: Centralized user context access, simplified authentication checks
 
 2. **NotificationService** _(implemented)_
 
-    - **Outbox Pattern Implementation**: Queue email notifications with database persistence
-    - **Retry Logic**: Maximum 3 attempts with error tracking and logging
-    - **Queue Management**: Get unsent notifications, send emails, enqueue new notifications
-    - **Pruning System**: Automatic cleanup of sent notifications older than 30 days
-    - **Database Integration**: Full UnitOfWork support with performance-optimized indexes
-    - **Location**: `SplitDuo.Core/Services/EmailNotificationService.cs`
-    - **Features**: Enhanced Result pattern, comprehensive logging, transaction safety
-    - **Background Processing**: Integrated with Quartz.NET job scheduler for automatic processing
+   - **Outbox Pattern Implementation**: Queue email notifications with database persistence
+   - **Retry Logic**: Maximum 3 attempts with error tracking and logging
+   - **Queue Management**: Get unsent notifications, send emails, enqueue new notifications
+   - **Pruning System**: Automatic cleanup of sent notifications older than 30 days
+   - **Database Integration**: Full UnitOfWork support with performance-optimized indexes
+   - **Location**: `SplitDuo.Core/Services/EmailNotificationService.cs`
+   - **Features**: Enhanced Result pattern, comprehensive logging, transaction safety
+   - **Background Processing**: Integrated with Quartz.NET job scheduler for automatic processing
 
 3. **EmailService** _(implemented)_
-    - **SMTP Integration**: MailKit-based email sending with SSL/TLS support
-    - **Error Handling**: Comprehensive exception handling with specific HTTP status codes
-    - **HTML Email Support**: Rich email formatting with BodyBuilder
-    - **Configuration**: Environment-based SMTP settings via SmtpOptions
-    - **Location**: `SplitDuo.Core/Services/SmtpService.cs`
-    - **Features**: Authentication support, connection management, detailed error categorization
+   - **SMTP Integration**: MailKit-based email sending with SSL/TLS support
+   - **Error Handling**: Comprehensive exception handling with specific HTTP status codes
+   - **HTML Email Support**: Rich email formatting with BodyBuilder
+   - **Configuration**: Environment-based SMTP settings via SmtpOptions
+   - **Location**: `SplitDuo.Core/Services/SmtpService.cs`
+   - **Features**: Authentication support, connection management, detailed error categorization
 
 #### Other Services
 
@@ -690,6 +696,35 @@ The following services are needed to implement the core features outlined in the
 - **Data Access**: Advanced EF Core usage with Include operations, projection queries for performance, and transactional consistency
 - **Query Optimization**: Uses projection and selective loading to minimize database round trips
 - **API Methods**: Complete CRUD operations with 8 distinct service methods covering all group management scenarios
+
+**ExpensesService Implementation:**
+
+- **Architecture**: Service located in feature folder following Vertical Slice Architecture (`SplitDuo.Api/Features/Expenses/Services/`)
+- **Dependencies**: Uses `IUnitOfWork` for comprehensive data access with advanced Entity Framework operations
+- **DTOs**: Utilizes DTOs from `SplitDuo.Api/Features/Expenses/Dto/` with manual DTO mapping and nested split construction
+- **Pagination Support**: Advanced pagination with filtering capabilities (date range, category, user) using efficient database queries
+- **Split Management**: Comprehensive expense split handling with dual calculation modes (amount-based and percentage-based)
+  - **Split Validation**: Ensures split amounts sum to expense total (±0.01 tolerance for rounding)
+  - **Member Validation**: Validates all split participants are group members
+  - **Split Calculation**: Automatic percentage calculation for display purposes
+  - **Split Updates**: Complete split replacement strategy for updates
+- **Business Logic**: Multi-layered validation and business rule enforcement
+  - **Expense Categories**: Uses ExpenseCategory enum with validation and case-insensitive parsing
+  - **Date Handling**: DateOnly parsing and validation for expense dates
+  - **Amount Validation**: Positive amount enforcement and decimal precision handling
+  - **Member Participation**: Ensures payer and split users are group members
+- **Authorization Pattern**: Group membership validation with expense access control
+  - **Group Access**: Verifies user membership before allowing any expense operations
+  - **Expense Scope**: Limits expense access to group members only
+  - **User Context**: Integrates with user authentication for current user operations
+- **Performance Optimization**: Advanced EF Core query optimization strategies
+  - **Efficient Loading**: Uses Include operations and projection queries
+  - **Split Loading**: Optimized split loading with grouping and dictionary operations
+  - **Pagination**: Database-level pagination with proper counting and ordering
+  - **Index Utilization**: Leverages existing database indexes for optimal query performance
+- **Error Handling**: Enhanced Result pattern with comprehensive HTTP status codes (BadRequest, Unauthorized, Forbidden, NotFound)
+- **Data Operations**: Complete CRUD functionality with soft delete support
+- **API Methods**: 5 distinct service methods covering expense lifecycle management with advanced filtering
 
 **NotificationService (EmailNotificationService) Implementation:**
 
@@ -1013,6 +1048,7 @@ The application uses a **Global Exception Handler** for centralized error manage
 12. **Email Notification System** - Outbox pattern with background processing
 13. **Logging System** - Serilog with environment-specific sinks and database storage
 14. **Groups Service Implementation** - Comprehensive group management with multi-layered authorization, role-based permissions, and advanced EF Core usage
+15. **Expenses Service Implementation** - Complete expense lifecycle management with split calculation, pagination, advanced filtering, and business rule enforcement
 
 ## Email Notification System
 
