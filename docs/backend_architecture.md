@@ -28,6 +28,12 @@ SplitDuo.Api/
 │   ├── Settlements/
 │   │   ├── Controllers/
 │   │   └── Dto/
+│   ├── Categories/
+│   │   ├── Controllers/
+│   │   └── Dto/
+│   ├── PaymentModes/
+│   │   ├── Controllers/
+│   │   └── Dto/
 │   ├── Import/
 │   │   ├── Controllers/
 │   │   └── Dto/

@@ -151,6 +151,7 @@
   },
   "expenseDate": "string (ISO 8601 date)",
   "category": "string",
+  "paymentMode": "string",
   "splits": [
     {
       "id": "string (GUID)",
@@ -179,6 +180,7 @@
   "paidByUserId": "string (required, GUID)",
   "expenseDate": "string (required, ISO 8601 date sent by frontend)",
   "category": "string (optional, max 100 chars)",
+  "paymentMode": "string (optional, max 50 chars)",
   "splits": [
     {
       "userId": "string (required, GUID)",
@@ -199,6 +201,7 @@
   "paidByUserId": "string (optional, GUID)",
   "expenseDate": "string (optional, ISO 8601 date sent by frontend)",
   "category": "string (optional, max 100 chars)",
+  "paymentMode": "string (optional, max 50 chars)",
   "splits": [
     {
       "userId": "string (required, GUID)",
@@ -338,6 +341,29 @@
   "startDate": "string (optional, ISO 8601 date sent by frontend)",
   "endDate": "string (optional, ISO 8601 date sent by frontend)",
   "includeSettlements": "boolean (optional, default: true)"
+}
+```
+
+## Category DTOs
+
+### CategoryDto
+
+```json
+{
+  "id": "number",
+  "name": "string",
+  "description": "string (optional)"
+}
+```
+
+## Payment Mode DTOs
+
+### PaymentModeDto
+
+```json
+{
+  "id": "number",
+  "name": "string"
 }
 ```
 

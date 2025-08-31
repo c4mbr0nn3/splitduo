@@ -151,6 +151,18 @@ POST /api/v1/auth/revoke
 | GET    | `/groups/{groupId}/balances`         | Get current balances |
 | GET    | `/groups/{groupId}/balances/summary` | Get balance summary  |
 
+### Categories
+
+| Method | Endpoint      | Description                      |
+| ------ | ------------- | -------------------------------- |
+| GET    | `/categories` | Get available expense categories |
+
+### Payment Modes
+
+| Method | Endpoint         | Description                 |
+| ------ | ---------------- | --------------------------- |
+| GET    | `/payment-modes` | Get available payment modes |
+
 ### Data Import/Export
 
 | Method | Endpoint                           | Description           |
@@ -224,6 +236,7 @@ For list endpoints that return multiple items:
 - `startDate`: Filter by start date (ISO 8601 format sent by frontend)
 - `endDate`: Filter by end date (ISO 8601 format sent by frontend)
 - `category`: Filter by expense category
+- `paymentMode`: Filter by payment method (cash, card, transfer, etc.)
 - `userId`: Filter by user (where applicable)
 
 ### Date vs Timestamp Fields

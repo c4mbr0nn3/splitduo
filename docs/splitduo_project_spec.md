@@ -42,6 +42,7 @@
 - **Two-User Focus**: Designed primarily for couples/partners
 - **Mobile-First UI**: Optimized for on-the-go expense tracking via smartphones
 - **Expense Tracking**: Add, edit, and delete shared expenses
+- **Payment Mode Tracking**: Track payment methods (cash, card, transfer, etc.) for each expense
 - **Split Calculations**: Automatic calculation of who owes what with balance optimization
 - **Balance Management**: Real-time balance tracking across all expenses and settlements
 - **Settlement Optimization**: Smart suggestions to minimize the number of transactions needed
