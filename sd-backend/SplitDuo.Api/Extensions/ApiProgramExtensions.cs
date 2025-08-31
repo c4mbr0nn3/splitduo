@@ -2,6 +2,7 @@ using Scalar.AspNetCore;
 using Serilog;
 using SplitDuo.Api.Features.Authentication.Services;
 using SplitDuo.Api.Features.Common.Services;
+using SplitDuo.Api.Features.Expenses.Services;
 using SplitDuo.Api.Features.Groups.Services;
 using SplitDuo.Api.Features.Users.Services;
 using SplitDuo.Core.Extensions;
@@ -21,6 +22,7 @@ public static class ApiProgramExtensions
         builder.Services.AddScoped<IUserContextService, UserContextService>();
         builder.Services.AddScoped<IUsersService, UsersService>();
         builder.Services.AddScoped<IGroupsService, GroupsService>();
+        builder.Services.AddScoped<IExpensesService, ExpensesService>();
     }
 
     public static void ConfigureServices(this WebApplication app)

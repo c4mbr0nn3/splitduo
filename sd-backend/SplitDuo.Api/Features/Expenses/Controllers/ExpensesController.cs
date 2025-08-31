@@ -1,14 +1,22 @@
+using System.Net;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SplitDuo.Api.Features.Common.Controllers;
 using SplitDuo.Api.Features.Common.Dto;
 using SplitDuo.Api.Features.Expenses.Dto;
+using SplitDuo.Api.Features.Expenses.Services;
+using SplitDuo.Core.Common;
+using SplitDuo.Core.Persistence;
 
 namespace SplitDuo.Api.Features.Expenses.Controllers;
 
 [ApiController]
 [Route("api/v1/groups/{groupId}/expenses")]
 [Authorize]
-public class ExpensesController : ControllerBase
+public class ExpensesController(
+    IExpensesService expensesService,
+    IUnitOfWork unitOfWork,
+    ILogger<ExpensesController> logger) : BaseApiController
 {
     [HttpGet]
     public async Task<ActionResult<PaginatedResponseDto<ExpenseDto>>> GetGroupExpenses(
@@ -20,35 +28,94 @@ public class ExpensesController : ControllerBase
         [FromQuery] string? category = null,
         [FromQuery] string? userId = null)
     {
-        // TODO: Implement get group expenses logic
-        throw new NotImplementedException();
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+        {
+            var errorResult = Result<PaginatedResponseDto<ExpenseDto>>.Unauthorized("User not authenticated");
+            return StatusCode(401, new PaginatedResponseDto<ExpenseDto> { Success = false });
+        }
+
+        var result = await expensesService.GetGroupExpensesAsync(
+            groupId, currentUserId.Value, page, limit, startDate, endDate, category, userId);
+
+        if (result.IsSuccess)
+        {
+            return Ok(result.Value);
+        }
+
+        // Handle error response for paginated endpoint
+        var errorResponse = new PaginatedResponseDto<ExpenseDto> { Success = false };
+        return result.StatusCode switch
+        {
+            HttpStatusCode.BadRequest => BadRequest(errorResponse),
+            HttpStatusCode.Unauthorized => Unauthorized(errorResponse),
+            HttpStatusCode.Forbidden => StatusCode(403, errorResponse),
+            HttpStatusCode.NotFound => NotFound(errorResponse),
+            _ => StatusCode(500, errorResponse)
+        };
     }
 
     [HttpPost]
-    public async Task<ActionResult<ApiResponseDto<ExpenseDto>>> CreateExpense(string groupId, [FromBody] CreateExpenseRequestDto request)
+    public async Task<ActionResult<ApiResponseDto<ExpenseDto>>> CreateExpense(string groupId,
+        [FromBody] CreateExpenseRequestDto request)
     {
-        // TODO: Implement create expense logic
-        throw new NotImplementedException();
+        logger.LogInformation("Creating expense: {ExpenseTitle} in group: {GroupId}", request.Title, groupId);
+
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+            return HandleResult(Result<ExpenseDto>.Unauthorized("User not authenticated"));
+
+        var result = await expensesService.CreateExpenseAsync(groupId, currentUserId.Value, request);
+
+        if (result.IsSuccess)
+            await unitOfWork.SaveChangesAsync();
+
+        return HandleResult(result, "Expense created successfully");
     }
 
     [HttpGet("{expenseId}")]
     public async Task<ActionResult<ApiResponseDto<ExpenseDto>>> GetExpense(string groupId, string expenseId)
     {
-        // TODO: Implement get expense details logic
-        throw new NotImplementedException();
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+            return HandleResult(Result<ExpenseDto>.Unauthorized("User not authenticated"));
+
+        var result = await expensesService.GetExpenseAsync(groupId, expenseId, currentUserId.Value);
+        return HandleResult(result, "Expense retrieved successfully");
     }
 
     [HttpPut("{expenseId}")]
-    public async Task<ActionResult<ApiResponseDto<ExpenseDto>>> UpdateExpense(string groupId, string expenseId, [FromBody] UpdateExpenseRequestDto request)
+    public async Task<ActionResult<ApiResponseDto<ExpenseDto>>> UpdateExpense(string groupId, string expenseId,
+        [FromBody] UpdateExpenseRequestDto request)
     {
-        // TODO: Implement update expense logic
-        throw new NotImplementedException();
+        logger.LogInformation("Updating expense: {ExpenseId} in group: {GroupId}", expenseId, groupId);
+
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+            return HandleResult(Result<ExpenseDto>.Unauthorized("User not authenticated"));
+
+        var result = await expensesService.UpdateExpenseAsync(groupId, expenseId, currentUserId.Value, request);
+
+        if (result.IsSuccess)
+            await unitOfWork.SaveChangesAsync();
+
+        return HandleResult(result, "Expense updated successfully");
     }
 
     [HttpDelete("{expenseId}")]
-    public async Task<ActionResult<ApiResponseDto<object>>> DeleteExpense(string groupId, string expenseId)
+    public async Task<ActionResult> DeleteExpense(string groupId, string expenseId)
     {
-        // TODO: Implement delete expense logic
-        throw new NotImplementedException();
+        logger.LogWarning("Deleting expense: {ExpenseId} in group: {GroupId}", expenseId, groupId);
+
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+            return HandleResult(Result.Unauthorized("User not authenticated"));
+
+        var result = await expensesService.DeleteExpenseAsync(groupId, expenseId, currentUserId.Value);
+
+        if (result.IsSuccess)
+            await unitOfWork.SaveChangesAsync();
+
+        return HandleResult(result, "Expense deleted successfully");
     }
 }
