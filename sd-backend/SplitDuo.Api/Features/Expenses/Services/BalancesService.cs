@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SplitDuo.Api.Features.Common.Dto;
 using SplitDuo.Api.Features.Expenses.Dto;
+using SplitDuo.Api.Features.Settlements.Services;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Persistence;
 
@@ -12,7 +13,7 @@ public interface IBalancesService
     Task<Result<BalanceSummaryDto>> GetBalanceSummaryAsync(string groupId, Guid currentUserId);
 }
 
-public class BalancesService(IUnitOfWork unitOfWork) : IBalancesService
+public class BalancesService(IUnitOfWork unitOfWork, ISettlementsService settlementsService) : IBalancesService
 {
     public async Task<Result<List<BalanceDto>>> GetBalancesAsync(string groupId, Guid currentUserId)
     {
@@ -137,11 +138,7 @@ public class BalancesService(IUnitOfWork unitOfWork) : IBalancesService
         }
 
         // Calculate amounts from settlements (money transfers between users)
-        var settlements = await unitOfWork.Settlements
-            .Where(s => s.GroupId == groupId && s.DeletedAt == null)
-            .Include(s => s.FromUser)
-            .Include(s => s.ToUser)
-            .ToListAsync();
+        var settlements = await settlementsService.GetSettlementsForBalanceCalculationAsync(groupId);
 
         foreach (var settlement in settlements)
         {
@@ -152,7 +149,7 @@ public class BalancesService(IUnitOfWork unitOfWork) : IBalancesService
             {
                 balances[settlement.FromUserId].TotalPaid += settlement.Amount;
             }
-            
+
             if (balances.ContainsKey(settlement.ToUserId))
             {
                 balances[settlement.ToUserId].TotalOwed += settlement.Amount;
@@ -171,7 +168,7 @@ public class BalancesService(IUnitOfWork unitOfWork) : IBalancesService
     private List<BalanceSuggestionDto> GenerateSettlementSuggestions(List<BalanceDto> balances)
     {
         var suggestions = new List<BalanceSuggestionDto>();
-        
+
         // Separate users who owe money (negative balance) from those who are owed money (positive balance)
         var creditors = balances.Where(b => b.Balance > 0.01m).OrderByDescending(b => b.Balance).ToList();
         var debtors = balances.Where(b => b.Balance < -0.01m).OrderBy(b => b.Balance).ToList();

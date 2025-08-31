@@ -7,6 +7,14 @@ using SplitDuo.Core.Persistence;
 
 namespace SplitDuo.Api.Features.Settlements.Services;
 
+// Simple data structure for balance calculations
+public class SettlementBalanceData
+{
+    public int FromUserId { get; set; }
+    public int ToUserId { get; set; }
+    public decimal Amount { get; set; }
+}
+
 public interface ISettlementsService
 {
     Task<Result<PaginatedResponseDto<SettlementDto>>> GetGroupSettlementsAsync(
@@ -19,6 +27,9 @@ public interface ISettlementsService
         UpdateSettlementRequestDto request);
 
     Task<Result> DeleteSettlementAsync(string groupId, string settlementId, Guid currentUserId);
+
+    // Method for balance calculation - internal service communication
+    Task<List<SettlementBalanceData>> GetSettlementsForBalanceCalculationAsync(int groupId);
 }
 
 public class SettlementsService(IUnitOfWork unitOfWork) : ISettlementsService
@@ -349,5 +360,20 @@ public class SettlementsService(IUnitOfWork unitOfWork) : ISettlementsService
         settlement.DeletedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         return Result.Success();
+    }
+
+    public async Task<List<SettlementBalanceData>> GetSettlementsForBalanceCalculationAsync(int groupId)
+    {
+        var settlements = await unitOfWork.Settlements
+            .Where(s => s.GroupId == groupId && s.DeletedAt == null)
+            .Select(s => new SettlementBalanceData
+            {
+                FromUserId = s.FromUserId,
+                ToUserId = s.ToUserId,
+                Amount = s.Amount
+            })
+            .ToListAsync();
+
+        return settlements;
     }
 }
