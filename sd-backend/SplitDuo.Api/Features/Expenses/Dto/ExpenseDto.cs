@@ -13,6 +13,7 @@ public class ExpenseDto
     public UserBasicInfoDto PaidByUser { get; set; } = new();
     public string ExpenseDate { get; set; } = "";
     public string Category { get; set; } = "";
+    public string PaymentMode { get; set; } = "";
     public List<ExpenseSplitDto> Splits { get; set; } = new();
     public long CreatedAt { get; set; }
     public long UpdatedAt { get; set; }

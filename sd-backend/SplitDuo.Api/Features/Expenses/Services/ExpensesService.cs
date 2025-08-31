@@ -123,6 +123,7 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
                 },
                 ExpenseDate = expense.ExpenseDate.ToString("yyyy-MM-dd"),
                 Category = expense.Category.ToString().ToLowerInvariant(),
+                PaymentMode = expense.PaymentMode.ToString().ToLowerInvariant(),
                 Splits = expenseSplits.Select(split => new ExpenseSplitDto
                 {
                     Id = split.Id.ToString(),
@@ -205,11 +206,15 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
             return Result<ExpenseDto>.BadRequest("Paid by user is not a member of this group");
 
         // Parse and validate category
-        var category = ExpenseCategory.Other;
-        if (!string.IsNullOrWhiteSpace(request.Category) &&
-            !Enum.TryParse<ExpenseCategory>(request.Category, true, out category))
+        if (!Enum.TryParse(request.CategoryId.ToString(), true, out ExpenseCategory category))
         {
             return Result<ExpenseDto>.BadRequest("Invalid expense category");
+        }
+
+        // Parse and validate payment mode
+        if (!Enum.TryParse(request.PaymentModeId.ToString(), true, out PaymentMode paymentMode))
+        {
+            return Result<ExpenseDto>.BadRequest("Invalid expense payment mode");
         }
 
         // Validate splits
@@ -276,7 +281,8 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
             Amount = request.Amount,
             PaidBy = paidByUser.Id,
             ExpenseDate = expenseDate,
-            Category = category
+            Category = category,
+            PaymentMode = paymentMode
         };
 
         unitOfWork.Expenses.Add(expense);
@@ -326,6 +332,7 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
             },
             ExpenseDate = expense.ExpenseDate.ToString("yyyy-MM-dd"),
             Category = expense.Category.ToString().ToLowerInvariant(),
+            PaymentMode = expense.PaymentMode.ToString().ToLowerInvariant(),
             Splits = expenseSplits.Select((split, index) => new ExpenseSplitDto
             {
                 Id = split.Id.ToString(),
@@ -403,6 +410,7 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
             },
             ExpenseDate = expense.ExpenseDate.ToString("yyyy-MM-dd"),
             Category = expense.Category.ToString().ToLowerInvariant(),
+            PaymentMode = expense.PaymentMode.ToString().ToLowerInvariant(),
             Splits = splits.Select(split => new ExpenseSplitDto
             {
                 Id = split.Id.ToString(),
@@ -477,13 +485,21 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
             expense.ExpenseDate = expenseDate;
         }
 
-        if (!string.IsNullOrWhiteSpace(request.Category))
+        // Parse and validate category
+        if (!Enum.TryParse(request.CategoryId.ToString(), true, out ExpenseCategory category))
         {
-            if (!Enum.TryParse<ExpenseCategory>(request.Category, true, out var category))
-                return Result<ExpenseDto>.BadRequest("Invalid expense category");
-
-            expense.Category = category;
+            return Result<ExpenseDto>.BadRequest("Invalid expense category");
         }
+
+        expense.Category = category;
+
+        // Parse and validate payment mode
+        if (!Enum.TryParse(request.PaymentModeId.ToString(), true, out PaymentMode paymentMode))
+        {
+            return Result<ExpenseDto>.BadRequest("Invalid expense payment mode");
+        }
+
+        expense.PaymentMode = paymentMode;
 
         if (!string.IsNullOrWhiteSpace(request.PaidByUserId))
         {
@@ -621,6 +637,7 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
             },
             ExpenseDate = expense.ExpenseDate.ToString("yyyy-MM-dd"),
             Category = expense.Category.ToString().ToLowerInvariant(),
+            PaymentMode = expense.PaymentMode.ToString().ToLowerInvariant(),
             Splits = currentSplits.Select(split => new ExpenseSplitDto
             {
                 Id = split.Id.ToString(),

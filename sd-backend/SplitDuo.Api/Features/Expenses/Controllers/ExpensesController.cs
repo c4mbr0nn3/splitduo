@@ -31,6 +31,7 @@ public class ExpensesController(
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
         {
+            // TODO: check this strange stuff, it should use handle or I need to extend base api controller
             var errorResult = Result<PaginatedResponseDto<ExpenseDto>>.Unauthorized("User not authenticated");
             return StatusCode(401, new PaginatedResponseDto<ExpenseDto> { Success = false });
         }
