@@ -481,11 +481,16 @@ The following services are needed to implement the core features outlined in the
    - **Database**: RefreshToken entity for secure server-side token storage
    - **Features**: Enhanced Result pattern with HTTP status codes, Unit of Work data access, ASP.NET Core Identity password hashing
 
-2. **UsersService**
+2. **UsersService** _(implemented)_
 
-   - Create users (admin-only, no registration endpoint)
-   - Update user profiles and change passwords
-   - User management operations
+   - **User Management**: Create users with secure random password generation (admin-only)
+   - **Profile Operations**: Update user profiles (current user and admin operations)
+   - **Password Management**: Change password with current password verification
+   - **CRUD Operations**: Get users, individual user retrieval, soft delete operations
+   - **Security Features**: Email uniqueness validation, secure 12-character password generation
+   - **Location**: `SplitDuo.Api/Features/Users/Services/UsersService.cs`
+   - **Features**: Enhanced Result pattern with HTTP status codes, UserDto constructor mapping, Unit of Work data access
+   - **Password Generation**: Cryptographically secure passwords (uppercase, lowercase, digits, special chars) with Fisher-Yates shuffle
 
 3. **GroupsService**
 
@@ -576,6 +581,20 @@ The following services are needed to implement the core features outlined in the
 - **Token Management**: JWT generation with configurable expiration, refresh token support
 - **Error Handling**: Consistent error responses using Result pattern
 - **Integration**: DataSeederService updated to use injected `IPasswordHasher<User>` for consistency
+
+**UsersService Implementation:**
+
+- **Architecture**: Service located in feature folder following Vertical Slice Architecture (`SplitDuo.Api/Features/Users/Services/`)
+- **Dependencies**: Uses `IUnitOfWork` and `IPasswordHasher<User>` for secure password operations
+- **DTOs**: Utilizes DTOs from `SplitDuo.Api/Features/Users/Dto/` with constructor-based entity mapping
+- **Password Generation**: Cryptographically secure 12-character passwords using `RandomNumberGenerator`
+  - **Complexity Requirements**: At least one uppercase, lowercase, digit, and special character
+  - **Security Features**: Fisher-Yates shuffle algorithm to prevent predictable patterns
+  - **Character Set**: Alphanumeric + special characters (`!@#$%^&*`)
+- **Business Logic**: Email uniqueness validation, soft delete operations, profile update validation
+- **Error Handling**: Enhanced Result pattern with appropriate HTTP status codes (Conflict, NotFound, Unauthorized)
+- **Data Access**: Direct Unit of Work usage without repository pattern, controllers handle SaveChanges operations
+- **Mapping Pattern**: UserDto constructor pattern for clean entity-to-DTO conversion
 
 ## Data Access
 
