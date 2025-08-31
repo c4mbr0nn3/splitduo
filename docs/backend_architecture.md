@@ -545,15 +545,24 @@ The following services are needed to implement the core features outlined in the
     - **Integration**: Available through BaseApiController protected methods
     - **Features**: Centralized user context access, simplified authentication checks
 
-11. **NotificationService**
+11. **NotificationService** _(implemented)_
 
-    - Queue email notifications using outbox pattern
-    - Handle notification types: user created, expense added, settlement created
-    - Integration with background processing
+    - **Outbox Pattern Implementation**: Queue email notifications with database persistence
+    - **Retry Logic**: Maximum 3 attempts with error tracking and logging
+    - **Queue Management**: Get unsent notifications, send emails, enqueue new notifications
+    - **Pruning System**: Automatic cleanup of sent notifications older than 30 days
+    - **Database Integration**: Full UnitOfWork support with performance-optimized indexes
+    - **Location**: `SplitDuo.Core/Services/EmailNotificationService.cs`
+    - **Features**: Enhanced Result pattern, comprehensive logging, transaction safety
+    - **Background Processing**: Integrated with Quartz.NET job scheduler for automatic processing
 
-12. **EmailService**
-    - Send emails via email provider
-    - Email templating and delivery status tracking
+12. **EmailService** _(implemented)_
+    - **SMTP Integration**: MailKit-based email sending with SSL/TLS support
+    - **Error Handling**: Comprehensive exception handling with specific HTTP status codes
+    - **HTML Email Support**: Rich email formatting with BodyBuilder
+    - **Configuration**: Environment-based SMTP settings via SmtpOptions
+    - **Location**: `SplitDuo.Core/Services/SmtpService.cs`
+    - **Features**: Authentication support, connection management, detailed error categorization
 
 #### Existing Services
 
@@ -568,6 +577,22 @@ The following services are needed to implement the core features outlined in the
 - Controllers handle SaveChanges operations
 - Services queue notifications for background processing
 - Follow dependency injection patterns with scoped lifetimes
+
+#### Outstanding Implementation Requirements
+
+**Background Job System** _(implemented)_:
+
+- **Job Scheduler**: Quartz.NET-based background job processing
+- **EmailNotificationProcessingJob**: Automatic processing of queued email notifications
+  - **Scheduling**: Configurable interval for processing notification queue
+  - **Concurrency**: `[DisallowConcurrentExecution]` prevents overlapping executions
+  - **Functionality**: Retrieves unsent notifications and processes them sequentially
+  - **Error Handling**: Comprehensive logging and exception handling with job continuation
+  - **Location**: `SplitDuo.Core/Services/BackgroundJobs/EmailNotificationProcessingJob.cs`
+- **EmailNotificationPruneJob**: Automatic cleanup of processed notifications
+  - **Purpose**: Remove sent notifications older than 30 days to maintain database performance
+  - **Functionality**: Identifies and removes notifications that are sent or have reached max retry count
+  - **Location**: `SplitDuo.Core/Services/BackgroundJobs/EmailNotificationPruneJob.cs`
 
 #### Implementation Details
 
@@ -595,6 +620,55 @@ The following services are needed to implement the core features outlined in the
 - **Error Handling**: Enhanced Result pattern with appropriate HTTP status codes (Conflict, NotFound, Unauthorized)
 - **Data Access**: Direct Unit of Work usage without repository pattern, controllers handle SaveChanges operations
 - **Mapping Pattern**: UserDto constructor pattern for clean entity-to-DTO conversion
+
+**NotificationService (EmailNotificationService) Implementation:**
+
+- **Architecture**: Core infrastructure service (`SplitDuo.Core/Services/EmailNotificationService.cs`)
+- **Dependencies**: Uses `IUnitOfWork`, `ISmtpService`, and `ILogger<EmailNotificationService>`
+- **Outbox Pattern**: Database-backed notification queue with persistent retry logic
+- **Retry Mechanism**: Maximum 3 attempts per notification with comprehensive error tracking
+- **Database Schema**: Notification entity with indexes for performance (SentAt, CreatedAt, RetryCount)
+- **Queue Processing Methods**:
+  - `GetUnsentNotifications()` filters `SentAt IS NULL AND RetryCount < 3`
+  - `GetPrunableNotifications()` identifies notifications older than 30 days for cleanup
+  - `SendAsync()` handles email delivery with retry logic and status updates
+  - `EnqueueAsync()` adds notifications to database queue
+  - `Prune()` removes old notifications from database
+- **Error Tracking**: Comprehensive error message storage and logging at Info/Error/Debug levels
+- **Transaction Safety**: Notifications queued within same transaction as business operations
+- **Status Management**: `SentAt` timestamp indicates successful delivery
+- **Background Processing**: Fully integrated with Quartz.NET job system for automatic processing and cleanup
+
+**EmailService (SmtpService) Implementation:**
+
+- **Architecture**: Core infrastructure service (`SplitDuo.Core/Services/SmtpService.cs`)
+- **Dependencies**: Uses `IOptions<SmtpOptions>` for configuration management
+- **SMTP Library**: MailKit for robust email delivery with SSL/TLS support
+- **Error Categorization**: Specific exception handling with appropriate HTTP status codes:
+  - `AuthenticationException` → 401 Unauthorized (SMTP credentials)
+  - `SmtpCommandException` → 400 Bad Request (SMTP protocol errors)
+  - `SocketException` → 503 Service Unavailable (connection failures)
+  - `ParseException` → 400 Bad Request (malformed email addresses)
+  - General exceptions → 500 Internal Server Error
+- **Email Format**: HTML email support via MimeKit BodyBuilder
+- **Configuration**: Environment variable-based SMTP settings (host, port, credentials, SSL)
+- **Connection Management**: Proper connection lifecycle with authentication and cleanup
+- **Enhanced Result Pattern**: Consistent error handling with detailed error messages
+
+**Background Job System Implementation:**
+
+- **Job Scheduler**: Quartz.NET framework for reliable job scheduling and execution
+- **EmailNotificationProcessingJob**: Processes notification queue with configurable intervals
+  - **Concurrency Control**: `[DisallowConcurrentExecution]` ensures single job execution
+  - **Processing Logic**: Retrieves unsent notifications and processes them sequentially
+  - **Error Handling**: Failed notifications continue processing queue, comprehensive logging
+  - **Transaction Management**: SaveChanges called after each successful email send
+- **EmailNotificationPruneJob**: Maintains database performance through automatic cleanup
+  - **Pruning Logic**: Removes notifications that are sent or have reached maximum retry count
+  - **Age Threshold**: 30-day retention policy for processed notifications
+  - **Database Optimization**: Prevents notification table growth and maintains query performance
+- **Job Registration**: Configured through Quartz.NET DI integration with scoped service access
+- **Monitoring**: Comprehensive logging for job execution, success rates, and failure tracking
 
 ## Data Access
 
