@@ -45,6 +45,7 @@ public static class ApiProgramExtensions
         {
             app.MapOpenApi();
             app.MapScalarApiReference();
+            app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
         }
 
         app.UseHttpsRedirection();
