@@ -6,6 +6,7 @@ using SplitDuo.Api.Features.Users.Dto;
 using SplitDuo.Api.Features.Users.Services;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Entities;
+using SplitDuo.Core.Dto;
 using SplitDuo.Core.Persistence;
 using SplitDuo.Core.Services;
 
@@ -69,6 +70,17 @@ public class UsersController(
 
         var result = await usersService.GetUserAsync(currentUserId.Value.ToString());
         return HandleResult(result, "Current user retrieved successfully");
+    }
+
+    [HttpGet("me/imports")]
+    public async Task<ActionResult<ApiResponseDto<List<ImportStatusDto>>>> GetCurrentUserImports()
+    {
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+            return HandleResult(Result<List<ImportStatusDto>>.Unauthorized("User not authenticated"));
+
+        var result = await usersService.GetCurrentUserImports(currentUserId.Value.ToString());
+        return HandleResult(result);
     }
 
     [HttpPut("me")]

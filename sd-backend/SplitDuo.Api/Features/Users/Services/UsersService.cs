@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using SplitDuo.Api.Features.Users.Dto;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Entities;
+using SplitDuo.Core.Dto;
 using SplitDuo.Core.Persistence;
 
 namespace SplitDuo.Api.Features.Users.Services;
@@ -12,6 +13,7 @@ public interface IUsersService
 {
     Task<Result<List<UserDto>>> GetUsersAsync();
     Task<Result<CreateUserDto>> CreateUserAsync(CreateUserRequestDto request);
+    Task<Result<List<ImportStatusDto>>> GetCurrentUserImports(string currentUserId);
     Task<Result<UserDto>> UpdateCurrentUserAsync(Guid currentUserId, UpdateUserRequestDto request);
     Task<Result> ChangeCurrentUserPasswordAsync(Guid currentUserId, ChangePasswordRequestDto request);
     Task<Result<UserDto>> GetUserAsync(string userId);
@@ -52,7 +54,7 @@ public class UsersService(IUnitOfWork unitOfWork, IPasswordHasher<User> password
         };
 
         unitOfWork.Users.Add(user);
-        
+
         var response = new CreateUserDto
         {
             User = new UserDto(user),
@@ -62,6 +64,24 @@ public class UsersService(IUnitOfWork unitOfWork, IPasswordHasher<User> password
         return Result<CreateUserDto>.Success(response);
     }
 
+    public async Task<Result<List<ImportStatusDto>>> GetCurrentUserImports(string currentUserId)
+    {
+        var userResult = await GetUserAsync(currentUserId);
+        if (userResult.IsFailure) return userResult.MapTo<List<ImportStatusDto>>();
+
+        var user = userResult.Value;
+
+        if (user == null) return Result<List<ImportStatusDto>>.NotFound("User not found");
+
+        var imports = await unitOfWork.Imports
+            .Where(i => i.UserId == user.OriginalId)
+            .OrderByDescending(i => i.ImportDate)
+            .ThenByDescending(i => i.CreatedAt)
+            .ToListAsync();
+
+        var response = imports.Select(i => new ImportStatusDto(i)).ToList();
+        return Result<List<ImportStatusDto>>.Success(response);
+    }
 
     public async Task<Result<UserDto>> UpdateCurrentUserAsync(Guid currentUserId, UpdateUserRequestDto request)
     {
