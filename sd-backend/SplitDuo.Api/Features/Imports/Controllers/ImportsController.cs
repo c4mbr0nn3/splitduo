@@ -42,10 +42,10 @@ public class ImportsController(
         var group = groupResult.Value;
 
         // Get the appropriate import service
-        IImportService importService;
+        IImportsService importsService;
         try
         {
-            importService = importServiceFactory.GetImportService(importType);
+            importsService = importServiceFactory.GetImportService(importType);
         }
         catch (NotSupportedException ex)
         {
@@ -53,7 +53,7 @@ public class ImportsController(
         }
 
         // Service handles entity creation and background job scheduling
-        var importResult = await importService.StartImportAsync(request.File, group!.OriginalId, user.Id);
+        var importResult = await importsService.StartImportAsync(request.File, group!.OriginalId, user.Id);
         
         // Controller only handles SaveChanges
         if (importResult.IsSuccess)

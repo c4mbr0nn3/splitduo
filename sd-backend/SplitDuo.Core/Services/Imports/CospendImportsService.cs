@@ -12,10 +12,10 @@ using SplitDuo.Core.Services.BackgroundJobs;
 
 namespace SplitDuo.Core.Services.Imports;
 
-public class CospendImportService(
-    ILogger<CospendImportService> logger,
+public class CospendImportsService(
+    ILogger<CospendImportsService> logger,
     IUnitOfWork unitOfWork,
-    ISchedulerFactory schedulerFactory) : IImportService
+    ISchedulerFactory schedulerFactory) : IImportsService
 {
     public async Task<Result<ImportStatusDto>> StartImportAsync(IFormFile file, int groupId, int userId)
     {
