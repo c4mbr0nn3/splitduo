@@ -1,25 +1,90 @@
 <template>
-  <div class="flex flex-col items-center justify-center gap-4 h-screen">
-    <h1 class="font-bold text-2xl text-(--ui-primary)">
-      Nuxt UI - Starter
-    </h1>
-
-    <div class="flex items-center gap-2">
-      <UButton
-        label="Documentation"
-        icon="i-lucide-square-play"
-        to="https://ui.nuxt.com/getting-started/installation/nuxt"
-        target="_blank"
-      />
-
-      <UButton
-        label="GitHub"
-        color="neutral"
-        variant="outline"
-        icon="i-simple-icons-github"
-        to="https://github.com/nuxt/ui"
-        target="_blank"
-      />
-    </div>
+  <div class="flex justify-center items-center h-screen p-4">
+    <UCard class="w-full">
+      <template #header>
+        <div class="text-2xl">
+          Welcome Back
+        </div>
+      </template>
+      <UForm
+        :state="form"
+        @submit="onSubmit"
+      >
+        <div class="grid grid-cols-1 gap-4 mb-4">
+          <UFormGroup
+            label="Email"
+            name="email"
+            required
+          >
+            <UInput
+              v-model="form.email"
+              type="email"
+              placeholder="Enter your email"
+              required
+              class="w-full"
+              size="lg"
+            />
+          </UFormGroup>
+          <UFormGroup
+            label="Password"
+            name="password"
+            required
+          >
+            <UInput
+              v-model="form.password"
+              type="password"
+              placeholder="Enter your password"
+              required
+              class="w-full"
+              size="lg"
+            />
+          </UFormGroup>
+        </div>
+        <UButton
+          type="submit"
+          label="Login"
+          block
+          size="lg"
+          :disabled="isLoading"
+          :loading="isLoading"
+        />
+      </UForm>
+    </UCard>
   </div>
 </template>
+
+<script setup>
+import { ref } from 'vue'
+
+const form = ref({
+  email: '',
+  password: '',
+})
+
+const { login, isLoading } = useAuth()
+const { showError, showSuccess } = useNotifications()
+
+async function onSubmit() {
+  if (!form.value.email || !form.value.password) {
+    showError('Please fill in all fields')
+    return
+  }
+
+  try {
+    const result = await login({
+      email: form.value.email,
+      password: form.value.password,
+    })
+
+    if (result.success) {
+      showSuccess('Login successful! Redirecting...')
+    }
+    else {
+      showError(result.error || 'Login failed')
+    }
+  }
+  catch (error) {
+    showError(error.message || 'An unexpected error occurred')
+  }
+}
+</script>
