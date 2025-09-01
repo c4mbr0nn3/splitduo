@@ -2,7 +2,7 @@ export function useAuth() {
   const api = useApi()
   const { setToken, removeToken, getToken, getRefreshToken } = useAuthToken()
 
-  const user = ref(null)
+  const user = useState('user', () => null)
   const isAuthenticated = computed(() => !!user.value)
   const isLoading = ref(false)
 
@@ -15,7 +15,6 @@ export function useAuth() {
       if (response.success && response.data) {
         setToken(response.data.token, response.data.refreshToken)
         user.value = response.data.user
-        await navigateTo('/dashboard')
         return { success: true }
       }
 
