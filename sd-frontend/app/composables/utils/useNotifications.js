@@ -5,7 +5,6 @@ export function useNotifications() {
     toast.add({
       title,
       description: message,
-      color: 'green',
     })
   }
 
@@ -13,7 +12,6 @@ export function useNotifications() {
     toast.add({
       title,
       description: message,
-      color: 'red',
     })
   }
 
@@ -21,7 +19,6 @@ export function useNotifications() {
     toast.add({
       title,
       description: message,
-      color: 'yellow',
     })
   }
 
@@ -29,7 +26,6 @@ export function useNotifications() {
     toast.add({
       title,
       description: message,
-      color: 'blue',
     })
   }
 
