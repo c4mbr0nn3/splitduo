@@ -5,11 +5,17 @@ namespace SplitDuo.Core.Dto;
 
 public class ImportStatusDto
 {
+    public string? GroupId { get; set; }
     public string FileName { get; set; } = "";
     public int ImportStatusId { get; set; } = (int)ImportStatus.Pending;
     public int RecordsCount { get; set; }
     public string ErrorDetails { get; set; } = "";
     public string ImportDate { get; set; } = "";
+    public long? StartedAt { get; set; }
+    public long? CompletedAt { get; set; }
+    public long? Duration { get; set; }
+    public long CreatedAt { get; set; }
+    public long UpdatedAt { get; set; }
 
     public ImportStatusDto()
     {
@@ -17,10 +23,16 @@ public class ImportStatusDto
 
     public ImportStatusDto(Import import)
     {
+        GroupId = import.Group?.Guid.ToString() ?? null;
         FileName = import.FileName;
         ImportStatusId = import.StatusId;
         RecordsCount = import.RecordsCount;
         ErrorDetails = import.ErrorDetails;
         ImportDate = import.ImportDate.ToString("yyyy-MM-dd");
+        StartedAt = import.StartedAt;
+        CompletedAt = import.CompletedAt;
+        Duration = import.Duration;
+        CreatedAt = import.CreatedAt;
+        UpdatedAt = import.UpdatedAt;
     }
 }

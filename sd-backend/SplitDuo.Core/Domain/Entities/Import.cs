@@ -26,8 +26,8 @@ public class Import : AuditableEntity
     [Column("completed_at")] public long? CompletedAt { get; set; }
     [Column("duration_ms")] public long? Duration { get; set; }
 
-    [ForeignKey(nameof(GroupId))] public virtual Group Group { get; set; }
-    [ForeignKey(nameof(UserId))] public virtual User User { get; set; }
+    [ForeignKey(nameof(GroupId))] public virtual Group? Group { get; set; }
+    [ForeignKey(nameof(UserId))] public virtual User? User { get; set; }
 
     [NotMapped]
     public ImportStatus Status
