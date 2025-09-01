@@ -59,7 +59,7 @@ public class ImportProcessingJob(
 
             var completedTime = DateTimeOffset.UtcNow;
             import.CompletedAt = completedTime.ToUnixTimeSeconds();
-            import.DurationSeconds = (completedTime - startTime).Seconds;
+            import.Duration = (completedTime - startTime).Milliseconds;
 
             if (result.IsSuccess)
             {
@@ -79,7 +79,7 @@ public class ImportProcessingJob(
         {
             var completedTime = DateTimeOffset.UtcNow;
             import.CompletedAt = completedTime.ToUnixTimeSeconds();
-            import.DurationSeconds = (completedTime - startTime).Seconds;
+            import.Duration = (completedTime - startTime).Milliseconds;
             import.Status = ImportStatus.Failed;
             import.ErrorDetails = ex.Message;
 

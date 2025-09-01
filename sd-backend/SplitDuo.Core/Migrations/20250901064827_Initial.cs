@@ -184,6 +184,9 @@ namespace SplitDuo.Core.Migrations
                     records_count = table.Column<int>(type: "integer", nullable: false),
                     status_id = table.Column<int>(type: "integer", nullable: false),
                     error_details = table.Column<string>(type: "text", nullable: false),
+                    started_at = table.Column<long>(type: "bigint", nullable: true),
+                    completed_at = table.Column<long>(type: "bigint", nullable: true),
+                    duration_ms = table.Column<long>(type: "bigint", nullable: true),
                     created_at = table.Column<long>(type: "bigint", nullable: false),
                     updated_at = table.Column<long>(type: "bigint", nullable: false)
                 },

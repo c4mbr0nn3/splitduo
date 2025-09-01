@@ -241,9 +241,17 @@ namespace SplitDuo.Core.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<long?>("CompletedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("completed_at");
+
                     b.Property<long>("CreatedAt")
                         .HasColumnType("bigint")
                         .HasColumnName("created_at");
+
+                    b.Property<long?>("Duration")
+                        .HasColumnType("bigint")
+                        .HasColumnName("duration_ms");
 
                     b.Property<string>("ErrorDetails")
                         .IsRequired()
@@ -270,6 +278,10 @@ namespace SplitDuo.Core.Migrations
                     b.Property<int>("RecordsCount")
                         .HasColumnType("integer")
                         .HasColumnName("records_count");
+
+                    b.Property<long?>("StartedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("started_at");
 
                     b.Property<int>("StatusId")
                         .HasColumnType("integer")
@@ -597,7 +609,7 @@ namespace SplitDuo.Core.Migrations
             modelBuilder.Entity("SplitDuo.Core.Domain.Entities.GroupMember", b =>
                 {
                     b.HasOne("SplitDuo.Core.Domain.Entities.Group", "Group")
-                        .WithMany()
+                        .WithMany("GroupMembers")
                         .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -673,6 +685,11 @@ namespace SplitDuo.Core.Migrations
             modelBuilder.Entity("SplitDuo.Core.Domain.Entities.Expense", b =>
                 {
                     b.Navigation("ExpenseSplits");
+                });
+
+            modelBuilder.Entity("SplitDuo.Core.Domain.Entities.Group", b =>
+                {
+                    b.Navigation("GroupMembers");
                 });
 #pragma warning restore 612, 618
         }

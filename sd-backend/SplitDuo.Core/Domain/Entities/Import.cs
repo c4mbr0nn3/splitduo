@@ -24,7 +24,7 @@ public class Import : AuditableEntity
     [Column("error_details")] public string ErrorDetails { get; set; } = "";
     [Column("started_at")] public long? StartedAt { get; set; }
     [Column("completed_at")] public long? CompletedAt { get; set; }
-    [Column("duration_seconds")] public long? DurationSeconds { get; set; }
+    [Column("duration_ms")] public long? Duration { get; set; }
 
     [ForeignKey(nameof(GroupId))] public virtual Group Group { get; set; }
     [ForeignKey(nameof(UserId))] public virtual User User { get; set; }
