@@ -15,10 +15,12 @@ export function useUsers() {
       if (response.success && response.data) {
         users.value = response.data
       }
-    } catch (error) {
+    }
+    catch (error) {
       showError('Failed to load users')
       throw error
-    } finally {
+    }
+    finally {
       isLoading.value = false
     }
   }
@@ -32,10 +34,12 @@ export function useUsers() {
         currentUser.value = response.data
         return response.data
       }
-    } catch (error) {
+    }
+    catch (error) {
       showError('Failed to load user profile')
       throw error
-    } finally {
+    }
+    finally {
       isLoading.value = false
     }
   }
@@ -49,7 +53,8 @@ export function useUsers() {
         showSuccess('Profile updated successfully')
         return response.data
       }
-    } catch (error) {
+    }
+    catch (error) {
       showError('Failed to update profile')
       throw error
     }
@@ -60,7 +65,8 @@ export function useUsers() {
     try {
       await api.put('/users/me/password', passwordData)
       showSuccess('Password changed successfully')
-    } catch (error) {
+    }
+    catch (error) {
       showError('Failed to change password')
       throw error
     }
@@ -74,7 +80,8 @@ export function useUsers() {
         userImports.value = response.data
         return response.data
       }
-    } catch (error) {
+    }
+    catch (error) {
       showError('Failed to load imports')
       throw error
     }
@@ -89,7 +96,8 @@ export function useUsers() {
         showSuccess('User created successfully')
         return response.data
       }
-    } catch (error) {
+    }
+    catch (error) {
       showError('Failed to create user')
       throw error
     }
@@ -102,7 +110,8 @@ export function useUsers() {
       if (response.success && response.data) {
         return response.data
       }
-    } catch (error) {
+    }
+    catch (error) {
       showError('Failed to load user')
       throw error
     }
@@ -120,7 +129,8 @@ export function useUsers() {
         showSuccess('User updated successfully')
         return response.data
       }
-    } catch (error) {
+    }
+    catch (error) {
       showError('Failed to update user')
       throw error
     }
@@ -132,7 +142,8 @@ export function useUsers() {
       await api.delete(`/users/${userId}`)
       users.value = users.value.filter(u => u.id !== userId)
       showSuccess('User deleted successfully')
-    } catch (error) {
+    }
+    catch (error) {
       showError('Failed to delete user')
       throw error
     }
@@ -151,6 +162,6 @@ export function useUsers() {
     createUser,
     fetchUser,
     updateUser,
-    deleteUser
+    deleteUser,
   }
 }

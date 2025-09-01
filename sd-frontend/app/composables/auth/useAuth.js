@@ -20,12 +20,14 @@ export function useAuth() {
       }
 
       return { success: false, error: response.error?.message }
-    } catch (error) {
+    }
+    catch (error) {
       return {
         success: false,
-        error: error.message || 'Login failed'
+        error: error.message || 'Login failed',
       }
-    } finally {
+    }
+    finally {
       isLoading.value = false
     }
   }
@@ -37,9 +39,11 @@ export function useAuth() {
       if (refreshToken) {
         await api.post('/auth/revoke', { refreshToken })
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.warn('Logout API call failed:', error)
-    } finally {
+    }
+    finally {
       removeToken()
       user.value = null
       await navigateTo('/login')
@@ -56,7 +60,7 @@ export function useAuth() {
 
       const response = await api.post('/auth/refresh', {
         token: currentToken, // expired token
-        refreshToken: currentRefreshToken
+        refreshToken: currentRefreshToken,
       })
 
       if (response.success && response.data) {
@@ -66,7 +70,8 @@ export function useAuth() {
       }
 
       return false
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Token refresh failed:', error)
       await logout()
       return false
@@ -83,7 +88,8 @@ export function useAuth() {
       if (response.success && response.data) {
         user.value = response.data
       }
-    } catch (error) {
+    }
+    catch (error) {
       if (error.statusCode === 401) {
         // Try to refresh token
         const refreshed = await refreshToken()
@@ -101,6 +107,6 @@ export function useAuth() {
     login,
     logout,
     refreshToken,
-    initialize
+    initialize,
   }
 }

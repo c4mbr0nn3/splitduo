@@ -13,10 +13,12 @@ export function useCategories() {
       if (response.success && response.data) {
         categories.value = response.data
       }
-    } catch (error) {
+    }
+    catch (error) {
       showError('Failed to load categories')
       throw error
-    } finally {
+    }
+    finally {
       isLoading.value = false
     }
   }
@@ -24,6 +26,6 @@ export function useCategories() {
   return {
     categories: readonly(categories),
     isLoading: readonly(isLoading),
-    fetchCategories
+    fetchCategories,
   }
 }

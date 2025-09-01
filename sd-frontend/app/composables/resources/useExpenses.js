@@ -11,7 +11,7 @@ export function useExpenses(groupId) {
     total: 0,
     totalPages: 0,
     hasNext: false,
-    hasPrev: false
+    hasPrev: false,
   })
   const isLoading = ref(false)
 
@@ -27,25 +27,27 @@ export function useExpenses(groupId) {
         ...(filters.startDate && { startDate: filters.startDate }),
         ...(filters.endDate && { endDate: filters.endDate }),
         ...(filters.category && { category: filters.category }),
-        ...(filters.userId && { userId: filters.userId })
+        ...(filters.userId && { userId: filters.userId }),
       }
 
       const response = await api.get(
         `/groups/${groupIdRef.value}/expenses`,
-        params
+        params,
       )
 
       if (response.success && response.data) {
         expenses.value = response.data
         pagination.value = response.pagination || {
           page: 1, limit: 20, total: 0, totalPages: 0,
-          hasNext: false, hasPrev: false
+          hasNext: false, hasPrev: false,
         }
       }
-    } catch (error) {
+    }
+    catch (error) {
       showError('Failed to load expenses')
       throw error
-    } finally {
+    }
+    finally {
       isLoading.value = false
     }
   }
@@ -61,10 +63,12 @@ export function useExpenses(groupId) {
         currentExpense.value = response.data
         return response.data
       }
-    } catch (error) {
+    }
+    catch (error) {
       showError('Failed to load expense')
       throw error
-    } finally {
+    }
+    finally {
       isLoading.value = false
     }
   }
@@ -76,7 +80,7 @@ export function useExpenses(groupId) {
     try {
       const response = await api.post(
         `/groups/${groupIdRef.value}/expenses`,
-        expenseData
+        expenseData,
       )
 
       if (response.success && response.data) {
@@ -84,7 +88,8 @@ export function useExpenses(groupId) {
         showSuccess('Expense created successfully')
         return response.data
       }
-    } catch (error) {
+    }
+    catch (error) {
       showError('Failed to create expense')
       throw error
     }
@@ -97,7 +102,7 @@ export function useExpenses(groupId) {
     try {
       const response = await api.put(
         `/groups/${groupIdRef.value}/expenses/${expenseId}`,
-        updates
+        updates,
       )
 
       if (response.success && response.data) {
@@ -111,7 +116,8 @@ export function useExpenses(groupId) {
         showSuccess('Expense updated successfully')
         return response.data
       }
-    } catch (error) {
+    }
+    catch (error) {
       showError('Failed to update expense')
       throw error
     }
@@ -128,7 +134,8 @@ export function useExpenses(groupId) {
         currentExpense.value = null
       }
       showSuccess('Expense deleted successfully')
-    } catch (error) {
+    }
+    catch (error) {
       showError('Failed to delete expense')
       throw error
     }
@@ -143,6 +150,6 @@ export function useExpenses(groupId) {
     fetchExpense,
     createExpense,
     updateExpense,
-    deleteExpense
+    deleteExpense,
   }
 }

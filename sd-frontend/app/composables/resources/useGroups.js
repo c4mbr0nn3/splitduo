@@ -14,10 +14,12 @@ export function useGroups() {
       if (response.success && response.data) {
         groups.value = response.data
       }
-    } catch (error) {
+    }
+    catch (error) {
       showError('Failed to load groups')
       throw error
-    } finally {
+    }
+    finally {
       isLoading.value = false
     }
   }
@@ -32,10 +34,12 @@ export function useGroups() {
         showSuccess('Group created successfully')
         return response.data
       }
-    } catch (error) {
+    }
+    catch (error) {
       showError('Failed to create group')
       throw error
-    } finally {
+    }
+    finally {
       isLoading.value = false
     }
   }
@@ -49,10 +53,12 @@ export function useGroups() {
         currentGroup.value = response.data
         return response.data
       }
-    } catch (error) {
+    }
+    catch (error) {
       showError('Failed to load group details')
       throw error
-    } finally {
+    }
+    finally {
       isLoading.value = false
     }
   }
@@ -73,10 +79,12 @@ export function useGroups() {
         showSuccess('Group updated successfully')
         return response.data
       }
-    } catch (error) {
+    }
+    catch (error) {
       showError('Failed to update group')
       throw error
-    } finally {
+    }
+    finally {
       isLoading.value = false
     }
   }
@@ -91,10 +99,12 @@ export function useGroups() {
         currentGroup.value = null
       }
       showSuccess('Group deleted successfully')
-    } catch (error) {
+    }
+    catch (error) {
       showError('Failed to delete group')
       throw error
-    } finally {
+    }
+    finally {
       isLoading.value = false
     }
   }
@@ -106,7 +116,8 @@ export function useGroups() {
       if (response.success && response.data) {
         return response.data
       }
-    } catch (error) {
+    }
+    catch (error) {
       showError('Failed to load group members')
       throw error
     }
@@ -120,7 +131,8 @@ export function useGroups() {
         showSuccess('Member added successfully')
         return response.data
       }
-    } catch (error) {
+    }
+    catch (error) {
       showError('Failed to add member')
       throw error
     }
@@ -131,7 +143,8 @@ export function useGroups() {
     try {
       await api.delete(`/groups/${groupId}/members/${userId}`)
       showSuccess('Member removed successfully')
-    } catch (error) {
+    }
+    catch (error) {
       showError('Failed to remove member')
       throw error
     }
@@ -148,6 +161,6 @@ export function useGroups() {
     deleteGroup,
     fetchGroupMembers,
     addGroupMember,
-    removeGroupMember
+    removeGroupMember,
   }
 }

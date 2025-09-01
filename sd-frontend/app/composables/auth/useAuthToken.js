@@ -2,13 +2,13 @@ export function useAuthToken() {
   const tokenCookie = useCookie('auth-token', {
     default: () => null,
     secure: true,
-    sameSite: 'strict'
+    sameSite: 'strict',
   })
 
   const refreshTokenCookie = useCookie('refresh-token', {
     default: () => null,
     secure: true,
-    sameSite: 'strict'
+    sameSite: 'strict',
   })
 
   const setToken = (token, refreshToken) => {
@@ -33,6 +33,6 @@ export function useAuthToken() {
     setToken,
     getToken,
     getRefreshToken,
-    removeToken
+    removeToken,
   }
 }

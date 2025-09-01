@@ -13,10 +13,12 @@ export function usePaymentModes() {
       if (response.success && response.data) {
         paymentModes.value = response.data
       }
-    } catch (error) {
+    }
+    catch (error) {
       showError('Failed to load payment modes')
       throw error
-    } finally {
+    }
+    finally {
       isLoading.value = false
     }
   }
@@ -24,6 +26,6 @@ export function usePaymentModes() {
   return {
     paymentModes: readonly(paymentModes),
     isLoading: readonly(isLoading),
-    fetchPaymentModes
+    fetchPaymentModes,
   }
 }

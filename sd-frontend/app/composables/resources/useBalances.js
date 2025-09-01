@@ -17,10 +17,12 @@ export function useBalances(groupId) {
       if (response.success && response.data) {
         balances.value = response.data
       }
-    } catch (error) {
+    }
+    catch (error) {
       showError('Failed to load balances')
       throw error
-    } finally {
+    }
+    finally {
       isLoading.value = false
     }
   }
@@ -35,10 +37,12 @@ export function useBalances(groupId) {
       if (response.success && response.data) {
         balanceSummary.value = response.data
       }
-    } catch (error) {
+    }
+    catch (error) {
       showError('Failed to load balance summary')
       throw error
-    } finally {
+    }
+    finally {
       isLoading.value = false
     }
   }
@@ -48,6 +52,6 @@ export function useBalances(groupId) {
     balanceSummary: readonly(balanceSummary),
     isLoading: readonly(isLoading),
     fetchBalances,
-    fetchBalanceSummary
+    fetchBalanceSummary,
   }
 }

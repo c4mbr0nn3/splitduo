@@ -11,7 +11,7 @@ export function useSettlements(groupId) {
     total: 0,
     totalPages: 0,
     hasNext: false,
-    hasPrev: false
+    hasPrev: false,
   })
   const isLoading = ref(false)
 
@@ -25,25 +25,27 @@ export function useSettlements(groupId) {
         page: filters.page || 1,
         limit: filters.limit || 20,
         ...(filters.startDate && { startDate: filters.startDate }),
-        ...(filters.endDate && { endDate: filters.endDate })
+        ...(filters.endDate && { endDate: filters.endDate }),
       }
 
       const response = await api.get(
         `/groups/${groupIdRef.value}/settlements`,
-        params
+        params,
       )
 
       if (response.success && response.data) {
         settlements.value = response.data
         pagination.value = response.pagination || {
           page: 1, limit: 20, total: 0, totalPages: 0,
-          hasNext: false, hasPrev: false
+          hasNext: false, hasPrev: false,
         }
       }
-    } catch (error) {
+    }
+    catch (error) {
       showError('Failed to load settlements')
       throw error
-    } finally {
+    }
+    finally {
       isLoading.value = false
     }
   }
@@ -55,7 +57,7 @@ export function useSettlements(groupId) {
     try {
       const response = await api.post(
         `/groups/${groupIdRef.value}/settlements`,
-        settlementData
+        settlementData,
       )
 
       if (response.success && response.data) {
@@ -63,7 +65,8 @@ export function useSettlements(groupId) {
         showSuccess('Settlement created successfully')
         return response.data
       }
-    } catch (error) {
+    }
+    catch (error) {
       showError('Failed to create settlement')
       throw error
     }
@@ -76,7 +79,7 @@ export function useSettlements(groupId) {
     try {
       const response = await api.put(
         `/groups/${groupIdRef.value}/settlements/${settlementId}`,
-        updates
+        updates,
       )
 
       if (response.success && response.data) {
@@ -90,7 +93,8 @@ export function useSettlements(groupId) {
         showSuccess('Settlement updated successfully')
         return response.data
       }
-    } catch (error) {
+    }
+    catch (error) {
       showError('Failed to update settlement')
       throw error
     }
@@ -107,7 +111,8 @@ export function useSettlements(groupId) {
         currentSettlement.value = null
       }
       showSuccess('Settlement deleted successfully')
-    } catch (error) {
+    }
+    catch (error) {
       showError('Failed to delete settlement')
       throw error
     }
@@ -119,7 +124,7 @@ export function useSettlements(groupId) {
 
     try {
       const response = await api.post(
-        `/groups/${groupIdRef.value}/settlements/${settlementId}/confirm`
+        `/groups/${groupIdRef.value}/settlements/${settlementId}/confirm`,
       )
 
       if (response.success && response.data) {
@@ -133,7 +138,8 @@ export function useSettlements(groupId) {
         showSuccess('Settlement confirmed successfully')
         return response.data
       }
-    } catch (error) {
+    }
+    catch (error) {
       showError('Failed to confirm settlement')
       throw error
     }
@@ -148,6 +154,6 @@ export function useSettlements(groupId) {
     createSettlement,
     updateSettlement,
     deleteSettlement,
-    confirmSettlement
+    confirmSettlement,
   }
 }

@@ -23,17 +23,18 @@ export function useApi() {
           headers: {
             'Content-Type': 'application/json',
             ...getAuthHeaders(),
-            ...(options.headers || {})
+            ...(options.headers || {}),
           },
-          ...options
-        }
+          ...options,
+        },
       )
       return response
-    } catch (error) {
+    }
+    catch (error) {
       // Handle different error types
       throw createError({
         statusCode: error.status || 500,
-        statusMessage: error.message || 'API Error'
+        statusMessage: error.message || 'API Error',
       })
     }
   }
@@ -48,7 +49,7 @@ export function useApi() {
     put: (endpoint, body) =>
       request(endpoint, { method: 'PUT', body }),
 
-    delete: (endpoint) =>
+    delete: endpoint =>
       request(endpoint, { method: 'DELETE' }),
   }
 }

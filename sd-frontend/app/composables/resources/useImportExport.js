@@ -21,19 +21,21 @@ export function useImportExport(groupId) {
         formData,
         {
           headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        }
+            'Content-Type': 'multipart/form-data',
+          },
+        },
       )
 
       if (response.success && response.data) {
         showSuccess('Data imported successfully')
         return response.data
       }
-    } catch (error) {
+    }
+    catch (error) {
       showError('Failed to import data')
       throw error
-    } finally {
+    }
+    finally {
       isImporting.value = false
     }
   }
@@ -58,10 +60,12 @@ export function useImportExport(groupId) {
       document.body.removeChild(a)
 
       showSuccess('Data exported successfully')
-    } catch (error) {
+    }
+    catch (error) {
       showError('Failed to export data')
       throw error
-    } finally {
+    }
+    finally {
       isExporting.value = false
     }
   }
@@ -86,10 +90,12 @@ export function useImportExport(groupId) {
       document.body.removeChild(a)
 
       showSuccess('Cospend export successful')
-    } catch (error) {
+    }
+    catch (error) {
       showError('Failed to export to Cospend format')
       throw error
-    } finally {
+    }
+    finally {
       isExporting.value = false
     }
   }
@@ -99,6 +105,6 @@ export function useImportExport(groupId) {
     isExporting: readonly(isExporting),
     importData,
     exportToCsv,
-    exportToCospend
+    exportToCospend,
   }
 }

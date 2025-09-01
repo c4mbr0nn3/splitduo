@@ -7,7 +7,7 @@ export function usePagination() {
       total: 0,
       totalPages: 0,
       hasNext: false,
-      hasPrev: false
+      hasPrev: false,
     })
     const isLoading = ref(false)
 
@@ -53,11 +53,11 @@ export function usePagination() {
       nextPage,
       prevPage,
       goToPage,
-      setLimit
+      setLimit,
     }
   }
 
   return {
-    createPaginatedList
+    createPaginatedList,
   }
 }
