@@ -2,7 +2,7 @@
 
 ## Overview
 
-The SplitDuo REST API follows RESTful conventions and uses JSON for request/response payloads. All endpoints require authentication except for login/register.
+The SplitDuo REST API follows RESTful conventions and uses JSON for request/response payloads. All endpoints require authentication except for login.
 
 ## Base Configuration
 
@@ -103,10 +103,11 @@ POST /api/v1/auth/revoke
 | Method | Endpoint             | Description                  |
 | ------ | -------------------- | ---------------------------- |
 | GET    | `/users`             | List all users               |
-| POST   | `/users`             | Create new user              |
+| POST   | `/users`             | Create new user (admin only) |
 | GET    | `/users/me`          | Get current user profile     |
 | PUT    | `/users/me`          | Update current user profile  |
 | PUT    | `/users/me/password` | Change current user password |
+| GET    | `/users/me/imports`  | Get current user imports     |
 | GET    | `/users/{userId}`    | Get user by ID               |
 | PUT    | `/users/{userId}`    | Update user by ID            |
 | DELETE | `/users/{userId}`    | Delete user by ID            |
@@ -170,6 +171,8 @@ POST /api/v1/auth/revoke
 | POST   | `/groups/{groupId}/import`         | Import data backup    |
 | GET    | `/groups/{groupId}/export/csv`     | Export to CSV         |
 | GET    | `/groups/{groupId}/export/cospend` | Export Cospend format |
+
+**Note**: Export endpoints are planned but not yet implemented.
 
 ## Error Handling
 
@@ -262,7 +265,7 @@ GET /api/v1/groups/123/expenses?startDate=2024-01-01&endDate=2024-01-31&category
 
 ### User Creation
 
-- No registration endpoint available
+- No self-registration endpoint available
 - Initial users created via AppOptions configuration
 - DataSeederService automatically creates first user on startup using:
   - `App:InitialUserEmail`
@@ -270,6 +273,8 @@ GET /api/v1/groups/123/expenses?startDate=2024-01-01&endDate=2024-01-31&category
   - `App:InitialUserLastName`
   - `App:InitialUserPassword`
 - Additional users created through admin user management endpoints
+- User creation generates secure random passwords automatically
+- Welcome emails sent with generated credentials
 
 ### Email Notifications
 
