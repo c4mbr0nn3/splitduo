@@ -1,12 +1,12 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen">
     <!-- Header -->
-    <div class="bg-white shadow-sm border-b">
+    <div>
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
           <div class="flex items-center">
-            <h1 class="text-2xl font-bold text-gray-900">
-              SplitDuo Dashboard
+            <h1 class="text-2xl font-bold text-gray-100">
+              SplitDuo
             </h1>
           </div>
           <div class="flex items-center gap-4">
@@ -14,7 +14,6 @@
               Welcome, {{ user?.firstName || 'User' }}
             </span>
             <UButton
-              color="red"
               variant="outline"
               :loading="isLoggingOut"
               @click="handleLogout"
