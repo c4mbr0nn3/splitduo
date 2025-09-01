@@ -271,7 +271,6 @@ public class GroupsService(IUnitOfWork unitOfWork) : IGroupsService
 
         var memberDtos = members.Select(member => new GroupMemberDto
         {
-            Id = member.Id.ToString(),
             GroupId = group.Guid.ToString(),
             UserId = member.User.Guid.ToString(),
             User = new UserInfoDto
@@ -345,7 +344,6 @@ public class GroupsService(IUnitOfWork unitOfWork) : IGroupsService
 
         var memberDto = new GroupMemberDto
         {
-            Id = groupMember.Id.ToString(),
             GroupId = group.Guid.ToString(),
             UserId = userToAdd.Guid.ToString(),
             User = new UserInfoDto
