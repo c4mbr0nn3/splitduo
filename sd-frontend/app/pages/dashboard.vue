@@ -43,29 +43,8 @@
               <p class="text-sm font-medium text-gray-600">
                 Total Groups
               </p>
-              <p class="text-2xl font-bold text-gray-900">
+              <p class="text-2xl font-bold">
                 {{ groups.length }}
-              </p>
-            </div>
-          </div>
-        </UCard>
-
-        <UCard>
-          <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                <UIcon
-                  name="i-lucide-receipt"
-                  class="w-5 h-5 text-green-600"
-                />
-              </div>
-            </div>
-            <div class="ml-4">
-              <p class="text-sm font-medium text-gray-600">
-                Total Expenses
-              </p>
-              <p class="text-2xl font-bold text-gray-900">
-                $0.00
               </p>
             </div>
           </div>
@@ -120,7 +99,7 @@
         <UCard>
           <template #header>
             <div class="flex items-center justify-between">
-              <h2 class="text-lg font-semibold text-gray-900">
+              <h2 class="text-lg font-semibold">
                 Recent Groups
               </h2>
               <UButton
@@ -176,11 +155,11 @@
                   />
                 </div>
                 <div>
-                  <h3 class="font-medium text-gray-900">
+                  <h3 class="font-medium">
                     {{ group.name }}
                   </h3>
-                  <p class="text-sm text-gray-500">
-                    {{ group.members?.length || 0 }} members
+                  <p class="text-sm ">
+                    {{ group.memberCount || 0 }} member(s)
                   </p>
                 </div>
               </div>
@@ -195,7 +174,7 @@
         <!-- Quick Actions -->
         <UCard>
           <template #header>
-            <h2 class="text-lg font-semibold text-gray-900">
+            <h2 class="text-lg font-semibold">
               Quick Actions
             </h2>
           </template>
@@ -264,7 +243,7 @@
 
 <script setup>
 const { user, logout } = useAuth()
-const { groups, fetchGroups, createGroup, isLoading: isLoadingGroups } = useGroups()
+const { groups, fetchGroups, isLoading: isLoadingGroups } = useGroups()
 const { showSuccess, showInfo } = useNotifications()
 
 const isLoggingOut = ref(false)
@@ -300,11 +279,11 @@ const navigateToGroup = (groupId) => {
 }
 
 const createNewGroup = () => {
-  showInfo('Group creation coming soon!')
+  navigateTo('/groups/add')
 }
 
 const createFirstGroup = () => {
-  showInfo('Group creation coming soon!')
+  navigateTo('/groups/add')
 }
 
 const addExpense = () => {
@@ -320,7 +299,7 @@ const viewProfile = () => {
 }
 
 // Set page meta
-definePageMeta({
-  middleware: 'auth',
-})
+// definePageMeta({
+//  middleware: 'auth',
+// })
 </script>
