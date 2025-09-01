@@ -8,10 +8,10 @@
       </template>
       <UForm
         :state="form"
-        @submit="onSubmit"
+        @submit.prevent="onSubmit"
       >
         <div class="grid grid-cols-1 gap-4 mb-4">
-          <UFormGroup
+          <UFormField
             label="Email"
             name="email"
             required
@@ -24,8 +24,8 @@
               class="w-full"
               size="lg"
             />
-          </UFormGroup>
-          <UFormGroup
+          </UFormField>
+          <UFormField
             label="Password"
             name="password"
             required
@@ -38,7 +38,7 @@
               class="w-full"
               size="lg"
             />
-          </UFormGroup>
+          </UFormField>
         </div>
         <UButton
           type="submit"
@@ -78,6 +78,7 @@ async function onSubmit() {
 
     if (result.success) {
       showSuccess('Login successful! Redirecting...')
+      await navigateTo('/dashboard')
     }
     else {
       showError(result.error || 'Login failed')
