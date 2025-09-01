@@ -1,3 +1,5 @@
+import { useAuthToken } from '../../composables'
+
 export function useApi() {
   const config = useRuntimeConfig()
   const { getToken } = useAuthToken()
