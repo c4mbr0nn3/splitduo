@@ -12,7 +12,7 @@ using SplitDuo.Core.Persistence;
 namespace SplitDuo.Core.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250901064827_Initial")]
+    [Migration("20250901150344_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -527,6 +527,10 @@ namespace SplitDuo.Core.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("first_name");
+
+                    b.Property<int>("GlobalRoleId")
+                        .HasColumnType("integer")
+                        .HasColumnName("global_role_id");
 
                     b.Property<Guid>("Guid")
                         .HasColumnType("uuid")

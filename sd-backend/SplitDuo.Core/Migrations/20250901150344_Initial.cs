@@ -42,6 +42,7 @@ namespace SplitDuo.Core.Migrations
                     password_hash = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     first_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     last_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    global_role_id = table.Column<int>(type: "integer", nullable: false),
                     created_at = table.Column<long>(type: "bigint", nullable: false),
                     updated_at = table.Column<long>(type: "bigint", nullable: false),
                     deleted_at = table.Column<long>(type: "bigint", nullable: true)

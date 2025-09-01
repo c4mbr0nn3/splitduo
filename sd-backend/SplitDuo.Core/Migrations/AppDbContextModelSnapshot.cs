@@ -525,6 +525,10 @@ namespace SplitDuo.Core.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("first_name");
 
+                    b.Property<int>("GlobalRoleId")
+                        .HasColumnType("integer")
+                        .HasColumnName("global_role_id");
+
                     b.Property<Guid>("Guid")
                         .HasColumnType("uuid")
                         .HasColumnName("guid");
