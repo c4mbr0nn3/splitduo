@@ -9,6 +9,7 @@ public class UserDto
     public string Email { get; set; } = "";
     public string FirstName { get; set; } = "";
     public string? LastName { get; set; }
+    public string GlobalRoleId { get; set; } = "";
     public long CreatedAt { get; set; }
     public long UpdatedAt { get; set; }
     public string FullName => $"{FirstName} {LastName ?? ""}";
@@ -26,6 +27,7 @@ public class UserDto
         Email = user.Email;
         FirstName = user.FirstName;
         LastName = user.LastName;
+        GlobalRoleId = user.GlobalRoleId.ToString();
         CreatedAt = user.CreatedAt;
         UpdatedAt = user.UpdatedAt;
     }

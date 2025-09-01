@@ -4,6 +4,7 @@ using SplitDuo.Api.Features.Common.Dto;
 using SplitDuo.Api.Features.Common.Services;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Entities;
+using SplitDuo.Core.Domain.Enums;
 
 namespace SplitDuo.Api.Features.Common.Controllers;
 
@@ -20,6 +21,10 @@ public abstract class BaseApiController : ControllerBase
     protected Task<User?> GetCurrentUserAsync() => UserContextService.GetCurrentUserAsync();
     
     protected bool IsUserAuthenticated() => UserContextService.IsAuthenticated();
+    
+    protected GlobalRole? GetCurrentUserGlobalRole() => UserContextService.GetCurrentUserGlobalRole();
+    
+    protected bool IsCurrentUserSystemAdmin() => UserContextService.IsSystemAdmin();
 
     protected ActionResult<ApiResponseDto<T>> HandleResult<T>(Result<T> result, string? successMessage = null)
     {

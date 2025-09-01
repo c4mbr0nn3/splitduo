@@ -5,6 +5,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SplitDuo.Core.Domain.Entities;
+using SplitDuo.Core.Domain.Enums;
 using SplitDuo.Core.Options;
 using SplitDuo.Core.Persistence;
 
@@ -40,12 +41,13 @@ public class DataSeederService(IServiceProvider serviceProvider, ILogger<DataSee
             Email = appOptions.Value.InitialUserEmail,
             FirstName = appOptions.Value.InitialUserFirstName,
             LastName = appOptions.Value.InitialUserLastName,
-            PasswordHash = passwordHasher.HashPassword(null!, appOptions.Value.InitialUserPassword)
+            PasswordHash = passwordHasher.HashPassword(null!, appOptions.Value.InitialUserPassword),
+            GlobalRole = GlobalRole.SystemAdmin
         };
 
         context.Users.Add(firstUser);
         await context.SaveChangesAsync();
 
-        logger.LogInformation("Initial user created: {Email}", firstUser.Email);
+        logger.LogInformation("Initial system admin user created: {Email}", firstUser.Email);
     }
 }

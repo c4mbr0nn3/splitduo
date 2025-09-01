@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -11,6 +12,7 @@ using Microsoft.IdentityModel.Tokens;
 using Quartz;
 using Serilog;
 using SplitDuo.Core.Domain.Entities;
+using SplitDuo.Core.Domain.Enums;
 using SplitDuo.Core.Exceptions;
 using SplitDuo.Core.Options;
 using SplitDuo.Core.Options.Setup;
@@ -146,6 +148,10 @@ public static class ApiProgramExtensions
             };
         });
 
-        builder.Services.AddAuthorization();
+        builder.Services.AddAuthorizationBuilder()
+            .AddPolicy("SystemAdmin", policy =>
+                policy.RequireAssertion(context =>
+                    context.User.HasClaim(c =>
+                        c.Type == ClaimTypes.Role && c.Value == ((int)GlobalRole.SystemAdmin).ToString())));
     }
 }

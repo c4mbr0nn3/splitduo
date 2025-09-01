@@ -19,8 +19,7 @@ public interface IAuthenticationService
 {
     Task<Result<AuthResponseDto>> LoginAsync(LoginRequestDto request);
     Task<Result<AuthResponseDto>> RefreshTokenAsync(RefreshTokenRequestDto request);
-    Task<Result> RevokeTokenAsync(string refreshToken, Guid userId);
-    Task<Result> RevokeAllUserTokensAsync(int userId);
+    Task<Result> RevokeAllUserTokensAsync(string userGuid);
 }
 
 public class AuthenticationService(
@@ -180,15 +179,15 @@ public class AuthenticationService(
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
-            Subject = new ClaimsIdentity(new[]
-            {
+            Subject = new ClaimsIdentity([
                 new Claim(JwtRegisteredClaimNames.Jti, jwtId),
                 new Claim(JwtRegisteredClaimNames.Sub, user.Guid.ToString()),
                 new Claim("userId", user.Guid.ToString()),
                 new Claim("email", user.Email),
                 new Claim("firstName", user.FirstName),
-                new Claim("lastName", user.LastName)
-            }),
+                new Claim("lastName", user.LastName),
+                new Claim(ClaimTypes.Role, user.GlobalRoleId.ToString())
+            ]),
             Expires = DateTime.UtcNow.AddMinutes(_jwtOptions.Expires),
             Issuer = _jwtOptions.Issuer,
             Audience = _jwtOptions.Audience,
@@ -214,32 +213,14 @@ public class AuthenticationService(
         return Convert.ToBase64String(hashedBytes);
     }
 
-    public async Task<Result> RevokeTokenAsync(string refreshToken, Guid userId)
+    public async Task<Result> RevokeAllUserTokensAsync(string userGuid)
     {
-        // Get user's integer ID from Guid
-        var user = await unitOfWork.Users.FirstOrDefaultAsync(u => u.Guid == userId);
-        if (user == null)
-            return Result.NotFound("User not found");
+        if (!Guid.TryParse(userGuid, out var userId)) return Result.BadRequest("Invalid user guid");
 
-        var refreshTokenHash = HashToken(refreshToken);
-        var storedToken = await unitOfWork.RefreshTokens
-            .FirstOrDefaultAsync(rt => rt.TokenHash == refreshTokenHash && rt.UserId == user.Id);
+        var user = await unitOfWork.Users.FirstOrDefaultAsync(u => u.Guid == userId && u.DeletedAt == null);
+        if (user == null) return Result.NotFound("User not found");
 
-        if (storedToken == null)
-            return Result.NotFound("Refresh token not found");
-
-        if (storedToken.IsRevoked)
-            return Result.Conflict("Token already revoked");
-
-        storedToken.RevokedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        storedToken.RevokedReason = "Manually revoked";
-
-        return Result.Success();
-    }
-
-    public async Task<Result> RevokeAllUserTokensAsync(int userId)
-    {
-        await RevokeAllUserTokensAsync(userId, "All tokens revoked by user");
+        await RevokeAllUserTokensAsync(user.Id, "All tokens revoked by system administrator");
         return Result.Success();
     }
 

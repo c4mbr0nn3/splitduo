@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 using SplitDuo.Core.Domain.Base;
+using SplitDuo.Core.Domain.Enums;
 
 namespace SplitDuo.Core.Domain.Entities;
 
@@ -20,4 +21,12 @@ public class User : AuditableAndSoftDeletableEntity
 
     [Column("first_name"), MaxLength(100)] public string FirstName { get; set; } = "";
     [Column("last_name"), MaxLength(100)] public string LastName { get; set; } = "";
+    [Column("global_role_id")] public int GlobalRoleId { get; set; } = (int)GlobalRole.BaseUser;
+
+    [NotMapped]
+    public GlobalRole GlobalRole
+    {
+        get => (GlobalRole)GlobalRoleId;
+        set => GlobalRoleId = (int)value;
+    }
 }

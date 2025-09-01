@@ -4,7 +4,6 @@ using SplitDuo.Api.Features.Authentication.Dto;
 using SplitDuo.Api.Features.Authentication.Services;
 using SplitDuo.Api.Features.Common.Controllers;
 using SplitDuo.Api.Features.Common.Dto;
-using SplitDuo.Core.Common;
 using SplitDuo.Core.Persistence;
 
 namespace SplitDuo.Api.Features.Authentication.Controllers;
@@ -55,31 +54,22 @@ public class AuthController(
         return HandleResult(result, "Token refreshed successfully");
     }
 
-    // TODO: check this method
-    [Authorize]
-    [HttpPost("revoke")]
-    public async Task<ActionResult> RevokeToken([FromBody] RefreshTokenRequestDto request)
+    [Authorize(Policy = "SystemAdmin")]
+    [HttpPost("{userGuid}/revoke")]
+    public async Task<ActionResult> RevokeToken(string userGuid)
     {
-        logger.LogInformation("Token revoke attempt");
+        logger.LogInformation("Token revoke attempt for user {UserGuid}", userGuid);
 
-        var userId = GetCurrentUserId();
-        if (userId == null)
+        var result = await authenticationService.RevokeAllUserTokensAsync(userGuid);
+
+        if (!result.IsSuccess)
         {
-            return HandleResult(Result.Unauthorized("User not authenticated"));
+            logger.LogWarning("Token revoke failed for user: {UserGuid}. Error: {Error}", userGuid, result.Error);
+            return HandleResult(result);
         }
 
-        // why user should revoke its own tokens? it should be an administrative endpoint i think
-        var result = await authenticationService.RevokeTokenAsync(request.RefreshToken, userId.Value);
-
-        if (result.IsSuccess)
-        {
-            await unitOfWork.SaveChangesAsync();
-            logger.LogInformation("Token revoked successfully for user: {UserId}", userId);
-        }
-        else
-        {
-            logger.LogWarning("Token revoke failed for user: {UserId}. Error: {Error}", userId, result.Error);
-        }
+        await unitOfWork.SaveChangesAsync();
+        logger.LogInformation("Token revoked successfully for user: {UserGuid}", userGuid);
 
         return HandleResult(result, "Token revoked successfully");
     }

@@ -22,6 +22,7 @@ public class UsersController(
     ILogger<UsersController> logger) : BaseApiController
 {
     [HttpGet]
+    [Authorize(Policy = "SystemAdmin")]
     public async Task<ActionResult<ApiResponseDto<List<UserDto>>>> GetUsers()
     {
         var result = await usersService.GetUsersAsync();
@@ -29,6 +30,7 @@ public class UsersController(
     }
 
     [HttpPost]
+    [Authorize(Policy = "SystemAdmin")]
     public async Task<ActionResult<ApiResponseDto<CreateUserResponseDto>>> CreateUser(
         [FromBody] CreateUserRequestDto request)
     {
@@ -136,6 +138,7 @@ public class UsersController(
     }
 
     [HttpDelete("{userId}")]
+    [Authorize(Policy = "SystemAdmin")]
     public async Task<ActionResult> DeleteUser(string userId)
     {
         var result = await usersService.DeleteUserAsync(userId);

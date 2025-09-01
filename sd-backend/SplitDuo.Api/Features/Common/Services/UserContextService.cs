@@ -1,5 +1,7 @@
+using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using SplitDuo.Core.Domain.Entities;
+using SplitDuo.Core.Domain.Enums;
 using SplitDuo.Core.Persistence;
 
 namespace SplitDuo.Api.Features.Common.Services;
@@ -9,6 +11,8 @@ public interface IUserContextService
     Guid? GetCurrentUserId();
     Task<User?> GetCurrentUserAsync();
     bool IsAuthenticated();
+    GlobalRole? GetCurrentUserGlobalRole();
+    bool IsSystemAdmin();
 }
 
 public class UserContextService(
@@ -36,5 +40,17 @@ public class UserContextService(
     public bool IsAuthenticated()
     {
         return httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated == true;
+    }
+
+    public GlobalRole? GetCurrentUserGlobalRole()
+    {
+        var roleClaim = httpContextAccessor.HttpContext?.User
+            .FindFirst(ClaimTypes.Role)?.Value;
+        return Enum.TryParse<GlobalRole>(roleClaim, true, out var role) ? role : null;
+    }
+
+    public bool IsSystemAdmin()
+    {
+        return GetCurrentUserGlobalRole() == GlobalRole.SystemAdmin;
     }
 }

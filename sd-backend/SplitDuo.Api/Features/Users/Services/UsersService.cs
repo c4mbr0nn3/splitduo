@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using SplitDuo.Api.Features.Common.Services;
 using SplitDuo.Api.Features.Users.Dto;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Entities;
@@ -21,7 +22,10 @@ public interface IUsersService
     Task<Result> DeleteUserAsync(string userId);
 }
 
-public class UsersService(IUnitOfWork unitOfWork, IPasswordHasher<User> passwordHasher) : IUsersService
+public class UsersService(
+    IUnitOfWork unitOfWork,
+    IPasswordHasher<User> passwordHasher,
+    IUserContextService userContextService) : IUsersService
 {
     public async Task<Result<List<UserDto>>> GetUsersAsync()
     {
@@ -135,6 +139,15 @@ public class UsersService(IUnitOfWork unitOfWork, IPasswordHasher<User> password
         if (!Guid.TryParse(userId, out var userGuid))
             return Result<UserDto>.BadRequest("Invalid user ID format");
 
+        var currentUserId = userContextService.GetCurrentUserId();
+        var isSystemAdmin = userContextService.IsSystemAdmin();
+
+        if (currentUserId == null)
+            return Result<UserDto>.Unauthorized("User not authenticated");
+
+        if (!isSystemAdmin && currentUserId != userGuid)
+            return Result<UserDto>.Forbidden("You can only access your own user data");
+
         var user = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == userGuid && u.DeletedAt == null);
 
@@ -147,6 +160,15 @@ public class UsersService(IUnitOfWork unitOfWork, IPasswordHasher<User> password
     {
         if (!Guid.TryParse(userId, out var userGuid))
             return Result<UserDto>.BadRequest("Invalid user ID format");
+
+        var currentUserId = userContextService.GetCurrentUserId();
+        var isSystemAdmin = userContextService.IsSystemAdmin();
+
+        if (currentUserId == null)
+            return Result<UserDto>.Unauthorized("User not authenticated");
+
+        if (!isSystemAdmin && currentUserId != userGuid)
+            return Result<UserDto>.Forbidden("You can only update your own user data");
 
         var user = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == userGuid && u.DeletedAt == null);
@@ -170,6 +192,13 @@ public class UsersService(IUnitOfWork unitOfWork, IPasswordHasher<User> password
 
         if (request.LastName != null)
             user.LastName = request.LastName;
+
+        if (!request.GlobalRole.HasValue) return Result<UserDto>.Success(new UserDto(user));
+
+        if (!isSystemAdmin)
+            return Result<UserDto>.Forbidden("Only system administrators can modify user roles");
+
+        user.GlobalRole = request.GlobalRole.Value;
 
         return Result<UserDto>.Success(new UserDto(user));
     }
