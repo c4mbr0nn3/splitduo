@@ -1,0 +1,15 @@
+meta {
+  name: me - stats
+  type: http
+  seq: 4
+}
+
+get {
+  url: http://localhost:5198/api/v1/users/me/stats
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

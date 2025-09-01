@@ -1,0 +1,21 @@
+meta {
+  name: members - add
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:5198/api/v1/groups/01990652-886b-758e-9acb-e6982a3709c1/members
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "userEmail": "p3rova@asd.asd"
+  }
+}
+
+settings {
+  encodeUrl: true
+}
