@@ -1,0 +1,15 @@
+meta {
+  name: imports
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:5198/api/v1/users/me/imports
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}
