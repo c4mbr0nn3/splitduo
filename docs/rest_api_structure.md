@@ -15,11 +15,11 @@ The SplitDuo REST API follows RESTful conventions and uses JSON for request/resp
 
 ### Authentication
 
-| Method | Endpoint        | Description                            |
-| ------ | --------------- | -------------------------------------- |
-| POST   | `/auth/login`   | User login with refresh token rotation |
-| POST   | `/auth/refresh` | Refresh access token with rotation     |
-| POST   | `/auth/revoke`  | Revoke specific refresh token          |
+| Method | Endpoint                  | Description                            |
+| ------ | ------------------------- | -------------------------------------- |
+| POST   | `/auth/login`             | User login with refresh token rotation |
+| POST   | `/auth/refresh`           | Refresh access token with rotation     |
+| POST   | `/auth/{userGuid}/revoke` | Revoke all refresh tokens for user     |
 
 #### Authentication Flow
 
