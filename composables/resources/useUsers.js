@@ -1,0 +1,156 @@
+export function useUsers() {
+  const api = useApi()
+  const { showError, showSuccess } = useNotifications()
+
+  const users = ref([])
+  const currentUser = ref(null)
+  const userImports = ref([])
+  const isLoading = ref(false)
+
+  // Get all users (admin only)
+  const fetchUsers = async () => {
+    isLoading.value = true
+    try {
+      const response = await api.get('/users')
+      if (response.success && response.data) {
+        users.value = response.data
+      }
+    } catch (error) {
+      showError('Failed to load users')
+      throw error
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  // Get current user profile
+  const fetchCurrentUser = async () => {
+    isLoading.value = true
+    try {
+      const response = await api.get('/users/me')
+      if (response.success && response.data) {
+        currentUser.value = response.data
+        return response.data
+      }
+    } catch (error) {
+      showError('Failed to load user profile')
+      throw error
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  // Update current user profile
+  const updateCurrentUser = async (userData) => {
+    try {
+      const response = await api.put('/users/me', userData)
+      if (response.success && response.data) {
+        currentUser.value = response.data
+        showSuccess('Profile updated successfully')
+        return response.data
+      }
+    } catch (error) {
+      showError('Failed to update profile')
+      throw error
+    }
+  }
+
+  // Change password
+  const changePassword = async (passwordData) => {
+    try {
+      await api.put('/users/me/password', passwordData)
+      showSuccess('Password changed successfully')
+    } catch (error) {
+      showError('Failed to change password')
+      throw error
+    }
+  }
+
+  // Get user imports
+  const fetchUserImports = async () => {
+    try {
+      const response = await api.get('/users/me/imports')
+      if (response.success && response.data) {
+        userImports.value = response.data
+        return response.data
+      }
+    } catch (error) {
+      showError('Failed to load imports')
+      throw error
+    }
+  }
+
+  // Create user (admin only)
+  const createUser = async (userData) => {
+    try {
+      const response = await api.post('/users', userData)
+      if (response.success && response.data) {
+        users.value.push(response.data)
+        showSuccess('User created successfully')
+        return response.data
+      }
+    } catch (error) {
+      showError('Failed to create user')
+      throw error
+    }
+  }
+
+  // Get user by ID
+  const fetchUser = async (userId) => {
+    try {
+      const response = await api.get(`/users/${userId}`)
+      if (response.success && response.data) {
+        return response.data
+      }
+    } catch (error) {
+      showError('Failed to load user')
+      throw error
+    }
+  }
+
+  // Update user (admin only)
+  const updateUser = async (userId, userData) => {
+    try {
+      const response = await api.put(`/users/${userId}`, userData)
+      if (response.success && response.data) {
+        const index = users.value.findIndex(u => u.id === userId)
+        if (index !== -1) {
+          users.value[index] = response.data
+        }
+        showSuccess('User updated successfully')
+        return response.data
+      }
+    } catch (error) {
+      showError('Failed to update user')
+      throw error
+    }
+  }
+
+  // Delete user (admin only)
+  const deleteUser = async (userId) => {
+    try {
+      await api.delete(`/users/${userId}`)
+      users.value = users.value.filter(u => u.id !== userId)
+      showSuccess('User deleted successfully')
+    } catch (error) {
+      showError('Failed to delete user')
+      throw error
+    }
+  }
+
+  return {
+    users: readonly(users),
+    currentUser: readonly(currentUser),
+    userImports: readonly(userImports),
+    isLoading: readonly(isLoading),
+    fetchUsers,
+    fetchCurrentUser,
+    updateCurrentUser,
+    changePassword,
+    fetchUserImports,
+    createUser,
+    fetchUser,
+    updateUser,
+    deleteUser
+  }
+}
