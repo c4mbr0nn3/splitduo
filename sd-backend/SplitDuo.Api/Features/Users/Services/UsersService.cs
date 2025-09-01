@@ -15,6 +15,7 @@ public interface IUsersService
     Task<Result<List<UserDto>>> GetUsersAsync();
     Task<Result<CreateUserDto>> CreateUserAsync(CreateUserRequestDto request);
     Task<Result<List<ImportStatusDto>>> GetCurrentUserImports(string currentUserId);
+    Task<Result<UserStatsDto>> GetCurrentUserStatsAsync(string currentUserId);
     Task<Result<UserDto>> UpdateCurrentUserAsync(Guid currentUserId, UpdateUserRequestDto request);
     Task<Result> ChangeCurrentUserPasswordAsync(Guid currentUserId, ChangePasswordRequestDto request);
     Task<Result<UserDto>> GetUserAsync(string userId);
@@ -85,6 +86,56 @@ public class UsersService(
 
         var response = imports.Select(i => new ImportStatusDto(i)).ToList();
         return Result<List<ImportStatusDto>>.Success(response);
+    }
+
+    // TODO: this should be under balances service
+    public async Task<Result<UserStatsDto>> GetCurrentUserStatsAsync(string currentUserId)
+    {
+        var userResult = await GetUserAsync(currentUserId);
+        if (userResult.IsFailure) return userResult.MapTo<UserStatsDto>();
+
+        var user = userResult.Value;
+
+        if (user == null) return Result<UserStatsDto>.NotFound("User not found");
+
+        // Get total groups for the user
+        var totalGroups = await unitOfWork.GroupMembers
+            .Where(gm => gm.UserId == user.OriginalId)
+            .CountAsync();
+
+        // Get all expenses for the user's groups
+        var userGroupIds = await unitOfWork.GroupMembers
+            .Where(gm => gm.UserId == user.OriginalId)
+            .Select(gm => gm.GroupId)
+            .ToListAsync();
+
+        var totalExpenses = await unitOfWork.Expenses
+            .Where(e => userGroupIds.Contains(e.GroupId) && e.DeletedAt == null)
+            .SumAsync(e => e.Amount);
+
+        // Calculate what user owes (splits where user owes money)
+        var totalSplitsOwed = await unitOfWork.ExpenseSplits
+            .Where(es => es.UserId == user.OriginalId)
+            .SumAsync(es => es.SplitAmount);
+
+        var totalPaidByUser = await unitOfWork.Expenses
+            .Where(e => e.PaidBy == user.OriginalId && e.DeletedAt == null)
+            .SumAsync(e => e.Amount);
+
+        // User owes: amount they owe in splits minus what they've paid
+        var youOwe = Math.Max(0, totalSplitsOwed - totalPaidByUser);
+
+        // User is owed: amount they've paid minus what they owe in splits
+        var youreOwed = Math.Max(0, totalPaidByUser - totalSplitsOwed);
+
+        var stats = new UserStatsDto
+        {
+            TotalGroups = totalGroups,
+            YouOwe = youOwe,
+            YoureOwed = youreOwed
+        };
+
+        return Result<UserStatsDto>.Success(stats);
     }
 
     public async Task<Result<UserDto>> UpdateCurrentUserAsync(Guid currentUserId, UpdateUserRequestDto request)

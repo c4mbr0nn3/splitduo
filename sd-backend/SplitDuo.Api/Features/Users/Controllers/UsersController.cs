@@ -74,6 +74,17 @@ public class UsersController(
         return HandleResult(result, "Current user retrieved successfully");
     }
 
+    [HttpGet("me/stats")]
+    public async Task<ActionResult<ApiResponseDto<UserStatsDto>>> GetUserStats()
+    {
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+            return HandleResult(Result<UserStatsDto>.Unauthorized("User not authenticated"));
+
+        var result = await usersService.GetCurrentUserStatsAsync(currentUserId.Value.ToString());
+        return HandleResult(result, "Current user stats retrieved successfully");
+    }
+
     [HttpGet("me/imports")]
     public async Task<ActionResult<ApiResponseDto<List<ImportStatusDto>>>> GetCurrentUserImports()
     {
