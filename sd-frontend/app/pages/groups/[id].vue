@@ -1,6 +1,9 @@
 <template>
   <div class="min-h-screen p-4 flex flex-col items-center">
-    <UCard class="w-full max-w-2xl">
+    <UCard
+      class="w-full max-w-2xl"
+      variant="soft"
+    >
       <template #header>
         <div class="text-2xl font-bold text-primary text-center mb-2">
           {{ group?.name || 'Group' }}
@@ -51,6 +54,7 @@
             <UCard
               v-for="expense in expenses"
               :key="expense.id"
+
               class="hover:shadow-md transition-shadow"
             >
               <!-- Row 1: Title, Description, Amount & Date -->
@@ -135,6 +139,7 @@
               v-model:page="currentPage"
               :items-per-page="expensePagination.limit"
               :total="expensePagination.total"
+              :sibling-count="1"
             />
           </div>
         </div>
