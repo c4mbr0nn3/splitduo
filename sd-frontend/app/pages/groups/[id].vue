@@ -22,7 +22,7 @@
               Members: {{ group.memberCount }}
             </div>
             <div class="text-yellow-600">
-              Balance: {{ mySummary.balance }}
+              Balance: {{ mySummary.balance }}€
             </div>
           </div>
         </div>
@@ -47,16 +47,96 @@
           />
         </div>
         <div v-else-if="expenses.length">
-          <ul class="divide-y divide-gray-200 mb-4">
-            <li
+          <div class="space-y-3 mb-4">
+            <UCard
               v-for="expense in expenses"
               :key="expense.id"
-              class="py-3 flex justify-between items-center"
+              class="hover:shadow-md transition-shadow"
             >
-              <span>{{ expense.title }}</span>
-              <span class="font-bold text-red-600">-{{ expense.amount }}€</span>
-            </li>
-          </ul>
+              <div class="flex items-start justify-between">
+                <div class="flex-1">
+                  <!-- Title and Description -->
+                  <div class="flex items-center gap-2 mb-1">
+                    <UIcon
+                      :name="getCategoryIcon(expense.category)"
+                      class="w-4 h-4"
+                      :class="getCategoryColor(expense.category)"
+                    />
+                    <h4 class="font-medium">
+                      {{ expense.title }}
+                    </h4>
+                  </div>
+
+                  <p
+                    v-if="expense.description"
+                    class="text-sm text-gray-600 mb-2"
+                  >
+                    {{ expense.description }}
+                  </p>
+
+                  <!-- Expense Details -->
+                  <div class="flex flex-wrap items-center gap-4 text-xs text-gray-500">
+                    <div class="flex items-center gap-1">
+                      <UIcon
+                        name="i-lucide-user"
+                        class="w-3 h-3"
+                      />
+                      <span>
+                        Paid by {{ expense.paidByUserId === user?.id ? 'you' : `${expense.paidByUser.firstName} ${expense.paidByUser.lastName}` }}
+                      </span>
+                    </div>
+
+                    <div class="flex items-center gap-1">
+                      <UIcon
+                        name="i-lucide-calendar"
+                        class="w-3 h-3"
+                      />
+                      <span>{{ formatDate(expense.expenseDate) }}</span>
+                    </div>
+
+                    <div class="flex items-center gap-1">
+                      <UIcon
+                        name="i-lucide-credit-card"
+                        class="w-3 h-3"
+                      />
+                      <span class="capitalize">{{ expense.paymentMode }}</span>
+                    </div>
+
+                    <div class="flex items-center gap-1">
+                      <UIcon
+                        name="i-lucide-users"
+                        class="w-3 h-3"
+                      />
+                      <span>{{ expense.splits.length }} people</span>
+                    </div>
+                  </div>
+
+                  <!-- Your Split -->
+                  <div
+                    v-if="getUserSplit(expense)"
+                    class="mt-2 text-xs"
+                  >
+                    <span class="inline-flex items-center px-2 py-1 rounded-full bg-blue-100 text-blue-800">
+                      Your share: {{ getUserSplit(expense).splitAmount.toFixed(2) }}€
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Amount -->
+                <div class="text-right ml-4">
+                  <div
+                    class="text-lg font-bold"
+                    :class="expense.paidByUserId === user?.id ? 'text-green-600' : 'text-red-600'"
+                  >
+                    {{ expense.amount.toFixed(2) }}€
+                  </div>
+                  <div class="text-xs text-gray-500 capitalize">
+                    {{ expense.category }}
+                  </div>
+                </div>
+              </div>
+            </UCard>
+          </div>
 
           <!-- Pagination Component -->
           <div
@@ -96,6 +176,54 @@ const mySummary = computed(() => {
 })
 
 const currentPage = ref(1)
+
+// Helper functions
+const formatDate = (dateString) => {
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  })
+}
+
+const getCategoryIcon = (category) => {
+  const icons = {
+    groceries: 'i-lucide-shopping-cart',
+    transportation: 'i-lucide-car',
+    utilities: 'i-lucide-zap',
+    entertainment: 'i-lucide-gamepad-2',
+    health: 'i-lucide-heart-pulse',
+    education: 'i-lucide-graduation-cap',
+    travel: 'i-lucide-plane',
+    shopping: 'i-lucide-shopping-bag',
+    housing: 'i-lucide-home',
+    dining: 'i-lucide-utensils',
+    other: 'i-lucide-more-horizontal',
+  }
+  return icons[category.toLowerCase()] || icons.other
+}
+
+const getCategoryColor = (category) => {
+  const colors = {
+    groceries: 'text-green-600',
+    transportation: 'text-blue-600',
+    utilities: 'text-yellow-600',
+    entertainment: 'text-purple-600',
+    health: 'text-red-600',
+    education: 'text-indigo-600',
+    travel: 'text-sky-600',
+    shopping: 'text-pink-600',
+    housing: 'text-orange-600',
+    dining: 'text-amber-600',
+    other: 'text-gray-600',
+  }
+  return colors[category.toLowerCase()] || colors.other
+}
+
+const getUserSplit = (expense) => {
+  if (!user.value) return null
+  return expense.splits.find(split => split.userId === user.value.id)
+}
 
 watch(currentPage, async (newPage) => {
   await fetchExpenses({ page: newPage })
