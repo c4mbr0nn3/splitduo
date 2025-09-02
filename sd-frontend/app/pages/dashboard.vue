@@ -44,7 +44,7 @@
                 Total Groups
               </p>
               <p class="text-2xl font-bold">
-                {{ groups.length }}
+                {{ userStats?.totalGroups || 0 }}
               </p>
             </div>
           </div>
@@ -65,7 +65,7 @@
                 You Owe
               </p>
               <p class="text-2xl font-bold text-red-600">
-                $0.00
+                {{ userStats?.youOwe || 0 }}
               </p>
             </div>
           </div>
@@ -86,7 +86,7 @@
                 You're Owed
               </p>
               <p class="text-2xl font-bold text-green-600">
-                $0.00
+                {{ userStats?.youAreOwed || 0 }}
               </p>
             </div>
           </div>
@@ -244,6 +244,7 @@
 <script setup>
 const { user, logout } = useAuth()
 const { groups, fetchGroups, isLoading: isLoadingGroups } = useGroups()
+const { userStats, fetchUserStats } = useUsers()
 const { showSuccess, showInfo } = useNotifications()
 
 const isLoggingOut = ref(false)
@@ -252,6 +253,7 @@ const isLoggingOut = ref(false)
 onMounted(async () => {
   try {
     await fetchGroups()
+    await fetchUserStats()
   }
   catch (error) {
     console.error('Failed to fetch groups:', error)

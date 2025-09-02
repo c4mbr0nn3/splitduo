@@ -5,6 +5,7 @@ export function useUsers() {
   const users = ref([])
   const currentUser = ref(null)
   const userImports = ref([])
+  const userStats = ref(null)
   const isLoading = ref(false)
 
   // Get all users (admin only)
@@ -87,6 +88,21 @@ export function useUsers() {
     }
   }
 
+  // Get user stats
+  const fetchUserStats = async () => {
+    try {
+      const response = await api.get('/users/me/stats')
+      if (response.success && response.data) {
+        userStats.value = response.data
+        return response.data
+      }
+    }
+    catch (error) {
+      showError('Failed to load user stats')
+      throw error
+    }
+  }
+
   // Create user (admin only)
   const createUser = async (userData) => {
     try {
@@ -153,12 +169,14 @@ export function useUsers() {
     users: readonly(users),
     currentUser: readonly(currentUser),
     userImports: readonly(userImports),
+    userStats: readonly(userStats),
     isLoading: readonly(isLoading),
     fetchUsers,
     fetchCurrentUser,
     updateCurrentUser,
     changePassword,
     fetchUserImports,
+    fetchUserStats,
     createUser,
     fetchUser,
     updateUser,
