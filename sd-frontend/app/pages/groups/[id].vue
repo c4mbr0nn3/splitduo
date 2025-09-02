@@ -193,17 +193,17 @@ const getCategoryIcon = (category) => {
 
 const getCategoryColor = (category) => {
   const colors = {
-    groceries: 'green',
-    transportation: 'blue',
-    utilities: 'yellow',
-    entertainment: 'purple',
-    health: 'red',
-    education: 'indigo',
-    travel: 'sky',
-    shopping: 'pink',
-    housing: 'orange',
-    dining: 'amber',
-    other: 'gray',
+    groceries: 'success',
+    transportation: 'primary',
+    utilities: 'warning',
+    entertainment: 'secondary',
+    health: 'error',
+    education: 'info',
+    travel: 'secondary',
+    shopping: 'error',
+    housing: 'warning',
+    dining: 'warning',
+    other: 'neutral',
   }
   return colors[category.toLowerCase()] || colors.other
 }
