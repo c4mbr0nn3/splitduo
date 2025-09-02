@@ -53,8 +53,8 @@
               :key="expense.id"
               class="hover:shadow-md transition-shadow"
             >
-              <div class="flex items-start justify-between">
-                <div class="flex-1">
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex-1 min-w-0">
                   <!-- Title and Description -->
                   <div class="mb-1">
                     <h4 class="font-medium truncate">
@@ -102,9 +102,9 @@
                   </div>
                 </div>
                 <!-- Amount -->
-                <div class="text-right ml-4">
+                <div class="flex-shrink-0 text-right">
                   <div
-                    class="text-lg font-bold"
+                    class="text-lg font-bold whitespace-nowrap"
                     :class="expense.paidByUserId === user?.id ? 'text-green-600' : 'text-red-600'"
                   >
                     {{ expense.amount.toFixed(2) }}€
