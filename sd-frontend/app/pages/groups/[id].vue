@@ -53,65 +53,61 @@
               :key="expense.id"
               class="hover:shadow-md transition-shadow"
             >
-              <div class="flex items-start justify-between gap-4">
-                <div class="flex-1 min-w-0">
-                  <!-- Title and Description -->
-                  <div class="mb-1">
-                    <h4 class="font-medium truncate">
-                      {{ expense.title }}
-                    </h4>
-                  </div>
-
-                  <p
-                    v-if="expense.description"
-                    class="text-sm text-gray-400 mb-2 truncate"
-                  >
-                    {{ expense.description }}
-                  </p>
-                  <div class="flex flex-wrap items-center gap-4 text-xs text-gray-500">
-                    <div class="flex items-center gap-1">
-                      <UIcon
-                        name="i-lucide-user"
-                        class="w-3 h-3"
-                      />
-                      <span>
-                        Paid by {{ expense.paidByUserId === user?.id ? 'you' : `${expense.paidByUser.firstName} ${expense.paidByUser.lastName}` }}
-                      </span>
-                    </div>
-                    <div class="flex items-center gap-1">
-                      <UIcon
-                        name="i-lucide-calendar"
-                        class="w-3 h-3"
-                      />
-                      <span>{{ formatDate(expense.expenseDate) }}</span>
-                    </div>
-                    <div class="flex items-center gap-1">
-                      <UIcon
-                        name="i-lucide-credit-card"
-                        class="w-3 h-3"
-                      />
-                      <span class="capitalize">{{ expense.paymentMode }}</span>
-                    </div>
-                    <div class="flex items-center gap-1">
-                      <UIcon
-                        name="i-lucide-users"
-                        class="w-3 h-3"
-                      />
-                      <span>{{ expense.splits.length }} people</span>
-                    </div>
-                  </div>
+              <!-- Row 1: Title, Description, Amount & Date -->
+              <div class="flex justify-between text-xs text-gray-500 items-start gap-4 mb-3">
+                <span>
+                  Paid by {{ expense.paidByUserId === user?.id ? 'you' : `${expense.paidByUser.firstName} ${expense.paidByUser.lastName}` }}
+                </span>
+                <div>
+                  {{ formatDate(expense.expenseDate) }}
                 </div>
-                <!-- Amount -->
-                <div class="flex-shrink-0 text-right">
+              </div>
+              <div class="flex justify-between items-start gap-4 mb-1">
+                <div class="flex flex-col flex-1 min-w-0">
+                  <h4 class="font-medium truncate">
+                    {{ expense.title }}
+                  </h4>
+                </div>
+                <div class="flex flex-col items-end flex-shrink-0">
                   <div
-                    class="text-lg font-bold whitespace-nowrap"
+                    class="font-bold whitespace-nowrap"
                     :class="expense.paidByUserId === user?.id ? 'text-green-600' : 'text-red-600'"
                   >
                     {{ expense.amount.toFixed(2) }}€
                   </div>
                 </div>
               </div>
-              <div class="flex justify-between mt-2">
+              <div class="flex justify-between items-start gap-4 mb-3">
+                <p
+                  v-if="expense.description"
+                  class="text-xs text-gray-400 truncate"
+                >
+                  {{ expense.description }}
+                </p>
+              </div>
+
+              <!-- Row 2: Who paid & Method -->
+              <div class="flex flex-wrap items-center gap-4 text-xs text-gray-500 mb-2">
+                <div class="flex items-center gap-1">
+                  <UIcon
+                    name="i-lucide-credit-card"
+                    class="w-3 h-3"
+                  />
+                  <span class="capitalize">{{ expense.paymentMode }}</span>
+                </div>
+              </div>
+
+              <!-- Row 3: How many people -->
+              <div class="flex items-center gap-1 text-xs text-gray-500 mb-3">
+                <UIcon
+                  name="i-lucide-users"
+                  class="w-3 h-3"
+                />
+                <span>{{ expense.splits.length }} people</span>
+              </div>
+
+              <!-- Row 4: Category & Split -->
+              <div class="flex justify-between items-center">
                 <UBadge
                   variant="soft"
                   :color="getCategoryColor(expense.category)"
