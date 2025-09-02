@@ -37,8 +37,17 @@
         <h3 class="text-lg font-semibold text-primary mb-2">
           Expenses
         </h3>
-        <div v-if="expenses.length">
-          <ul class="divide-y divide-gray-200">
+        <div
+          v-if="isLoadingExpenses"
+          class="flex justify-center py-8"
+        >
+          <UIcon
+            name="i-lucide-loader-2"
+            class="w-6 h-6 animate-spin text-gray-400"
+          />
+        </div>
+        <div v-else-if="expenses.length">
+          <ul class="divide-y divide-gray-200 mb-4">
             <li
               v-for="expense in expenses"
               :key="expense.id"
@@ -48,6 +57,18 @@
               <span class="font-bold text-red-600">-{{ expense.amount }}€</span>
             </li>
           </ul>
+
+          <!-- Pagination Component -->
+          <div
+            v-if="expensePagination.totalPages > 1"
+            class="flex justify-center"
+          >
+            <UPagination
+              v-model:page="currentPage"
+              :items-per-page="expensePagination.limit"
+              :total="expensePagination.total"
+            />
+          </div>
         </div>
         <div v-else>
           No expenses found.
@@ -62,8 +83,9 @@ const route = useRoute()
 const groupId = route.params.id
 const { user } = useAuth()
 const { currentGroup, fetchGroup } = useGroups()
-const { expenses, fetchExpenses } = useExpenses(groupId)
+const { expenses, fetchExpenses, pagination: expensePagination, isLoading: isLoadingExpenses } = useExpenses(groupId)
 const { balanceSummary, fetchBalanceSummary } = useBalances(groupId)
+
 const group = computed(() => currentGroup.value)
 const summary = computed(() => balanceSummary.value)
 const mySummary = computed(() => {
@@ -73,10 +95,16 @@ const mySummary = computed(() => {
     balance: my?.balance || 0 }
 })
 
+const currentPage = ref(1)
+
+watch(currentPage, async (newPage) => {
+  await fetchExpenses({ page: newPage })
+}, { immediate: false })
+
 onMounted(async () => {
   if (groupId) {
     await fetchGroup(groupId)
-    await fetchExpenses()
+    await fetchExpenses({ page: 1 })
     await fetchBalanceSummary()
   }
 })
