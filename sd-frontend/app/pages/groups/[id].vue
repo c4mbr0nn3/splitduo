@@ -18,14 +18,11 @@
         </h3>
         <div v-if="summary">
           <div class="flex flex-wrap gap-4 justify-center">
-            <div class="text-green-600">
-              Total Expenses: {{ summary.totalExpenses }}
-            </div>
             <div class="text-blue-600">
-              Members: {{ summary.membersCount }}
+              Members: {{ group.memberCount }}
             </div>
             <div class="text-yellow-600">
-              Balance: {{ summary.balance }}
+              Balance: {{ mySummary.balance }}
             </div>
           </div>
         </div>
@@ -47,15 +44,12 @@
               :key="expense.id"
               class="py-3 flex justify-between items-center"
             >
-              <span class="text-gray-700">{{ expense.description }}</span>
+              <span>{{ expense.title }}</span>
               <span class="font-bold text-red-600">-{{ expense.amount }}€</span>
             </li>
           </ul>
         </div>
-        <div
-          v-else
-          class="text-gray-400"
-        >
+        <div v-else>
           No expenses found.
         </div>
       </div>
@@ -66,17 +60,24 @@
 <script setup>
 const route = useRoute()
 const groupId = route.params.id
-const { fetchGroup } = useGroups()
-const group = ref(null)
-const expenses = ref([])
-const summary = ref(null)
+const { user } = useAuth()
+const { currentGroup, fetchGroup } = useGroups()
+const { expenses, fetchExpenses } = useExpenses(groupId)
+const { balanceSummary, fetchBalanceSummary } = useBalances(groupId)
+const group = computed(() => currentGroup.value)
+const summary = computed(() => balanceSummary.value)
+const mySummary = computed(() => {
+  if (!summary.value) return null
+  const my = summary.value.balances.find(el => el.userId === user.value.id)
+  return {
+    balance: my?.balance || 0 }
+})
 
 onMounted(async () => {
   if (groupId) {
-    group.value = await fetchGroup(groupId)
-    // Example: fetch expenses and summary from group object or API
-    expenses.value = group.value?.expenses || []
-    summary.value = group.value?.summary || null
+    await fetchGroup(groupId)
+    await fetchExpenses()
+    await fetchBalanceSummary()
   }
 })
 </script>
