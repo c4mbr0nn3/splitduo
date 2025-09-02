@@ -56,25 +56,18 @@
               <div class="flex items-start justify-between">
                 <div class="flex-1">
                   <!-- Title and Description -->
-                  <div class="flex items-center gap-2 mb-1">
-                    <UIcon
-                      :name="getCategoryIcon(expense.category)"
-                      class="w-4 h-4"
-                      :class="getCategoryColor(expense.category)"
-                    />
-                    <h4 class="font-medium">
+                  <div class="mb-1">
+                    <h4 class="font-medium truncate">
                       {{ expense.title }}
                     </h4>
                   </div>
 
                   <p
                     v-if="expense.description"
-                    class="text-sm text-gray-600 mb-2"
+                    class="text-sm text-gray-400 mb-2 truncate"
                   >
                     {{ expense.description }}
                   </p>
-
-                  <!-- Expense Details -->
                   <div class="flex flex-wrap items-center gap-4 text-xs text-gray-500">
                     <div class="flex items-center gap-1">
                       <UIcon
@@ -85,7 +78,6 @@
                         Paid by {{ expense.paidByUserId === user?.id ? 'you' : `${expense.paidByUser.firstName} ${expense.paidByUser.lastName}` }}
                       </span>
                     </div>
-
                     <div class="flex items-center gap-1">
                       <UIcon
                         name="i-lucide-calendar"
@@ -93,7 +85,6 @@
                       />
                       <span>{{ formatDate(expense.expenseDate) }}</span>
                     </div>
-
                     <div class="flex items-center gap-1">
                       <UIcon
                         name="i-lucide-credit-card"
@@ -101,7 +92,6 @@
                       />
                       <span class="capitalize">{{ expense.paymentMode }}</span>
                     </div>
-
                     <div class="flex items-center gap-1">
                       <UIcon
                         name="i-lucide-users"
@@ -110,18 +100,7 @@
                       <span>{{ expense.splits.length }} people</span>
                     </div>
                   </div>
-
-                  <!-- Your Split -->
-                  <div
-                    v-if="getUserSplit(expense)"
-                    class="mt-2 text-xs"
-                  >
-                    <span class="inline-flex items-center px-2 py-1 rounded-full bg-blue-100 text-blue-800">
-                      Your share: {{ getUserSplit(expense).splitAmount.toFixed(2) }}€
-                    </span>
-                  </div>
                 </div>
-
                 <!-- Amount -->
                 <div class="text-right ml-4">
                   <div
@@ -130,10 +109,23 @@
                   >
                     {{ expense.amount.toFixed(2) }}€
                   </div>
-                  <div class="text-xs text-gray-500 capitalize">
-                    {{ expense.category }}
-                  </div>
                 </div>
+              </div>
+              <div class="flex justify-between mt-2">
+                <UBadge
+                  variant="soft"
+                  :color="getCategoryColor(expense.category)"
+                  :icon="getCategoryIcon(expense.category)"
+                  class="capitalize"
+                >
+                  {{ expense.category }}
+                </UBadge>
+                <UBadge
+                  v-if="getUserSplit(expense)"
+                  variant="soft"
+                >
+                  Your share: {{ getUserSplit(expense).splitAmount.toFixed(2) }}€
+                </UBadge>
               </div>
             </UCard>
           </div>
@@ -205,17 +197,17 @@ const getCategoryIcon = (category) => {
 
 const getCategoryColor = (category) => {
   const colors = {
-    groceries: 'text-green-600',
-    transportation: 'text-blue-600',
-    utilities: 'text-yellow-600',
-    entertainment: 'text-purple-600',
-    health: 'text-red-600',
-    education: 'text-indigo-600',
-    travel: 'text-sky-600',
-    shopping: 'text-pink-600',
-    housing: 'text-orange-600',
-    dining: 'text-amber-600',
-    other: 'text-gray-600',
+    groceries: 'green',
+    transportation: 'blue',
+    utilities: 'yellow',
+    entertainment: 'purple',
+    health: 'red',
+    education: 'indigo',
+    travel: 'sky',
+    shopping: 'pink',
+    housing: 'orange',
+    dining: 'amber',
+    other: 'gray',
   }
   return colors[category.toLowerCase()] || colors.other
 }
