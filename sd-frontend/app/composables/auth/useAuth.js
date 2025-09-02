@@ -2,7 +2,24 @@ export function useAuth() {
   const api = useApi()
   const { setToken, removeToken, getToken, getRefreshToken } = useAuthToken()
 
-  const user = useState('user', () => null)
+  const userCookie = useCookie('auth-user', {
+    default: () => null,
+    secure: true,
+    sameSite: 'strict',
+    serializer: {
+      read: (value) => {
+        try {
+          return value ? JSON.parse(value) : null
+        }
+        catch {
+          return null
+        }
+      },
+      write: value => JSON.stringify(value),
+    },
+  })
+
+  const user = useState('user', () => userCookie.value)
   const isAuthenticated = computed(() => !!user.value)
   const isLoading = ref(false)
 
@@ -15,6 +32,7 @@ export function useAuth() {
       if (response.success && response.data) {
         setToken(response.data.token, response.data.refreshToken)
         user.value = response.data.user
+        userCookie.value = response.data.user
         return { success: true }
       }
 
@@ -45,6 +63,7 @@ export function useAuth() {
     finally {
       removeToken()
       user.value = null
+      userCookie.value = null
       await navigateTo('/login')
     }
   }
@@ -65,6 +84,7 @@ export function useAuth() {
       if (response.success && response.data) {
         setToken(response.data.token, response.data.refreshToken)
         user.value = response.data.user
+        userCookie.value = response.data.user
         return true
       }
 
@@ -86,6 +106,7 @@ export function useAuth() {
       const response = await api.get('/users/me')
       if (response.success && response.data) {
         user.value = response.data
+        userCookie.value = response.data
       }
     }
     catch (error) {
