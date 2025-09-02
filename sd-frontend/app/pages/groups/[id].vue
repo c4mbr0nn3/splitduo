@@ -5,7 +5,7 @@
       variant="soft"
     >
       <template #header>
-        <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center justify-between">
           <div class="flex-1">
             <h1 class="text-2xl font-bold text-primary">
               {{ group?.name || 'Group' }}
@@ -157,11 +157,10 @@
           />
         </div>
         <div v-else-if="expenses.length">
-          <div class="space-y-3 mb-4">
+          <div class="space-y-3">
             <UCard
               v-for="expense in expenses"
               :key="expense.id"
-
               class="hover:shadow-md transition-shadow"
             >
               <!-- Row 1: Title, Description, Amount & Date -->
@@ -236,24 +235,25 @@
               </div>
             </UCard>
           </div>
-
-          <!-- Pagination Component -->
-          <div
-            v-if="expensePagination.totalPages > 1"
-            class="flex justify-center"
-          >
-            <UPagination
-              v-model:page="currentPage"
-              :items-per-page="expensePagination.limit"
-              :total="expensePagination.total"
-              :sibling-count="1"
-            />
-          </div>
         </div>
         <div v-else>
           No expenses found.
         </div>
       </div>
+      <template #footer>
+        <!-- Pagination Component -->
+        <div
+          v-if="expensePagination.totalPages > 1"
+          class="flex justify-center"
+        >
+          <UPagination
+            v-model:page="currentPage"
+            :items-per-page="expensePagination.limit"
+            :total="expensePagination.total"
+            :sibling-count="1"
+          />
+        </div>
+      </template>
     </UCard>
   </div>
 </template>
