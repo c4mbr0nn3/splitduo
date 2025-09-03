@@ -165,6 +165,18 @@ export function useUsers() {
     }
   }
 
+  // Revoke all tokens for user (admin only)
+  const revokeUserTokens = async (userGuid) => {
+    try {
+      await api.post(`/auth/${userGuid}/revoke`)
+      showSuccess('User tokens revoked successfully')
+    }
+    catch (error) {
+      showError('Failed to revoke user tokens')
+      throw error
+    }
+  }
+
   return {
     users: readonly(users),
     currentUser: readonly(currentUser),
@@ -181,5 +193,6 @@ export function useUsers() {
     fetchUser,
     updateUser,
     deleteUser,
+    revokeUserTokens,
   }
 }

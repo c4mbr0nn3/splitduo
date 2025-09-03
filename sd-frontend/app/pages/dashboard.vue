@@ -214,7 +214,6 @@
 </template>
 
 <script setup>
-const { user } = useAuth()
 const { groups, fetchGroups, isLoading: isLoadingGroups } = useGroups()
 const { userStats, fetchUserStats } = useUsers()
 const { showInfo } = useNotifications()

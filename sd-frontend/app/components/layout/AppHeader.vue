@@ -12,15 +12,14 @@
             SplitDuo
           </div>
         </NuxtLink>
-        <USlideover title="Slideover with title">
+        <UModal>
           <UButton
             variant="ghost"
             size="sm"
             icon="i-lucide-menu"
-            @click="isMenuOpen = true"
           />
 
-          <template #body>
+          <template #content>
             <UCard
               class="flex flex-col flex-1"
               :ui="{ body: { base: 'flex-1' } }"
@@ -40,53 +39,31 @@
                       {{ user?.email || '' }}
                     </div>
                   </div>
+                  <UButton
+                    variant="ghost"
+                    color="neutral"
+                    icon="i-lucide-log-out"
+                    :loading="isLoggingOut"
+                    class="ml-auto"
+                    @click="handleLogout"
+                  />
                 </div>
               </template>
-
               <!-- Mobile navigation items -->
-              <nav class="flex-1">
-                <div class="space-y-1">
-                  <NuxtLink
-                    v-for="item in navigationItems"
-                    :key="item.to"
-                    :to="item.to"
-                    class="flex items-center px-4 py-3 text-base font-medium rounded-md transition-colors"
-                    :class="isActivePage(item.to)
-                      ? 'bg-emerald-50 text-emerald-700 border-l-4 border-emerald-500'
-                      : 'text-gray-700 hover:bg-gray-50'"
-                    @click="isMenuOpen = false"
-                  >
-                    <UIcon
-                      :name="item.icon"
-                      class="w-6 h-6 mr-3"
-                      :class="isActivePage(item.to) ? 'text-emerald-500' : 'text-gray-400'"
-                    />
-                    {{ item.label }}
-                  </NuxtLink>
-                </div>
-              </nav>
-
+              <UNavigationMenu
+                variant="link"
+                orientation="vertical"
+                color="secondary"
+                :items="navigationItems"
+                :ui="{ list: 'flex flex-col space-y-3' }"
+              />
               <!-- Mobile user actions -->
               <template #footer>
-                <div class="border-t border-gray-200 pt-4">
-                  <UButton
-                    variant="outline"
-                    block
-                    size="lg"
-                    :loading="isLoggingOut"
-                    @click="handleLogout"
-                  >
-                    <UIcon
-                      name="i-lucide-log-out"
-                      class="w-5 h-5 mr-2"
-                    />
-                    Logout
-                  </UButton>
-                </div>
+                <ButtonColorMode />
               </template>
             </UCard>
           </template>
-        </USlideover>
+        </UModal>
       </div>
     </div>
   </header>
@@ -95,14 +72,11 @@
 <script setup>
 const { user, logout } = useAuth()
 const { showSuccess } = useNotifications()
-const route = useRoute()
 
-const isMenuOpen = ref(false)
 const isLoggingOut = ref(false)
 
 const handleLogout = async () => {
   isLoggingOut.value = true
-  isMenuOpen.value = false
 
   try {
     await logout()
@@ -162,16 +136,4 @@ const userMenuItems = [
     click: handleLogout,
   }],
 ]
-
-const isActivePage = (path) => {
-  if (path === '/dashboard') {
-    return route.path === '/dashboard' || route.path === '/'
-  }
-  return route.path.startsWith(path)
-}
-
-// Close mobile menu when route changes
-watch(() => route.path, () => {
-  isMenuOpen.value = false
-})
 </script>
