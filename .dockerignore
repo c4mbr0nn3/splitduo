@@ -1,0 +1,50 @@
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile*
+.dockerignore
+
+# Documentation
+README.md
+*.md
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Backend specific
+sd-backend/bin/
+sd-backend/obj/
+sd-backend/**/.vs/
+sd-backend/**/bin/
+sd-backend/**/obj/
+sd-backend/**/*.user
+sd-backend/**/.vscode/
+sd-backend/.idea/
+
+# Frontend specific
+sd-frontend/node_modules/
+sd-frontend/.nuxt/
+sd-frontend/.output/
+sd-frontend/dist/
+sd-frontend/.env*
+sd-frontend/npm-debug.log*
+sd-frontend/yarn-debug.log*
+sd-frontend/yarn-error.log*
+
+# Logs
+logs
+*.log

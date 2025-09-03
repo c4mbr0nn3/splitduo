@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:17-alpine
+    container_name: splitduo-db
+    environment:
+      POSTGRES_DB: splitduo
+      POSTGRES_USER: splitduo
+      POSTGRES_PASSWORD: splitduo
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U splitduo -d splitduo"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - splitduo-network
+
+  # SplitDuo Application
+  splitduo-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: splitduo-app
+    environment:
+      # Database Configuration
+      SD_DB_HOST: postgres
+      SD_DB_PORT: 5432
+      SD_DB_NAME: splitduo
+      SD_DB_USERNAME: splitduo
+      SD_DB_PASSWORD: splitduo
+
+      # Initial Admin User
+      SD_INITIAL_USER_EMAIL: admin@splitduo.local
+      SD_INITIAL_USER_FIRSTNAME: Admin
+      SD_INITIAL_USER_LASTNAME: User
+      SD_INITIAL_USER_PASSWORD: changeme123
+
+      # JWT Configuration
+      SD_JWT_SECRET_KEY: your-super-secret-jwt-key-change-this-in-production
+
+      # Email Configuration (Optional - for notifications)
+      SD_EMAIL_SENDER_NAME: SplitDuo
+      SD_EMAIL_SENDER_ADDRESS: noreply@splitduo.local
+      SD_EMAIL_SMTP_HOST: localhost
+      SD_EMAIL_SMTP_PORT: 587
+      SD_EMAIL_SMTP_USERNAME: ""
+      SD_EMAIL_SMTP_PASSWORD: ""
+      SD_EMAIL_SSL: "false"
+    ports:
+      - "3000:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - app_logs:/app/logs
+    networks:
+      - splitduo-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  app_logs:
+    driver: local
+
+networks:
+  splitduo-network:
+    driver: bridge
