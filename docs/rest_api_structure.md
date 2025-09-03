@@ -19,6 +19,7 @@ The SplitDuo REST API follows RESTful conventions and uses JSON for request/resp
 | ------ | ------------------------- | -------------------------------------- |
 | POST   | `/auth/login`             | User login with refresh token rotation |
 | POST   | `/auth/refresh`           | Refresh access token with rotation     |
+| POST   | `/auth/revoke`            | Revoke current user's refresh token    |
 | POST   | `/auth/{userGuid}/revoke` | Revoke all refresh tokens for user     |
 
 #### Authentication Flow
@@ -84,17 +85,27 @@ POST /api/v1/auth/refresh
 
 ```json
 POST /api/v1/auth/revoke
+Authorization: Bearer <jwt-token>
 {
-  "token": "current-jwt-token",
   "refreshToken": "refresh-token-to-revoke"
+}
+```
+
+**Revoke Response**:
+
+```json
+{
+  "success": true,
+  "message": "Token revoked successfully"
 }
 ```
 
 **Security Features**:
 
 - Access tokens expire in 15 minutes
-- Refresh tokens expire in 7 days
+- Refresh tokens expire in 7 days  
 - Token rotation: Each refresh generates new tokens and invalidates old ones
+- Single session security: Login revokes all existing refresh tokens
 - Automatic revocation: Suspicious activity triggers token family revocation
 - Server-side storage: Refresh tokens stored securely with SHA256 hashing
 

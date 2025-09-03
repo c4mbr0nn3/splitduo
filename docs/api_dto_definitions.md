@@ -40,6 +40,14 @@
 }
 ```
 
+### RevokeTokenRequestDto
+
+```json
+{
+  "refreshToken": "string (required)"
+}
+```
+
 ## User DTOs
 
 ### UserDto
