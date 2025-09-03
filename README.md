@@ -1,23 +1,24 @@
 # SplitDuo
 
-A lightweight, open-source expense splitting application designed for couples and two-person households. SplitDuo provides a simple alternative to existing solutions like Splitwise and Cospend.
+A lightweight, open-source expense splitting application designed for couples and two-person households. SplitDuo provides a simple, self-hosted alternative to existing solutions like Splitwise and Cospend.
 
 ## Features
 
 - **Two-User Focus**: Optimized for couples and partners
 - **Mobile-First Design**: Responsive UI optimized for smartphones
-- **Expense Tracking**: Add, edit, and manage shared expenses
-- **Automatic Split Calculations**: See who owes what instantly
-- **Secure Authentication**: Protected login system
-- **Data Import/Export**: Import from Cospend, export to CSV
-- **Self-Hosted**: Complete control over your data
+- **Expense Tracking**: Add, edit, and manage shared expenses with automatic split calculations
+- **Balance Management**: Real-time balance tracking with settlement optimization
+- **Secure Authentication**: JWT-based authentication with refresh token rotation
+- **Data Migration**: Import from Cospend, export to CSV
+- **Self-Hosted**: Complete control over your data and privacy
 
 ## Tech Stack
 
-- **Backend**: .NET Web API
-- **Frontend**: Vue.js with Nuxt UI
-- **Database**: PostgreSQL
-- **Deployment**: Docker & Docker Compose
+- **Backend**: .NET 9 Web API with Entity Framework Core
+- **Frontend**: Vue.js with Nuxt UI (served as static files)
+- **Database**: PostgreSQL 17
+- **Deployment**: Single Docker container + PostgreSQL
+- **Architecture**: Multi-stage Docker build with frontend and backend combined
 
 ## Quick Start
 
@@ -38,44 +39,114 @@ cd splitduo
 2. Start the application:
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 3. Access the application at `http://localhost:3000`
 
+### Default Login
+
+- **Email**: `admin@splitduo.local`
+- **Password**: `changeme123`
+
+**⚠️ Important**: Change the JWT secret key and admin password in production!
+
+## Configuration
+
+### Key Environment Variables
+
+Edit `docker-compose.yml` or set environment variables:
+
+**Security (Required for Production)**:
+
+```yaml
+SD_JWT_SECRET_KEY: your-super-secret-jwt-key-change-this-in-production
+SD_INITIAL_USER_PASSWORD: changeme123
+```
+
+**Database**:
+
+```yaml
+SD_DB_HOST: postgres
+SD_DB_NAME: splitduo
+SD_DB_USERNAME: splitduo
+SD_DB_PASSWORD: splitduo
+```
+
+**Application**:
+
+```yaml
+SD_BASE_URL: http://localhost:3000
+SD_ENVIRONMENT: Production
+```
+
+**Email (Optional)**:
+
+```yaml
+SD_EMAIL_SMTP_HOST: localhost
+SD_EMAIL_SMTP_PORT: 587
+SD_EMAIL_SMTP_USERNAME: ""
+SD_EMAIL_SMTP_PASSWORD: ""
+SD_EMAIL_SSL: "false"
+```
+
+## Architecture
+
+- **Single Container Deployment**: Frontend (Nuxt.js) built as static files served by .NET backend
+- **Database**: Separate PostgreSQL container with health checks
+- **Port Mapping**: Application runs on port 3000 (maps to container port 8080)
+- **Volumes**: Persistent data storage for database and application logs
+- **Networks**: Isolated Docker network for service communication
+
+## Development
+
+### Local Development
+
+**Backend** (.NET 9):
+
+```bash
+cd sd-backend
+dotnet restore
+dotnet run --project SplitDuo.Api
+```
+
+**Frontend** (Vue.js/Nuxt):
+
+```bash
+cd sd-frontend
+npm install
+npm run dev
+```
+
+### Database Migrations
+
+```bash
+cd sd-backend
+dotnet ef migrations add <MigrationName> --project SplitDuo.Api
+dotnet ef database update --project SplitDuo.Api
+```
+
+## API
+
+Base URL: `http://localhost:3000/api/v1`
+
+**Core Endpoints**:
+
+- `/auth` - Authentication (login, refresh, revoke)
+- `/users` - User management
+- `/groups` - Group and membership management
+- `/expenses` - Expense tracking with split calculations
+- `/settlements` - Payment recording between users
+- `/balances` - Balance calculations and settlement suggestions
+
 ## Documentation
 
 - [Project Specification](docs/splitduo_project_spec.md)
+- [Backend Architecture](docs/backend_architecture.md)
 - [Database Schema](docs/splitduo_database_schema.txt)
 - [REST API Structure](docs/rest_api_structure.md)
 - [API DTO Definitions](docs/api_dto_definitions.md)
 
-## API Overview
-
-The SplitDuo API provides endpoints for:
-
-- **Authentication**: Login, register, token refresh
-- **Users**: Profile management
-- **Groups**: Create and manage expense groups
-- **Expenses**: Track and split expenses
-- **Settlements**: Record payments between users
-- **Balances**: View current balances and suggestions
-- **Import/Export**: Data migration and backup
-
-Base URL: `https://splitduo.app/api/v1`
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
 ## License
 
-SplitDuo is licensed under the MIT License.
-
-## Support
-
-For issues and feature requests, please use the GitLab issue tracker.
+MIT License
