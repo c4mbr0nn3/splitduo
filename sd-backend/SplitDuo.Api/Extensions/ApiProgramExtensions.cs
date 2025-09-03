@@ -50,8 +50,15 @@ public static class ApiProgramExtensions
 
         app.UseHttpsRedirection();
         app.UseSerilogRequestLogging();
+        
+        // Serve static files from wwwroot
+        app.UseStaticFiles();
+        
         app.UseAuthentication();
         app.UseAuthorization();
         app.MapControllers();
+        
+        // Fallback to serve the SPA for client-side routing
+        app.MapFallbackToFile("index.html");
     }
 }

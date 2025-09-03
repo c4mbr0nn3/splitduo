@@ -4,6 +4,8 @@ using SplitDuo.Api.Features.Authentication.Dto;
 using SplitDuo.Api.Features.Authentication.Services;
 using SplitDuo.Api.Features.Common.Controllers;
 using SplitDuo.Api.Features.Common.Dto;
+using SplitDuo.Api.Features.Users.Dto;
+using SplitDuo.Core.Common;
 using SplitDuo.Core.Persistence;
 
 namespace SplitDuo.Api.Features.Authentication.Controllers;
@@ -54,9 +56,35 @@ public class AuthController(
         return HandleResult(result, "Token refreshed successfully");
     }
 
+    [Authorize]
+    [HttpPost("revoke")]
+    public async Task<ActionResult> RevokeMyToken([FromBody] RevokeTokenRequestDto request)
+    {
+        logger.LogInformation("Token revoke attempt");
+
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+            return HandleResult(Result.Unauthorized("User not authenticated"));
+        
+        var result = await authenticationService.RevokeRefreshTokenAsync(request.RefreshToken, currentUserId.Value);
+
+        if (result.IsSuccess)
+        {
+            await unitOfWork.SaveChangesAsync();
+            logger.LogInformation("Token revoked successfully for user: {UserId}", currentUserId);
+        }
+        else
+        {
+            logger.LogWarning("Token revoke failed for user: {UserId}. Error: {Error}", currentUserId, result.Error);
+        }
+
+        return HandleResult(result, "Token revoked successfully");
+    }
+    
+
     [Authorize(Policy = "SystemAdmin")]
     [HttpPost("{userGuid}/revoke")]
-    public async Task<ActionResult> RevokeToken(string userGuid)
+    public async Task<ActionResult> RevokeAllUserToken(string userGuid)
     {
         logger.LogInformation("Token revoke attempt for user {UserGuid}", userGuid);
 
@@ -73,4 +101,9 @@ public class AuthController(
 
         return HandleResult(result, "Token revoked successfully");
     }
+}
+
+public class RevokeTokenRequestDto
+{
+    public required string RefreshToken { get; set; }
 }

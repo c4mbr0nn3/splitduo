@@ -19,6 +19,7 @@ public interface IAuthenticationService
 {
     Task<Result<AuthResponseDto>> LoginAsync(LoginRequestDto request);
     Task<Result<AuthResponseDto>> RefreshTokenAsync(RefreshTokenRequestDto request);
+    Task<Result> RevokeRefreshTokenAsync(string refreshToken, Guid userGuid);
     Task<Result> RevokeAllUserTokensAsync(string userGuid);
 }
 
@@ -48,7 +49,10 @@ public class AuthenticationService(
         var refreshTokenValue = GenerateSecureRefreshToken();
         var expiresAt = DateTimeOffset.UtcNow.AddMinutes(_jwtOptions.Expires).ToUnixTimeSeconds();
 
-        // Store refresh token in database
+        // Revoke all existing refresh tokens for this user (single session security)
+        await RevokeAllUserTokensAsync(user.Id, "New login - previous sessions invalidated");
+
+        // Store new refresh token in database
         var refreshToken = new RefreshToken
         {
             UserId = user.Id,
@@ -211,6 +215,27 @@ public class AuthenticationService(
     {
         var hashedBytes = SHA256.HashData(Encoding.UTF8.GetBytes(token));
         return Convert.ToBase64String(hashedBytes);
+    }
+
+    public async Task<Result> RevokeRefreshTokenAsync(string refreshToken, Guid userGuid)
+    {
+        var user = await unitOfWork.Users.FirstOrDefaultAsync(u => u.Guid == userGuid && u.DeletedAt == null);
+        if (user == null) return Result.NotFound("User not found");
+
+        var refreshTokenHash = HashToken(refreshToken);
+        var storedRefreshToken = await unitOfWork.RefreshTokens
+            .FirstOrDefaultAsync(rt => rt.TokenHash == refreshTokenHash && rt.UserId == user.Id);
+
+        if (storedRefreshToken == null)
+            return Result.NotFound("Refresh token not found");
+
+        if (storedRefreshToken.IsRevoked)
+            return Result.BadRequest("Refresh token already revoked");
+
+        storedRefreshToken.RevokedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        storedRefreshToken.RevokedReason = "User logout";
+
+        return Result.Success();
     }
 
     public async Task<Result> RevokeAllUserTokensAsync(string userGuid)
