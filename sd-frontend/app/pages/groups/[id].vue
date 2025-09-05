@@ -34,15 +34,10 @@
         <h3 class="text-lg font-semibold text-primary mb-2">
           Expenses
         </h3>
-        <div
+        <UiLoadingSpinner
           v-if="isLoadingExpenses"
-          class="flex justify-center py-8"
-        >
-          <UIcon
-            name="i-lucide-loader-2"
-            class="w-6 h-6 animate-spin text-gray-400"
-          />
-        </div>
+          text="Loading expenses..."
+        />
         <div v-else-if="expenses.length">
           <div class="space-y-3">
             <GroupsExpenseCard

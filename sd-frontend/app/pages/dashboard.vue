@@ -34,15 +34,10 @@
             />
           </div>
         </template>
-        <div
+        <UiLoadingSpinner
           v-if="isLoadingGroups"
-          class="flex justify-center py-8"
-        >
-          <UIcon
-            name="i-lucide-loader-2"
-            class="w-6 h-6 animate-spin text-gray-400"
-          />
-        </div>
+          text="Loading groups..."
+        />
 
         <UiEmptyState
           v-else-if="groups.length === 0"
