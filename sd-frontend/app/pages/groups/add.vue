@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col items-center justify-center min-h-screen p-4">
+  <div class="flex flex-col items-center justify-center p-4">
     <UCard class="w-full max-w-md">
       <template #header>
         <h2 class="text-xl font-bold text-center">
@@ -51,20 +51,18 @@
 const { createGroup, isLoading } = useGroups()
 
 const form = ref({ name: '', description: '' })
-const message = ref('')
 
 async function onSubmit() {
-  message.value = ''
   try {
     const group = await createGroup({ name: form.value.name, description: form.value.description })
     if (group) {
-      message.value = 'Group created!'
       form.value.name = ''
       form.value.description = ''
+      navigateTo(`/groups/${group.id}`)
     }
   }
   catch (err) {
-    message.value = err.message || 'Error creating group.'
+    console.error('Error creating group:', err)
   }
 }
 

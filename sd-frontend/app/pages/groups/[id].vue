@@ -30,9 +30,17 @@
         </UCard>
       </div>
       <div>
-        <h3 class="text-lg font-semibold text-primary mb-2">
-          Expenses
-        </h3>
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold text-primary">
+            Expenses
+          </h3>
+          <UButton
+            label="Add Expense"
+            icon="i-lucide-plus"
+            size="sm"
+            @click="addExpense"
+          />
+        </div>
         <UiLoadingSpinner
           v-if="isLoadingExpenses"
           text="Loading expenses..."
@@ -98,6 +106,10 @@ const currentPage = ref(1)
 const getGroupTotal = () => {
   if (!summary.value || !summary.value.balances) return 0
   return summary.value.balances.reduce((total, balance) => total + balance.totalPaid, 0)
+}
+
+const addExpense = () => {
+  navigateTo(`/expenses/add?groupId=${groupId}`)
 }
 
 watch(currentPage, async (newPage) => {

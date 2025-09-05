@@ -134,7 +134,7 @@ const quickActions = [
     label: 'Add Expense',
     icon: 'i-lucide-receipt',
     variant: 'outline',
-    handler: () => showInfo('Add expense coming soon!'),
+    handler: () => navigateTo('/expenses/add'),
   },
   {
     id: 'settle-up',
