@@ -285,10 +285,7 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
             PaymentMode = paymentMode
         };
 
-        unitOfWork.Expenses.Add(expense);
-
         // Create splits
-        var expenseSplits = new List<ExpenseSplit>();
         for (var i = 0; i < request.Splits.Count; i++)
         {
             var split = request.Splits[i];
@@ -306,14 +303,14 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
 
             var expenseSplit = new ExpenseSplit
             {
-                ExpenseId = expense.Id,
                 UserId = splitUser.Id,
                 SplitAmount = splitAmount
             };
 
-            expenseSplits.Add(expenseSplit);
-            unitOfWork.ExpenseSplits.Add(expenseSplit);
+            expense.ExpenseSplits.Add(expenseSplit);
         }
+
+        await unitOfWork.Expenses.AddAsync(expense);
 
         // Create response DTO
         var expenseDto = new ExpenseDto
@@ -333,9 +330,9 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
             ExpenseDate = expense.ExpenseDate.ToString("yyyy-MM-dd"),
             Category = expense.Category.ToString().ToLowerInvariant(),
             PaymentMode = expense.PaymentMode.ToString().ToLowerInvariant(),
-            Splits = expenseSplits.Select((split, index) => new ExpenseSplitDto
+            Splits = expense.ExpenseSplits.Select((split, index) => new ExpenseSplitDto
             {
-                Id = split.Id.ToString(),
+                // Id = split.Id.ToString(),
                 UserId = splitUsers[index].Guid.ToString(),
                 User = new UserBasicInfoDto
                 {
@@ -344,7 +341,7 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
                     LastName = splitUsers[index].LastName
                 },
                 SplitAmount = split.SplitAmount,
-                SplitPercentage = expense.Amount > 0 ? (split.SplitAmount / expense.Amount * 100) : null
+                SplitPercentage = expense.Amount > 0 ? split.SplitAmount / expense.Amount * 100 : null
             }).ToList(),
             CreatedAt = expense.CreatedAt,
             UpdatedAt = expense.UpdatedAt
