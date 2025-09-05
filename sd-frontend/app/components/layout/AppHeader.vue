@@ -114,7 +114,7 @@ const navigationItems = [
     icon: 'i-lucide-users',
   },
   {
-    to: '/dashboard',
+    to: '/profile',
     label: 'Profile',
     icon: 'i-lucide-heart',
   },
