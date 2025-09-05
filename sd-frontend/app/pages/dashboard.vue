@@ -157,6 +157,10 @@ const settleUp = () => {
   showInfo('Settle up coming soon!')
 }
 
+useHead({
+  title: 'Dashboard',
+})
+
 definePageMeta({
   middleware: 'auth',
 })

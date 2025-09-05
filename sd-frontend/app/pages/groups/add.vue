@@ -68,6 +68,10 @@ async function onSubmit() {
   }
 }
 
+useHead({
+  title: 'Create Group',
+})
+
 definePageMeta({
   middleware: 'auth',
 })

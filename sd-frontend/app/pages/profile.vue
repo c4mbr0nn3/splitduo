@@ -115,7 +115,7 @@ const refreshProfile = async () => {
 }
 
 useHead({
-  title: 'Profile - SplitDuo',
+  title: 'Profile',
 })
 
 definePageMeta({

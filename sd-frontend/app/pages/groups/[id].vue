@@ -112,6 +112,10 @@ onMounted(async () => {
   }
 })
 
+useHead({
+  title: computed(() => group.value?.name || 'Group'),
+})
+
 definePageMeta({
   middleware: 'auth',
 })

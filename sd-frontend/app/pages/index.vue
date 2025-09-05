@@ -54,6 +54,10 @@
 </template>
 
 <script setup>
+useHead({
+  title: 'Login',
+})
+
 definePageMeta({
   layout: 'auth',
 })
