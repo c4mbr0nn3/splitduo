@@ -1,5 +1,5 @@
 <template>
-  <header class="sticky top-0 z-50">
+  <header class="sticky top-0 z-50 bg-default">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-16">
         <NuxtLink
@@ -10,7 +10,12 @@
             SplitDuo
           </div>
         </NuxtLink>
-        <UModal>
+        <UModal
+          v-model:open="isMobileMenuOpen"
+          :ui="{
+            content: 'top-0 left-1/2 -translate-x-1/2 translate-y-4 w-[calc(100vw-2rem)] max-w-lg max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-4rem)] rounded-lg shadow-lg ring ring-default overflow-hidden',
+          }"
+        >
           <UButton
             variant="ghost"
             size="sm"
@@ -22,7 +27,6 @@
               :ui="{ body: { base: 'flex-1' } }"
             >
               <template #header>
-                <!-- Mobile user info -->
                 <div class="flex items-center">
                   <UAvatar
                     icon="i-lucide-user"
@@ -32,10 +36,17 @@
                     <div class="text-base font-medium">
                       {{ user?.firstName || 'User' }} {{ user?.lastName || '' }}
                     </div>
-                    <div class="text-sm text-gray-500">
+                    <div class="text-sm text-dimmed">
                       {{ user?.email || '' }}
                     </div>
                   </div>
+                  <UButton
+                    variant="ghost"
+                    color="neutral"
+                    icon="i-lucide-x"
+                    class="ml-auto"
+                    @click="isMobileMenuOpen = false"
+                  />
                 </div>
               </template>
               <!-- Mobile navigation items -->
@@ -72,6 +83,7 @@
 const { user, logout } = useAuth()
 const { showSuccess } = useNotifications()
 
+const isMobileMenuOpen = ref(false)
 const isLoggingOut = ref(false)
 
 const handleLogout = async () => {
