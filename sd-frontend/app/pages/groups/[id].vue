@@ -5,36 +5,34 @@
       variant="soft"
     >
       <template #header>
-        <div class="flex items-center justify-between">
-          <div class="flex-1">
-            <h1 class="text-2xl font-bold text-primary">
-              {{ group?.name || 'Group' }}
-            </h1>
-            <p
-              v-if="group?.description"
-              class="text-sm text-gray-500 mt-1"
-            >
-              {{ group.description }}
-            </p>
+        <div class="grid grid-cols-1 items-start">
+          <div class="flex justify-between">
+            <div class="flex min-w-0">
+              <h1 class="text-xl font-bold text-primary truncate">
+                {{ group?.name || 'Group Details' }}
+              </h1>
+            </div>
+            <UBadge
+              v-if="group?.memberCount"
+              variant="soft"
+              icon="i-lucide-users"
+              class="ml-auto"
+              :label="`${group.memberCount}`"
+            />
           </div>
-          <UBadge
-            v-if="group?.memberCount"
-            variant="soft"
-            size="lg"
-            icon="i-lucide-users"
+          <p
+            v-if="group?.description"
+            class="text-sm text-muted mt-1"
           >
-            {{ group.memberCount }} {{ group.memberCount === 1 ? 'member' : 'members' }}
-          </UBadge>
+            {{ group.description }}
+          </p>
         </div>
       </template>
-
-      <!-- Enhanced Summary Section -->
       <div class="mb-6">
         <div
           v-if="summary && mySummary"
           class="space-y-4"
         >
-          <!-- Your Balance Overview -->
           <UCard variant="outline">
             <div class="flex items-center justify-between mb-4">
               <div class="flex items-center gap-3">
@@ -49,35 +47,34 @@
                   />
                 </div>
                 <div>
-                  <p class="text-sm text-gray-600">
+                  <p class="text-sm text-muted">
                     Your Net Balance
                   </p>
                   <p
                     class="font-bold text-2xl"
                     :class="mySummary.balance >= 0 ? 'text-green-600' : 'text-red-600'"
                   >
-                    {{ mySummary.balance >= 0 ? '+' : '' }}{{ mySummary.balance.toFixed(2) }}€
+                    {{ mySummary.balance >= 0 ? '+' : '' }}{{ mySummary.balance.toFixed(2) }} €
                   </p>
                 </div>
               </div>
             </div>
-
-            <!-- Financial Details Grid -->
-            <div class="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200">
+            <USeparator />
+            <div class="grid grid-cols-2 gap-4 pt-4">
               <div class="text-center">
-                <p class="text-xs text-gray-500 mb-1">
+                <p class="text-xs text-dimmed mb-1">
                   You Paid
                 </p>
                 <p class="font-semibold text-blue-600">
-                  {{ mySummary.totalPaid.toFixed(2) }}€
+                  {{ mySummary.totalPaid.toFixed(2) }} €
                 </p>
               </div>
               <div class="text-center">
-                <p class="text-xs text-gray-500 mb-1">
+                <p class="text-xs text-dimmed mb-1">
                   You Owe
                 </p>
                 <p class="font-semibold text-orange-600">
-                  {{ mySummary.totalOwed.toFixed(2) }}€
+                  {{ mySummary.totalOwed.toFixed(2) }} €
                 </p>
               </div>
             </div>
@@ -88,12 +85,12 @@
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
                   <UIcon
-                    name="i-lucide-receipt"
+                    name="i-lucide-clipboard-list"
                     class="w-5 h-5 text-purple-600"
                   />
                 </div>
                 <div>
-                  <p class="text-sm text-gray-600">
+                  <p class="text-sm text-muted">
                     Total Expenses
                   </p>
                   <p class="font-bold text-lg text-purple-600">
@@ -112,7 +109,7 @@
                   />
                 </div>
                 <div>
-                  <p class="text-sm text-gray-600">
+                  <p class="text-sm text-muted">
                     Group Total
                   </p>
                   <p class="font-bold text-lg text-green-600">
@@ -134,7 +131,7 @@
               name="i-lucide-bar-chart-3"
               class="w-12 h-12 text-gray-300 mx-auto mb-4"
             />
-            <p class="text-gray-500">
+            <p class="text-dimmed">
               No summary available
             </p>
             <p class="text-sm text-gray-400 mt-1">
@@ -164,7 +161,7 @@
               class="hover:shadow-md transition-shadow"
             >
               <!-- Row 1: Title, Description, Amount & Date -->
-              <div class="flex justify-between text-xs text-gray-500 items-start gap-4 mb-3">
+              <div class="flex justify-between text-xs text-dimmed items-start gap-4 mb-3">
                 <span>
                   Paid by {{ expense.paidByUserId === user?.id ? 'you' : `${expense.paidByUser.firstName} ${expense.paidByUser.lastName}` }}
                 </span>
@@ -173,12 +170,12 @@
                 </div>
               </div>
               <div class="flex justify-between items-start gap-4 mb-1">
-                <div class="flex flex-col flex-1 min-w-0">
+                <div class="flex min-w-0">
                   <h4 class="font-medium truncate">
                     {{ expense.title }}
                   </h4>
                 </div>
-                <div class="flex flex-col items-end flex-shrink-0">
+                <div class="flex items-end flex-shrink-0">
                   <div
                     class="font-bold whitespace-nowrap"
                     :class="expense.paidByUserId === user?.id ? 'text-green-600' : 'text-red-600'"
@@ -197,7 +194,7 @@
               </div>
 
               <!-- Row 2: Who paid & Method -->
-              <div class="flex flex-wrap items-center gap-4 text-xs text-gray-500 mb-2">
+              <div class="flex flex-wrap items-center gap-4 text-xs text-dimmed mb-2">
                 <div class="flex items-center gap-1">
                   <UIcon
                     name="i-lucide-credit-card"
@@ -208,7 +205,7 @@
               </div>
 
               <!-- Row 3: How many people -->
-              <div class="flex items-center gap-1 text-xs text-gray-500 mb-3">
+              <div class="flex items-center gap-1 text-xs text-dimmed mb-3">
                 <UIcon
                   name="i-lucide-users"
                   class="w-3 h-3"
@@ -229,6 +226,7 @@
                 <UBadge
                   v-if="getUserSplit(expense)"
                   variant="soft"
+                  color="neutral"
                 >
                   Your share: {{ getUserSplit(expense).splitAmount.toFixed(2) }}€
                 </UBadge>
