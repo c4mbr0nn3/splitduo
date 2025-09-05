@@ -82,6 +82,7 @@
 <script setup>
 const { user, logout } = useAuth()
 const { showSuccess } = useNotifications()
+const route = useRoute()
 
 const isMobileMenuOpen = ref(false)
 const isLoggingOut = ref(false)
@@ -119,4 +120,8 @@ const navigationItems = [
     icon: 'i-lucide-heart',
   },
 ]
+
+watch(() => route.path, () => {
+  isMobileMenuOpen.value = false
+})
 </script>
