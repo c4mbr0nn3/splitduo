@@ -1,22 +1,25 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-
   modules: [
     '@nuxt/ui',
     '@nuxt/eslint',
   ],
-  imports: {
-    dirs: [
-      '~/composables/**',
-    ],
-  },
+
+  ssr: false,
+
   devtools: { enabled: true },
+
+  app: {
+    head: {
+      title: 'SplitDuo',
+    },
+  },
 
   css: ['~/assets/css/main.css'],
 
   runtimeConfig: {
     public: {
-      apiBaseUrl: process.env.NODE_ENV === 'production' ? '/api/v1' : 'http://localhost:8080/api/v1',
+      apiBaseUrl: import.meta.dev ? 'http://localhost:8080/api/v1' : '/api/v1',
     },
   },
 
