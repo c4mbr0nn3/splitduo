@@ -1,3 +1,5 @@
+import { useAuth } from '~/composables/auth/useAuth'
+
 export default defineNuxtPlugin({
   name: 'auth-init',
   async setup() {
