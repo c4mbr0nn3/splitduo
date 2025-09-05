@@ -3,7 +3,7 @@ export default function useApi() {
   const { getToken } = useAuthToken()
 
   const apiConfig = {
-    baseURL: config.public.apiBaseUrl || 'http://localhost:8080/api/v1',
+    baseURL: import.meta.dev ? 'http://localhost:8080/api/v1' : config.public.apiBaseUrl,
   }
 
   // Create authenticated request headers

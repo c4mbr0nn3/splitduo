@@ -19,7 +19,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiBaseUrl: import.meta.dev ? 'http://localhost:8080/api/v1' : '/api/v1',
+      apiBaseUrl: '/api/v1',
     },
   },
 
