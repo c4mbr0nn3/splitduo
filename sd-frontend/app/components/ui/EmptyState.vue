@@ -4,15 +4,16 @@
       :name="icon"
       :class="iconClass"
     />
-    <p class="text-dimmed">
+    <p class="text-dimmed mb-4">
       {{ title }}
     </p>
     <p
       v-if="subtitle"
-      class="text-sm text-gray-400 mt-1"
+      class="text-sm text-gray-400 mt-1 mb-4"
     >
       {{ subtitle }}
     </p>
+    <slot name="action" />
   </div>
 </template>
 

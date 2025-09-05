@@ -44,21 +44,19 @@
           />
         </div>
 
-        <div
+        <UiEmptyState
           v-else-if="groups.length === 0"
-          class="text-center py-8"
+          icon="i-lucide-users"
+          title="No groups yet"
+          subtitle="Get started by creating your first group"
         >
-          <UIcon
-            name="i-lucide-users"
-            class="mx-auto mb-4"
-          />
-          <p class=" mb-4">
-            No groups yet
-          </p>
-          <UButton @click="createFirstGroup">
-            Create Your First Group
-          </UButton>
-        </div>
+          <template #action>
+            <UButton
+              label="Create Your First Group"
+              @click="createFirstGroup"
+            />
+          </template>
+        </UiEmptyState>
 
         <div
           v-else
