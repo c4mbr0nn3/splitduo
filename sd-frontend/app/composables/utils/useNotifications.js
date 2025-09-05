@@ -1,4 +1,4 @@
-export function useNotifications() {
+export default function useNotifications() {
   const toast = useToast()
 
   const showSuccess = (message, title = 'Success') => {

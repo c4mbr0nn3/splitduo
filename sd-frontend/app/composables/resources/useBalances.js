@@ -1,4 +1,4 @@
-export function useBalances(groupId) {
+export default function useBalances(groupId) {
   const api = useApi()
   const { showError } = useNotifications()
 

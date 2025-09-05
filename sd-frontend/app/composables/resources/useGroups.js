@@ -1,4 +1,4 @@
-export function useGroups() {
+export default function useGroups() {
   const api = useApi()
   const { showError, showSuccess } = useNotifications()
 

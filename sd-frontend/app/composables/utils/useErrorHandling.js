@@ -1,4 +1,4 @@
-export function useErrorHandling() {
+export default function useErrorHandling() {
   const { showError } = useNotifications()
 
   const handleApiError = (error, defaultMessage = 'An error occurred') => {

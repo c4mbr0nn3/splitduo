@@ -1,4 +1,4 @@
-export function useCategories() {
+export default function useCategories() {
   const api = useApi()
   const { showError } = useNotifications()
 

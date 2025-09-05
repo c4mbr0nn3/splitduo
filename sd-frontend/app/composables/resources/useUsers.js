@@ -1,4 +1,4 @@
-export function useUsers() {
+export default function useUsers() {
   const api = useApi()
   const { showError, showSuccess } = useNotifications()
 

@@ -1,4 +1,4 @@
-export function useExpenses(groupId) {
+export default function useExpenses(groupId) {
   const api = useApi()
   const { showError, showSuccess } = useNotifications()
 

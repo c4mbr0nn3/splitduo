@@ -1,4 +1,4 @@
-export function useImportExport(groupId) {
+export default function useImportExport(groupId) {
   const api = useApi()
   const { showError, showSuccess } = useNotifications()
 

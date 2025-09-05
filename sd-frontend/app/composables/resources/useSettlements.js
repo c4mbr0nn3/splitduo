@@ -1,4 +1,4 @@
-export function useSettlements(groupId) {
+export default function useSettlements(groupId) {
   const api = useApi()
   const { showError, showSuccess } = useNotifications()
 

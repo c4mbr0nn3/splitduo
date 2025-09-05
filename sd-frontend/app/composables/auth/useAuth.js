@@ -1,7 +1,4 @@
-import { useApi } from '../api/base'
-import { useAuthToken } from './useAuthToken'
-
-export function useAuth() {
+export default function useAuth() {
   const api = useApi()
   const { setToken, removeToken, getToken, getRefreshToken } = useAuthToken()
 

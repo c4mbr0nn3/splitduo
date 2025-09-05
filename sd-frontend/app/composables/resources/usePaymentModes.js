@@ -1,4 +1,4 @@
-export function usePaymentModes() {
+export default function usePaymentModes() {
   const api = useApi()
   const { showError } = useNotifications()
 

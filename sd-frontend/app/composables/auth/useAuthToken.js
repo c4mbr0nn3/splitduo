@@ -1,4 +1,4 @@
-export function useAuthToken() {
+export default function useAuthToken() {
   const tokenCookie = useCookie('auth-token', {
     default: () => null,
     secure: true,

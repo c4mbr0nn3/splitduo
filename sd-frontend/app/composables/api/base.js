@@ -1,6 +1,4 @@
-import { useAuthToken } from '../auth/useAuthToken'
-
-export function useApi() {
+export default function useApi() {
   const config = useRuntimeConfig()
   const { getToken } = useAuthToken()
 

@@ -1,4 +1,4 @@
-export function usePagination() {
+export default function usePagination() {
   const createPaginatedList = (initialData = []) => {
     const items = ref(initialData)
     const pagination = ref({
