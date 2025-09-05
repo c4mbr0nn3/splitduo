@@ -23,18 +23,11 @@
           v-else
           variant="outline"
         >
-          <div class="text-center py-8">
-            <UIcon
-              name="i-lucide-bar-chart-3"
-              class="w-12 h-12 text-gray-300 mx-auto mb-4"
-            />
-            <p class="text-dimmed">
-              No summary available
-            </p>
-            <p class="text-sm text-gray-400 mt-1">
-              Add some expenses to see your balance
-            </p>
-          </div>
+          <UiEmptyState
+            icon="i-lucide-bar-chart-3"
+            title="No summary available"
+            subtitle="Add some expenses to see your balance"
+          />
         </UCard>
       </div>
       <div>
@@ -60,9 +53,12 @@
             />
           </div>
         </div>
-        <div v-else>
-          No expenses found.
-        </div>
+        <UiEmptyState
+          v-else
+          icon="i-lucide-receipt"
+          title="No expenses found"
+          subtitle="Start adding expenses to track your group spending"
+        />
       </div>
       <template #footer>
         <!-- Pagination Component -->
