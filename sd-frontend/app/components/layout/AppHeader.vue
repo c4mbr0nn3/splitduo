@@ -2,13 +2,11 @@
   <header class="sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-16">
-        <!-- Mobile menu button -->
-        <!-- Logo/Brand -->
         <NuxtLink
           to="/dashboard"
           class="flex items-center"
         >
-          <div class="text-2xl font-bold">
+          <div class="text-2xl font-bold text-primary">
             SplitDuo
           </div>
         </NuxtLink>
@@ -18,7 +16,6 @@
             size="sm"
             icon="i-lucide-menu"
           />
-
           <template #content>
             <UCard
               class="flex flex-col flex-1"
@@ -39,14 +36,6 @@
                       {{ user?.email || '' }}
                     </div>
                   </div>
-                  <UButton
-                    variant="ghost"
-                    color="neutral"
-                    icon="i-lucide-log-out"
-                    :loading="isLoggingOut"
-                    class="ml-auto"
-                    @click="handleLogout"
-                  />
                 </div>
               </template>
               <!-- Mobile navigation items -->
@@ -59,7 +48,17 @@
               />
               <!-- Mobile user actions -->
               <template #footer>
-                <ButtonColorMode />
+                <div class="flex flex-col space-y-4">
+                  <ButtonColorMode />
+                  <UButton
+                    variant="ghost"
+                    color="error"
+                    icon="i-lucide-log-out"
+                    label="Logout"
+                    :loading="isLoggingOut"
+                    @click="handleLogout"
+                  />
+                </div>
               </template>
             </UCard>
           </template>
@@ -104,36 +103,8 @@ const navigationItems = [
   },
   {
     to: '/dashboard',
-    label: 'Expenses',
-    icon: 'i-lucide-receipt',
-  },
-  {
-    to: '/dashboard',
     label: 'Profile',
-    icon: 'i-lucide-user',
+    icon: 'i-lucide-heart',
   },
-  {
-    to: '/dashboard',
-    label: 'Settings',
-    icon: 'i-lucide-settings',
-  },
-]
-
-const userMenuItems = [
-  [{
-    label: 'Profile',
-    icon: 'i-lucide-user',
-    click: () => navigateTo('/profile'),
-  }],
-  [{
-    label: 'Settings',
-    icon: 'i-lucide-settings',
-    click: () => navigateTo('/settings'),
-  }],
-  [{
-    label: 'Logout',
-    icon: 'i-lucide-log-out',
-    click: handleLogout,
-  }],
 ]
 </script>
