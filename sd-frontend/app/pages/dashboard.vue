@@ -2,73 +2,25 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <UCard>
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-              <UIcon
-                name="i-lucide-users"
-                class="w-5 h-5 text-blue-600"
-              />
-            </div>
-          </div>
-          <div class="ml-4">
-            <p class="text-sm font-medium text-gray-600">
-              Total Groups
-            </p>
-            <p class="text-2xl font-bold">
-              {{ userStats?.totalGroups || 0 }}
-            </p>
-          </div>
-        </div>
-      </UCard>
-
-      <UCard>
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
-              <UIcon
-                name="i-lucide-dollar-sign"
-                class="w-5 h-5 text-yellow-600"
-              />
-            </div>
-          </div>
-          <div class="ml-4">
-            <p class="text-sm font-medium text-gray-600">
-              You Owe
-            </p>
-            <p class="text-2xl font-bold text-red-600">
-              {{ userStats?.youOwe || 0 }}
-            </p>
-          </div>
-        </div>
-      </UCard>
-
-      <UCard>
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-              <UIcon
-                name="i-lucide-trending-up"
-                class="w-5 h-5 text-purple-600"
-              />
-            </div>
-          </div>
-          <div class="ml-4">
-            <p class="text-sm font-medium text-gray-600">
-              You're Owed
-            </p>
-            <p class="text-2xl font-bold text-green-600">
-              {{ userStats?.youAreOwed || 0 }}
-            </p>
-          </div>
-        </div>
-      </UCard>
+      <DashboardStatCard
+        :stats="{ label: 'Total Groups', value: userStats?.totalGroups }"
+        icon="i-lucide-users"
+        color="blue"
+      />
+      <DashboardStatCard
+        :stats="{ label: 'You Owe', value: userStats?.youOwe, color: 'red' }"
+        type="currency"
+        icon="i-lucide-frown"
+        color="red"
+      />
+      <DashboardStatCard
+        :stats="{ label: `You're Owed`, value: userStats?.youreOwed, color: 'green' }"
+        type="currency"
+        icon="i-lucide-smile"
+        color="green"
+      />
     </div>
-
-    <!-- Recent Groups & Quick Actions -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <!-- Recent Groups -->
       <UCard>
         <template #header>
           <div class="flex items-center justify-between">
@@ -77,13 +29,11 @@
             </h2>
             <UButton
               size="sm"
-              variant="outline"
-            >
-              View All
-            </UButton>
+              variant="subtle"
+              label="View All"
+            />
           </div>
         </template>
-
         <div
           v-if="isLoadingGroups"
           class="flex justify-center py-8"
@@ -100,9 +50,9 @@
         >
           <UIcon
             name="i-lucide-users"
-            class="w-12 h-12 text-gray-300 mx-auto mb-4"
+            class="mx-auto mb-4"
           />
-          <p class="text-gray-500 mb-4">
+          <p class=" mb-4">
             No groups yet
           </p>
           <UButton @click="createFirstGroup">
@@ -114,37 +64,17 @@
           v-else
           class="space-y-4"
         >
-          <div
+          <template
             v-for="group in groups.slice(0, 3)"
             :key="group.id"
-            class="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-            @click="navigateToGroup(group.id)"
           >
-            <div class="flex items-center">
-              <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                <UIcon
-                  name="i-lucide-users"
-                  class="w-5 h-5 text-blue-600"
-                />
-              </div>
-              <div>
-                <h3 class="font-medium">
-                  {{ group.name }}
-                </h3>
-                <p class="text-sm ">
-                  {{ group.memberCount || 0 }} member(s)
-                </p>
-              </div>
-            </div>
-            <UIcon
-              name="i-lucide-chevron-right"
-              class="w-5 h-5 text-gray-400"
+            <DashboardGroupCard
+              :group="group"
+              @click="navigateToGroup(group.id)"
             />
-          </div>
+          </template>
         </div>
       </UCard>
-
-      <!-- Quick Actions -->
       <UCard>
         <template #header>
           <h2 class="text-lg font-semibold">

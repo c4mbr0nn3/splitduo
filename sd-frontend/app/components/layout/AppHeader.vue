@@ -33,7 +33,7 @@
                     size="xl"
                   />
                   <div class="ml-3">
-                    <div class="text-base font-medium">
+                    <div class="text-base font-medium text-primary">
                       {{ user?.firstName || 'User' }} {{ user?.lastName || '' }}
                     </div>
                     <div class="text-sm text-dimmed">
