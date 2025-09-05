@@ -78,43 +78,16 @@
 
         <div class="space-y-4">
           <UButton
+            v-for="action in quickActions"
+            :key="action.id"
             block
             size="lg"
+            :variant="action.variant"
             class="justify-start"
-            @click="createNewGroup"
-          >
-            <UIcon
-              name="i-lucide-plus"
-              class="w-5 h-5 mr-2"
-            />
-            Create New Group
-          </UButton>
-          <UButton
-            block
-            size="lg"
-            variant="outline"
-            class="justify-start"
-            @click="addExpense"
-          >
-            <UIcon
-              name="i-lucide-receipt"
-              class="w-5 h-5 mr-2"
-            />
-            Add Expense
-          </UButton>
-          <UButton
-            block
-            size="lg"
-            variant="outline"
-            class="justify-start"
-            @click="settleUp"
-          >
-            <UIcon
-              name="i-lucide-credit-card"
-              class="w-5 h-5 mr-2"
-            />
-            Settle Up
-          </UButton>
+            :label="action.label"
+            :icon="action.icon"
+            @click="action.handler"
+          />
         </div>
       </UCard>
     </div>
@@ -126,7 +99,6 @@ const { groups, fetchGroups, isLoading: isLoadingGroups } = useGroups()
 const { userStats, fetchUserStats } = useUsers()
 const { showInfo } = useNotifications()
 
-// Fetch groups on component mount
 onMounted(async () => {
   try {
     await fetchGroups()
@@ -137,30 +109,41 @@ onMounted(async () => {
   }
 })
 
-// Navigation and action handlers
 const navigateToGroup = (groupId) => {
   navigateTo(`/groups/${groupId}`)
-}
-
-const createNewGroup = () => {
-  navigateTo('/groups/add')
 }
 
 const createFirstGroup = () => {
   navigateTo('/groups/add')
 }
 
-const addExpense = () => {
-  showInfo('Add expense coming soon!')
-}
-
-const settleUp = () => {
-  showInfo('Settle up coming soon!')
-}
-
 const viewAllGroups = () => {
   navigateTo('/groups')
 }
+
+const quickActions = [
+  {
+    id: 'create-group',
+    label: 'Create New Group',
+    icon: 'i-lucide-plus',
+    variant: 'solid',
+    handler: () => navigateTo('/groups/add'),
+  },
+  {
+    id: 'add-expense',
+    label: 'Add Expense',
+    icon: 'i-lucide-receipt',
+    variant: 'outline',
+    handler: () => showInfo('Add expense coming soon!'),
+  },
+  {
+    id: 'settle-up',
+    label: 'Settle Up',
+    icon: 'i-lucide-credit-card',
+    variant: 'outline',
+    handler: () => showInfo('Settle up coming soon!'),
+  },
+]
 
 useHead({
   title: 'Dashboard',
