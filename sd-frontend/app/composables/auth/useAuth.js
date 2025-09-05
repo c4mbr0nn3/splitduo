@@ -64,7 +64,7 @@ export default function useAuth() {
       removeToken()
       user.value = null
       userCookie.value = null
-      await navigateTo('/login')
+      await navigateTo('/')
     }
   }
 
