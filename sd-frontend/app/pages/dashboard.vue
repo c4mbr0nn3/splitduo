@@ -156,8 +156,8 @@ const addExpense = () => {
 const settleUp = () => {
   showInfo('Settle up coming soon!')
 }
-// Set page meta
-// definePageMeta({
-//  middleware: 'auth',
-// })
+
+definePageMeta({
+  middleware: 'auth',
+})
 </script>

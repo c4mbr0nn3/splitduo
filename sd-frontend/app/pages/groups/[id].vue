@@ -111,4 +111,8 @@ onMounted(async () => {
     await fetchBalanceSummary()
   }
 })
+
+definePageMeta({
+  middleware: 'auth',
+})
 </script>

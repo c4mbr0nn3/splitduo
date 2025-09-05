@@ -67,4 +67,8 @@ async function onSubmit() {
     message.value = err.message || 'Error creating group.'
   }
 }
+
+definePageMeta({
+  middleware: 'auth',
+})
 </script>
