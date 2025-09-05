@@ -31,6 +31,7 @@
               size="sm"
               variant="subtle"
               label="View All"
+              @click="viewAllGroups"
             />
           </div>
         </template>
@@ -155,6 +156,10 @@ const addExpense = () => {
 
 const settleUp = () => {
   showInfo('Settle up coming soon!')
+}
+
+const viewAllGroups = () => {
+  navigateTo('/groups')
 }
 
 useHead({

@@ -110,7 +110,7 @@ const navigationItems = [
     icon: 'i-lucide-home',
   },
   {
-    to: '/dashboard',
+    to: '/groups',
     label: 'Groups',
     icon: 'i-lucide-users',
   },
