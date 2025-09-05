@@ -13,7 +13,6 @@
           class="space-y-4"
         >
           <GroupsUserBalanceCard :balance="mySummary" />
-          <!-- Group Statistics -->
           <GroupsStatsCards
             :total-expenses="expensePagination.total"
             :group-total="getGroupTotal()"
@@ -56,7 +55,6 @@
         />
       </div>
       <template #footer>
-        <!-- Pagination Component -->
         <div
           v-if="expensePagination.totalPages > 1"
           class="flex justify-center"
@@ -99,7 +97,6 @@ const currentPage = ref(1)
 
 const getGroupTotal = () => {
   if (!summary.value || !summary.value.balances) return 0
-  // Sum all totalPaid amounts to get the group's total spending
   return summary.value.balances.reduce((total, balance) => total + balance.totalPaid, 0)
 }
 

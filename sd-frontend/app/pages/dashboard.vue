@@ -88,7 +88,6 @@
             />
             Create New Group
           </UButton>
-
           <UButton
             block
             size="lg"
@@ -102,7 +101,6 @@
             />
             Add Expense
           </UButton>
-
           <UButton
             block
             size="lg"
@@ -115,20 +113,6 @@
               class="w-5 h-5 mr-2"
             />
             Settle Up
-          </UButton>
-
-          <UButton
-            block
-            size="lg"
-            variant="outline"
-            class="justify-start"
-            @click="viewProfile"
-          >
-            <UIcon
-              name="i-lucide-user"
-              class="w-5 h-5 mr-2"
-            />
-            View Profile
           </UButton>
         </div>
       </UCard>
@@ -172,11 +156,6 @@ const addExpense = () => {
 const settleUp = () => {
   showInfo('Settle up coming soon!')
 }
-
-const viewProfile = () => {
-  showInfo('Profile view coming soon!')
-}
-
 // Set page meta
 // definePageMeta({
 //  middleware: 'auth',
