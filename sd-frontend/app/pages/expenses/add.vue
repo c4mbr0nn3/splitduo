@@ -209,7 +209,7 @@ const form = ref({
   groupId: preSelectedGroupId.value || null,
   title: '',
   description: '',
-  amount: '',
+  amount: null,
   paidByUserId: null,
   expenseDate: new Date().toISOString().split('T')[0], // Today's date
   categoryId: null,
@@ -272,7 +272,7 @@ const toggleMember = (userId) => {
   }
   else {
     // Add member with equal split by default
-    const equalAmount = form.value.amount ? (parseFloat(form.value.amount) / (splits.value.length + 1)).toFixed(4) : '0'
+    const equalAmount = form.value.amount ? parseFloat((parseFloat(form.value.amount) / (splits.value.length + 1)).toFixed(4)) : 0
     splits.value.forEach((split) => {
       split.splitAmount = equalAmount
     })
@@ -285,7 +285,7 @@ const toggleMember = (userId) => {
 
 const getSplitAmount = (userId) => {
   const split = splits.value.find(split => split.userId === userId)
-  return split ? split.splitAmount : ''
+  return split ? split.splitAmount : 0
 }
 
 const updateSplitAmount = (userId, amount) => {
@@ -350,7 +350,7 @@ watch(
   () => form.value.amount,
   (newAmount) => {
     if (newAmount && splits.value.length > 0) {
-      const equalAmount = (parseFloat(newAmount) / splits.value.length).toFixed(4)
+      const equalAmount = parseFloat((parseFloat(newAmount) / splits.value.length).toFixed(4))
       splits.value.forEach((split) => {
         split.splitAmount = equalAmount
       })
