@@ -28,14 +28,6 @@
     <template #footer>
       <div class="flex items-center gap-3 justify-end ml-auto">
         <UButton
-          variant="ghost"
-          color="neutral"
-          :loading="isProcessing"
-          @click="handleCancel"
-        >
-          {{ cancelText }}
-        </UButton>
-        <UButton
           variant="outline"
           :color="confirmColor"
           :loading="isProcessing"
@@ -88,14 +80,9 @@ defineProps({
   },
 })
 
-const emit = defineEmits(['confirm', 'cancel'])
+const emit = defineEmits(['confirm'])
 
 const handleConfirm = () => {
   emit('confirm')
-}
-
-const handleCancel = () => {
-  emit('cancel')
-  isOpen.value = false
 }
 </script>

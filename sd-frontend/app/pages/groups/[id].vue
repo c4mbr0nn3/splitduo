@@ -52,6 +52,7 @@
               :key="expense.id"
               :expense="expense"
               :current-user="user"
+              @expense-deleted="onExpenseDeleted"
             />
           </div>
         </div>
@@ -112,15 +113,24 @@ const addExpense = () => {
   navigateTo(`/expenses/add?groupId=${groupId}`)
 }
 
+const onExpenseDeleted = async () => {
+  await Promise.all([
+    fetchExpenses({ page: currentPage.value }),
+    fetchBalanceSummary(),
+  ])
+}
+
 watch(currentPage, async (newPage) => {
   await fetchExpenses({ page: newPage })
 }, { immediate: false })
 
 onMounted(async () => {
   if (groupId) {
-    await fetchGroup(groupId)
-    await fetchExpenses({ page: 1 })
-    await fetchBalanceSummary()
+    await Promise.all([
+      fetchGroup(groupId),
+      fetchExpenses({ page: 1 }),
+      fetchBalanceSummary(),
+    ])
   }
 })
 

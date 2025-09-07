@@ -1,75 +1,96 @@
 <template>
   <UCard class="hover:shadow-md transition-shadow">
     <!-- Row 1: Title, Description, Amount & Date -->
-    <div class="flex justify-between text-xs text-dimmed items-start gap-4 mb-3">
-      <span>
-        Paid by {{ expense.paidByUserId === currentUser?.id ? 'you' : `${expense.paidByUser.firstName} ${expense.paidByUser.lastName}` }}
-      </span>
-      <div>
-        {{ formattedDate }}
-      </div>
-    </div>
-    <div class="flex justify-between items-start gap-4 mb-1">
-      <div class="flex min-w-0">
-        <h4 class="font-medium truncate">
-          {{ expense.title }}
-        </h4>
-      </div>
-      <div class="flex items-end flex-shrink-0">
-        <div
-          class="font-bold whitespace-nowrap"
-          :class="expense.paidByUserId === currentUser?.id ? 'text-green-600' : 'text-red-600'"
-        >
-          {{ expense.amount.toFixed(2) }}€
+    <div class="mb-3">
+      <div class="flex justify-between text-xs text-dimmed items-start gap-4 mb-3">
+        <span>
+          Paid by {{ expense.paidByUserId === currentUser?.id ? 'you' : `${expense.paidByUser.firstName} ${expense.paidByUser.lastName}` }}
+        </span>
+        <div>
+          {{ formattedDate }}
         </div>
       </div>
-    </div>
-    <div class="flex justify-between items-start gap-4 mb-3">
-      <p
+      <div class="flex justify-between items-start gap-4 mb-1">
+        <div class="flex min-w-0">
+          <h4 class="font-medium truncate">
+            {{ expense.title }}
+          </h4>
+        </div>
+        <div class="flex flex-col items-end flex-shrink-0">
+          <div
+            class="font-bold whitespace-nowrap"
+            :class="expense.paidByUserId === currentUser?.id ? 'text-green-600' : 'text-red-600'"
+          >
+            {{ expense.amount.toFixed(2) }}€
+          </div>
+        </div>
+      </div>
+      <div
         v-if="expense.description"
-        class="text-xs text-gray-400 truncate"
+        class="flex justify-between items-start gap-4"
       >
-        {{ expense.description }}
-      </p>
-    </div>
-
-    <!-- Row 2: Who paid & Method -->
-    <div class="flex flex-wrap items-center gap-4 text-xs text-dimmed mb-2">
-      <div class="flex items-center gap-1">
-        <UIcon
-          name="i-lucide-credit-card"
-          class="w-3 h-3"
-        />
-        <span class="capitalize">{{ expense.paymentMode }}</span>
+        <p class="text-xs text-gray-400 truncate">
+          {{ expense.description }}
+        </p>
       </div>
     </div>
 
-    <!-- Row 3: How many people -->
-    <div class="flex items-center gap-1 text-xs text-dimmed mb-3">
-      <UIcon
-        name="i-lucide-users"
-        class="w-3 h-3"
-      />
-      <span>{{ expense.splits.length }} people</span>
-    </div>
-
-    <!-- Row 4: Category & Split -->
-    <div class="flex justify-between items-center">
-      <UBadge
-        variant="soft"
-        :color="categoryColor"
-        :icon="categoryIcon"
-        class="capitalize"
-      >
-        {{ expense.category }}
-      </UBadge>
-      <UBadge
-        v-if="userSplit"
-        variant="soft"
-        color="neutral"
-      >
-        Your share: {{ userSplit.splitAmount.toFixed(2) }}€
-      </UBadge>
+    <div class="flex flex-col gap-1">
+      <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1 text-xs text-dimmed">
+          <UIcon
+            name="i-lucide-credit-card"
+            class="w-3 h-3"
+          />
+          <span class="capitalize">{{ expense.paymentMode }}</span>
+        </div>
+        <div class="flex items-center gap-1 text-xs text-dimmed">
+          <UIcon
+            name="i-lucide-users"
+            class="w-3 h-3"
+          />
+          <span>{{ expense.splits.length }} people</span>
+        </div>
+      </div>
+      <div>
+        <UBadge
+          v-if="userSplit"
+          variant="soft"
+          color="neutral"
+          :label="`Your share: ${userSplit.splitAmount.toFixed(2)}€`"
+        />
+      </div>
+      <div class="flex justify-between items-center">
+        <UBadge
+          variant="soft"
+          :color="categoryColor"
+          :icon="categoryIcon"
+          class="capitalize"
+        >
+          {{ expense.category }}
+        </UBadge>
+        <UiConfirmDialog
+          title="Delete Expense"
+          message="Are you sure you want to delete this expense?"
+          subtitle="This action cannot be undone and will remove all associated data."
+          confirm-text="Delete Expense"
+          confirm-color="error"
+          icon="i-lucide-trash-2"
+          icon-color-class="text-error-500"
+          :is-processing="isDeletingExpense"
+          @confirm="deleteExpense"
+        >
+          <template #button>
+            <UButton
+              variant="ghost"
+              color="error"
+              size="sm"
+              icon="i-lucide-trash-2"
+              @click.stop
+            />
+          </template>
+        </UiConfirmDialog>
+      </div>
     </div>
   </UCard>
 </template>
@@ -85,6 +106,8 @@ const props = defineProps({
     default: null,
   },
 })
+
+const isDeletingExpense = ref(false)
 
 const formattedDate = computed(() => {
   return new Date(props.expense.expenseDate).toLocaleDateString('en-US', {
@@ -132,4 +155,21 @@ const userSplit = computed(() => {
   if (!props.currentUser) return null
   return props.expense.splits.find(split => split.userId === props.currentUser.id)
 })
+
+const emit = defineEmits(['expense-deleted'])
+
+const deleteExpense = async () => {
+  isDeletingExpense.value = true
+  try {
+    const { deleteExpense: deleteExpenseApi } = useExpenses(props.expense.groupId)
+    await deleteExpenseApi(props.expense.id)
+    emit('expense-deleted', props.expense.id)
+  }
+  catch (error) {
+    console.error('Failed to delete expense:', error)
+  }
+  finally {
+    isDeletingExpense.value = false
+  }
+}
 </script>

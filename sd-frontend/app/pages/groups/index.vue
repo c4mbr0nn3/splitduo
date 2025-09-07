@@ -77,13 +77,11 @@
                 :message="`Are you sure you want to delete the group '${groupToDelete?.name}'?`"
                 subtitle="This action cannot be undone and will remove all associated data."
                 confirm-text="Delete Group"
-                cancel-text="Cancel"
                 confirm-color="error"
                 icon="i-lucide-trash-2"
                 icon-color-class="text-error-500"
                 :is-processing="isDeletingGroup"
                 @confirm="deleteGroup"
-                @cancel="cancelDelete"
               >
                 <template #button>
                   <UButton
@@ -129,7 +127,6 @@
 const { groups, fetchGroups, isLoading: isLoadingGroups, deleteGroup: deleteGroupAPI } = useGroups()
 
 // Delete group state
-const showDeleteDialog = ref(false)
 const groupToDelete = ref(null)
 const isDeletingGroup = ref(false)
 
@@ -155,7 +152,6 @@ const createNewGroup = () => {
 // Delete group handlers
 const confirmDeleteGroup = (group) => {
   groupToDelete.value = group
-  showDeleteDialog.value = true
 }
 
 const deleteGroup = async () => {
@@ -164,23 +160,14 @@ const deleteGroup = async () => {
   isDeletingGroup.value = true
   try {
     await deleteGroupAPI(groupToDelete.value.id)
-    showDeleteDialog.value = false
     groupToDelete.value = null
-    // Refresh the groups list
-    await fetchGroups()
   }
   catch (error) {
     console.error('Failed to delete group:', error)
-    // You could add a toast notification here
   }
   finally {
     isDeletingGroup.value = false
   }
-}
-
-const cancelDelete = () => {
-  groupToDelete.value = null
-  showDeleteDialog.value = false
 }
 
 // Utility function to format dates
