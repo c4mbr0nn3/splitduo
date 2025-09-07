@@ -46,14 +46,16 @@
       <UCard
         v-for="group in groups"
         :key="group.id"
-        class="cursor-pointer hover:border-primary/50 transition-colors"
+        class="hover:border-primary/50 transition-colors"
         variant="outline"
-        @click="navigateToGroup(group.id)"
       >
         <div class="space-y-4">
           <!-- Group Header -->
           <div class="flex items-start justify-between">
-            <div class="flex items-center gap-3">
+            <div
+              class="flex items-center gap-3 cursor-pointer"
+              @click="navigateToGroup(group.id)"
+            >
               <div class="border border-primary text-primary rounded-full flex items-center justify-center w-12 h-12">
                 <UIcon
                   name="i-lucide-users"
@@ -69,10 +71,37 @@
                 </p>
               </div>
             </div>
-            <UIcon
-              name="i-lucide-chevron-right"
-              class="size-5 text-muted"
-            />
+            <div class="flex items-center gap-2">
+              <UiConfirmDialog
+                title="Delete Group"
+                :message="`Are you sure you want to delete the group '${groupToDelete?.name}'?`"
+                subtitle="This action cannot be undone and will remove all associated data."
+                confirm-text="Delete Group"
+                cancel-text="Cancel"
+                confirm-color="error"
+                icon="i-lucide-trash-2"
+                icon-color-class="text-error-500"
+                :is-processing="isDeletingGroup"
+                @confirm="deleteGroup"
+                @cancel="cancelDelete"
+              >
+                <template #button>
+                  <UButton
+                    variant="ghost"
+                    color="error"
+                    size="sm"
+                    icon="i-lucide-trash-2"
+                    @click.stop="confirmDeleteGroup(group)"
+                  />
+                </template>
+              </UiConfirmDialog>
+              <UButton
+                variant="ghost"
+                size="sm"
+                icon="i-lucide-chevron-right"
+                @click="navigateToGroup(group.id)"
+              />
+            </div>
           </div>
 
           <!-- Group Description -->
@@ -92,10 +121,17 @@
       </UCard>
     </div>
   </div>
+
+  <!-- Delete Confirmation Dialog -->
 </template>
 
 <script setup>
-const { groups, fetchGroups, isLoading: isLoadingGroups } = useGroups()
+const { groups, fetchGroups, isLoading: isLoadingGroups, deleteGroup: deleteGroupAPI } = useGroups()
+
+// Delete group state
+const showDeleteDialog = ref(false)
+const groupToDelete = ref(null)
+const isDeletingGroup = ref(false)
 
 // Fetch groups on component mount
 onMounted(async () => {
@@ -114,6 +150,37 @@ const navigateToGroup = (groupId) => {
 
 const createNewGroup = () => {
   navigateTo('/groups/add')
+}
+
+// Delete group handlers
+const confirmDeleteGroup = (group) => {
+  groupToDelete.value = group
+  showDeleteDialog.value = true
+}
+
+const deleteGroup = async () => {
+  if (!groupToDelete.value) return
+
+  isDeletingGroup.value = true
+  try {
+    await deleteGroupAPI(groupToDelete.value.id)
+    showDeleteDialog.value = false
+    groupToDelete.value = null
+    // Refresh the groups list
+    await fetchGroups()
+  }
+  catch (error) {
+    console.error('Failed to delete group:', error)
+    // You could add a toast notification here
+  }
+  finally {
+    isDeletingGroup.value = false
+  }
+}
+
+const cancelDelete = () => {
+  groupToDelete.value = null
+  showDeleteDialog.value = false
 }
 
 // Utility function to format dates
