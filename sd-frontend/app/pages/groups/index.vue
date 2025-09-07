@@ -71,7 +71,7 @@
                 </p>
               </div>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1">
               <UiConfirmDialog
                 title="Delete Group"
                 :message="`Are you sure you want to delete the group '${groupToDelete?.name}'?`"
@@ -95,9 +95,10 @@
               </UiConfirmDialog>
               <UButton
                 variant="ghost"
+                color="neutral"
                 size="sm"
-                icon="i-lucide-chevron-right"
-                @click="navigateToGroup(group.id)"
+                icon="i-lucide-edit-2"
+                @click="navigateToEdit(group.id)"
               />
             </div>
           </div>
@@ -111,7 +112,8 @@
           </div>
 
           <!-- Group Metadata -->
-          <div class="flex items-center justify-between text-xs text-muted pt-2 border-t border-border">
+          <USeparator />
+          <div class="flex items-center justify-between text-xs text-muted">
             <span>Created {{ formatDate(group.createdAt) }}</span>
             <span>Updated {{ formatDate(group.updatedAt) }}</span>
           </div>
@@ -147,6 +149,10 @@ const navigateToGroup = (groupId) => {
 
 const createNewGroup = () => {
   navigateTo('/groups/add')
+}
+
+const navigateToEdit = (groupId) => {
+  navigateTo(`/groups/${groupId}/edit/`)
 }
 
 // Delete group handlers
