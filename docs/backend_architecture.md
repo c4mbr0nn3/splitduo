@@ -489,6 +489,7 @@ public class ExpensesService(IUnitOfWork unitOfWork, IUserContextService userCon
 ```csharp
 // In ApiProgramExtensions.cs
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+builder.Services.AddScoped<ITwoFactorService, TwoFactorService>();
 builder.Services.AddScoped<IUserContextService, UserContextService>();
 builder.Services.AddScoped<IUsersService, UsersService>();
 builder.Services.AddScoped<IGroupsService, GroupsService>();
@@ -541,9 +542,10 @@ The following services are needed to implement the core features outlined in the
    - **Refresh Token System**: Cryptographically secure refresh tokens with rotation
    - **Token Revocation**: Individual and bulk token revocation capabilities
    - **Security Features**: Breach detection, audit logging, token reuse prevention
-   - **Location**: `SplitDuo.Api/Services/AuthenticationService.cs`
+   - **Two-Factor Authentication**: Integrated 2FA support with TOTP, email codes, and backup codes
+   - **Location**: `SplitDuo.Api/Features/Authentication/Services/AuthenticationService.cs`
    - **Database**: RefreshToken entity for secure server-side token storage
-   - **Features**: Enhanced Result pattern with HTTP status codes, Unit of Work data access, ASP.NET Core Identity password hashing
+   - **Features**: Enhanced Result pattern with HTTP status codes, Unit of Work data access, ASP.NET Core Identity password hashing, 2FA login flow integration
 
 2. **UsersService** _(implemented)_
 
@@ -598,6 +600,18 @@ The following services are needed to implement the core features outlined in the
    - **Location**: `SplitDuo.Api/Features/Settlements/Services/SettlementsService.cs`
    - **Features**: Enhanced Result pattern, comprehensive validation, internal service communication patterns
    - **API Methods**: 5 distinct service methods covering settlement lifecycle with balance calculation support
+
+7. **TwoFactorService** _(implemented)_
+
+   - **2FA Management**: Complete two-factor authentication lifecycle management
+   - **TOTP Support**: RFC 6238 compliant Time-based One-Time Password implementation compatible with Google Authenticator, Authy
+   - **Email Verification**: Time-limited email verification codes with rate limiting and attempt tracking
+   - **Backup Codes**: Emergency access codes with one-time use and secure hashing
+   - **Setup Process**: Multi-step verification flow with QR code generation for authenticator apps
+   - **Security Features**: Cryptographically secure token generation, SHA256 hashing, time drift tolerance
+   - **Location**: `SplitDuo.Api/Features/Authentication/Services/TwoFactorService.cs`
+   - **Database**: TwoFactorToken entity for managing verification codes and attempts
+   - **Features**: Enhanced Result pattern, email integration via NotificationService, secure backup code management
 
 #### Data Management Services
 
@@ -860,7 +874,7 @@ The following services are needed to implement the core features outlined in the
 **Features**:
 
 - Interface and implementation in single file for tidiness
-- Direct DbSet exposure: `Users`, `Groups`, `GroupMembers`, `Expenses`, `ExpenseSplits`, `Settlements`, `Imports`
+- Direct DbSet exposure: `Users`, `Groups`, `GroupMembers`, `Expenses`, `ExpenseSplits`, `Settlements`, `Imports`, `TwoFactorTokens`
 - Transaction management: `BeginTransactionAsync`, `CommitTransactionAsync`, `RollbackTransactionAsync`
 - Scoped lifetime registration in DI container
 - Proper disposal pattern implementation

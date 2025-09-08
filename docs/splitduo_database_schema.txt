@@ -18,11 +18,14 @@ Table users {
   password_hash varchar(255) [not null, note: 'Hashed password']
   first_name varchar(100) [not null]
   last_name varchar(100)
+  two_factor_enabled boolean [default: false, not null, note: '2FA activation status']
+  totp_secret varchar(255) [null, note: 'Base32 encoded TOTP secret for authenticator apps']
+  backup_codes text [null, note: 'JSON array of hashed emergency backup codes']
   deleted_at int [null, note: 'Soft delete unix timestamp']
   created_at int [not null, note: 'Unix timestamp in seconds']
   updated_at int [not null, note: 'Unix timestamp in seconds']
 
-  Note: 'User accounts - minimal custom implementation without Identity'
+  Note: 'User accounts with 2FA support - minimal custom implementation without Identity'
 }
 
 Table refresh_tokens {
@@ -46,6 +49,30 @@ Table refresh_tokens {
   }
 
   Note: 'Secure refresh token storage for JWT authentication with rotation'
+}
+
+Table two_factor_tokens {
+  id integer [primary key, increment]
+  user_id integer [ref: > users.id, not null, note: 'User who owns this 2FA token']
+  token_hash varchar(255) [not null, unique, note: 'SHA256 hash of the verification code']
+  token_type varchar(50) [not null, note: 'Type: email_verification, login_code']
+  purpose varchar(100) [not null, note: 'Purpose: 2fa_setup, 2fa_login, account_verification']
+  expires_at int [not null, note: 'Unix timestamp expiration (10 minutes for email codes)']
+  used_at int [null, note: 'Unix timestamp when successfully used']
+  attempts integer [default: 0, not null, note: 'Number of validation attempts made']
+  max_attempts integer [default: 3, not null, note: 'Maximum allowed attempts']
+  client_info varchar(255) [not null, note: 'Client identification for audit']
+  created_at int [not null, note: 'Unix timestamp in seconds']
+  updated_at int [not null, note: 'Unix timestamp in seconds']
+
+  indexes {
+    user_id [name: 'idx_two_factor_tokens_user_id']
+    token_hash [unique, name: 'idx_two_factor_tokens_hash']
+    expires_at [name: 'idx_two_factor_tokens_expires_at']
+    token_type [name: 'idx_two_factor_tokens_type']
+  }
+
+  Note: 'Time-limited verification tokens for 2FA email codes and setup processes'
 }
 
 Table groups {

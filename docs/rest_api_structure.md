@@ -18,9 +18,20 @@ The SplitDuo REST API follows RESTful conventions and uses JSON for request/resp
 | Method | Endpoint                  | Description                            |
 | ------ | ------------------------- | -------------------------------------- |
 | POST   | `/auth/login`             | User login with refresh token rotation |
+| POST   | `/auth/verify-2fa`        | Complete login after 2FA verification |
 | POST   | `/auth/refresh`           | Refresh access token with rotation     |
 | POST   | `/auth/revoke`            | Revoke current user's refresh token    |
 | POST   | `/auth/{userGuid}/revoke` | Revoke all refresh tokens for user     |
+
+### Two-Factor Authentication
+
+| Method | Endpoint                        | Description                          |
+| ------ | ------------------------------- | ------------------------------------ |
+| POST   | `/2fa/setup/initiate`           | Start 2FA setup process             |
+| POST   | `/2fa/setup/verify`             | Complete 2FA setup                  |
+| POST   | `/2fa/disable`                  | Disable 2FA (requires password)     |
+| POST   | `/2fa/generate-email-code`      | Generate email verification code    |
+| POST   | `/2fa/backup-codes/generate`    | Generate new backup codes           |
 
 #### Authentication Flow
 
@@ -34,7 +45,7 @@ POST /api/v1/auth/login
 }
 ```
 
-**Login Response**:
+**Login Response** (No 2FA):
 
 ```json
 {
@@ -43,6 +54,7 @@ POST /api/v1/auth/login
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "refreshToken": "cJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "expiresAt": 1704067200,
+    "requiresTwoFactor": false,
     "user": {
       "id": "123e4567-e89b-12d3-a456-426614174000",
       "email": "user@example.com",
@@ -51,6 +63,55 @@ POST /api/v1/auth/login
     }
   },
   "message": "Login successful"
+}
+```
+
+**Login Response** (2FA Required):
+
+```json
+{
+  "success": true,
+  "data": {
+    "requiresTwoFactor": true,
+    "user": {
+      "id": "123e4567-e89b-12d3-a456-426614174000",
+      "email": "user@example.com",
+      "firstName": "John",
+      "lastName": "Doe"
+    }
+  },
+  "message": "Two-factor authentication required"
+}
+```
+
+#### Two-Factor Authentication Flow
+
+**2FA Verification Request**:
+
+```json
+POST /api/v1/auth/verify-2fa
+{
+  "email": "user@example.com",
+  "code": "123456",
+  "codeType": "totp"  // "totp", "email", or "backup"
+}
+```
+
+**2FA Setup Initiation**:
+
+```json
+POST /api/v1/2fa/setup/initiate
+// Requires authentication
+
+Response:
+{
+  "success": true,
+  "data": {
+    "secret": "JBSWY3DPEHPK3PXP",
+    "qrCodeUri": "otpauth://totp/SplitDuo:user@example.com?secret=JBSWY3DPEHPK3PXP&issuer=SplitDuo",
+    "backupCodes": ["a1b2-c3d4", "e5f6-g7h8", ...]
+  },
+  "message": "2FA setup initiated successfully"
 }
 ```
 

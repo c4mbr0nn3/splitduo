@@ -22,12 +22,51 @@
   "token": "string (JWT token)",
   "refreshToken": "string",
   "expiresAt": "number (unix timestamp in seconds)",
+  "requiresTwoFactor": "boolean (true if 2FA verification needed)",
   "user": {
     "id": "string (GUID)",
     "email": "string",
     "firstName": "string",
     "lastName": "string"
   }
+}
+```
+
+### VerifyTwoFactorLoginDto
+
+```json
+{
+  "email": "string (required, email format)",
+  "code": "string (required, verification code)",
+  "codeType": "string (required: 'totp', 'email', or 'backup')"
+}
+```
+
+## Two-Factor Authentication DTOs
+
+### TwoFactorSetupDto
+
+```json
+{
+  "secret": "string (Base32 encoded TOTP secret)",
+  "qrCodeUri": "string (QR code URI for authenticator apps)",
+  "backupCodes": ["string (array of backup codes)"]
+}
+```
+
+### VerifyTwoFactorSetupDto
+
+```json
+{
+  "code": "string (required, 6-digit TOTP code)"
+}
+```
+
+### DisableTwoFactorDto
+
+```json
+{
+  "password": "string (required, current user password)"
 }
 ```
 

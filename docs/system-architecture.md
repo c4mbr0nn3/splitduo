@@ -246,7 +246,7 @@ graph TB
 ✅ **Expense Tracking** - Complete CRUD with automatic split calculations
 ✅ **Balance Calculations** - Real-time debt calculation with settlement optimization
 ✅ **Settlement Management** - Payment recording between group members
-✅ **Authentication System** - JWT with secure refresh token rotation
+✅ **Authentication System** - JWT with secure refresh token rotation and 2FA support
 ✅ **Email Notifications** - Background email processing with retry logic
 ✅ **Data Persistence** - PostgreSQL with comprehensive entity relationships
 
@@ -258,10 +258,13 @@ graph TB
 - 📧 **Secure Email Processing** with outbox pattern
 - 🔑 **Password Hashing** using ASP.NET Core Identity
 - 🚫 **No Registration Endpoint** - admin-managed user creation only
+- 🛡️ **Two-Factor Authentication** - TOTP, email codes, and backup codes
+- 🔒 **Cryptographic Security** - SHA256 token hashing, secure random generation
+- ⏱️ **Time-based Security** - Expiring verification codes with rate limiting
 
 ### Data Flow
 
-1. **Authentication Flow**: Login → JWT + Refresh Token → API Access → Token Refresh/Rotation
+1. **Authentication Flow**: Login → [2FA Verification] → JWT + Refresh Token → API Access → Token Refresh/Rotation
 2. **Business Operations**: Frontend → REST API → Service Layer → Unit of Work → Database
 3. **Email Processing**: Business Operations → Notification Queue → Background Job → SMTP Server
 4. **Balance Calculations**: Expenses + Settlements → Balance Service → Optimization Algorithm → Settlement Suggestions
