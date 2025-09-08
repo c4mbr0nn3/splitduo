@@ -69,27 +69,36 @@
         >
           {{ expense.category }}
         </UBadge>
-        <UiConfirmDialog
-          title="Delete Expense"
-          message="Are you sure you want to delete this expense?"
-          subtitle="This action cannot be undone and will remove all associated data."
-          confirm-text="Delete Expense"
-          confirm-color="error"
-          icon="i-lucide-trash-2"
-          icon-color-class="text-error-500"
-          :is-processing="isDeletingExpense"
-          @confirm="deleteExpense"
-        >
-          <template #button>
-            <UButton
-              variant="ghost"
-              color="error"
-              size="sm"
-              icon="i-lucide-trash-2"
-              @click.stop
-            />
-          </template>
-        </UiConfirmDialog>
+        <div class="flex items-center gap-1">
+          <UiConfirmDialog
+            title="Delete Expense"
+            message="Are you sure you want to delete this expense?"
+            subtitle="This action cannot be undone and will remove all associated data."
+            confirm-text="Delete Expense"
+            confirm-color="error"
+            icon="i-lucide-trash-2"
+            icon-color-class="text-error-500"
+            :is-processing="isDeletingExpense"
+            @confirm="deleteExpense"
+          >
+            <template #button>
+              <UButton
+                variant="ghost"
+                color="error"
+                size="sm"
+                icon="i-lucide-trash-2"
+                @click.stop
+              />
+            </template>
+          </UiConfirmDialog>
+          <UButton
+            variant="ghost"
+            color="neutral"
+            size="sm"
+            icon="i-lucide-edit-2"
+            @click="navigateToEdit"
+          />
+        </div>
       </div>
     </div>
   </UCard>
@@ -171,5 +180,10 @@ const deleteExpense = async () => {
   finally {
     isDeletingExpense.value = false
   }
+}
+
+const navigateToEdit = () => {
+  if (!props.expense.id) return
+  navigateTo(`/groups/${props.expense.groupId}/expenses/${props.expense.id}/edit`)
 }
 </script>
