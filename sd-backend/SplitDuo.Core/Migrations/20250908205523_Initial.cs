@@ -43,6 +43,9 @@ namespace SplitDuo.Core.Migrations
                     first_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     last_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     global_role_id = table.Column<int>(type: "integer", nullable: false),
+                    two_factor_enabled = table.Column<bool>(type: "boolean", nullable: false),
+                    totp_secret = table.Column<string>(type: "text", nullable: true),
+                    backup_codes = table.Column<string>(type: "text", nullable: true),
                     created_at = table.Column<long>(type: "bigint", nullable: false),
                     updated_at = table.Column<long>(type: "bigint", nullable: false),
                     deleted_at = table.Column<long>(type: "bigint", nullable: true)
@@ -99,6 +102,35 @@ namespace SplitDuo.Core.Migrations
                     table.PrimaryKey("PK_refresh_tokens", x => x.id);
                     table.ForeignKey(
                         name: "FK_refresh_tokens_users_user_id",
+                        column: x => x.user_id,
+                        principalTable: "users",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "two_factor_tokens",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    user_id = table.Column<int>(type: "integer", nullable: false),
+                    token_hash = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    token_type = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    purpose = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    expires_at = table.Column<long>(type: "bigint", nullable: false),
+                    used_at = table.Column<long>(type: "bigint", nullable: true),
+                    attempts = table.Column<int>(type: "integer", nullable: false),
+                    max_attempts = table.Column<int>(type: "integer", nullable: false),
+                    client_info = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    created_at = table.Column<long>(type: "bigint", nullable: false),
+                    updated_at = table.Column<long>(type: "bigint", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_two_factor_tokens", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_two_factor_tokens_users_user_id",
                         column: x => x.user_id,
                         principalTable: "users",
                         principalColumn: "id",
@@ -439,6 +471,27 @@ namespace SplitDuo.Core.Migrations
                 columns: new[] { "to_user_id", "settlement_date" });
 
             migrationBuilder.CreateIndex(
+                name: "IX_two_factor_tokens_expires_at",
+                table: "two_factor_tokens",
+                column: "expires_at");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_two_factor_tokens_token_hash",
+                table: "two_factor_tokens",
+                column: "token_hash",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_two_factor_tokens_token_type",
+                table: "two_factor_tokens",
+                column: "token_type");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_two_factor_tokens_user_id",
+                table: "two_factor_tokens",
+                column: "user_id");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_users_deleted_at",
                 table: "users",
                 column: "deleted_at");
@@ -475,6 +528,9 @@ namespace SplitDuo.Core.Migrations
 
             migrationBuilder.DropTable(
                 name: "settlements");
+
+            migrationBuilder.DropTable(
+                name: "two_factor_tokens");
 
             migrationBuilder.DropTable(
                 name: "expenses");

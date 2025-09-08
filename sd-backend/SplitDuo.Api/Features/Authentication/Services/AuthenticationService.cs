@@ -18,6 +18,7 @@ namespace SplitDuo.Api.Features.Authentication.Services;
 public interface IAuthenticationService
 {
     Task<Result<AuthResponseDto>> LoginAsync(LoginRequestDto request);
+    Task<Result<AuthResponseDto>> VerifyTwoFactorAndCompleteLoginAsync(VerifyTwoFactorLoginDto request);
     Task<Result<AuthResponseDto>> RefreshTokenAsync(RefreshTokenRequestDto request);
     Task<Result> RevokeRefreshTokenAsync(string refreshToken, Guid userGuid);
     Task<Result> RevokeAllUserTokensAsync(string userGuid);
@@ -26,7 +27,8 @@ public interface IAuthenticationService
 public class AuthenticationService(
     IUnitOfWork unitOfWork,
     IPasswordHasher<User> passwordHasher,
-    IOptions<JwtOptions> jwtOptions) : IAuthenticationService
+    IOptions<JwtOptions> jwtOptions,
+    ITwoFactorService twoFactorService) : IAuthenticationService
 {
     private readonly JwtOptions _jwtOptions = jwtOptions.Value;
 
@@ -44,6 +46,73 @@ public class AuthenticationService(
         if (verificationResult == PasswordVerificationResult.Failed)
             return Result<AuthResponseDto>.Unauthorized("Invalid email or password");
 
+        // Check if 2FA is enabled for this user
+        if (user.TwoFactorEnabled)
+        {
+            // Generate and send email code for 2FA
+            await twoFactorService.GenerateEmailCodeAsync(user.Guid, "2fa_login");
+            
+            return Result<AuthResponseDto>.Success(new AuthResponseDto
+            {
+                RequiresTwoFactor = true,
+                User = new UserInfoDto
+                {
+                    Id = user.Guid.ToString(),
+                    Email = user.Email,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName
+                }
+            });
+        }
+
+        return await CompleteLoginAsync(user);
+    }
+
+    public async Task<Result<AuthResponseDto>> VerifyTwoFactorAndCompleteLoginAsync(VerifyTwoFactorLoginDto request)
+    {
+        var user = await unitOfWork.Users
+            .FirstOrDefaultAsync(u => u.Email == request.Email && u.DeletedAt == null);
+
+        if (user == null)
+            return Result<AuthResponseDto>.NotFound("User not found");
+
+        if (!user.TwoFactorEnabled)
+            return Result<AuthResponseDto>.BadRequest("Two-factor authentication is not enabled for this user");
+
+        bool isValidCode = false;
+
+        switch (request.CodeType.ToLower())
+        {
+            case "totp":
+                var totpResult = await twoFactorService.ValidateTotpCodeAsync(user.Guid, request.Code);
+                if (totpResult.IsFailure) return totpResult.MapTo<AuthResponseDto>();
+                isValidCode = totpResult.Value;
+                break;
+
+            case "email":
+                var emailResult = await twoFactorService.ValidateEmailCodeAsync(user.Guid, request.Code, "2fa_login");
+                if (emailResult.IsFailure) return emailResult.MapTo<AuthResponseDto>();
+                isValidCode = emailResult.Value;
+                break;
+
+            case "backup":
+                var backupResult = await twoFactorService.ValidateBackupCodeAsync(user.Guid, request.Code);
+                if (backupResult.IsFailure) return backupResult.MapTo<AuthResponseDto>();
+                isValidCode = backupResult.Value;
+                break;
+
+            default:
+                return Result<AuthResponseDto>.BadRequest("Invalid code type");
+        }
+
+        if (!isValidCode)
+            return Result<AuthResponseDto>.Unauthorized("Invalid verification code");
+
+        return await CompleteLoginAsync(user);
+    }
+
+    private async Task<Result<AuthResponseDto>> CompleteLoginAsync(User user)
+    {
         var jwtId = Guid.CreateVersion7().ToString();
         var token = GenerateJwtToken(user, jwtId);
         var refreshTokenValue = GenerateSecureRefreshToken();
@@ -69,6 +138,7 @@ public class AuthenticationService(
             Token = token,
             RefreshToken = refreshTokenValue,
             ExpiresAt = expiresAt,
+            RequiresTwoFactor = false,
             User = new UserInfoDto
             {
                 Id = user.Guid.ToString(),

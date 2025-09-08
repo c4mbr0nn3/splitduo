@@ -23,6 +23,11 @@ public class User : AuditableAndSoftDeletableEntity
     [Column("last_name"), MaxLength(100)] public string LastName { get; set; } = "";
     [Column("global_role_id")] public int GlobalRoleId { get; set; } = (int)GlobalRole.BaseUser;
 
+    // 2FA Properties
+    [Column("two_factor_enabled")] public bool TwoFactorEnabled { get; set; } = false;
+    [Column("totp_secret")] public string? TotpSecret { get; set; }
+    [Column("backup_codes")] public string? BackupCodes { get; set; } // JSON array of hashed backup codes
+
     [NotMapped]
     public GlobalRole GlobalRole
     {

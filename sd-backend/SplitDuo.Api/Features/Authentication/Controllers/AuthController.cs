@@ -56,6 +56,26 @@ public class AuthController(
         return HandleResult(result, "Token refreshed successfully");
     }
 
+    [HttpPost("verify-2fa")]
+    public async Task<ActionResult<ApiResponseDto<AuthResponseDto>>> VerifyTwoFactor([FromBody] VerifyTwoFactorLoginDto request)
+    {
+        logger.LogInformation("2FA verification attempt for email: {Email}", request.Email);
+
+        var result = await authenticationService.VerifyTwoFactorAndCompleteLoginAsync(request);
+
+        if (result.IsFailure)
+        {
+            logger.LogWarning("2FA verification failed for email: {Email}. Error: {Error}", request.Email, result.Error);
+        }
+        else
+        {
+            logger.LogInformation("2FA verification successful for email: {Email}", request.Email);
+            await unitOfWork.SaveChangesAsync();
+        }
+
+        return HandleResult(result, "Two-factor authentication successful");
+    }
+
     [Authorize]
     [HttpPost("revoke")]
     public async Task<ActionResult> RevokeMyToken([FromBody] RevokeTokenRequestDto request)

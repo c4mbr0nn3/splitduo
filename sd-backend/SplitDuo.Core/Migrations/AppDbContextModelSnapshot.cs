@@ -496,6 +496,81 @@ namespace SplitDuo.Core.Migrations
                     b.ToTable("settlements");
                 });
 
+            modelBuilder.Entity("SplitDuo.Core.Domain.Entities.TwoFactorToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("integer")
+                        .HasColumnName("attempts");
+
+                    b.Property<string>("ClientInfo")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("client_info");
+
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("created_at");
+
+                    b.Property<long>("ExpiresAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("expires_at");
+
+                    b.Property<int>("MaxAttempts")
+                        .HasColumnType("integer")
+                        .HasColumnName("max_attempts");
+
+                    b.Property<string>("Purpose")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("purpose");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("token_hash");
+
+                    b.Property<string>("TokenType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("token_type");
+
+                    b.Property<long>("UpdatedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("updated_at");
+
+                    b.Property<long?>("UsedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("used_at");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpiresAt");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("TokenType");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("two_factor_tokens");
+                });
+
             modelBuilder.Entity("SplitDuo.Core.Domain.Entities.User", b =>
                 {
                     b.Property<int>("Id")
@@ -504,6 +579,10 @@ namespace SplitDuo.Core.Migrations
                         .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BackupCodes")
+                        .HasColumnType("text")
+                        .HasColumnName("backup_codes");
 
                     b.Property<long>("CreatedAt")
                         .HasColumnType("bigint")
@@ -544,6 +623,14 @@ namespace SplitDuo.Core.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
                         .HasColumnName("password_hash");
+
+                    b.Property<string>("TotpSecret")
+                        .HasColumnType("text")
+                        .HasColumnName("totp_secret");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("boolean")
+                        .HasColumnName("two_factor_enabled");
 
                     b.Property<long>("UpdatedAt")
                         .HasColumnType("bigint")
@@ -684,6 +771,17 @@ namespace SplitDuo.Core.Migrations
                     b.Navigation("Group");
 
                     b.Navigation("ToUser");
+                });
+
+            modelBuilder.Entity("SplitDuo.Core.Domain.Entities.TwoFactorToken", b =>
+                {
+                    b.HasOne("SplitDuo.Core.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("SplitDuo.Core.Domain.Entities.Expense", b =>
