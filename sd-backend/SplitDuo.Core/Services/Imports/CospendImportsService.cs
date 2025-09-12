@@ -292,7 +292,7 @@ public class CospendImportsService(
         };
     }
 
-    private ExpenseSplit[] CalculateEqualSplits(decimal amount, List<int> userIds)
+    private static ExpenseSplit[] CalculateEqualSplits(decimal amount, List<int> userIds)
     {
         if (userIds.Count == 0)
             throw new ArgumentException("User list cannot be empty", nameof(userIds));
@@ -316,7 +316,7 @@ public class CospendImportsService(
         var remainingAmount = amount - totalAssigned;
         splits.Add(new ExpenseSplit
         {
-            UserId = userIds[userIds.Count - 1],
+            UserId = userIds[^1],
             SplitAmount = remainingAmount
         });
 

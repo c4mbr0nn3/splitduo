@@ -19,7 +19,7 @@ public class SoftDeleteSaveChangesInterceptor : SaveChangesInterceptor
         return base.SavingChangesAsync(eventData, result, cancellationToken);
     }
 
-    private void HandleSoftDelete(DbContext? context)
+    private static void HandleSoftDelete(DbContext? context)
     {
         if (context == null) return;
 

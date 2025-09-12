@@ -165,7 +165,7 @@ public class BalancesService(IUnitOfWork unitOfWork, ISettlementsService settlem
         return balances.Values.OrderBy(b => b.User.FirstName).ThenBy(b => b.User.LastName).ToList();
     }
 
-    private List<BalanceSuggestionDto> GenerateSettlementSuggestions(List<BalanceDto> balances)
+    private static List<BalanceSuggestionDto> GenerateSettlementSuggestions(List<BalanceDto> balances)
     {
         var suggestions = new List<BalanceSuggestionDto>();
 
