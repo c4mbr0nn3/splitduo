@@ -42,7 +42,7 @@
             name="i-lucide-credit-card"
             class="w-3 h-3"
           />
-          <span class="capitalize">{{ expense.paymentMode }}</span>
+          <span class="capitalize">{{ paymentModeName }}</span>
         </div>
         <div class="flex items-center gap-1 text-xs text-dimmed">
           <UIcon
@@ -64,10 +64,15 @@
         <UBadge
           variant="soft"
           :color="categoryColor"
-          :icon="categoryIcon"
+          :label="categoryName"
           class="capitalize"
         >
-          {{ expense.category }}
+          <template #leading>
+            <UIcon
+              :name="categoryIcon"
+              mode="svg"
+            />
+          </template>
         </UBadge>
         <div class="flex items-center gap-1">
           <UiConfirmDialog
@@ -116,7 +121,19 @@ const props = defineProps({
   },
 })
 
+const { getCategoryName } = useCategories()
+const { getPaymentModeName } = usePaymentModes()
+
 const isDeletingExpense = ref(false)
+
+// Computed properties for category and payment mode names
+const categoryName = computed(() => {
+  return getCategoryName(props.expense.categoryId)
+})
+
+const paymentModeName = computed(() => {
+  return getPaymentModeName(props.expense.paymentModeId)
+})
 
 const formattedDate = computed(() => {
   return new Date(props.expense.expenseDate).toLocaleDateString('en-US', {
@@ -140,7 +157,7 @@ const categoryIcon = computed(() => {
     dining: 'i-lucide-utensils',
     other: 'i-lucide-more-horizontal',
   }
-  return icons[props.expense.category.toLowerCase()] || icons.other
+  return icons[categoryName.value.toLowerCase()] || icons.other
 })
 
 const categoryColor = computed(() => {
@@ -157,7 +174,7 @@ const categoryColor = computed(() => {
     dining: 'warning',
     other: 'neutral',
   }
-  return colors[props.expense.category.toLowerCase()] || colors.other
+  return colors[categoryName.value.toLowerCase()] || colors.other
 })
 
 const userSplit = computed(() => {

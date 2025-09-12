@@ -222,8 +222,8 @@ const emit = defineEmits(['submit', 'cancel'])
 const { isMobile } = useDevice()
 const { user } = useAuth()
 const { groups, fetchGroups, fetchGroupMembers, isLoading: isLoadingGroups } = useGroups()
-const { categories, fetchCategories, isLoading: isLoadingCategories } = useCategories()
-const { paymentModes, fetchPaymentModes, isLoading: isLoadingPaymentModes } = usePaymentModes()
+const { categories, isLoading: isLoadingCategories } = useCategories()
+const { paymentModes, isLoading: isLoadingPaymentModes } = usePaymentModes()
 
 // Form state
 const form = ref({
@@ -453,11 +453,7 @@ const goBack = () => {
 // Initialize data on mount
 onMounted(async () => {
   try {
-    await Promise.all([
-      fetchGroups(),
-      fetchCategories(),
-      fetchPaymentModes(),
-    ])
+    await fetchGroups()
   }
   catch (error) {
     console.error('Failed to load form data:', error)
