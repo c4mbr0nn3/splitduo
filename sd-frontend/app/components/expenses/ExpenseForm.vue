@@ -49,7 +49,7 @@
             v-model="form.amount"
             :step="0.01"
             :min="0.01"
-            :orientation="isMobile ? 'vertical' : 'horizontal'"
+            orientation="horizontal"
             placeholder="Enter the amount"
             size="lg"
             class="w-full"
@@ -219,7 +219,6 @@ const props = defineProps({
 
 const emit = defineEmits(['submit', 'cancel'])
 
-const { isMobile } = useDevice()
 const { user } = useAuth()
 const { groups, fetchGroups, fetchGroupMembers, isLoading: isLoadingGroups } = useGroups()
 const { categories, isLoading: isLoadingCategories } = useCategories()
