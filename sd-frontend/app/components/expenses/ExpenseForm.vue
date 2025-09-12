@@ -364,6 +364,27 @@ watch(
   { immediate: true },
 )
 
+// Watch for initialData changes and update form
+watch(
+  () => props.initialData,
+  (newInitialData) => {
+    if (newInitialData) {
+      form.value = {
+        groupId: props.preSelectedGroupId || newInitialData.groupId || null,
+        title: newInitialData.title || '',
+        description: newInitialData.description || '',
+        amount: newInitialData.amount || null,
+        paidByUserId: newInitialData.paidByUserId || null,
+        expenseDate: newInitialData.expenseDate || new Date().toISOString().split('T')[0],
+        categoryId: newInitialData.categoryId || null,
+        paymentModeId: newInitialData.paymentModeId || null,
+      }
+      splits.value = newInitialData.splits || []
+    }
+  },
+  { deep: true, immediate: true },
+)
+
 // Watch amount changes to recalculate equal splits
 watch(
   () => form.value.amount,

@@ -105,7 +105,7 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
         {
             var expenseSplits = splitsByExpense.ContainsKey(expense.Id)
                 ? splitsByExpense[expense.Id]
-                : new List<ExpenseSplit>();
+                : [];
 
             return new ExpenseDto
             {
@@ -122,8 +122,8 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
                     LastName = expense.PaidByUser.LastName
                 },
                 ExpenseDate = expense.ExpenseDate.ToString("yyyy-MM-dd"),
-                Category = expense.Category.ToString().ToLowerInvariant(),
-                PaymentMode = expense.PaymentMode.ToString().ToLowerInvariant(),
+                CategoryId = expense.CategoryId,
+                PaymentModeId = expense.PaymentModeId,
                 Splits = expenseSplits.Select(split => new ExpenseSplitDto
                 {
                     Id = split.Id.ToString(),
@@ -328,8 +328,8 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
                 LastName = paidByUser.LastName
             },
             ExpenseDate = expense.ExpenseDate.ToString("yyyy-MM-dd"),
-            Category = expense.Category.ToString().ToLowerInvariant(),
-            PaymentMode = expense.PaymentMode.ToString().ToLowerInvariant(),
+            CategoryId = expense.CategoryId,
+            PaymentModeId = expense.PaymentModeId,
             Splits = expense.ExpenseSplits.Select((split, index) => new ExpenseSplitDto
             {
                 // Id = split.Id.ToString(),
@@ -406,8 +406,8 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
                 LastName = expense.PaidByUser.LastName
             },
             ExpenseDate = expense.ExpenseDate.ToString("yyyy-MM-dd"),
-            Category = expense.Category.ToString().ToLowerInvariant(),
-            PaymentMode = expense.PaymentMode.ToString().ToLowerInvariant(),
+            CategoryId = expense.CategoryId,
+            PaymentModeId = expense.PaymentModeId,
             Splits = splits.Select(split => new ExpenseSplitDto
             {
                 Id = split.Id.ToString(),
@@ -633,8 +633,8 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
                 LastName = expense.PaidByUser.LastName
             },
             ExpenseDate = expense.ExpenseDate.ToString("yyyy-MM-dd"),
-            Category = expense.Category.ToString().ToLowerInvariant(),
-            PaymentMode = expense.PaymentMode.ToString().ToLowerInvariant(),
+            CategoryId = expense.CategoryId,
+            PaymentModeId = expense.PaymentModeId,
             Splits = currentSplits.Select(split => new ExpenseSplitDto
             {
                 Id = split.Id.ToString(),
