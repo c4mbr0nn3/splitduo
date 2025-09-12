@@ -253,7 +253,7 @@ public class TwoFactorService(
         if (!user.TwoFactorEnabled || string.IsNullOrEmpty(user.BackupCodes))
             return Result<bool>.BadRequest("Two-factor authentication is not enabled");
 
-        var backupCodesJson = JsonSerializer.Deserialize<string[]>(user.BackupCodes) ?? Array.Empty<string>();
+        var backupCodesJson = JsonSerializer.Deserialize<string[]>(user.BackupCodes) ?? [];
         var hashedCode = HashBackupCode(code);
 
         if (!backupCodesJson.Contains(hashedCode))
@@ -409,7 +409,7 @@ public static class Base32Extensions
 
     public static byte[] FromBase32String(string base32)
     {
-        if (string.IsNullOrEmpty(base32)) return Array.Empty<byte>();
+        if (string.IsNullOrEmpty(base32)) return [];
 
         base32 = base32.ToUpper().Replace("=", "");
         var result = new List<byte>();

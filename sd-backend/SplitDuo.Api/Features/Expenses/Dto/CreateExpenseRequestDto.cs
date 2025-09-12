@@ -15,7 +15,7 @@ public class CreateExpenseRequestDto
     [Required] public string ExpenseDate { get; set; } = "";
     public int CategoryId { get; set; }
     public int PaymentModeId { get; set; }
-    public List<CreateExpenseSplitDto> Splits { get; set; } = new();
+    public List<CreateExpenseSplitDto> Splits { get; set; } = [];
 }
 
 public class CreateExpenseSplitDto

@@ -14,8 +14,8 @@ public class BalanceDto
 public class BalanceSummaryDto
 {
     public string GroupId { get; set; } = "";
-    public List<BalanceDto> Balances { get; set; } = new();
-    public List<BalanceSuggestionDto> Suggestions { get; set; } = new();
+    public List<BalanceDto> Balances { get; set; } = [];
+    public List<BalanceSuggestionDto> Suggestions { get; set; } = [];
 }
 
 public class BalanceSuggestionDto

@@ -3,7 +3,7 @@ namespace SplitDuo.Api.Features.Common.Dto;
 public class PaginatedResponseDto<T>
 {
     public bool Success { get; set; } = true;
-    public List<T> Data { get; set; } = new();
+    public List<T> Data { get; set; } = [];
     public PaginationDto Pagination { get; set; } = new();
 }
 
