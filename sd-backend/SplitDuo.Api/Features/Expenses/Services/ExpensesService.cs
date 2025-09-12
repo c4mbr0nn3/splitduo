@@ -107,39 +107,7 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
                 ? splitsByExpense[expense.Id]
                 : [];
 
-            return new ExpenseDto
-            {
-                Id = expense.Guid.ToString(),
-                GroupId = expense.Group.Guid.ToString(),
-                Title = expense.Title,
-                Description = expense.Description,
-                Amount = expense.Amount,
-                PaidByUserId = expense.PaidByUser.Guid.ToString(),
-                PaidByUser = new UserBasicInfoDto
-                {
-                    Id = expense.PaidByUser.Guid.ToString(),
-                    FirstName = expense.PaidByUser.FirstName,
-                    LastName = expense.PaidByUser.LastName
-                },
-                ExpenseDate = expense.ExpenseDate.ToString("yyyy-MM-dd"),
-                CategoryId = expense.CategoryId,
-                PaymentModeId = expense.PaymentModeId,
-                Splits = expenseSplits.Select(split => new ExpenseSplitDto
-                {
-                    Id = split.Id.ToString(),
-                    UserId = split.User.Guid.ToString(),
-                    User = new UserBasicInfoDto
-                    {
-                        Id = split.User.Guid.ToString(),
-                        FirstName = split.User.FirstName,
-                        LastName = split.User.LastName
-                    },
-                    SplitAmount = split.SplitAmount,
-                    SplitPercentage = expense.Amount > 0 ? split.SplitAmount / expense.Amount * 100 : null
-                }).ToList(),
-                CreatedAt = expense.CreatedAt,
-                UpdatedAt = expense.UpdatedAt
-            };
+            return new ExpenseDto(expense, expenseSplits);
         }).ToList();
 
         var response = new PaginatedResponseDto<ExpenseDto>
@@ -312,40 +280,19 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
 
         await unitOfWork.Expenses.AddAsync(expense);
 
-        // Create response DTO
-        var expenseDto = new ExpenseDto
+        // Set navigation properties for the DTO constructor
+        expense.Group = group;
+        expense.PaidByUser = paidByUser;
+
+        // Map splits with users for the DTO
+        var splitsWithUsers = expense.ExpenseSplits.Select((split, index) =>
         {
-            Id = expense.Guid.ToString(),
-            GroupId = group.Guid.ToString(),
-            Title = expense.Title,
-            Description = expense.Description,
-            Amount = expense.Amount,
-            PaidByUserId = paidByUser.Guid.ToString(),
-            PaidByUser = new UserBasicInfoDto
-            {
-                Id = paidByUser.Guid.ToString(),
-                FirstName = paidByUser.FirstName,
-                LastName = paidByUser.LastName
-            },
-            ExpenseDate = expense.ExpenseDate.ToString("yyyy-MM-dd"),
-            CategoryId = expense.CategoryId,
-            PaymentModeId = expense.PaymentModeId,
-            Splits = expense.ExpenseSplits.Select((split, index) => new ExpenseSplitDto
-            {
-                // Id = split.Id.ToString(),
-                UserId = splitUsers[index].Guid.ToString(),
-                User = new UserBasicInfoDto
-                {
-                    Id = splitUsers[index].Guid.ToString(),
-                    FirstName = splitUsers[index].FirstName,
-                    LastName = splitUsers[index].LastName
-                },
-                SplitAmount = split.SplitAmount,
-                SplitPercentage = expense.Amount > 0 ? split.SplitAmount / expense.Amount * 100 : null
-            }).ToList(),
-            CreatedAt = expense.CreatedAt,
-            UpdatedAt = expense.UpdatedAt
-        };
+            split.User = splitUsers[index];
+            return split;
+        }).ToList();
+
+        // Create response DTO
+        var expenseDto = new ExpenseDto(expense, splitsWithUsers);
 
         return Result<ExpenseDto>.Success(expenseDto);
     }
@@ -391,39 +338,7 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
             .Include(es => es.User)
             .ToListAsync();
 
-        var expenseDto = new ExpenseDto
-        {
-            Id = expense.Guid.ToString(),
-            GroupId = expense.Group.Guid.ToString(),
-            Title = expense.Title,
-            Description = expense.Description,
-            Amount = expense.Amount,
-            PaidByUserId = expense.PaidByUser.Guid.ToString(),
-            PaidByUser = new UserBasicInfoDto
-            {
-                Id = expense.PaidByUser.Guid.ToString(),
-                FirstName = expense.PaidByUser.FirstName,
-                LastName = expense.PaidByUser.LastName
-            },
-            ExpenseDate = expense.ExpenseDate.ToString("yyyy-MM-dd"),
-            CategoryId = expense.CategoryId,
-            PaymentModeId = expense.PaymentModeId,
-            Splits = splits.Select(split => new ExpenseSplitDto
-            {
-                Id = split.Id.ToString(),
-                UserId = split.User.Guid.ToString(),
-                User = new UserBasicInfoDto
-                {
-                    Id = split.User.Guid.ToString(),
-                    FirstName = split.User.FirstName,
-                    LastName = split.User.LastName
-                },
-                SplitAmount = split.SplitAmount,
-                SplitPercentage = expense.Amount > 0 ? split.SplitAmount / expense.Amount * 100 : null
-            }).ToList(),
-            CreatedAt = expense.CreatedAt,
-            UpdatedAt = expense.UpdatedAt
-        };
+        var expenseDto = new ExpenseDto(expense, splits);
 
         return Result<ExpenseDto>.Success(expenseDto);
     }
@@ -618,39 +533,7 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
             .Include(es => es.User)
             .ToListAsync();
 
-        var expenseDto = new ExpenseDto
-        {
-            Id = expense.Guid.ToString(),
-            GroupId = expense.Group.Guid.ToString(),
-            Title = expense.Title,
-            Description = expense.Description,
-            Amount = expense.Amount,
-            PaidByUserId = expense.PaidByUser.Guid.ToString(),
-            PaidByUser = new UserBasicInfoDto
-            {
-                Id = expense.PaidByUser.Guid.ToString(),
-                FirstName = expense.PaidByUser.FirstName,
-                LastName = expense.PaidByUser.LastName
-            },
-            ExpenseDate = expense.ExpenseDate.ToString("yyyy-MM-dd"),
-            CategoryId = expense.CategoryId,
-            PaymentModeId = expense.PaymentModeId,
-            Splits = currentSplits.Select(split => new ExpenseSplitDto
-            {
-                Id = split.Id.ToString(),
-                UserId = split.User.Guid.ToString(),
-                User = new UserBasicInfoDto
-                {
-                    Id = split.User.Guid.ToString(),
-                    FirstName = split.User.FirstName,
-                    LastName = split.User.LastName
-                },
-                SplitAmount = split.SplitAmount,
-                SplitPercentage = expense.Amount > 0 ? split.SplitAmount / expense.Amount * 100 : null
-            }).ToList(),
-            CreatedAt = expense.CreatedAt,
-            UpdatedAt = expense.UpdatedAt
-        };
+        var expenseDto = new ExpenseDto(expense, currentSplits);
 
         return Result<ExpenseDto>.Success(expenseDto);
     }
