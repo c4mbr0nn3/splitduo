@@ -65,7 +65,7 @@ public class Result
         Error = error;
         StatusCode = isSuccess
             ? statusCode
-            : (statusCode == HttpStatusCode.OK ? HttpStatusCode.BadRequest : statusCode);
+            : statusCode == HttpStatusCode.OK ? HttpStatusCode.BadRequest : statusCode;
     }
 
     public static Result Success(HttpStatusCode statusCode = HttpStatusCode.OK) => new(true, "", statusCode);

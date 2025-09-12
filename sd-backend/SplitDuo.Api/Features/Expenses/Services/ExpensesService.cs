@@ -135,7 +135,7 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
                         LastName = split.User.LastName
                     },
                     SplitAmount = split.SplitAmount,
-                    SplitPercentage = expense.Amount > 0 ? (split.SplitAmount / expense.Amount * 100) : null
+                    SplitPercentage = expense.Amount > 0 ? split.SplitAmount / expense.Amount * 100 : null
                 }).ToList(),
                 CreatedAt = expense.CreatedAt,
                 UpdatedAt = expense.UpdatedAt
@@ -419,7 +419,7 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
                     LastName = split.User.LastName
                 },
                 SplitAmount = split.SplitAmount,
-                SplitPercentage = expense.Amount > 0 ? (split.SplitAmount / expense.Amount * 100) : null
+                SplitPercentage = expense.Amount > 0 ? split.SplitAmount / expense.Amount * 100 : null
             }).ToList(),
             CreatedAt = expense.CreatedAt,
             UpdatedAt = expense.UpdatedAt
@@ -646,7 +646,7 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
                     LastName = split.User.LastName
                 },
                 SplitAmount = split.SplitAmount,
-                SplitPercentage = expense.Amount > 0 ? (split.SplitAmount / expense.Amount * 100) : null
+                SplitPercentage = expense.Amount > 0 ? split.SplitAmount / expense.Amount * 100 : null
             }).ToList(),
             CreatedAt = expense.CreatedAt,
             UpdatedAt = expense.UpdatedAt
