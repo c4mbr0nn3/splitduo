@@ -41,7 +41,7 @@
     <!-- Search and Refresh Controls -->
     <div class="flex ustify-between items-center mb-6 w-full">
       <UInput
-        v-model="searchQuery"
+        v-model="searchInput"
         icon="i-lucide-search"
         placeholder="Search users..."
         class="w-64"
@@ -109,16 +109,18 @@ const {
   revokeUserTokens,
 } = useUsers()
 
+// Search functionality
+const { searchInput, debouncedSearchQuery } = useDebounceSearch()
+
 // State
-const searchQuery = ref('')
 const userToDelete = ref(null)
 const isDeleting = ref(false)
 
 // Computed
 const filteredUsers = computed(() => {
-  if (!searchQuery.value) return users.value
+  if (!debouncedSearchQuery.value) return users.value
 
-  const query = searchQuery.value.toLowerCase()
+  const query = debouncedSearchQuery.value.toLowerCase()
   return users.value.filter((user) => {
     return (
       user.firstName.toLowerCase().includes(query)
