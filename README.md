@@ -46,8 +46,8 @@ docker compose up -d
 
 ### Default Login
 
-- **Email**: `admin@splitduo.local`
-- **Password**: `changeme123`
+- **Email**: `admin@localhost`
+- **Password**: `changeme`
 
 **⚠️ Important**: Change the JWT secret key and admin password in production!
 
