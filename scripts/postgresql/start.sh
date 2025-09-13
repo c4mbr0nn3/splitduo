@@ -2,7 +2,7 @@
 set -e
 
 CONTAINER_NAME="splitduo-db"
-IMAGE_NAME="postgres:17-alpine"
+IMAGE_NAME="docker.io/postgres:17-alpine"
 DB_NAME="splitduo"
 DB_USER="splitduo"
 DB_PASSWORD="splitduo"
