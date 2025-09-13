@@ -201,4 +201,8 @@ const handleDeleteUser = async (user) => {
 onMounted(async () => {
   await refreshUsers()
 })
+
+useHead({
+  title: 'User Management',
+})
 </script>
