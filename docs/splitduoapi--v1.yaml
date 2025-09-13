@@ -1,4 +1,4 @@
-openapi: 3.0.1
+openapi: 3.1.1
 info:
   title: SplitDuo.Api | v1
   version: 1.0.0
@@ -387,7 +387,8 @@ paths:
               type: object
               properties:
                 File:
-                  $ref: "#/components/schemas/IFormFile"
+                  type: string
+                  contentMediaType: application/octet-stream
                 ImportTypeId:
                   type: integer
                   format: int32
@@ -946,6 +947,35 @@ paths:
             text/json:
               schema:
                 $ref: "#/components/schemas/ApiResponseDtoOfAuthResponseDto"
+  /api/v1/auth/verify-2fa:
+    post:
+      tags:
+        - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyTwoFactorLoginDto"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/VerifyTwoFactorLoginDto"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/VerifyTwoFactorLoginDto"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfAuthResponseDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfAuthResponseDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfAuthResponseDto"
   /api/v1/auth/revoke:
     post:
       tags:
@@ -978,6 +1008,115 @@ paths:
       responses:
         "200":
           description: OK
+  /api/v1/2fa/setup/initiate:
+    post:
+      tags:
+        - TwoFactor
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfTwoFactorSetupDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfTwoFactorSetupDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfTwoFactorSetupDto"
+  /api/v1/2fa/setup/verify:
+    post:
+      tags:
+        - TwoFactor
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyTwoFactorSetupDto"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/VerifyTwoFactorSetupDto"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/VerifyTwoFactorSetupDto"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfObject"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfObject"
+  /api/v1/2fa/disable:
+    post:
+      tags:
+        - TwoFactor
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DisableTwoFactorDto"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/DisableTwoFactorDto"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/DisableTwoFactorDto"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfObject"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfObject"
+  /api/v1/2fa/generate-email-code:
+    post:
+      tags:
+        - TwoFactor
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfstring"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfstring"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfstring"
+  /api/v1/2fa/backup-codes/generate:
+    post:
+      tags:
+        - TwoFactor
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfListOfstring"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfListOfstring"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfListOfstring"
 components:
   schemas:
     AddGroupMemberRequestDto:
@@ -990,18 +1129,20 @@ components:
         role:
           type: string
     ApiErrorDto:
-      type: object
+      type:
+        - object
+        - "null"
       properties:
         code:
           type: string
         message:
           type: string
         details:
-          type: array
+          type:
+            - array
+            - "null"
           items:
             type: string
-          nullable: true
-      nullable: true
     ApiResponseDtoOfAuthResponseDto:
       type: object
       properties:
@@ -1010,8 +1151,9 @@ components:
         data:
           $ref: "#/components/schemas/AuthResponseDto"
         message:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         error:
           $ref: "#/components/schemas/ApiErrorDto"
     ApiResponseDtoOfBalanceSummaryDto:
@@ -1022,8 +1164,9 @@ components:
         data:
           $ref: "#/components/schemas/BalanceSummaryDto"
         message:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         error:
           $ref: "#/components/schemas/ApiErrorDto"
     ApiResponseDtoOfCreateUserResponseDto:
@@ -1034,8 +1177,9 @@ components:
         data:
           $ref: "#/components/schemas/CreateUserResponseDto"
         message:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         error:
           $ref: "#/components/schemas/ApiErrorDto"
     ApiResponseDtoOfExpenseDto:
@@ -1046,8 +1190,9 @@ components:
         data:
           $ref: "#/components/schemas/ExpenseDto2"
         message:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         error:
           $ref: "#/components/schemas/ApiErrorDto"
     ApiResponseDtoOfGroupDto:
@@ -1058,8 +1203,9 @@ components:
         data:
           $ref: "#/components/schemas/GroupDto2"
         message:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         error:
           $ref: "#/components/schemas/ApiErrorDto"
     ApiResponseDtoOfGroupMemberDto:
@@ -1070,8 +1216,9 @@ components:
         data:
           $ref: "#/components/schemas/GroupMemberDto2"
         message:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         error:
           $ref: "#/components/schemas/ApiErrorDto"
     ApiResponseDtoOfImportStatusDto:
@@ -1082,8 +1229,9 @@ components:
         data:
           $ref: "#/components/schemas/ImportStatusDto2"
         message:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         error:
           $ref: "#/components/schemas/ApiErrorDto"
     ApiResponseDtoOfListOfBalanceDto:
@@ -1092,13 +1240,15 @@ components:
         success:
           type: boolean
         data:
-          type: array
+          type:
+            - array
+            - "null"
           items:
             $ref: "#/components/schemas/BalanceDto"
-          nullable: true
         message:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         error:
           $ref: "#/components/schemas/ApiErrorDto"
     ApiResponseDtoOfListOfCategoryDto:
@@ -1107,13 +1257,15 @@ components:
         success:
           type: boolean
         data:
-          type: array
+          type:
+            - array
+            - "null"
           items:
             $ref: "#/components/schemas/CategoryDto"
-          nullable: true
         message:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         error:
           $ref: "#/components/schemas/ApiErrorDto"
     ApiResponseDtoOfListOfGroupDto:
@@ -1122,13 +1274,15 @@ components:
         success:
           type: boolean
         data:
-          type: array
+          type:
+            - array
+            - "null"
           items:
             $ref: "#/components/schemas/GroupDto"
-          nullable: true
         message:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         error:
           $ref: "#/components/schemas/ApiErrorDto"
     ApiResponseDtoOfListOfGroupMemberDto:
@@ -1137,13 +1291,15 @@ components:
         success:
           type: boolean
         data:
-          type: array
+          type:
+            - array
+            - "null"
           items:
             $ref: "#/components/schemas/GroupMemberDto"
-          nullable: true
         message:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         error:
           $ref: "#/components/schemas/ApiErrorDto"
     ApiResponseDtoOfListOfImportStatusDto:
@@ -1152,13 +1308,15 @@ components:
         success:
           type: boolean
         data:
-          type: array
+          type:
+            - array
+            - "null"
           items:
             $ref: "#/components/schemas/ImportStatusDto"
-          nullable: true
         message:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         error:
           $ref: "#/components/schemas/ApiErrorDto"
     ApiResponseDtoOfListOfPaymentModeDto:
@@ -1167,13 +1325,32 @@ components:
         success:
           type: boolean
         data:
-          type: array
+          type:
+            - array
+            - "null"
           items:
             $ref: "#/components/schemas/PaymentModeDto"
-          nullable: true
         message:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
+        error:
+          $ref: "#/components/schemas/ApiErrorDto"
+    ApiResponseDtoOfListOfstring:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type:
+            - array
+            - "null"
+          items:
+            type: string
+        message:
+          type:
+            - string
+            - "null"
         error:
           $ref: "#/components/schemas/ApiErrorDto"
     ApiResponseDtoOfListOfUserDto:
@@ -1182,13 +1359,27 @@ components:
         success:
           type: boolean
         data:
-          type: array
+          type:
+            - array
+            - "null"
           items:
             $ref: "#/components/schemas/UserDto"
-          nullable: true
         message:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
+        error:
+          $ref: "#/components/schemas/ApiErrorDto"
+    ApiResponseDtoOfObject:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data: {}
+        message:
+          type:
+            - string
+            - "null"
         error:
           $ref: "#/components/schemas/ApiErrorDto"
     ApiResponseDtoOfPaginatedResponseDtoOfSettlementDto:
@@ -1199,8 +1390,9 @@ components:
         data:
           $ref: "#/components/schemas/PaginatedResponseDtoOfSettlementDto"
         message:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         error:
           $ref: "#/components/schemas/ApiErrorDto"
     ApiResponseDtoOfSettlementDto:
@@ -1211,8 +1403,37 @@ components:
         data:
           $ref: "#/components/schemas/SettlementDto2"
         message:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
+        error:
+          $ref: "#/components/schemas/ApiErrorDto"
+    ApiResponseDtoOfstring:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type:
+            - string
+            - "null"
+        message:
+          type:
+            - string
+            - "null"
+        error:
+          $ref: "#/components/schemas/ApiErrorDto"
+    ApiResponseDtoOfTwoFactorSetupDto:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: "#/components/schemas/TwoFactorSetupDto"
+        message:
+          type:
+            - string
+            - "null"
         error:
           $ref: "#/components/schemas/ApiErrorDto"
     ApiResponseDtoOfUserDto:
@@ -1223,8 +1444,9 @@ components:
         data:
           $ref: "#/components/schemas/UserDto2"
         message:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         error:
           $ref: "#/components/schemas/ApiErrorDto"
     ApiResponseDtoOfUserStatsDto:
@@ -1235,12 +1457,15 @@ components:
         data:
           $ref: "#/components/schemas/UserStatsDto"
         message:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         error:
           $ref: "#/components/schemas/ApiErrorDto"
     AuthResponseDto:
-      type: object
+      type:
+        - object
+        - "null"
       properties:
         token:
           type: string
@@ -1249,9 +1474,10 @@ components:
         expiresAt:
           type: integer
           format: int64
+        requiresTwoFactor:
+          type: boolean
         user:
           $ref: "#/components/schemas/UserInfoDto"
-      nullable: true
     BalanceDto:
       type: object
       properties:
@@ -1281,7 +1507,9 @@ components:
         description:
           type: string
     BalanceSummaryDto:
-      type: object
+      type:
+        - object
+        - "null"
       properties:
         groupId:
           type: string
@@ -1293,7 +1521,6 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/BalanceSuggestionDto"
-      nullable: true
     CategoryDto:
       type: object
       properties:
@@ -1325,8 +1552,9 @@ components:
           maxLength: 255
           type: string
         description:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         amount:
           minimum: 0.01
           type: number
@@ -1353,15 +1581,17 @@ components:
         userId:
           type: string
         splitAmount:
-          type: number
+          type:
+            - number
+            - "null"
           format: double
-          nullable: true
         splitPercentage:
           maximum: 100
           minimum: 0
-          type: number
+          type:
+            - number
+            - "null"
           format: double
-          nullable: true
     CreateGroupRequestDto:
       required:
         - name
@@ -1371,8 +1601,9 @@ components:
           maxLength: 200
           type: string
         description:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
     CreateSettlementRequestDto:
       required:
         - fromUserId
@@ -1392,8 +1623,9 @@ components:
         settlementDate:
           type: string
         description:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
     CreateUserRequestDto:
       required:
         - email
@@ -1408,11 +1640,19 @@ components:
         lastName:
           type: string
     CreateUserResponseDto:
-      type: object
+      type:
+        - object
+        - "null"
       properties:
         user:
           $ref: "#/components/schemas/UserDto"
-      nullable: true
+    DisableTwoFactorDto:
+      required:
+        - password
+      type: object
+      properties:
+        password:
+          type: string
     ExpenseDto:
       type: object
       properties:
@@ -1423,8 +1663,9 @@ components:
         title:
           type: string
         description:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         amount:
           type: number
           format: double
@@ -1434,10 +1675,12 @@ components:
           $ref: "#/components/schemas/UserBasicInfoDto"
         expenseDate:
           type: string
-        category:
-          type: string
-        paymentMode:
-          type: string
+        categoryId:
+          type: integer
+          format: int32
+        paymentModeId:
+          type: integer
+          format: int32
         splits:
           type: array
           items:
@@ -1449,7 +1692,9 @@ components:
           type: integer
           format: int64
     ExpenseDto2:
-      type: object
+      type:
+        - object
+        - "null"
       properties:
         id:
           type: string
@@ -1458,8 +1703,9 @@ components:
         title:
           type: string
         description:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         amount:
           type: number
           format: double
@@ -1469,10 +1715,12 @@ components:
           $ref: "#/components/schemas/UserBasicInfoDto"
         expenseDate:
           type: string
-        category:
-          type: string
-        paymentMode:
-          type: string
+        categoryId:
+          type: integer
+          format: int32
+        paymentModeId:
+          type: integer
+          format: int32
         splits:
           type: array
           items:
@@ -1483,7 +1731,6 @@ components:
         updatedAt:
           type: integer
           format: int64
-      nullable: true
     ExpenseSplitDto:
       type: object
       properties:
@@ -1497,9 +1744,10 @@ components:
           type: number
           format: double
         splitPercentage:
-          type: number
+          type:
+            - number
+            - "null"
           format: double
-          nullable: true
     GroupDto:
       type: object
       properties:
@@ -1508,8 +1756,9 @@ components:
         name:
           type: string
         description:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         createdByUserId:
           type: string
         memberCount:
@@ -1522,15 +1771,18 @@ components:
           type: integer
           format: int64
     GroupDto2:
-      type: object
+      type:
+        - object
+        - "null"
       properties:
         id:
           type: string
         name:
           type: string
         description:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         createdByUserId:
           type: string
         memberCount:
@@ -1542,7 +1794,6 @@ components:
         updatedAt:
           type: integer
           format: int64
-      nullable: true
     GroupMemberDto:
       type: object
       properties:
@@ -1558,7 +1809,9 @@ components:
           type: integer
           format: int64
     GroupMemberDto2:
-      type: object
+      type:
+        - object
+        - "null"
       properties:
         groupId:
           type: string
@@ -1571,16 +1824,13 @@ components:
         joinedAt:
           type: integer
           format: int64
-      nullable: true
-    IFormFile:
-      type: string
-      format: binary
     ImportStatusDto:
       type: object
       properties:
         groupId:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         fileName:
           type: string
         importStatusId:
@@ -1594,17 +1844,20 @@ components:
         importDate:
           type: string
         startedAt:
-          type: integer
+          type:
+            - integer
+            - "null"
           format: int64
-          nullable: true
         completedAt:
-          type: integer
+          type:
+            - integer
+            - "null"
           format: int64
-          nullable: true
         duration:
-          type: integer
+          type:
+            - integer
+            - "null"
           format: int64
-          nullable: true
         createdAt:
           type: integer
           format: int64
@@ -1612,11 +1865,14 @@ components:
           type: integer
           format: int64
     ImportStatusDto2:
-      type: object
+      type:
+        - object
+        - "null"
       properties:
         groupId:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         fileName:
           type: string
         importStatusId:
@@ -1630,24 +1886,26 @@ components:
         importDate:
           type: string
         startedAt:
-          type: integer
+          type:
+            - integer
+            - "null"
           format: int64
-          nullable: true
         completedAt:
-          type: integer
+          type:
+            - integer
+            - "null"
           format: int64
-          nullable: true
         duration:
-          type: integer
+          type:
+            - integer
+            - "null"
           format: int64
-          nullable: true
         createdAt:
           type: integer
           format: int64
         updatedAt:
           type: integer
           format: int64
-      nullable: true
     LoginRequestDto:
       required:
         - email
@@ -1660,8 +1918,9 @@ components:
           minLength: 8
           type: string
     NullableOfGlobalRole:
-      type: integer
-      nullable: true
+      type:
+        - integer
+        - "null"
     PaginatedResponseDtoOfExpenseDto:
       type: object
       properties:
@@ -1674,7 +1933,9 @@ components:
         pagination:
           $ref: "#/components/schemas/PaginationDto"
     PaginatedResponseDtoOfSettlementDto:
-      type: object
+      type:
+        - object
+        - "null"
       properties:
         success:
           type: boolean
@@ -1684,7 +1945,6 @@ components:
             $ref: "#/components/schemas/SettlementDto"
         pagination:
           $ref: "#/components/schemas/PaginationDto"
-      nullable: true
     PaginationDto:
       type: object
       properties:
@@ -1750,8 +2010,9 @@ components:
         settlementDate:
           type: string
         description:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         createdAt:
           type: integer
           format: int64
@@ -1759,7 +2020,9 @@ components:
           type: integer
           format: int64
     SettlementDto2:
-      type: object
+      type:
+        - object
+        - "null"
       properties:
         id:
           type: string
@@ -1779,36 +2042,54 @@ components:
         settlementDate:
           type: string
         description:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         createdAt:
           type: integer
           format: int64
         updatedAt:
           type: integer
           format: int64
-      nullable: true
+    TwoFactorSetupDto:
+      type:
+        - object
+        - "null"
+      properties:
+        secret:
+          type: string
+        qrCodeUri:
+          type: string
+        backupCodes:
+          type: array
+          items:
+            type: string
     UpdateExpenseRequestDto:
       type: object
       properties:
         title:
           maxLength: 255
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         description:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         amount:
           minimum: 0.01
-          type: number
+          type:
+            - number
+            - "null"
           format: double
-          nullable: true
         paidByUserId:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         expenseDate:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         categoryId:
           type: integer
           format: int32
@@ -1816,10 +2097,11 @@ components:
           type: integer
           format: int32
         splits:
-          type: array
+          type:
+            - array
+            - "null"
           items:
             $ref: "#/components/schemas/UpdateExpenseSplitDto"
-          nullable: true
     UpdateExpenseSplitDto:
       required:
         - userId
@@ -1828,53 +2110,63 @@ components:
         userId:
           type: string
         splitAmount:
-          type: number
+          type:
+            - number
+            - "null"
           format: double
-          nullable: true
         splitPercentage:
           maximum: 100
           minimum: 0
-          type: number
+          type:
+            - number
+            - "null"
           format: double
-          nullable: true
     UpdateGroupRequestDto:
       type: object
       properties:
         name:
           maxLength: 200
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         description:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
     UpdateSettlementRequestDto:
       type: object
       properties:
         amount:
           minimum: 0.01
-          type: number
+          type:
+            - number
+            - "null"
           format: double
-          nullable: true
         settlementDate:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         description:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
     UpdateUserRequestDto:
       type: object
       properties:
         firstName:
           maxLength: 100
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         lastName:
           maxLength: 100
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         email:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         globalRole:
           $ref: "#/components/schemas/NullableOfGlobalRole"
     UserBasicInfoDto:
@@ -1885,8 +2177,9 @@ components:
         firstName:
           type: string
         lastName:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
     UserDto:
       type: object
       properties:
@@ -1897,8 +2190,9 @@ components:
         firstName:
           type: string
         lastName:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         globalRoleId:
           type: string
         createdAt:
@@ -1908,10 +2202,13 @@ components:
           type: integer
           format: int64
         fullName:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
     UserDto2:
-      type: object
+      type:
+        - object
+        - "null"
       properties:
         id:
           type: string
@@ -1920,8 +2217,9 @@ components:
         firstName:
           type: string
         lastName:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         globalRoleId:
           type: string
         createdAt:
@@ -1931,9 +2229,9 @@ components:
           type: integer
           format: int64
         fullName:
-          type: string
-          nullable: true
-      nullable: true
+          type:
+            - string
+            - "null"
     UserInfoDto:
       type: object
       properties:
@@ -1944,10 +2242,13 @@ components:
         firstName:
           type: string
         lastName:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
     UserStatsDto:
-      type: object
+      type:
+        - object
+        - "null"
       properties:
         totalGroups:
           type: integer
@@ -1958,7 +2259,27 @@ components:
         youreOwed:
           type: number
           format: double
-      nullable: true
+    VerifyTwoFactorLoginDto:
+      required:
+        - email
+        - code
+      type: object
+      properties:
+        email:
+          type: string
+        code:
+          type: string
+        codeType:
+          type: string
+    VerifyTwoFactorSetupDto:
+      required:
+        - code
+      type: object
+      properties:
+        code:
+          maxLength: 6
+          minLength: 6
+          type: string
 tags:
   - name: Users
   - name: Settlements
@@ -1970,3 +2291,4 @@ tags:
   - name: Expenses
   - name: Categories
   - name: Auth
+  - name: TwoFactor
