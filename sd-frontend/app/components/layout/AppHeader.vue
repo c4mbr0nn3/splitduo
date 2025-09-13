@@ -80,7 +80,7 @@
 </template>
 
 <script setup>
-const { user, logout } = useAuth()
+const { user, isGlobalAdmin, logout } = useAuth()
 const { showSuccess } = useNotifications()
 const route = useRoute()
 
@@ -103,23 +103,36 @@ const handleLogout = async () => {
   }
 }
 
-const navigationItems = [
-  {
-    to: '/dashboard',
-    label: 'Dashboard',
-    icon: 'i-lucide-home',
-  },
-  {
-    to: '/groups',
-    label: 'Groups',
-    icon: 'i-lucide-users',
-  },
-  {
-    to: '/profile',
-    label: 'Profile',
-    icon: 'i-lucide-heart',
-  },
-]
+const navigationItems = computed(() => {
+  const items = [
+    {
+      to: '/dashboard',
+      label: 'Dashboard',
+      icon: 'i-lucide-home',
+    },
+    {
+      to: '/groups',
+      label: 'Groups',
+      icon: 'i-lucide-users',
+    },
+    {
+      to: '/profile',
+      label: 'Profile',
+      icon: 'i-lucide-heart',
+    },
+  ]
+
+  // Add admin menu for admin users
+  if (isGlobalAdmin.value) {
+    items.push({
+      to: '/admin/users',
+      label: 'Admin',
+      icon: 'i-lucide-crown',
+    })
+  }
+
+  return items
+})
 
 watch(() => route.path, () => {
   isMobileMenuOpen.value = false

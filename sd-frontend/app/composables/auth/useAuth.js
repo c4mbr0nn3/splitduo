@@ -21,6 +21,7 @@ export default function useAuth() {
 
   const user = useState('user', () => userCookie.value)
   const isAuthenticated = computed(() => !!user.value)
+  const isGlobalAdmin = computed(() => user.value?.globalRoleId == 2)
   const isLoading = ref(false)
 
   // Login
@@ -123,6 +124,7 @@ export default function useAuth() {
   return {
     user: readonly(user),
     isAuthenticated,
+    isGlobalAdmin: readonly(isGlobalAdmin),
     isLoading: readonly(isLoading),
     login,
     logout,
