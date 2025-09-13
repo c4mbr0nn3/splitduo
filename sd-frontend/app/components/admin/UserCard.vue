@@ -96,16 +96,6 @@ defineProps({
 
 const emit = defineEmits(['edit', 'revoke-tokens', 'delete'])
 
-const formatDate = (timestamp) => {
-  if (!timestamp) return 'Unknown'
-  const date = new Date(timestamp * 1000)
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })
-}
-
 const onConfirmDelete = () => {
   emit('delete', user)
 }

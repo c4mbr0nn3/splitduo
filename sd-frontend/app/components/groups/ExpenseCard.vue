@@ -136,11 +136,7 @@ const paymentModeName = computed(() => {
 })
 
 const formattedDate = computed(() => {
-  return new Date(props.expense.expenseDate).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  })
+  return formatDateString(props.expense.expenseDate)
 })
 
 const categoryIcon = computed(() => {

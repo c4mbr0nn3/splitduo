@@ -176,17 +176,6 @@ const deleteGroup = async () => {
   }
 }
 
-// Utility function to format dates
-const formatDate = (timestamp) => {
-  if (!timestamp) return 'Unknown'
-  const date = new Date(timestamp * 1000) // Convert Unix timestamp to Date
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })
-}
-
 // Page meta
 useHead({
   title: 'Groups',
