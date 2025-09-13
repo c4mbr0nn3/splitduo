@@ -5,7 +5,11 @@
       variant="soft"
     >
       <template #header>
-        <GroupsSectionHeader :group="group" />
+        <GroupsSectionHeader
+          :group="group"
+          :group-members="groupMembers"
+          @user-added="onUserAdded"
+        />
       </template>
       <div class="mb-6">
         <div
@@ -84,11 +88,12 @@
 const route = useRoute()
 const groupId = route.params.id
 const { user } = useAuth()
-const { currentGroup, fetchGroup } = useGroups()
+const { currentGroup, fetchGroup, fetchGroupMembers } = useGroups()
 const { expenses, fetchExpenses, pagination: expensePagination, isLoading: isLoadingExpenses } = useExpenses(groupId)
 const { balanceSummary, fetchBalanceSummary } = useBalances(groupId)
 
 const group = computed(() => currentGroup.value)
+const groupMembers = ref([])
 const summary = computed(() => balanceSummary.value)
 const mySummary = computed(() => {
   if (!summary.value) return null
@@ -120,6 +125,26 @@ const onExpenseDeleted = async () => {
   ])
 }
 
+const onUserAdded = async () => {
+  await Promise.all([
+    fetchGroup(groupId),
+    fetchBalanceSummary(),
+    loadGroupMembers(),
+  ])
+}
+
+const loadGroupMembers = async () => {
+  try {
+    const data = await fetchGroupMembers(groupId)
+    const members = data.map(item => item.user)
+    groupMembers.value = members || []
+  }
+  catch (error) {
+    console.error('Failed to load group members:', error)
+    groupMembers.value = []
+  }
+}
+
 watch(currentPage, async (newPage) => {
   await fetchExpenses({ page: newPage })
 }, { immediate: false })
@@ -130,6 +155,7 @@ onMounted(async () => {
       fetchGroup(groupId),
       fetchExpenses({ page: 1 }),
       fetchBalanceSummary(),
+      loadGroupMembers(),
     ])
   }
 })

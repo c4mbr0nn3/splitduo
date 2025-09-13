@@ -1,12 +1,29 @@
 <template>
   <div class="grid grid-cols-1 items-start">
     <div class="flex items-center justify-between mb-2">
-      <UBadge
-        v-if="group?.memberCount"
-        variant="soft"
-        icon="i-lucide-users"
-        :label="`${group.memberCount}`"
-      />
+      <div class="flex items-center gap-2">
+        <UBadge
+          v-if="group?.memberCount"
+          variant="soft"
+          icon="i-lucide-users"
+          :label="`${group.memberCount}`"
+        />
+        <GroupsAddUserModal
+          v-if="group"
+          :group-id="group.id"
+          :group-members="groupMembers"
+          @user-added="onUserAdded"
+        >
+          <template #button>
+            <UButton
+              variant="ghost"
+              color="neutral"
+              size="sm"
+              icon="i-lucide-user-plus"
+            />
+          </template>
+        </GroupsAddUserModal>
+      </div>
       <div class="flex items-center gap-1">
         <UiConfirmDialog
           title="Delete Group"
@@ -59,7 +76,13 @@ const props = defineProps({
     type: Object,
     default: null,
   },
+  groupMembers: {
+    type: Array,
+    default: () => [],
+  },
 })
+
+const emit = defineEmits(['user-added'])
 
 const { deleteGroup: deleteGroupAPI } = useGroups()
 
@@ -68,6 +91,10 @@ const isDeletingGroup = ref(false)
 const navigateToEdit = (groupId) => {
   if (!groupId) return
   navigateTo(`/groups/${groupId}/edit/`)
+}
+
+const onUserAdded = (users) => {
+  emit('user-added', users)
 }
 
 const deleteGroup = async () => {
