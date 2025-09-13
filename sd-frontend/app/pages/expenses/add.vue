@@ -1,5 +1,6 @@
 <template>
   <ExpensesExpenseForm
+    v-model="expenseFormData"
     title="Add New Expense"
     submit-label="Add Expense"
     :pre-selected-group-id="preSelectedGroupId"
@@ -14,6 +15,19 @@ const route = useRoute()
 
 // Check if groupId is passed as query parameter (from group page) or route parameter
 const preSelectedGroupId = computed(() => route.query.groupId || route.params.groupId)
+
+// Form data state
+const expenseFormData = ref({
+  groupId: preSelectedGroupId.value || null,
+  title: '',
+  description: '',
+  amount: null,
+  paidByUserId: null,
+  expenseDate: new Date().toISOString().split('T')[0],
+  categoryId: null,
+  paymentModeId: null,
+  splits: [],
+})
 
 // Loading states
 const isCreating = ref(false)

@@ -7,7 +7,7 @@
         </h2>
       </template>
       <UForm
-        :state="form"
+        :state="model"
         :validate="validate"
         class="space-y-4"
         @submit="onSubmit"
@@ -19,7 +19,7 @@
           required
         >
           <USelect
-            v-model="form.groupId"
+            v-model="model.groupId"
             :items="groupOptions"
             placeholder="Select a group"
             size="lg"
@@ -33,7 +33,7 @@
           required
         >
           <UInput
-            v-model="form.title"
+            v-model="model.title"
             placeholder="Enter expense title"
             size="lg"
             class="w-full"
@@ -46,13 +46,14 @@
           required
         >
           <UInputNumber
-            v-model="form.amount"
+            v-model="model.amount"
             :step="0.01"
             :min="0.01"
             orientation="horizontal"
             placeholder="Enter the amount"
             size="lg"
             class="w-full"
+            @update:model-value="updateSplits"
           />
         </UFormField>
         <UFormField
@@ -60,7 +61,7 @@
           name="description"
         >
           <UTextarea
-            v-model="form.description"
+            v-model="model.description"
             placeholder="Enter description (optional)"
             size="lg"
             class="w-full"
@@ -72,11 +73,11 @@
           required
         >
           <USelect
-            v-model="form.paidByUserId"
+            v-model="model.paidByUserId"
             :items="memberOptions"
             placeholder="Select who paid"
             size="lg"
-            :disabled="!form.groupId"
+            :disabled="!model.groupId"
             :loading="isLoadingMembers"
             class="w-full"
           />
@@ -87,7 +88,7 @@
           required
         >
           <UInput
-            v-model="form.expenseDate"
+            v-model="model.expenseDate"
             type="date"
             size="lg"
             class="w-full"
@@ -99,7 +100,7 @@
           required
         >
           <USelect
-            v-model="form.categoryId"
+            v-model="model.categoryId"
             :items="categoryOptions"
             placeholder="Select category"
             size="lg"
@@ -113,7 +114,7 @@
           required
         >
           <USelect
-            v-model="form.paymentModeId"
+            v-model="model.paymentModeId"
             :items="paymentModeOptions"
             placeholder="Select payment method"
             size="lg"
@@ -132,28 +133,26 @@
               v-for="member in groupMembers"
               :key="member.userId"
             >
-              <UCard :variant="isMemberIncluded(member.userId) ? 'subtle' : 'outline'">
+              <UCard :variant="splitByUser(member.userId).included ? 'subtle' : 'outline'">
                 <template #header>
                   <div class="flex items-center justify-between">
                     <span class="font-medium text-sm">
                       {{ member.user.firstName }} {{ member.user.lastName }}
                     </span>
                     <UCheckbox
-                      :model-value="isMemberIncluded(member.userId)"
-                      :color="isMemberIncluded(member.userId) ? 'success' : 'default'"
-                      @update:model-value="toggleMember(member.userId)"
+                      v-model="splitByUser(member.userId).included"
+                      :color="splitByUser(member.userId).included ? 'success' : 'default'"
                     />
                   </div>
                 </template>
                 <UInputNumber
-                  :model-value="getSplitAmount(member.userId)"
+                  v-model="splitByUser(member.userId).splitAmount"
                   :step="0.001"
                   :min="0"
                   placeholder="Amount"
-                  :variant="isMemberIncluded(member.userId) ? 'subtle' : 'ghost'"
-                  :disabled="!isMemberIncluded(member.userId)"
+                  :variant="splitByUser(member.userId).included ? 'subtle' : 'ghost'"
+                  :disabled="!splitByUser(member.userId).included"
                   class="w-full"
-                  @update:model-value="updateSplitAmount(member.userId, $event)"
                 />
               </UCard>
             </template>
@@ -162,10 +161,10 @@
             <span v-if="splitTotal > 0">
               Split total: {{ formatCurrency(splitTotal) }}
               <span
-                v-if="form.amount && splitTotal !== parseFloat(form.amount)"
+                v-if="model.amount && splitTotal !== parseFloat(model.amount)"
                 class="text-orange-500"
               >
-                ({{ splitTotal > parseFloat(form.amount) ? 'Over' : 'Under' }} by {{ formatCurrency(Math.abs(splitTotal - parseFloat(form.amount))) }})
+                ({{ splitTotal > parseFloat(model.amount) ? 'Over' : 'Under' }} by {{ formatCurrency(Math.abs(splitTotal - parseFloat(model.amount))) }})
               </span>
             </span>
           </div>
@@ -207,14 +206,15 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-  initialData: {
-    type: Object,
-    default: null,
-  },
   preSelectedGroupId: {
     type: String,
     default: null,
   },
+})
+
+const model = defineModel({
+  type: Object,
+  default: () => ({}),
 })
 
 const emit = defineEmits(['submit', 'cancel'])
@@ -224,26 +224,11 @@ const { groups, fetchGroups, fetchGroupMembers, isLoading: isLoadingGroups } = u
 const { categories, isLoading: isLoadingCategories } = useCategories()
 const { paymentModes, isLoading: isLoadingPaymentModes } = usePaymentModes()
 
-// Form state
-const form = ref({
-  groupId: props.preSelectedGroupId || props.initialData?.groupId || null,
-  title: props.initialData?.title || '',
-  description: props.initialData?.description || '',
-  amount: props.initialData?.amount || null,
-  paidByUserId: props.initialData?.paidByUserId || null,
-  expenseDate: props.initialData?.expenseDate || new Date().toISOString().split('T')[0],
-  categoryId: props.initialData?.categoryId || null,
-  paymentModeId: props.initialData?.paymentModeId || null,
-})
-
 // Loading states
 const isLoadingMembers = ref(false)
 
 // Group members
 const groupMembers = ref([])
-
-// Splits state - array of { userId, splitAmount }
-const splits = ref(props.initialData?.splits || [])
 
 // Computed options for selects
 const groupOptions = computed(() => {
@@ -276,42 +261,15 @@ const paymentModeOptions = computed(() => {
 
 // Split calculations
 const splitTotal = computed(() => {
-  return splits.value.reduce((total, split) => total + parseFloat(split.splitAmount || 0), 0)
+  return model.value.splits
+    ? model.value.splits
+        .filter(s => s.included)
+        .reduce((total, s) => total + (parseFloat(s.splitAmount) || 0), 0)
+    : 0
 })
 
-// Split helper functions
-const isMemberIncluded = (userId) => {
-  return splits.value.some(split => split.userId === userId)
-}
-
-const toggleMember = (userId) => {
-  const index = splits.value.findIndex(split => split.userId === userId)
-  if (index >= 0) {
-    splits.value.splice(index, 1)
-  }
-  else {
-    // Add member with equal split by default
-    const equalAmount = form.value.amount ? parseFloat((parseFloat(form.value.amount) / (splits.value.length + 1)).toFixed(4)) : 0
-    splits.value.forEach((split) => {
-      split.splitAmount = equalAmount
-    })
-    splits.value.push({
-      userId: userId,
-      splitAmount: equalAmount,
-    })
-  }
-}
-
-const getSplitAmount = (userId) => {
-  const split = splits.value.find(split => split.userId === userId)
-  return split ? split.splitAmount : 0
-}
-
-const updateSplitAmount = (userId, amount) => {
-  const split = splits.value.find(split => split.userId === userId)
-  if (split) {
-    split.splitAmount = amount
-  }
+const splitByUser = (userId) => {
+  return model.value.splits.find(s => s.userId === userId) || { userId: userId, included: false, splitAmount: 0 }
 }
 
 const formatCurrency = (amount) => {
@@ -334,13 +292,13 @@ const loadGroupMembers = async (groupId) => {
     groupMembers.value = members || []
 
     // Auto-select current user if they're in the group and no one is selected yet
-    if (!form.value.paidByUserId) {
+    if (!model.value.paidByUserId) {
       const currentUserMember = members?.find(m => m.userId === user.value?.id)
       if (currentUserMember) {
-        form.value.paidByUserId = user.value.id
+        model.value.paidByUserId = user.value.id
       }
       else if (members?.length > 0) {
-        form.value.paidByUserId = members[0].userId
+        model.value.paidByUserId = members[0].userId
       }
     }
   }
@@ -354,7 +312,7 @@ const loadGroupMembers = async (groupId) => {
 
 // Watch for group changes
 watch(
-  () => form.value.groupId,
+  () => model.value.groupId,
   (newGroupId) => {
     if (newGroupId) {
       loadGroupMembers(newGroupId)
@@ -363,84 +321,68 @@ watch(
   { immediate: true },
 )
 
-// Watch for initialData changes and update form
-watch(
-  () => props.initialData,
-  (newInitialData) => {
-    if (newInitialData) {
-      form.value = {
-        groupId: props.preSelectedGroupId || newInitialData.groupId || null,
-        title: newInitialData.title || '',
-        description: newInitialData.description || '',
-        amount: newInitialData.amount || null,
-        paidByUserId: newInitialData.paidByUserId || null,
-        expenseDate: newInitialData.expenseDate || new Date().toISOString().split('T')[0],
-        categoryId: newInitialData.categoryId || null,
-        paymentModeId: newInitialData.paymentModeId || null,
-      }
-      splits.value = newInitialData.splits || []
-    }
-  },
-  { deep: true, immediate: true },
-)
-
-// Watch amount changes to recalculate equal splits
-watch(
-  () => form.value.amount,
-  (newAmount) => {
-    if (newAmount && splits.value.length > 0) {
-      const equalAmount = parseFloat((parseFloat(newAmount) / splits.value.length).toFixed(4))
-      splits.value.forEach((split) => {
-        split.splitAmount = equalAmount
-      })
-    }
-  },
-)
-
 // Form validation
 const validate = () => {
   const errors = []
-  if (!props.preSelectedGroupId && !form.value.groupId) {
+  if (!props.preSelectedGroupId && !model.value.groupId) {
     errors.push({ name: 'groupId', message: 'Group is required' })
   }
-  if (!form.value.title) {
+  if (!model.value.title) {
     errors.push({ name: 'title', message: 'Title is required' })
   }
-  if (!form.value.amount) {
+  if (!model.value.amount) {
     errors.push({ name: 'amount', message: 'Amount is required' })
   }
-  if (!form.value.paidByUserId) {
+  if (!model.value.paidByUserId) {
     errors.push({ name: 'paidByUserId', message: 'Paid By is required' })
   }
-  if (!form.value.categoryId) {
+  if (!model.value.categoryId) {
     errors.push({ name: 'categoryId', message: 'Category is required' })
   }
-  if (!form.value.paymentModeId) {
+  if (!model.value.paymentModeId) {
     errors.push({ name: 'paymentModeId', message: 'Payment Mode is required' })
   }
   return errors
 }
 
+const updateSplits = () => {
+  // If splits are empty or total doesn't match amount, reset splits to equal distribution
+  if (!model.value.splits || model.value.splits.length === 0 || splitTotal.value !== parseFloat(model.value.amount)) {
+    const members = groupMembers.value || []
+    const equalSplitAmount = model.value.amount && members.length > 0
+      ? (parseFloat(model.value.amount) / members.length).toFixed(2)
+      : 0
+
+    model.value.splits = members.map((m) => {
+      return {
+        userId: m.userId,
+        included: true,
+        splitAmount: parseFloat(equalSplitAmount),
+      }
+    })
+  }
+}
+
 // Form submission
 const onSubmit = async () => {
   const expenseData = {
-    title: form.value.title,
-    description: form.value.description || null,
-    amount: parseFloat(form.value.amount),
-    paidByUserId: form.value.paidByUserId,
-    expenseDate: form.value.expenseDate,
-    categoryId: form.value.categoryId || undefined,
-    paymentModeId: form.value.paymentModeId || undefined,
-    splits: splits.value.length > 0
-      ? splits.value.map(split => ({
-          userId: split.userId,
-          splitAmount: parseFloat(split.splitAmount),
+    title: model.value.title,
+    description: model.value.description || null,
+    amount: parseFloat(model.value.amount),
+    paidByUserId: model.value.paidByUserId,
+    expenseDate: model.value.expenseDate,
+    categoryId: model.value.categoryId || undefined,
+    paymentModeId: model.value.paymentModeId || undefined,
+    splits: model.value.splits
+      ? model.value.splits.filter(s => s.included).map(s => ({
+          userId: s.userId,
+          splitAmount: parseFloat(s.splitAmount) || 0,
         }))
-      : undefined,
+      : [],
   }
 
   emit('submit', {
-    groupId: props.preSelectedGroupId || form.value.groupId,
+    groupId: props.preSelectedGroupId || model.value.groupId,
     expenseData,
   })
 }
