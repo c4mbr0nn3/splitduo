@@ -105,7 +105,7 @@ const props = defineProps({
 
 const emit = defineEmits(['submit'])
 
-const roleOptions = getUserRoleOptions()
+const roleOptions = UserRole.getSelectOptions()
 
 const form = ref({ ...props.initialData })
 
