@@ -27,7 +27,7 @@
             variant="ghost"
             color="info"
             size="sm"
-            icon="i-lucide-edit"
+            icon="i-lucide-edit-2"
             @click="onEdit"
           />
           <UButton
