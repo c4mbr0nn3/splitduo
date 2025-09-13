@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using SplitDuo.Api.Features.Authentication.Dto;
 using SplitDuo.Api.Features.Common.Dto;
+using SplitDuo.Api.Features.Users.Dto;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Options;
@@ -51,17 +52,11 @@ public class AuthenticationService(
         {
             // Generate and send email code for 2FA
             await twoFactorService.GenerateEmailCodeAsync(user.Guid, "2fa_login");
-            
+
             return Result<AuthResponseDto>.Success(new AuthResponseDto
             {
                 RequiresTwoFactor = true,
-                User = new UserInfoDto
-                {
-                    Id = user.Guid.ToString(),
-                    Email = user.Email,
-                    FirstName = user.FirstName,
-                    LastName = user.LastName
-                }
+                User = new UserDto(user)
             });
         }
 
@@ -139,13 +134,7 @@ public class AuthenticationService(
             RefreshToken = refreshTokenValue,
             ExpiresAt = expiresAt,
             RequiresTwoFactor = false,
-            User = new UserInfoDto
-            {
-                Id = user.Guid.ToString(),
-                Email = user.Email,
-                FirstName = user.FirstName,
-                LastName = user.LastName
-            }
+            User = new UserDto(user)
         };
 
         return Result<AuthResponseDto>.Success(authResponse);
@@ -229,13 +218,7 @@ public class AuthenticationService(
                 Token = newAccessToken,
                 RefreshToken = newRefreshTokenValue,
                 ExpiresAt = expiresAt,
-                User = new UserInfoDto
-                {
-                    Id = user.Guid.ToString(),
-                    Email = user.Email,
-                    FirstName = user.FirstName,
-                    LastName = user.LastName
-                }
+                User = new UserDto(user)
             };
 
             return Result<AuthResponseDto>.Success(authResponse);
