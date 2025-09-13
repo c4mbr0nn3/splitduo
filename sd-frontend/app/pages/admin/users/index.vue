@@ -149,26 +149,28 @@
                     icon="i-lucide-eye"
                     variant="ghost"
                     size="sm"
+                    color="neutral"
                     @click="viewUser(user)"
                   />
                   <UButton
                     icon="i-lucide-edit"
                     variant="ghost"
                     size="sm"
+                    color="info"
                     @click="navigateToEdit(user.id)"
                   />
                   <UButton
                     icon="i-lucide-key"
                     variant="ghost"
                     size="sm"
-                    color="orange"
+                    color="warning"
                     @click="revokeTokens(user)"
                   />
                   <UButton
                     icon="i-lucide-trash-2"
                     variant="ghost"
                     size="sm"
-                    color="red"
+                    color="error"
                     @click="confirmDeleteUser(user)"
                   />
                 </div>
