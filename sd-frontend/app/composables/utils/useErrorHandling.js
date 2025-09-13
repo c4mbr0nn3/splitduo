@@ -20,7 +20,7 @@ export default function useErrorHandling() {
   const handleAuthError = (error) => {
     if (error.statusCode === 401) {
       showError('Authentication required. Please log in.')
-      navigateTo('/login')
+      navigateTo('/')
     }
     else if (error.statusCode === 403) {
       showError('Access denied. You do not have permission.')

@@ -93,7 +93,7 @@ const handleLogout = async () => {
   try {
     await logout()
     showSuccess('Logged out successfully')
-    await navigateTo('/login')
+    await navigateTo('/')
   }
   catch (error) {
     console.error('Logout failed:', error)
@@ -127,7 +127,7 @@ const navigationItems = computed(() => {
     items.push({
       to: '/admin/users',
       label: 'Admin',
-      icon: 'i-lucide-crown',
+      icon: 'i-lucide-shield-user',
     })
   }
 
