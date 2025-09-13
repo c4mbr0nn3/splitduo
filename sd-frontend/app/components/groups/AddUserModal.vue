@@ -104,12 +104,14 @@ const onInviteUsers = async () => {
 
   isProcessing.value = true
   try {
-    for (const { user } of selectedUsers.value) {
-      await addGroupMember(props.groupId, {
+    const invitePromises = selectedUsers.value.map(({ user }) =>
+      addGroupMember(props.groupId, {
         userEmail: user.email,
         role: 'member',
-      })
-    }
+      }),
+    )
+
+    await Promise.all(invitePromises)
 
     emit('user-added', selectedUsers.value)
     selectedUsers.value = []
