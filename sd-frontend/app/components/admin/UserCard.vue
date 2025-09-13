@@ -32,9 +32,10 @@
           />
           <UButton
             variant="ghost"
-            color="warning"
+            :color="isSameUser ? '' : 'warning'"
             size="sm"
             icon="i-lucide-rotate-ccw-key"
+            :disabled="isSameUser"
             @click="onRevokeTokens"
           />
           <UiConfirmDialog
@@ -51,9 +52,10 @@
             <template #button>
               <UButton
                 variant="ghost"
-                color="error"
+                :color="isSameUser ? '' : 'error'"
                 size="sm"
                 icon="i-lucide-trash-2"
+                :disabled="isSameUser"
                 @click.stop
               />
             </template>
@@ -83,7 +85,7 @@
 </template>
 
 <script setup>
-defineProps({
+const props = defineProps({
   user: {
     type: Object,
     required: true,
@@ -96,15 +98,21 @@ defineProps({
 
 const emit = defineEmits(['edit', 'revoke-tokens', 'delete'])
 
+const { user: authUser } = useAuth()
+
+const isSameUser = computed(() => {
+  return authUser.value?.id === props.user.id
+})
+
 const onConfirmDelete = () => {
-  emit('delete', user)
+  emit('delete', props.user)
 }
 
 const onRevokeTokens = () => {
-  emit('revoke-tokens', user)
+  emit('revoke-tokens', props.user)
 }
 
 const onEdit = () => {
-  emit('edit', user)
+  navigateTo(`/admin/users/${props.user.id}/edit`)
 }
 </script>
