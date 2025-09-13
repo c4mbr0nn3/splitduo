@@ -16,6 +16,24 @@
         Manage your expense sharing groups
       </p>
     </div>
+
+    <!-- Search Controls -->
+    <div class="flex justify-between items-center mb-6 w-full">
+      <UInput
+        v-model="searchInput"
+        icon="i-lucide-search"
+        placeholder="Search groups..."
+        class="w-64"
+      />
+      <UButton
+        icon="i-lucide-refresh-cw"
+        variant="ghost"
+        class="ml-auto"
+        :loading="isLoadingGroups"
+        @click="refreshGroups"
+      />
+    </div>
+
     <!-- Loading State -->
     <UiLoadingSpinner
       v-if="isLoadingGroups"
@@ -24,10 +42,10 @@
 
     <!-- Empty State -->
     <UiEmptyState
-      v-else-if="groups.length === 0"
+      v-else-if="filteredGroups.length === 0"
       icon="i-lucide-users"
-      title="No groups yet"
-      subtitle="Get started by creating your first group to track shared expenses"
+      :title="debouncedSearchQuery ? 'No groups found' : 'No groups yet'"
+      :subtitle="debouncedSearchQuery ? 'No groups match your search criteria' : 'Get started by creating your first group to track shared expenses'"
     >
       <template #action>
         <UButton
@@ -44,7 +62,7 @@
       class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
     >
       <UCard
-        v-for="group in groups"
+        v-for="group in filteredGroups"
         :key="group.id"
         class="hover:border-primary/50 transition-colors"
         variant="outline"
@@ -128,18 +146,39 @@
 <script setup>
 const { groups, fetchGroups, isLoading: isLoadingGroups, deleteGroup: deleteGroupAPI } = useGroups()
 
+// Search functionality
+const { searchInput, debouncedSearchQuery } = useDebounceSearch()
+
 // Delete group state
 const groupToDelete = ref(null)
 const isDeletingGroup = ref(false)
 
-// Fetch groups on component mount
-onMounted(async () => {
+// Computed
+const filteredGroups = computed(() => {
+  if (!debouncedSearchQuery.value) return groups.value
+
+  const query = debouncedSearchQuery.value.toLowerCase()
+  return groups.value.filter((group) => {
+    return (
+      group.name.toLowerCase().includes(query)
+      || (group.description && group.description.toLowerCase().includes(query))
+    )
+  })
+})
+
+// Refresh groups
+const refreshGroups = async () => {
   try {
     await fetchGroups()
   }
   catch (error) {
-    console.error('Failed to fetch groups:', error)
+    console.error('Failed to refresh groups:', error)
   }
+}
+
+// Fetch groups on component mount
+onMounted(async () => {
+  await refreshGroups()
 })
 
 // Navigation handlers
