@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Quartz;
+using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Domain.Enums;
 using SplitDuo.Core.Factories;
 using SplitDuo.Core.Persistence;
@@ -19,16 +20,28 @@ public class ImportProcessingJob(
         var filePath = context.JobDetail.JobDataMap.GetString("FilePath");
         var importTypeString = context.JobDetail.JobDataMap.GetString("ImportType");
 
-        if (string.IsNullOrEmpty(importGuid) || string.IsNullOrEmpty(filePath) ||
-            string.IsNullOrEmpty(importTypeString))
+        // Validate required job data first
+        if (string.IsNullOrEmpty(importGuid))
         {
-            logger.LogError("ImportProcessingJob: Missing required job data (ImportGuid, FilePath, or ImportType)");
+            logger.LogError("ImportProcessingJob: Missing ImportGuid in job data");
+            return;
+        }
+
+        if (string.IsNullOrEmpty(filePath))
+        {
+            await HandleImportFailure(importGuid, "Missing file path in job data");
+            return;
+        }
+
+        if (string.IsNullOrEmpty(importTypeString))
+        {
+            await HandleImportFailure(importGuid, "Missing ImportType in job data");
             return;
         }
 
         if (!Enum.TryParse<ImportType>(importTypeString, out var importType))
         {
-            logger.LogError("ImportProcessingJob: Invalid ImportType: {ImportType}", importTypeString);
+            await HandleImportFailure(importGuid, $"Invalid ImportType: {importTypeString}");
             return;
         }
 
@@ -43,14 +56,48 @@ public class ImportProcessingJob(
             return;
         }
 
+        await ProcessImport(import, filePath, importType);
+    }
+
+    private async Task HandleImportFailure(string importGuid, string errorMessage)
+    {
+        logger.LogError("ImportProcessingJob: {ErrorMessage} for Import: {ImportGuid}", errorMessage, importGuid);
+
+        try
+        {
+            var import = await unitOfWork.Imports
+                .FirstOrDefaultAsync(i => i.Guid.ToString() == importGuid);
+
+            if (import != null)
+            {
+                var currentTime = DateTimeOffset.UtcNow;
+                import.Status = ImportStatus.Failed;
+                import.CompletedAt = currentTime.ToUnixTimeSeconds();
+                import.Duration = import.StartedAt.HasValue
+                    ? (currentTime.ToUnixTimeSeconds() - import.StartedAt.Value) * 1000
+                    : 0;
+                import.ErrorDetails = errorMessage;
+
+                await unitOfWork.SaveChangesAsync();
+                logger.LogInformation("Updated import status to Failed for Import: {ImportGuid}", importGuid);
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to update import status for Import: {ImportGuid}", importGuid);
+        }
+    }
+
+    private async Task ProcessImport(Import import, string filePath, ImportType importType)
+    {
         var startTime = DateTimeOffset.UtcNow;
         import.StartedAt = startTime.ToUnixTimeSeconds();
         import.Status = ImportStatus.Processing;
 
-        await unitOfWork.SaveChangesAsync();
-
         try
         {
+            await unitOfWork.SaveChangesAsync();
+
             // Get the appropriate import service using the factory
             var importService = importServiceFactory.GetImportService(importType);
 
@@ -66,13 +113,13 @@ public class ImportProcessingJob(
                 import.Status = ImportStatus.Completed;
                 import.RecordsCount = result.Value;
                 logger.LogInformation("Import completed successfully: {ImportGuid}, Records: {RecordsCount}",
-                    importGuid, result.Value);
+                    import.Guid, result.Value);
             }
             else
             {
                 import.Status = ImportStatus.Failed;
                 import.ErrorDetails = result.Error;
-                logger.LogError("Import failed: {ImportGuid}, Error: {Error}", importGuid, result.Error);
+                logger.LogError("Import failed: {ImportGuid}, Error: {Error}", import.Guid, result.Error);
             }
         }
         catch (Exception ex)
@@ -83,25 +130,30 @@ public class ImportProcessingJob(
             import.Status = ImportStatus.Failed;
             import.ErrorDetails = ex.Message;
 
-            logger.LogError(ex, "Import processing failed: {ImportGuid}", importGuid);
+            logger.LogError(ex, "Import processing failed: {ImportGuid}", import.Guid);
         }
         finally
         {
             await unitOfWork.SaveChangesAsync();
+            await CleanupTempFile(filePath);
+        }
+    }
 
-            // Clean up temporary file
-            try
+    private Task CleanupTempFile(string filePath)
+    {
+        try
+        {
+            if (File.Exists(filePath))
             {
-                if (File.Exists(filePath))
-                {
-                    File.Delete(filePath);
-                    logger.LogDebug("Deleted temporary file: {FilePath}", filePath);
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.LogWarning(ex, "Failed to delete temporary file: {FilePath}", filePath);
+                File.Delete(filePath);
+                logger.LogDebug("Deleted temporary file: {FilePath}", filePath);
             }
         }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Failed to delete temporary file: {FilePath}", filePath);
+        }
+
+        return Task.CompletedTask;
     }
 }
