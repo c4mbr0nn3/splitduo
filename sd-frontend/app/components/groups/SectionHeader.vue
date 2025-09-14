@@ -25,6 +25,20 @@
         </GroupsAddUserModal>
       </div>
       <div class="flex items-center gap-1">
+        <UButton
+          variant="ghost"
+          color="neutral"
+          size="sm"
+          icon="i-lucide-upload"
+          @click="navigateToImports(group?.id)"
+        />
+        <UButton
+          variant="ghost"
+          color="info"
+          size="sm"
+          icon="i-lucide-edit-2"
+          @click="navigateToEdit(group?.id)"
+        />
         <UiConfirmDialog
           title="Delete Group"
           :message="`Are you sure you want to delete the group '${group?.name}'?`"
@@ -45,13 +59,6 @@
             />
           </template>
         </UiConfirmDialog>
-        <UButton
-          variant="ghost"
-          color="info"
-          size="sm"
-          icon="i-lucide-edit-2"
-          @click="navigateToEdit(group?.id)"
-        />
       </div>
     </div>
     <div class="flex">
@@ -91,6 +98,11 @@ const isDeletingGroup = ref(false)
 const navigateToEdit = (groupId) => {
   if (!groupId) return
   navigateTo(`/groups/${groupId}/edit/`)
+}
+
+const navigateToImports = (groupId) => {
+  if (!groupId) return
+  navigateTo(`/groups/${groupId}/imports`)
 }
 
 const onUserAdded = (users) => {

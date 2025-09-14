@@ -90,6 +90,13 @@
               </div>
             </div>
             <div class="flex items-center gap-1">
+              <UButton
+                variant="ghost"
+                color="info"
+                size="sm"
+                icon="i-lucide-edit-2"
+                @click="navigateToEdit(group.id)"
+              />
               <UiConfirmDialog
                 title="Delete Group"
                 :message="`Are you sure you want to delete the group '${groupToDelete?.name}'?`"
@@ -111,13 +118,6 @@
                   />
                 </template>
               </UiConfirmDialog>
-              <UButton
-                variant="ghost"
-                color="info"
-                size="sm"
-                icon="i-lucide-edit-2"
-                @click="navigateToEdit(group.id)"
-              />
             </div>
           </div>
 
