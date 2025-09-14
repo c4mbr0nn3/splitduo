@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using SplitDuo.Api.Features.Authentication.Dto;
-using SplitDuo.Api.Features.Common.Dto;
 using SplitDuo.Api.Features.Users.Dto;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Entities;
