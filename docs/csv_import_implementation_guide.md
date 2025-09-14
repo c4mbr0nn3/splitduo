@@ -435,7 +435,7 @@ private static Dictionary<int, ExpenseCategory> BuildCategoryMapping()
 #### Controller Implementation
 
 ```csharp
-[Route("api/v1/groups/{groupId}/import")]
+[Route("api/v1/groups/{groupId}/imports")]
 [Authorize]
 public class ImportController : BaseApiController
 {

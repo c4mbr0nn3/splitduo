@@ -370,7 +370,7 @@ paths:
             text/json:
               schema:
                 $ref: "#/components/schemas/ApiResponseDtoOfListOfPaymentModeDto"
-  /api/v1/groups/{groupId}/import:
+  /api/v1/groups/{groupId}/imports:
     post:
       tags:
         - Imports

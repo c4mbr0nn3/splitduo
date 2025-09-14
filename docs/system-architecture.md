@@ -63,7 +63,7 @@ graph TB
         end
 
         subgraph DataAPI["📄 Data Management"]
-            ImportAPI[📥 Import API<br/>/import]
+            ImportAPI[📥 Import API<br/>/imports]
             ExportAPI[📤 Export API<br/>/export]
             CategoriesAPI[🏷️ Categories API<br/>/categories]
         end

@@ -1034,7 +1034,7 @@ export function useImportExport(groupId) {
       formData.append('importTypeId', importTypeId)
 
       const response = await api.post(
-        `/groups/${groupIdRef.value}/import`,
+        `/groups/${groupIdRef.value}/imports`,
         formData,
         {
           headers: {
