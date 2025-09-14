@@ -21,7 +21,7 @@ export default function useApi() {
         `${apiConfig.baseURL}${endpoint}`,
         {
           headers: {
-            'Content-Type': 'application/json',
+            // 'Content-Type': 'application/json',
             ...getAuthHeaders(),
             ...(options.headers || {}),
           },
