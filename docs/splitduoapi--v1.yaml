@@ -371,6 +371,43 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiResponseDtoOfListOfPaymentModeDto"
   /api/v1/groups/{groupId}/imports:
+    get:
+      tags:
+        - Imports
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            format: int32
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            format: int32
+            default: 20
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfPaginatedResponseDtoOfImportStatusD\
+                  to"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfPaginatedResponseDtoOfImportStatusD\
+                  to"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfPaginatedResponseDtoOfImportStatusD\
+                  to"
     post:
       tags:
         - Imports
@@ -1382,6 +1419,19 @@ components:
             - "null"
         error:
           $ref: "#/components/schemas/ApiErrorDto"
+    ApiResponseDtoOfPaginatedResponseDtoOfImportStatusDto:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: "#/components/schemas/PaginatedResponseDtoOfImportStatusDto"
+        message:
+          type:
+            - string
+            - "null"
+        error:
+          $ref: "#/components/schemas/ApiErrorDto"
     ApiResponseDtoOfPaginatedResponseDtoOfSettlementDto:
       type: object
       properties:
@@ -1477,7 +1527,7 @@ components:
         requiresTwoFactor:
           type: boolean
         user:
-          $ref: "#/components/schemas/UserInfoDto"
+          $ref: "#/components/schemas/UserDto"
     BalanceDto:
       type: object
       properties:
@@ -1833,6 +1883,8 @@ components:
             - "null"
         fileName:
           type: string
+        fileHash:
+          type: string
         importStatusId:
           type: integer
           format: int32
@@ -1874,6 +1926,8 @@ components:
             - string
             - "null"
         fileName:
+          type: string
+        fileHash:
           type: string
         importStatusId:
           type: integer
@@ -1930,6 +1984,19 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ExpenseDto"
+        pagination:
+          $ref: "#/components/schemas/PaginationDto"
+    PaginatedResponseDtoOfImportStatusDto:
+      type:
+        - object
+        - "null"
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ImportStatusDto"
         pagination:
           $ref: "#/components/schemas/PaginationDto"
     PaginatedResponseDtoOfSettlementDto:
@@ -2194,7 +2261,8 @@ components:
             - string
             - "null"
         globalRoleId:
-          type: string
+          type: integer
+          format: int32
         createdAt:
           type: integer
           format: int64
@@ -2221,7 +2289,8 @@ components:
             - string
             - "null"
         globalRoleId:
-          type: string
+          type: integer
+          format: int32
         createdAt:
           type: integer
           format: int64
