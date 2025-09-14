@@ -110,21 +110,17 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
             return new ExpenseDto(expense, expenseSplits);
         }).ToList();
 
-        var response = new PaginatedResponseDto<ExpenseDto>
+        var pagination = new PaginationDto
         {
-            Success = true,
-            Data = expenseDtos,
-            Pagination = new PaginationDto
-            {
-                Page = page,
-                Limit = limit,
-                Total = totalCount,
-                TotalPages = (int)Math.Ceiling((double)totalCount / limit),
-                HasNext = page * limit < totalCount,
-                HasPrev = page > 1
-            }
+            Page = page,
+            Limit = limit,
+            Total = totalCount,
+            TotalPages = (int)Math.Ceiling((double)totalCount / limit),
+            HasNext = page * limit < totalCount,
+            HasPrev = page > 1
         };
 
+        var response = PaginatedResponseDto<ExpenseDto>.SuccessResponse(expenseDtos, pagination);
         return Result<PaginatedResponseDto<ExpenseDto>>.Success(response);
     }
 

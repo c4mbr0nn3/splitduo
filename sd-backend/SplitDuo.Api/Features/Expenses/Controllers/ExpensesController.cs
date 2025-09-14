@@ -1,4 +1,3 @@
-using System.Net;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SplitDuo.Api.Features.Common.Controllers;
@@ -30,30 +29,13 @@ public class ExpensesController(
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-        {
-            // TODO: check this strange stuff, it should use handle or I need to extend base api controller
-            var errorResult = Result<PaginatedResponseDto<ExpenseDto>>.Unauthorized("User not authenticated");
-            return StatusCode(401, new PaginatedResponseDto<ExpenseDto> { Success = false });
-        }
+            return HandlePaginatedResult(
+                Result<PaginatedResponseDto<ExpenseDto>>.Unauthorized("User not authenticated"));
 
         var result = await expensesService.GetGroupExpensesAsync(
             groupId, currentUserId.Value, page, limit, startDate, endDate, category, userId);
 
-        if (result.IsSuccess)
-        {
-            return Ok(result.Value);
-        }
-
-        // Handle error response for paginated endpoint
-        var errorResponse = new PaginatedResponseDto<ExpenseDto> { Success = false };
-        return result.StatusCode switch
-        {
-            HttpStatusCode.BadRequest => BadRequest(errorResponse),
-            HttpStatusCode.Unauthorized => Unauthorized(errorResponse),
-            HttpStatusCode.Forbidden => StatusCode(403, errorResponse),
-            HttpStatusCode.NotFound => NotFound(errorResponse),
-            _ => StatusCode(500, errorResponse)
-        };
+        return HandlePaginatedResult(result, "Expenses retrieved successfully");
     }
 
     [HttpPost]

@@ -13,17 +13,17 @@ public abstract class BaseApiController : ControllerBase
 {
     private IUserContextService? _userContextService;
 
-    private IUserContextService UserContextService => 
+    private IUserContextService UserContextService =>
         _userContextService ??= HttpContext.RequestServices.GetRequiredService<IUserContextService>();
 
     protected Guid? GetCurrentUserId() => UserContextService.GetCurrentUserId();
-    
+
     protected Task<User?> GetCurrentUserAsync() => UserContextService.GetCurrentUserAsync();
-    
+
     protected bool IsUserAuthenticated() => UserContextService.IsAuthenticated();
-    
+
     protected GlobalRole? GetCurrentUserGlobalRole() => UserContextService.GetCurrentUserGlobalRole();
-    
+
     protected bool IsCurrentUserSystemAdmin() => UserContextService.IsSystemAdmin();
 
     protected ActionResult<ApiResponseDto<T>> HandleResult<T>(Result<T> result, string? successMessage = null)
@@ -105,4 +105,40 @@ public abstract class BaseApiController : ControllerBase
         HttpStatusCode.InternalServerError => "INTERNAL_SERVER_ERROR",
         _ => "ERROR"
     };
+
+    protected ActionResult<PaginatedResponseDto<T>> HandlePaginatedResult<T>(Result<PaginatedResponseDto<T>> result,
+        string? successMessage = null)
+    {
+        if (result.IsSuccess)
+        {
+            var response = result.Value!;
+            if (!string.IsNullOrEmpty(successMessage))
+                response.Message = successMessage;
+
+            return result.StatusCode switch
+            {
+                HttpStatusCode.OK => Ok(response),
+                HttpStatusCode.Created => Created(string.Empty, response),
+                HttpStatusCode.NoContent => NoContent(),
+                _ => StatusCode((int)result.StatusCode, response)
+            };
+        }
+
+        var errorResponse = PaginatedResponseDto<T>.ErrorResponse(
+            GetErrorCodeFromStatus(result.StatusCode),
+            result.Error
+        );
+
+        return result.StatusCode switch
+        {
+            HttpStatusCode.BadRequest => BadRequest(errorResponse),
+            HttpStatusCode.Unauthorized => Unauthorized(errorResponse),
+            HttpStatusCode.Forbidden => StatusCode(403, errorResponse),
+            HttpStatusCode.NotFound => NotFound(errorResponse),
+            HttpStatusCode.Conflict => Conflict(errorResponse),
+            HttpStatusCode.UnprocessableEntity => StatusCode(422, errorResponse),
+            HttpStatusCode.InternalServerError => StatusCode(500, errorResponse),
+            _ => StatusCode((int)result.StatusCode, errorResponse)
+        };
+    }
 }

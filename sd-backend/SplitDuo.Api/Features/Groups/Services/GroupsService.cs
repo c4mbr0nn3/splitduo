@@ -466,21 +466,17 @@ public class GroupsService(IUnitOfWork unitOfWork) : IGroupsService
 
         var importDtos = imports.Select(import => new ImportStatusDto(import)).ToList();
 
-        var paginatedResponse = new PaginatedResponseDto<ImportStatusDto>
+        var pagination = new PaginationDto
         {
-            Success = true,
-            Data = importDtos,
-            Pagination = new PaginationDto
-            {
-                Page = page,
-                Limit = limit,
-                Total = totalCount,
-                TotalPages = (int)Math.Ceiling((double)totalCount / limit),
-                HasNext = page * limit < totalCount,
-                HasPrev = page > 1
-            }
+            Page = page,
+            Limit = limit,
+            Total = totalCount,
+            TotalPages = (int)Math.Ceiling((double)totalCount / limit),
+            HasNext = page * limit < totalCount,
+            HasPrev = page > 1
         };
 
+        var paginatedResponse = PaginatedResponseDto<ImportStatusDto>.SuccessResponse(importDtos, pagination);
         return Result<PaginatedResponseDto<ImportStatusDto>>.Success(paginatedResponse);
     }
 }

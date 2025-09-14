@@ -22,17 +22,18 @@ public class ImportsController(
     IImportServiceFactory importServiceFactory) : BaseApiController
 {
     [HttpGet]
-    public async Task<ActionResult<ApiResponseDto<PaginatedResponseDto<ImportStatusDto>>>> GetGroupImports(
+    public async Task<ActionResult<PaginatedResponseDto<ImportStatusDto>>> GetGroupImports(
         string groupId,
         [FromQuery] int page = 1,
         [FromQuery] int limit = 20)
     {
         var user = await GetCurrentUserAsync();
         if (user == null)
-            return HandleResult(Result<PaginatedResponseDto<ImportStatusDto>>.Unauthorized("User not authenticated"));
+            return HandlePaginatedResult(
+                Result<PaginatedResponseDto<ImportStatusDto>>.Unauthorized("User not authenticated"));
 
         var result = await groupsService.GetGroupImportsAsync(groupId, user.Guid, page, limit);
-        return HandleResult(result, "Imports retrieved successfully");
+        return HandlePaginatedResult(result, "Imports retrieved successfully");
     }
 
     [HttpPost]

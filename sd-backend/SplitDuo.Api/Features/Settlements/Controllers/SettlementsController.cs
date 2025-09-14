@@ -15,7 +15,7 @@ namespace SplitDuo.Api.Features.Settlements.Controllers;
 public class SettlementsController(ISettlementsService settlementsService, IUnitOfWork unitOfWork) : BaseApiController
 {
     [HttpGet]
-    public async Task<ActionResult<ApiResponseDto<PaginatedResponseDto<SettlementDto>>>> GetGroupSettlements(
+    public async Task<ActionResult<PaginatedResponseDto<SettlementDto>>> GetGroupSettlements(
         string groupId,
         [FromQuery] int page = 1,
         [FromQuery] int limit = 20,
@@ -24,13 +24,13 @@ public class SettlementsController(ISettlementsService settlementsService, IUnit
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-            return HandleResult(
+            return HandlePaginatedResult(
                 Result<PaginatedResponseDto<SettlementDto>>.Unauthorized("User not authenticated"));
 
         var result =
             await settlementsService.GetGroupSettlementsAsync(groupId, currentUserId.Value, page, limit, startDate,
                 endDate);
-        return HandleResult(result, "Settlements retrieved successfully");
+        return HandlePaginatedResult(result, "Settlements retrieved successfully");
     }
 
     [HttpPost]

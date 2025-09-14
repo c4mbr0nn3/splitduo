@@ -115,21 +115,17 @@ public class SettlementsService(IUnitOfWork unitOfWork) : ISettlementsService
             UpdatedAt = settlement.UpdatedAt
         }).ToList();
 
-        var response = new PaginatedResponseDto<SettlementDto>
+        var pagination = new PaginationDto
         {
-            Success = true,
-            Data = settlementDtos,
-            Pagination = new PaginationDto
-            {
-                Page = page,
-                Limit = limit,
-                Total = totalCount,
-                TotalPages = (int)Math.Ceiling((double)totalCount / limit),
-                HasNext = page * limit < totalCount,
-                HasPrev = page > 1
-            }
+            Page = page,
+            Limit = limit,
+            Total = totalCount,
+            TotalPages = (int)Math.Ceiling((double)totalCount / limit),
+            HasNext = page * limit < totalCount,
+            HasPrev = page > 1
         };
 
+        var response = PaginatedResponseDto<SettlementDto>.SuccessResponse(settlementDtos, pagination);
         return Result<PaginatedResponseDto<SettlementDto>>.Success(response);
     }
 
