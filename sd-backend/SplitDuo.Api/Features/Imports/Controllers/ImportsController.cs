@@ -14,13 +14,27 @@ using SplitDuo.Core.Services.Imports;
 namespace SplitDuo.Api.Features.Imports.Controllers;
 
 [ApiController]
-[Route("api/v1/groups/{groupId}/import")]
+[Route("api/v1/groups/{groupId}/imports")]
 [Authorize]
 public class ImportsController(
     IUnitOfWork unitOfWork,
     IGroupsService groupsService,
     IImportServiceFactory importServiceFactory) : BaseApiController
 {
+    [HttpGet]
+    public async Task<ActionResult<ApiResponseDto<PaginatedResponseDto<ImportStatusDto>>>> GetGroupImports(
+        string groupId,
+        [FromQuery] int page = 1,
+        [FromQuery] int limit = 20)
+    {
+        var user = await GetCurrentUserAsync();
+        if (user == null)
+            return HandleResult(Result<PaginatedResponseDto<ImportStatusDto>>.Unauthorized("User not authenticated"));
+
+        var result = await groupsService.GetGroupImportsAsync(groupId, user.Guid, page, limit);
+        return HandleResult(result, "Imports retrieved successfully");
+    }
+
     [HttpPost]
     public async Task<ActionResult<ApiResponseDto<ImportStatusDto>>> ImportData(
         string groupId,
@@ -54,7 +68,7 @@ public class ImportsController(
 
         // Service handles entity creation and background job scheduling
         var importResult = await importsService.StartImportAsync(request.File, group!.OriginalId, user.Id);
-        
+
         // Controller only handles SaveChanges
         if (importResult.IsSuccess)
         {

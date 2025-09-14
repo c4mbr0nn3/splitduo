@@ -4,6 +4,7 @@ using SplitDuo.Api.Features.Groups.Dto;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Domain.Enums;
+using SplitDuo.Core.Dto;
 using SplitDuo.Core.Persistence;
 
 namespace SplitDuo.Api.Features.Groups.Services;
@@ -21,6 +22,9 @@ public interface IGroupsService
         AddGroupMemberRequestDto request);
 
     Task<Result> RemoveGroupMemberAsync(string groupId, string userId, Guid currentUserId);
+
+    Task<Result<PaginatedResponseDto<ImportStatusDto>>> GetGroupImportsAsync(string groupId, Guid currentUserId,
+        int page = 1, int limit = 20);
 }
 
 public class GroupsService(IUnitOfWork unitOfWork) : IGroupsService
@@ -419,5 +423,64 @@ public class GroupsService(IUnitOfWork unitOfWork) : IGroupsService
         membershipToRemove.DeletedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         return Result.Success();
+    }
+
+    public async Task<Result<PaginatedResponseDto<ImportStatusDto>>> GetGroupImportsAsync(string groupId,
+        Guid currentUserId, int page = 1, int limit = 20)
+    {
+        if (!Guid.TryParse(groupId, out var groupGuid))
+            return Result<PaginatedResponseDto<ImportStatusDto>>.BadRequest("Invalid group ID format");
+
+        var user = await unitOfWork.Users
+            .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
+
+        if (user == null)
+            return Result<PaginatedResponseDto<ImportStatusDto>>.Unauthorized("User not found");
+
+        var group = await unitOfWork.Groups
+            .FirstOrDefaultAsync(g => g.Guid == groupGuid && g.DeletedAt == null);
+
+        if (group == null)
+            return Result<PaginatedResponseDto<ImportStatusDto>>.NotFound("Group not found");
+
+        // Check if user is member of the group
+        var isMember = await unitOfWork.GroupMembers
+            .AnyAsync(gm => gm.GroupId == group.Id && gm.UserId == user.Id && gm.DeletedAt == null);
+
+        if (!isMember)
+            return Result<PaginatedResponseDto<ImportStatusDto>>.Forbidden("Access to this group is not allowed");
+
+        // Get total count
+        var totalCount = await unitOfWork.Imports
+            .CountAsync(i => i.GroupId == group.Id);
+
+        // Get paginated imports
+        var imports = await unitOfWork.Imports
+            .Where(i => i.GroupId == group.Id)
+            .Include(i => i.Group)
+            .Include(i => i.User)
+            .OrderByDescending(i => i.CreatedAt)
+            .Skip((page - 1) * limit)
+            .Take(limit)
+            .ToListAsync();
+
+        var importDtos = imports.Select(import => new ImportStatusDto(import)).ToList();
+
+        var paginatedResponse = new PaginatedResponseDto<ImportStatusDto>
+        {
+            Success = true,
+            Data = importDtos,
+            Pagination = new PaginationDto
+            {
+                Page = page,
+                Limit = limit,
+                Total = totalCount,
+                TotalPages = (int)Math.Ceiling((double)totalCount / limit),
+                HasNext = page * limit < totalCount,
+                HasPrev = page > 1
+            }
+        };
+
+        return Result<PaginatedResponseDto<ImportStatusDto>>.Success(paginatedResponse);
     }
 }
