@@ -1,6 +1,7 @@
 using System.Globalization;
 using CsvHelper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Quartz;
 using SplitDuo.Core.Common;
@@ -28,10 +29,25 @@ public class CospendImportsService(
                 return Result<ImportStatusDto>.BadRequest(validationResult.Error);
             }
 
+            // Calculate file hash for duplicate detection
+            var fileHash = await HashUtils.CalculateFileHashAsync(file);
+
+            // Check if this file has already been imported for this group
+            var existingImport = await unitOfWork.Imports
+                .FirstOrDefaultAsync(i => i.GroupId == groupId && i.FileHash == fileHash);
+
+            if (existingImport != null)
+            {
+                return Result<ImportStatusDto>.Conflict(
+                    $"This file has already been imported on {existingImport.ImportDate:yyyy-MM-dd}. " +
+                    $"Import status: {existingImport.Status}");
+            }
+
             // Create Import entity immediately with Pending status
             var import = new Import
             {
                 FileName = file.FileName,
+                FileHash = fileHash,
                 ImportDate = DateOnly.FromDateTime(DateTime.UtcNow),
                 GroupId = groupId,
                 UserId = userId,

@@ -7,6 +7,7 @@ public class ImportStatusDto
 {
     public string? GroupId { get; set; }
     public string FileName { get; set; } = "";
+    public string FileHash { get; set; } = "";
     public int ImportStatusId { get; set; } = (int)ImportStatus.Pending;
     public int RecordsCount { get; set; }
     public string ErrorDetails { get; set; } = "";
@@ -25,6 +26,7 @@ public class ImportStatusDto
     {
         GroupId = import.Group?.Guid.ToString() ?? null;
         FileName = import.FileName;
+        FileHash = import.FileHash;
         ImportStatusId = import.StatusId;
         RecordsCount = import.RecordsCount;
         ErrorDetails = import.ErrorDetails;

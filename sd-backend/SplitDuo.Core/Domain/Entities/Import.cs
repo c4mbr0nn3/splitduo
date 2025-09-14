@@ -11,6 +11,7 @@ namespace SplitDuo.Core.Domain.Entities;
 [Index(nameof(UserId), nameof(ImportDate))]
 [Index(nameof(GroupId), nameof(ImportDate))]
 [Index(nameof(StatusId), nameof(ImportDate))]
+[Index(nameof(GroupId), nameof(FileHash), IsUnique = true)]
 public class Import : AuditableEntity
 {
     [Column("id"), Key] public int Id { get; set; }
@@ -18,6 +19,7 @@ public class Import : AuditableEntity
     [Column("group_id")] public int GroupId { get; set; }
     [Column("user_id")] public int UserId { get; set; }
     [Column("filename")] public string FileName { get; set; } = "";
+    [Column("file_hash"), MaxLength(32)] public string FileHash { get; set; } = "";
     [Column("import_date")] public DateOnly ImportDate { get; set; }
     [Column("records_count")] public int RecordsCount { get; set; }
     [Column("status_id")] public int StatusId { get; set; } = (int)ImportStatus.Pending;

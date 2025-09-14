@@ -213,6 +213,7 @@ namespace SplitDuo.Core.Migrations
                     group_id = table.Column<int>(type: "integer", nullable: false),
                     user_id = table.Column<int>(type: "integer", nullable: false),
                     filename = table.Column<string>(type: "text", nullable: false),
+                    file_hash = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
                     import_date = table.Column<DateOnly>(type: "date", nullable: false),
                     records_count = table.Column<int>(type: "integer", nullable: false),
                     status_id = table.Column<int>(type: "integer", nullable: false),
@@ -383,6 +384,12 @@ namespace SplitDuo.Core.Migrations
                 name: "IX_groups_guid",
                 table: "groups",
                 column: "guid");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_imports_group_id_file_hash",
+                table: "imports",
+                columns: new[] { "group_id", "file_hash" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_imports_group_id_import_date",

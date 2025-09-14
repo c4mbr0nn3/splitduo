@@ -258,6 +258,12 @@ namespace SplitDuo.Core.Migrations
                         .HasColumnType("text")
                         .HasColumnName("error_details");
 
+                    b.Property<string>("FileHash")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("file_hash");
+
                     b.Property<string>("FileName")
                         .IsRequired()
                         .HasColumnType("text")
@@ -298,6 +304,9 @@ namespace SplitDuo.Core.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Guid");
+
+                    b.HasIndex("GroupId", "FileHash")
+                        .IsUnique();
 
                     b.HasIndex("GroupId", "ImportDate");
 

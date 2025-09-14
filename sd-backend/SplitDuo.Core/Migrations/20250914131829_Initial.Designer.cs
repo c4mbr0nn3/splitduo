@@ -12,7 +12,7 @@ using SplitDuo.Core.Persistence;
 namespace SplitDuo.Core.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250912130007_Initial")]
+    [Migration("20250914131829_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -261,6 +261,12 @@ namespace SplitDuo.Core.Migrations
                         .HasColumnType("text")
                         .HasColumnName("error_details");
 
+                    b.Property<string>("FileHash")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("file_hash");
+
                     b.Property<string>("FileName")
                         .IsRequired()
                         .HasColumnType("text")
@@ -301,6 +307,9 @@ namespace SplitDuo.Core.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Guid");
+
+                    b.HasIndex("GroupId", "FileHash")
+                        .IsUnique();
 
                     b.HasIndex("GroupId", "ImportDate");
 
