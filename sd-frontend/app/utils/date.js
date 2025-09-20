@@ -27,3 +27,15 @@ export function formatDateString(dateInput) {
     day: 'numeric',
   })
 }
+
+/**
+ * Formats a duration given in milliseconds into a string representing the duration in seconds.
+ *
+ * @param {number} durationMs - The duration in milliseconds.
+ * @returns {string} The formatted duration in seconds followed by 's', or 'N/A' if input is falsy.
+ */
+export function formatDuration(durationMs) {
+  if (!durationMs) return 'N/A'
+  const seconds = Math.round(durationMs / 1000)
+  return `${seconds}s`
+}

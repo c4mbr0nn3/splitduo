@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Globalization;
 using CsvHelper;
 using Microsoft.AspNetCore.Http;
@@ -18,8 +19,10 @@ public class CospendImportsService(
     IUnitOfWork unitOfWork,
     ISchedulerFactory schedulerFactory) : IImportsService
 {
-    public async Task<Result<ImportStatusDto>> StartImportAsync(IFormFile file, int groupId, int userId)
+    private static readonly ConcurrentDictionary<Guid, string> TempFilePaths = new();
+    public async Task<Result<ImportStatusDto>> InsertImportJobAsync(IFormFile file, int groupId, int userId)
     {
+        string? tempFilePath = null;
         try
         {
             // Validate file type
@@ -55,13 +58,64 @@ public class CospendImportsService(
             };
 
             await unitOfWork.Imports.AddAsync(import);
-            // Note: SaveChanges will be called by the controller
 
             // Save file temporarily for background processing
-            var tempFilePath = Path.GetTempFileName();
+            tempFilePath = Path.GetTempFileName();
             await using (var fileStream = new FileStream(tempFilePath, FileMode.Create))
             {
                 await file.CopyToAsync(fileStream);
+            }
+
+            // Store temp file path for later cleanup
+            TempFilePaths[import.Guid] = tempFilePath;
+
+            var response = new ImportStatusDto(import);
+            return Result<ImportStatusDto>.Success(response);
+        }
+        catch (Exception e)
+        {
+            // Clean up temp file on error
+            if (tempFilePath != null && File.Exists(tempFilePath))
+            {
+                try
+                {
+                    File.Delete(tempFilePath);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex, "Failed to cleanup temp file during error: {TempFilePath}", tempFilePath);
+                }
+            }
+
+            logger.LogError(e, "An error occurred while preparing import job");
+            return Result<ImportStatusDto>.InternalServerError(e.Message);
+        }
+    }
+
+    public async Task<Result<ImportStatusDto>> TriggerImportJobAsync(Guid importGuid)
+    {
+        try
+        {
+            // Find the import entity (should exist and be saved to DB by now)
+            var import = await unitOfWork.Imports
+                .FirstOrDefaultAsync(i => i.Guid == importGuid);
+
+            if (import == null)
+            {
+                // Clean up temp file if import not found
+                if (TempFilePaths.TryRemove(importGuid, out var orphanedTempFilePath))
+                {
+                    CleanupTempFile(orphanedTempFilePath);
+                }
+                
+                return Result<ImportStatusDto>.NotFound("Import not found");
+            }
+
+            // Get the temp file path from our storage
+            if (!TempFilePaths.TryGetValue(importGuid, out var tempFilePath) || 
+                string.IsNullOrEmpty(tempFilePath) || !File.Exists(tempFilePath))
+            {
+                return Result<ImportStatusDto>.BadRequest("Import temp file not found");
             }
 
             // Schedule background job
@@ -85,12 +139,21 @@ public class CospendImportsService(
 
             await scheduler.ScheduleJob(job, trigger);
 
+            // Remove from our temp storage since the job will handle cleanup
+            TempFilePaths.TryRemove(importGuid, out _);
+
             var response = new ImportStatusDto(import);
             return Result<ImportStatusDto>.Success(response);
         }
         catch (Exception e)
         {
-            logger.LogError(e, "An error occurred while starting import job");
+            // Clean up temp file on error
+            if (TempFilePaths.TryRemove(importGuid, out var tempFilePath))
+            {
+                CleanupTempFile(tempFilePath);
+            }
+            
+            logger.LogError(e, "An error occurred while triggering import job for {ImportGuid}", importGuid);
             return Result<ImportStatusDto>.InternalServerError(e.Message);
         }
     }
@@ -376,5 +439,21 @@ public class CospendImportsService(
         return record == null
                || record.Length == 0
                || string.IsNullOrWhiteSpace(string.Join("", record));
+    }
+
+    private void CleanupTempFile(string tempFilePath)
+    {
+        try
+        {
+            if (File.Exists(tempFilePath))
+            {
+                File.Delete(tempFilePath);
+                logger.LogDebug("Cleaned up temp file: {TempFilePath}", tempFilePath);
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Failed to cleanup temp file: {TempFilePath}", tempFilePath);
+        }
     }
 }

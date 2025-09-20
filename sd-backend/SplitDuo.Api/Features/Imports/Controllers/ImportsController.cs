@@ -67,15 +67,34 @@ public class ImportsController(
             return HandleResult(Result<ImportStatusDto>.BadRequest(ex.Message));
         }
 
-        // Service handles entity creation and background job scheduling
-        var importResult = await importsService.StartImportAsync(request.File, group!.OriginalId, user.Id);
+        // Step 1: Create the import entity and temp file (service handles cleanup on failure)
+        var insertResult = await importsService.InsertImportJobAsync(request.File, group!.OriginalId, user.Id);
+        
+        if (insertResult.IsFailure)
+        {
+            return HandleResult(insertResult);
+        }
 
-        // Controller only handles SaveChanges
-        if (importResult.IsSuccess)
+        // Step 2: Save the import entity to database
+        try
         {
             await unitOfWork.SaveChangesAsync();
         }
+        catch (Exception)
+        {
+            // If save fails, service will handle cleanup when TriggerImportJobAsync is called or times out
+            return HandleResult(Result<ImportStatusDto>.InternalServerError("Failed to save import to database"));
+        }
 
-        return HandleResult(importResult, "Import job started successfully");
+        // Step 3: Now that entity is saved, trigger the background job
+        var importGuid = Guid.Parse(insertResult.Value!.Id);
+        var triggerResult = await importsService.TriggerImportJobAsync(importGuid);
+
+        if (triggerResult.IsFailure)
+        {
+            return HandleResult(triggerResult);
+        }
+
+        return HandleResult(Result<ImportStatusDto>.Success(triggerResult.Value!), "Import job started successfully");
     }
 }

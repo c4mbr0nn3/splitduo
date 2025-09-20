@@ -5,6 +5,7 @@ namespace SplitDuo.Core.Dto;
 
 public class ImportStatusDto
 {
+    public string Id { get; set; } = "";
     public string? GroupId { get; set; }
     public string FileName { get; set; } = "";
     public string FileHash { get; set; } = "";
@@ -24,6 +25,7 @@ public class ImportStatusDto
 
     public ImportStatusDto(Import import)
     {
+        Id = import.Guid.ToString();
         GroupId = import.Group?.Guid.ToString() ?? null;
         FileName = import.FileName;
         FileHash = import.FileHash;

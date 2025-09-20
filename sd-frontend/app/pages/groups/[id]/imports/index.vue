@@ -10,7 +10,7 @@
             <h2 class="text-xl font-semibold text-primary">
               {{ group?.name }}
             </h2>
-            <p class="text-sm text-gray-600 dark:text-gray-400">
+            <p class="text-sm text-muted">
               Manage your group imports and view import history
             </p>
           </div>
@@ -35,50 +35,51 @@
         />
         <div v-else-if="imports.length">
           <div class="space-y-4">
-            <div
+            <UCard
               v-for="importItem in imports"
               :key="importItem.fileHash"
-              class="border dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >
               <div class="flex items-start justify-between">
                 <div class="flex-1">
-                  <div class="flex items-center gap-3 mb-2">
-                    <div
-                      class="w-3 h-3 rounded-full"
-                      :class="getStatusColor(importItem.importStatusId)"
-                    />
-                    <h3 class="font-medium text-gray-900 dark:text-white">
+                  <div class="flex flex-col gap-3 mb-2">
+                    <div>
+                      <UBadge
+                        :label="getStatusLabel(importItem.importStatusId)"
+                        :variant="getStatusVariant(importItem.importStatusId)"
+                        :color="getStatusColor(importItem.importStatusId)"
+                      />
+                    </div>
+
+                    <h3 class="font-medium">
                       {{ importItem.fileName }}
                     </h3>
-                    <UBadge
-                      :label="getStatusLabel(importItem.importStatusId)"
-                      :variant="getStatusVariant(importItem.importStatusId)"
-                      size="xs"
-                    />
                   </div>
-                  <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-gray-600 dark:text-gray-400">
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-muted">
                     <div>
                       <span class="font-medium">Records:</span>
                       {{ importItem.recordsCount }}
                     </div>
                     <div>
                       <span class="font-medium">Import Date:</span>
-                      {{ formatDate(importItem.importDate) }}
+                      {{ formatDateString(importItem.importDate) }}
                     </div>
                     <div v-if="importItem.duration">
                       <span class="font-medium">Duration:</span>
                       {{ formatDuration(importItem.duration) }}
                     </div>
                   </div>
-                  <div
-                    v-if="importItem.errorDetails && importItem.importStatusId === 3"
-                    class="mt-2 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded text-sm text-red-700 dark:text-red-400"
-                  >
-                    <strong>Error:</strong> {{ importItem.errorDetails }}
-                  </div>
+                  <UAlert
+                    v-if="importItem.errorDetails && importItem.importStatusId === 4"
+                    color="error"
+                    title="Import Failed"
+                    :description="importItem.errorDetails"
+                    variant="subtle"
+                    icon="i-lucide-triangle-alert"
+                    class="mt-4"
+                  />
                 </div>
               </div>
-            </div>
+            </UCard>
           </div>
         </div>
         <UiEmptyState
@@ -118,10 +119,10 @@ const currentPage = ref(1)
 
 // Import status mapping (based on backend ImportStatus enum)
 const importStatusMap = {
-  1: { label: 'Pending', color: 'bg-yellow-500', variant: 'soft' },
-  2: { label: 'Processing', color: 'bg-blue-500', variant: 'soft' },
-  3: { label: 'Failed', color: 'bg-red-500', variant: 'soft' },
-  4: { label: 'Completed', color: 'bg-green-500', variant: 'soft' },
+  1: { label: 'Pending', color: 'neutral', variant: 'soft' },
+  2: { label: 'Processing', color: 'info', variant: 'soft' },
+  3: { label: 'Completed', color: 'success', variant: 'soft' },
+  4: { label: 'Failed', color: 'error', variant: 'soft' },
 }
 
 const getStatusLabel = (statusId) => {
@@ -134,17 +135,6 @@ const getStatusColor = (statusId) => {
 
 const getStatusVariant = (statusId) => {
   return importStatusMap[statusId]?.variant || 'soft'
-}
-
-const formatDate = (dateString) => {
-  if (!dateString) return 'N/A'
-  return new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
 }
 
 const formatDuration = (durationMs) => {

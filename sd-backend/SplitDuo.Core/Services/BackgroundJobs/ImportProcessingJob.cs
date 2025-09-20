@@ -27,21 +27,9 @@ public class ImportProcessingJob(
             return;
         }
 
-        if (string.IsNullOrEmpty(filePath))
+        if (!Guid.TryParse(importGuid, out var guid))
         {
-            await HandleImportFailure(importGuid, "Missing file path in job data");
-            return;
-        }
-
-        if (string.IsNullOrEmpty(importTypeString))
-        {
-            await HandleImportFailure(importGuid, "Missing ImportType in job data");
-            return;
-        }
-
-        if (!Enum.TryParse<ImportType>(importTypeString, out var importType))
-        {
-            await HandleImportFailure(importGuid, $"Invalid ImportType: {importTypeString}");
+            logger.LogError("ImportProcessingJob: Invalid ImportGuid format: {ImportGuid}", importGuid);
             return;
         }
 
@@ -56,31 +44,44 @@ public class ImportProcessingJob(
             return;
         }
 
+        if (string.IsNullOrEmpty(filePath))
+        {
+            await HandleImportFailure(import, "Missing file path in job data");
+            return;
+        }
+
+        if (string.IsNullOrEmpty(importTypeString))
+        {
+            await HandleImportFailure(import, "Missing ImportType in job data");
+            return;
+        }
+
+        if (!Enum.TryParse<ImportType>(importTypeString, out var importType))
+        {
+            await HandleImportFailure(import, $"Invalid ImportType: {importTypeString}");
+            return;
+        }
+
         await ProcessImport(import, filePath, importType);
     }
 
-    private async Task HandleImportFailure(string importGuid, string errorMessage)
+    private async Task HandleImportFailure(Import import, string errorMessage)
     {
+        var importGuid = import.Guid.ToString();
         logger.LogError("ImportProcessingJob: {ErrorMessage} for Import: {ImportGuid}", errorMessage, importGuid);
 
         try
         {
-            var import = await unitOfWork.Imports
-                .FirstOrDefaultAsync(i => i.Guid.ToString() == importGuid);
+            var currentTime = DateTimeOffset.UtcNow;
+            import.Status = ImportStatus.Failed;
+            import.CompletedAt = currentTime.ToUnixTimeSeconds();
+            import.Duration = import.StartedAt.HasValue
+                ? (currentTime.ToUnixTimeSeconds() - import.StartedAt.Value) * 1000
+                : 0;
+            import.ErrorDetails = errorMessage;
 
-            if (import != null)
-            {
-                var currentTime = DateTimeOffset.UtcNow;
-                import.Status = ImportStatus.Failed;
-                import.CompletedAt = currentTime.ToUnixTimeSeconds();
-                import.Duration = import.StartedAt.HasValue
-                    ? (currentTime.ToUnixTimeSeconds() - import.StartedAt.Value) * 1000
-                    : 0;
-                import.ErrorDetails = errorMessage;
-
-                await unitOfWork.SaveChangesAsync();
-                logger.LogInformation("Updated import status to Failed for Import: {ImportGuid}", importGuid);
-            }
+            await unitOfWork.SaveChangesAsync();
+            logger.LogInformation("Updated import status to Failed for Import: {ImportGuid}", importGuid);
         }
         catch (Exception ex)
         {
