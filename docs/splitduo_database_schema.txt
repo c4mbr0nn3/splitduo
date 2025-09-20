@@ -114,11 +114,13 @@ Table expenses {
   paid_by_user_id integer [ref: > users.id, not null, note: 'User who paid the expense']
   expense_date date [not null, note: 'Date only (maps to .NET DateOnly)']
   category_id int [not null, note: 'Optional categorization']
+  payment_mode_id int [not null, note: 'Payment method categorization']
+  import_id integer [ref: > imports.id, null, note: 'Import that created this expense (null for manual)']
   deleted_at int [null, note: 'Soft delete unix timestamp']
   created_at int [not null, note: 'Unix timestamp in seconds']
   updated_at int [not null, note: 'Unix timestamp in seconds']
 
-  Note: 'Individual expenses within a group'
+  Note: 'Individual expenses within a group - can be imported or manually created'
 }
 
 Table expense_splits {
@@ -158,12 +160,25 @@ Table imports {
   user_id integer [ref: > users.id, not null, note: 'User who performed the import']
   group_id integer [ref: > groups.id, not null, note: 'Group where data was imported']
   filename varchar(255) [not null, note: 'Original backup filename']
+  file_hash varchar(32) [not null, note: 'MD5 hash for duplicate detection']
   import_date date [not null, note: 'Date only (maps to .NET DateOnly)']
-  records_imported integer [not null, default: 0]
-  status varchar(50) [not null, default: 'pending', note: 'pending, completed, failed']
+  records_count integer [not null, default: 0, note: 'Number of records processed']
+  status_id integer [not null, default: 1, note: '1=Pending, 2=Processing, 3=Completed, 4=Failed']
+  import_type_id integer [not null, note: '1=Cospend (enum ImportType)']
   error_details text [note: 'Error information if import failed']
-  created_at timestamp [not null, default: `now()`]
-  updated_at timestamp [not null, default: `now()`]
+  started_at int [null, note: 'Unix timestamp when processing started']
+  completed_at int [null, note: 'Unix timestamp when processing completed']
+  duration_ms int [null, note: 'Processing duration in milliseconds']
+  created_at int [not null, note: 'Unix timestamp in seconds']
+  updated_at int [not null, note: 'Unix timestamp in seconds']
 
-  Note: 'Track import operations for audit purposes'
+  indexes {
+    guid [unique, name: 'idx_imports_guid']
+    (user_id, import_date) [name: 'idx_imports_user_date']
+    (group_id, import_date) [name: 'idx_imports_group_date']
+    (status_id, import_date) [name: 'idx_imports_status_date']
+    (group_id, file_hash) [unique, name: 'idx_imports_group_hash']
+  }
+
+  Note: 'Track import operations with detailed status and type information'
 }

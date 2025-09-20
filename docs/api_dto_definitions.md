@@ -230,6 +230,7 @@
   "expenseDate": "string (ISO 8601 date)",
   "category": "string",
   "paymentMode": "string",
+  "importId": "number (optional, links to import that created this expense)",
   "splits": [
     {
       "id": "string (GUID)",
@@ -403,15 +404,18 @@
 
 ```json
 {
+  "id": "string (GUID)",
   "groupId": "string (GUID, optional)",
   "fileName": "string",
-  "importStatusId": "number",
+  "fileHash": "string",
+  "importStatusId": "number (1=Pending, 2=Processing, 3=Completed, 4=Failed)",
+  "importTypeId": "number (1=Cospend)",
   "recordsCount": "number",
   "errorDetails": "string",
   "importDate": "string (ISO 8601 date)",
   "startedAt": "number (unix timestamp in seconds, optional)",
   "completedAt": "number (unix timestamp in seconds, optional)",
-  "duration": "number (seconds, optional)",
+  "duration": "number (milliseconds, optional)",
   "createdAt": "number (unix timestamp in seconds)",
   "updatedAt": "number (unix timestamp in seconds)"
 }
