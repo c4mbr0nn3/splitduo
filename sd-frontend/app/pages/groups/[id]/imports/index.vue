@@ -137,12 +137,6 @@ const getStatusVariant = (statusId) => {
   return importStatusMap[statusId]?.variant || 'soft'
 }
 
-const formatDuration = (durationMs) => {
-  if (!durationMs) return 'N/A'
-  const seconds = Math.round(durationMs / 1000)
-  return `${seconds}s`
-}
-
 watch(currentPage, async (newPage) => {
   await fetchImports({ page: newPage })
 }, { immediate: false })
