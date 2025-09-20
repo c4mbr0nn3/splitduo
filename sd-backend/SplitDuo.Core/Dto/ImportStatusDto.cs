@@ -10,6 +10,7 @@ public class ImportStatusDto
     public string FileName { get; set; } = "";
     public string FileHash { get; set; } = "";
     public int ImportStatusId { get; set; } = (int)ImportStatus.Pending;
+    public int ImportTypeId { get; set; }
     public int RecordsCount { get; set; }
     public string ErrorDetails { get; set; } = "";
     public string ImportDate { get; set; } = "";
@@ -30,6 +31,7 @@ public class ImportStatusDto
         FileName = import.FileName;
         FileHash = import.FileHash;
         ImportStatusId = import.StatusId;
+        ImportTypeId = import.ImportTypeId;
         RecordsCount = import.RecordsCount;
         ErrorDetails = import.ErrorDetails;
         ImportDate = import.ImportDate.ToString("yyyy-MM-dd");

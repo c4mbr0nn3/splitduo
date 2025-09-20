@@ -12,7 +12,7 @@ using SplitDuo.Core.Persistence;
 namespace SplitDuo.Core.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250914131829_Initial")]
+    [Migration("20250920125701_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -283,6 +283,10 @@ namespace SplitDuo.Core.Migrations
                     b.Property<DateOnly>("ImportDate")
                         .HasColumnType("date")
                         .HasColumnName("import_date");
+
+                    b.Property<int>("ImportTypeId")
+                        .HasColumnType("integer")
+                        .HasColumnName("import_type_id");
 
                     b.Property<int>("RecordsCount")
                         .HasColumnType("integer")

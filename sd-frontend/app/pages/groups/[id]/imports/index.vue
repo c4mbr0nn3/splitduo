@@ -41,20 +41,26 @@
             >
               <div class="flex items-start justify-between">
                 <div class="flex-1">
-                  <div class="flex flex-col gap-3 mb-2">
-                    <div>
+                  <div class="flex flex-col gap-1 mb-2">
+                    <div class="flex justify-between items-center gap-2 mb-1">
+                      <UBadge
+                        :label="getImportTypeLabel(importItem.importTypeId)"
+                        color="primary"
+                        variant="soft"
+                        icon="i-lucide-folder"
+                      />
                       <UBadge
                         :label="getStatusLabel(importItem.importStatusId)"
                         :variant="getStatusVariant(importItem.importStatusId)"
                         :color="getStatusColor(importItem.importStatusId)"
+                        icon="i-lucide-info"
                       />
                     </div>
-
                     <h3 class="font-medium">
                       {{ importItem.fileName }}
                     </h3>
                   </div>
-                  <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-muted">
+                  <div class="grid grid-cols-1 md:grid-cols-4 gap-2 text-sm text-muted">
                     <div>
                       <span class="font-medium">Records:</span>
                       {{ importItem.recordsCount }}
@@ -125,6 +131,11 @@ const importStatusMap = {
   4: { label: 'Failed', color: 'error', variant: 'soft' },
 }
 
+// Import type mapping (based on backend ImportType enum)
+const importTypeMap = {
+  1: 'Cospend',
+}
+
 const getStatusLabel = (statusId) => {
   return importStatusMap[statusId]?.label || 'Unknown'
 }
@@ -135,6 +146,10 @@ const getStatusColor = (statusId) => {
 
 const getStatusVariant = (statusId) => {
   return importStatusMap[statusId]?.variant || 'soft'
+}
+
+const getImportTypeLabel = (typeId) => {
+  return importTypeMap[typeId] || 'Unknown'
 }
 
 watch(currentPage, async (newPage) => {

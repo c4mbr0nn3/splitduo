@@ -23,6 +23,7 @@ public class Import : AuditableEntity
     [Column("import_date")] public DateOnly ImportDate { get; set; }
     [Column("records_count")] public int RecordsCount { get; set; }
     [Column("status_id")] public int StatusId { get; set; } = (int)ImportStatus.Pending;
+    [Column("import_type_id")] public int ImportTypeId { get; set; }
     [Column("error_details")] public string ErrorDetails { get; set; } = "";
     [Column("started_at")] public long? StartedAt { get; set; }
     [Column("completed_at")] public long? CompletedAt { get; set; }
@@ -36,5 +37,12 @@ public class Import : AuditableEntity
     {
         get => (ImportStatus)StatusId;
         set => StatusId = (int)value;
+    }
+
+    [NotMapped]
+    public ImportType ImportType
+    {
+        get => (ImportType)ImportTypeId;
+        set => ImportTypeId = (int)value;
     }
 }

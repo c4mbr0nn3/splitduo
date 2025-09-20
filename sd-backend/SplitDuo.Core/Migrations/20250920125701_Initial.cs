@@ -217,6 +217,7 @@ namespace SplitDuo.Core.Migrations
                     import_date = table.Column<DateOnly>(type: "date", nullable: false),
                     records_count = table.Column<int>(type: "integer", nullable: false),
                     status_id = table.Column<int>(type: "integer", nullable: false),
+                    import_type_id = table.Column<int>(type: "integer", nullable: false),
                     error_details = table.Column<string>(type: "text", nullable: false),
                     started_at = table.Column<long>(type: "bigint", nullable: true),
                     completed_at = table.Column<long>(type: "bigint", nullable: true),

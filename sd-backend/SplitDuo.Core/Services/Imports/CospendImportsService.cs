@@ -20,6 +20,7 @@ public class CospendImportsService(
     ISchedulerFactory schedulerFactory) : IImportsService
 {
     private static readonly ConcurrentDictionary<Guid, string> TempFilePaths = new();
+
     public async Task<Result<ImportStatusDto>> InsertImportJobAsync(IFormFile file, int groupId, int userId)
     {
         string? tempFilePath = null;
@@ -54,7 +55,8 @@ public class CospendImportsService(
                 ImportDate = DateOnly.FromDateTime(DateTime.UtcNow),
                 GroupId = groupId,
                 UserId = userId,
-                Status = ImportStatus.Pending
+                Status = ImportStatus.Pending,
+                ImportType = ImportType.Cospend
             };
 
             await unitOfWork.Imports.AddAsync(import);
@@ -107,12 +109,12 @@ public class CospendImportsService(
                 {
                     CleanupTempFile(orphanedTempFilePath);
                 }
-                
+
                 return Result<ImportStatusDto>.NotFound("Import not found");
             }
 
             // Get the temp file path from our storage
-            if (!TempFilePaths.TryGetValue(importGuid, out var tempFilePath) || 
+            if (!TempFilePaths.TryGetValue(importGuid, out var tempFilePath) ||
                 string.IsNullOrEmpty(tempFilePath) || !File.Exists(tempFilePath))
             {
                 return Result<ImportStatusDto>.BadRequest("Import temp file not found");
@@ -152,7 +154,7 @@ public class CospendImportsService(
             {
                 CleanupTempFile(tempFilePath);
             }
-            
+
             logger.LogError(e, "An error occurred while triggering import job for {ImportGuid}", importGuid);
             return Result<ImportStatusDto>.InternalServerError(e.Message);
         }

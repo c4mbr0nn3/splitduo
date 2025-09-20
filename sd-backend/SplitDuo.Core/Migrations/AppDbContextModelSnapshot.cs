@@ -281,6 +281,10 @@ namespace SplitDuo.Core.Migrations
                         .HasColumnType("date")
                         .HasColumnName("import_date");
 
+                    b.Property<int>("ImportTypeId")
+                        .HasColumnType("integer")
+                        .HasColumnName("import_type_id");
+
                     b.Property<int>("RecordsCount")
                         .HasColumnType("integer")
                         .HasColumnName("records_count");
