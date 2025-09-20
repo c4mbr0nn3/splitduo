@@ -12,7 +12,7 @@ using SplitDuo.Core.Persistence;
 namespace SplitDuo.Core.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250920125701_Initial")]
+    [Migration("20250920131941_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -66,6 +66,10 @@ namespace SplitDuo.Core.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("guid");
 
+                    b.Property<int?>("ImportId")
+                        .HasColumnType("integer")
+                        .HasColumnName("import_id");
+
                     b.Property<int>("PaidBy")
                         .HasColumnType("integer")
                         .HasColumnName("paid_by");
@@ -90,6 +94,8 @@ namespace SplitDuo.Core.Migrations
                     b.HasIndex("ExpenseDate");
 
                     b.HasIndex("Guid");
+
+                    b.HasIndex("ImportId");
 
                     b.HasIndex("GroupId", "ExpenseDate");
 
@@ -672,6 +678,10 @@ namespace SplitDuo.Core.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("SplitDuo.Core.Domain.Entities.Import", "Import")
+                        .WithMany()
+                        .HasForeignKey("ImportId");
+
                     b.HasOne("SplitDuo.Core.Domain.Entities.User", "PaidByUser")
                         .WithMany()
                         .HasForeignKey("PaidBy")
@@ -679,6 +689,8 @@ namespace SplitDuo.Core.Migrations
                         .IsRequired();
 
                     b.Navigation("Group");
+
+                    b.Navigation("Import");
 
                     b.Navigation("PaidByUser");
                 });

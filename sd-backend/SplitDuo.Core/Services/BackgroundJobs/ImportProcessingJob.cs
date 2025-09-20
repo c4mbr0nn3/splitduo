@@ -103,7 +103,7 @@ public class ImportProcessingJob(
             var importService = importServiceFactory.GetImportService(importType);
 
             // Process import using the service
-            var result = await importService.ProcessImportAsync(filePath, import.GroupId, import.UserId);
+            var result = await importService.ProcessImportAsync(filePath, import.GroupId, import.Id);
 
             var completedTime = DateTimeOffset.UtcNow;
             import.CompletedAt = completedTime.ToUnixTimeSeconds();

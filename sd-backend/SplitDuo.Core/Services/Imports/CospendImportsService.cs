@@ -160,7 +160,7 @@ public class CospendImportsService(
         }
     }
 
-    public async Task<Result<int>> ProcessImportAsync(string filePath, int groupId, int userId)
+    public async Task<Result<int>> ProcessImportAsync(string filePath, int groupId, int importId)
     {
         try
         {
@@ -173,7 +173,7 @@ public class CospendImportsService(
             reader.Context.Configuration.HeaderValidated = null;
 
             var expenses = await ParseExpensesSection(reader);
-            var result = await CreateExpensesAsync(expenses, groupId);
+            var result = await CreateExpensesAsync(expenses, groupId, importId);
 
             return result;
         }
@@ -237,7 +237,7 @@ public class CospendImportsService(
     }
 
     // Data transformation methods
-    private async Task<Result<int>> CreateExpensesAsync(List<CospendExpenseDto> expenses, int groupId)
+    private async Task<Result<int>> CreateExpensesAsync(List<CospendExpenseDto> expenses, int groupId, int importId)
     {
         var categoryMapping = BuildCategoryMapping();
         var paymentModeMapping = BuildPaymentModeMapping();
@@ -276,7 +276,8 @@ public class CospendImportsService(
                 PaidBy = payerId,
                 ExpenseDate = exp.ParsedDate,
                 Category = category,
-                PaymentMode = paymentMode
+                PaymentMode = paymentMode,
+                ImportId = importId
             };
 
             // Add splits using navigation property - EF Core will handle the relationships

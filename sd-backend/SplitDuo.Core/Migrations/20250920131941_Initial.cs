@@ -138,42 +138,6 @@ namespace SplitDuo.Core.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "expenses",
-                columns: table => new
-                {
-                    id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    guid = table.Column<Guid>(type: "uuid", nullable: false),
-                    group_id = table.Column<int>(type: "integer", nullable: false),
-                    title = table.Column<string>(type: "text", nullable: false),
-                    description = table.Column<string>(type: "text", nullable: true),
-                    amount = table.Column<decimal>(type: "numeric", nullable: false),
-                    paid_by = table.Column<int>(type: "integer", nullable: false),
-                    expense_date = table.Column<DateOnly>(type: "date", nullable: false),
-                    category_id = table.Column<int>(type: "integer", nullable: false),
-                    payment_mode_id = table.Column<int>(type: "integer", nullable: false),
-                    created_at = table.Column<long>(type: "bigint", nullable: false),
-                    updated_at = table.Column<long>(type: "bigint", nullable: false),
-                    deleted_at = table.Column<long>(type: "bigint", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_expenses", x => x.id);
-                    table.ForeignKey(
-                        name: "FK_expenses_groups_group_id",
-                        column: x => x.group_id,
-                        principalTable: "groups",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_expenses_users_paid_by",
-                        column: x => x.paid_by,
-                        principalTable: "users",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "group_members",
                 columns: table => new
                 {
@@ -283,6 +247,48 @@ namespace SplitDuo.Core.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "expenses",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    guid = table.Column<Guid>(type: "uuid", nullable: false),
+                    group_id = table.Column<int>(type: "integer", nullable: false),
+                    title = table.Column<string>(type: "text", nullable: false),
+                    description = table.Column<string>(type: "text", nullable: true),
+                    amount = table.Column<decimal>(type: "numeric", nullable: false),
+                    paid_by = table.Column<int>(type: "integer", nullable: false),
+                    expense_date = table.Column<DateOnly>(type: "date", nullable: false),
+                    category_id = table.Column<int>(type: "integer", nullable: false),
+                    payment_mode_id = table.Column<int>(type: "integer", nullable: false),
+                    import_id = table.Column<int>(type: "integer", nullable: true),
+                    created_at = table.Column<long>(type: "bigint", nullable: false),
+                    updated_at = table.Column<long>(type: "bigint", nullable: false),
+                    deleted_at = table.Column<long>(type: "bigint", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_expenses", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_expenses_groups_group_id",
+                        column: x => x.group_id,
+                        principalTable: "groups",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_expenses_imports_import_id",
+                        column: x => x.import_id,
+                        principalTable: "imports",
+                        principalColumn: "id");
+                    table.ForeignKey(
+                        name: "FK_expenses_users_paid_by",
+                        column: x => x.paid_by,
+                        principalTable: "users",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "expense_splits",
                 columns: table => new
                 {
@@ -350,6 +356,11 @@ namespace SplitDuo.Core.Migrations
                 name: "IX_expenses_guid",
                 table: "expenses",
                 column: "guid");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_expenses_import_id",
+                table: "expenses",
+                column: "import_id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_expenses_paid_by_expense_date",
@@ -526,9 +537,6 @@ namespace SplitDuo.Core.Migrations
                 name: "group_members");
 
             migrationBuilder.DropTable(
-                name: "imports");
-
-            migrationBuilder.DropTable(
                 name: "notifications");
 
             migrationBuilder.DropTable(
@@ -542,6 +550,9 @@ namespace SplitDuo.Core.Migrations
 
             migrationBuilder.DropTable(
                 name: "expenses");
+
+            migrationBuilder.DropTable(
+                name: "imports");
 
             migrationBuilder.DropTable(
                 name: "groups");
