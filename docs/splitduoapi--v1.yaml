@@ -255,13 +255,13 @@ paths:
           content:
             text/plain:
               schema:
-                $ref: "#/components/schemas/ApiResponseDtoOfPaginatedResponseDtoOfSettlementDto"
+                $ref: "#/components/schemas/PaginatedResponseDtoOfSettlementDto"
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponseDtoOfPaginatedResponseDtoOfSettlementDto"
+                $ref: "#/components/schemas/PaginatedResponseDtoOfSettlementDto"
             text/json:
               schema:
-                $ref: "#/components/schemas/ApiResponseDtoOfPaginatedResponseDtoOfSettlementDto"
+                $ref: "#/components/schemas/PaginatedResponseDtoOfSettlementDto"
     post:
       tags:
         - Settlements
@@ -398,16 +398,13 @@ paths:
           content:
             text/plain:
               schema:
-                $ref: "#/components/schemas/ApiResponseDtoOfPaginatedResponseDtoOfImportStatusD\
-                  to"
+                $ref: "#/components/schemas/PaginatedResponseDtoOfImportStatusDto"
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponseDtoOfPaginatedResponseDtoOfImportStatusD\
-                  to"
+                $ref: "#/components/schemas/PaginatedResponseDtoOfImportStatusDto"
             text/json:
               schema:
-                $ref: "#/components/schemas/ApiResponseDtoOfPaginatedResponseDtoOfImportStatusD\
-                  to"
+                $ref: "#/components/schemas/PaginatedResponseDtoOfImportStatusDto"
     post:
       tags:
         - Imports
@@ -1419,32 +1416,6 @@ components:
             - "null"
         error:
           $ref: "#/components/schemas/ApiErrorDto"
-    ApiResponseDtoOfPaginatedResponseDtoOfImportStatusDto:
-      type: object
-      properties:
-        success:
-          type: boolean
-        data:
-          $ref: "#/components/schemas/PaginatedResponseDtoOfImportStatusDto"
-        message:
-          type:
-            - string
-            - "null"
-        error:
-          $ref: "#/components/schemas/ApiErrorDto"
-    ApiResponseDtoOfPaginatedResponseDtoOfSettlementDto:
-      type: object
-      properties:
-        success:
-          type: boolean
-        data:
-          $ref: "#/components/schemas/PaginatedResponseDtoOfSettlementDto"
-        message:
-          type:
-            - string
-            - "null"
-        error:
-          $ref: "#/components/schemas/ApiErrorDto"
     ApiResponseDtoOfSettlementDto:
       type: object
       properties:
@@ -1877,6 +1848,8 @@ components:
     ImportStatusDto:
       type: object
       properties:
+        id:
+          type: string
         groupId:
           type:
             - string
@@ -1886,6 +1859,9 @@ components:
         fileHash:
           type: string
         importStatusId:
+          type: integer
+          format: int32
+        importTypeId:
           type: integer
           format: int32
         recordsCount:
@@ -1921,6 +1897,8 @@ components:
         - object
         - "null"
       properties:
+        id:
+          type: string
         groupId:
           type:
             - string
@@ -1930,6 +1908,9 @@ components:
         fileHash:
           type: string
         importStatusId:
+          type: integer
+          format: int32
+        importTypeId:
           type: integer
           format: int32
         recordsCount:
@@ -1986,10 +1967,14 @@ components:
             $ref: "#/components/schemas/ExpenseDto"
         pagination:
           $ref: "#/components/schemas/PaginationDto"
+        message:
+          type:
+            - string
+            - "null"
+        error:
+          $ref: "#/components/schemas/ApiErrorDto"
     PaginatedResponseDtoOfImportStatusDto:
-      type:
-        - object
-        - "null"
+      type: object
       properties:
         success:
           type: boolean
@@ -1999,10 +1984,14 @@ components:
             $ref: "#/components/schemas/ImportStatusDto"
         pagination:
           $ref: "#/components/schemas/PaginationDto"
+        message:
+          type:
+            - string
+            - "null"
+        error:
+          $ref: "#/components/schemas/ApiErrorDto"
     PaginatedResponseDtoOfSettlementDto:
-      type:
-        - object
-        - "null"
+      type: object
       properties:
         success:
           type: boolean
@@ -2012,6 +2001,12 @@ components:
             $ref: "#/components/schemas/SettlementDto"
         pagination:
           $ref: "#/components/schemas/PaginationDto"
+        message:
+          type:
+            - string
+            - "null"
+        error:
+          $ref: "#/components/schemas/ApiErrorDto"
     PaginationDto:
       type: object
       properties:
