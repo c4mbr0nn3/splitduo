@@ -5,7 +5,7 @@ using SplitDuo.Api.Features.Common.Services;
 using SplitDuo.Api.Features.Users.Dto;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Entities;
-using SplitDuo.Core.Dto;
+using SplitDuo.Core.Dto.Imports;
 using SplitDuo.Core.Persistence;
 
 namespace SplitDuo.Api.Features.Users.Services;

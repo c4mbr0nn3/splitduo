@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Quartz;
+using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Domain.Enums;
 using SplitDuo.Core.Factories;
@@ -102,7 +103,7 @@ public class ImportProcessingJob(
             // Get the appropriate import service using the factory
             var importService = importServiceFactory.GetImportService(importType);
 
-            // Process import using the service
+            // Process import using the service - this now handles transactions internally
             var result = await importService.ProcessImportAsync(filePath, import.GroupId, import.Id);
 
             var completedTime = DateTimeOffset.UtcNow;
@@ -113,8 +114,10 @@ public class ImportProcessingJob(
             {
                 import.Status = ImportStatus.Completed;
                 import.RecordsCount = result.Value;
-                logger.LogInformation("Import completed successfully: {ImportGuid}, Records: {RecordsCount}",
-                    import.Guid, result.Value);
+                logger.LogInformation(
+                    "Import completed successfully: {ImportGuid}, Records: {RecordsCount}",
+                    import.Guid,
+                    result.Value);
             }
             else
             {
@@ -136,25 +139,19 @@ public class ImportProcessingJob(
         finally
         {
             await unitOfWork.SaveChangesAsync();
-            await CleanupTempFile(filePath);
+            CleanupTempFile(import.Guid);
         }
     }
 
-    private Task CleanupTempFile(string filePath)
+    private void CleanupTempFile(Guid importGuid)
     {
         try
         {
-            if (File.Exists(filePath))
-            {
-                File.Delete(filePath);
-                logger.LogDebug("Deleted temporary file: {FilePath}", filePath);
-            }
+            FileUtils.CleanupTempFile(importGuid);
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "Failed to delete temporary file: {FilePath}", filePath);
+            logger.LogWarning(ex, "Failed to delete temporary file for Import: {ImportGuid}", importGuid);
         }
-
-        return Task.CompletedTask;
     }
 }

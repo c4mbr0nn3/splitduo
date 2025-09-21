@@ -177,7 +177,7 @@ namespace SplitDuo.Core.Migrations
                     group_id = table.Column<int>(type: "integer", nullable: false),
                     user_id = table.Column<int>(type: "integer", nullable: false),
                     filename = table.Column<string>(type: "text", nullable: false),
-                    file_hash = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
+                    file_hash = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
                     import_date = table.Column<DateOnly>(type: "date", nullable: false),
                     records_count = table.Column<int>(type: "integer", nullable: false),
                     status_id = table.Column<int>(type: "integer", nullable: false),
@@ -186,6 +186,8 @@ namespace SplitDuo.Core.Migrations
                     started_at = table.Column<long>(type: "bigint", nullable: true),
                     completed_at = table.Column<long>(type: "bigint", nullable: true),
                     duration_ms = table.Column<long>(type: "bigint", nullable: true),
+                    analysis_results = table.Column<string>(type: "jsonb", nullable: true),
+                    mapping_configuration = table.Column<string>(type: "jsonb", nullable: true),
                     created_at = table.Column<long>(type: "bigint", nullable: false),
                     updated_at = table.Column<long>(type: "bigint", nullable: false)
                 },

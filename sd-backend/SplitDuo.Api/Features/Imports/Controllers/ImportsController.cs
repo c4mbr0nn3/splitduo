@@ -6,7 +6,7 @@ using SplitDuo.Api.Features.Groups.Services;
 using SplitDuo.Api.Features.Imports.Dto;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Enums;
-using SplitDuo.Core.Dto;
+using SplitDuo.Core.Dto.Imports;
 using SplitDuo.Core.Factories;
 using SplitDuo.Core.Persistence;
 using SplitDuo.Core.Services.Imports;
@@ -36,8 +36,8 @@ public class ImportsController(
         return HandlePaginatedResult(result, "Imports retrieved successfully");
     }
 
-    [HttpPost]
-    public async Task<ActionResult<ApiResponseDto<ImportStatusDto>>> ImportData(
+    [HttpPost("analyze")]
+    public async Task<ActionResult<ApiResponseDto<ImportStatusDto>>> AnalyzeImportFile(
         string groupId,
         [FromForm] ImportRequestDto request)
     {
@@ -56,7 +56,6 @@ public class ImportsController(
         if (groupResult.IsFailure) return HandleResult(groupResult.MapTo<ImportStatusDto>());
         var group = groupResult.Value;
 
-        // Get the appropriate import service
         IImportsService importsService;
         try
         {
@@ -67,28 +66,77 @@ public class ImportsController(
             return HandleResult(Result<ImportStatusDto>.BadRequest(ex.Message));
         }
 
-        // Step 1: Create the import entity and temp file (service handles cleanup on failure)
-        var insertResult = await importsService.InsertImportJobAsync(request.File, group!.OriginalId, user.Id);
-        
-        if (insertResult.IsFailure)
-        {
-            return HandleResult(insertResult);
-        }
+        var validationResult = await importsService.IsValidImportAsync(request.File, group!.OriginalId);
+        if (validationResult.IsFailure) return HandleResult(Result<ImportStatusDto>.BadRequest(validationResult.Error));
 
-        // Step 2: Save the import entity to database
+        var analysisResult = await importsService.AnalyzeFileAsync(request.File);
+        if (analysisResult.IsFailure) return HandleResult(analysisResult.MapTo<ImportStatusDto>());
+
+        var createImportResult = await importsService.CreateImportJobAsync(
+            request.File,
+            group.OriginalId,
+            user.Id,
+            analysisResult.Value!);
+        if (createImportResult.IsFailure) return HandleResult(createImportResult);
+
         try
         {
             await unitOfWork.SaveChangesAsync();
         }
         catch (Exception)
         {
-            // If save fails, service will handle cleanup when TriggerImportJobAsync is called or times out
             return HandleResult(Result<ImportStatusDto>.InternalServerError("Failed to save import to database"));
         }
 
-        // Step 3: Now that entity is saved, trigger the background job
-        var importGuid = Guid.Parse(insertResult.Value!.Id);
-        var triggerResult = await importsService.TriggerImportJobAsync(importGuid);
+        return HandleResult(createImportResult, "File analyzed successfully");
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<ApiResponseDto<ImportStatusDto>>> ImportData(
+        string groupId,
+        CospendImportMappingDto request)
+    {
+        var user = await GetCurrentUserAsync();
+        if (user == null) return HandleResult(Result<ImportStatusDto>.Unauthorized("User not authenticated"));
+
+        if (!Guid.TryParse(request.ImportId, out var importId))
+            return HandleResult(Result<ImportStatusDto>.BadRequest("Invalid import ID format"));
+
+        var importResult = await groupsService.GetImportStatusAsync(importId, user.Guid);
+        if (importResult.IsFailure) return HandleResult(importResult.MapTo<ImportStatusDto>());
+        var import = importResult.Value;
+
+        var groupResult = await groupsService.GetGroupAsync(groupId, user.Guid);
+        if (groupResult.IsFailure) return HandleResult(groupResult.MapTo<ImportStatusDto>());
+
+        IImportsService importsService;
+        try
+        {
+            var importType = (ImportType)import!.ImportTypeId;
+            importsService = importServiceFactory.GetImportService(importType);
+        }
+        catch (NotSupportedException ex)
+        {
+            return HandleResult(Result<ImportStatusDto>.BadRequest(ex.Message));
+        }
+
+        var mappingResult = await importsService.UpdateImportMappingsAsync(importId, request);
+
+        if (mappingResult.IsFailure)
+        {
+            return HandleResult(mappingResult);
+        }
+
+        try
+        {
+            await unitOfWork.SaveChangesAsync();
+        }
+        catch (Exception)
+        {
+            return HandleResult(Result<ImportStatusDto>.InternalServerError("Failed to save import to database"));
+        }
+
+        var triggerResult = await importsService.TriggerImportJobAsync(importId);
 
         if (triggerResult.IsFailure)
         {

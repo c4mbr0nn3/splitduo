@@ -12,7 +12,7 @@ using SplitDuo.Core.Persistence;
 namespace SplitDuo.Core.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250920131941_Initial")]
+    [Migration("20250921155318_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -250,6 +250,10 @@ namespace SplitDuo.Core.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AnalysisResults")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("analysis_results");
+
                     b.Property<long?>("CompletedAt")
                         .HasColumnType("bigint")
                         .HasColumnName("completed_at");
@@ -269,8 +273,8 @@ namespace SplitDuo.Core.Migrations
 
                     b.Property<string>("FileHash")
                         .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
                         .HasColumnName("file_hash");
 
                     b.Property<string>("FileName")
@@ -293,6 +297,10 @@ namespace SplitDuo.Core.Migrations
                     b.Property<int>("ImportTypeId")
                         .HasColumnType("integer")
                         .HasColumnName("import_type_id");
+
+                    b.Property<string>("MappingConfiguration")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("mapping_configuration");
 
                     b.Property<int>("RecordsCount")
                         .HasColumnType("integer")

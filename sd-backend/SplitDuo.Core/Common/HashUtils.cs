@@ -5,32 +5,28 @@ namespace SplitDuo.Core.Common;
 
 public static class HashUtils
 {
-    /// <summary>
-    /// Calculates a hash of the file content using MD5 algorithm.
-    /// This is suitable for detecting duplicate files without security requirements.
-    /// </summary>
-    public static async Task<string> CalculateFileHashAsync(IFormFile file)
+    public static async Task<string> ComputeSha256Async(IFormFile file)
     {
         await using var stream = file.OpenReadStream();
-        using var md5 = MD5.Create();
+        using var sha256 = SHA256.Create();
 
-        var hashBytes = await md5.ComputeHashAsync(stream);
-
-        // Reset stream position for subsequent use
-        stream.Position = 0;
+        var hashBytes = await sha256.ComputeHashAsync(stream);
 
         return Convert.ToHexString(hashBytes).ToLowerInvariant();
     }
 
-    /// <summary>
-    /// Calculates a hash of file content from a file path using MD5 algorithm.
-    /// </summary>
-    public static async Task<string> CalculateFileHashAsync(string filePath)
+    public static string ComputeSha256(byte[] data)
+    {
+        var hashBytes = SHA256.HashData(data);
+        return Convert.ToHexString(hashBytes).ToLowerInvariant();
+    }
+
+    public static async Task<string> ComputeSha256Async(string filePath)
     {
         await using var stream = File.OpenRead(filePath);
-        using var md5 = MD5.Create();
+        using var sha256 = SHA256.Create();
 
-        var hashBytes = await md5.ComputeHashAsync(stream);
+        var hashBytes = await sha256.ComputeHashAsync(stream);
 
         return Convert.ToHexString(hashBytes).ToLowerInvariant();
     }

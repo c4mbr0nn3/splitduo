@@ -1,7 +1,7 @@
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Domain.Enums;
 
-namespace SplitDuo.Core.Dto;
+namespace SplitDuo.Core.Dto.Imports;
 
 public class ImportStatusDto
 {
@@ -19,6 +19,8 @@ public class ImportStatusDto
     public long? Duration { get; set; }
     public long CreatedAt { get; set; }
     public long UpdatedAt { get; set; }
+    public string? AnalysisResults { get; set; }
+    public string? MappingConfiguration { get; set; }
 
     public ImportStatusDto()
     {
@@ -40,5 +42,7 @@ public class ImportStatusDto
         Duration = import.Duration;
         CreatedAt = import.CreatedAt;
         UpdatedAt = import.UpdatedAt;
+        AnalysisResults = import.AnalysisResults;
+        MappingConfiguration = import.MappingConfiguration;
     }
 }

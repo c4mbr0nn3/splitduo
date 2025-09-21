@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using System.Globalization;
-using CsvHelper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -8,7 +7,7 @@ using Quartz;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Domain.Enums;
-using SplitDuo.Core.Dto;
+using SplitDuo.Core.Dto.Imports;
 using SplitDuo.Core.Persistence;
 using SplitDuo.Core.Services.BackgroundJobs;
 
@@ -19,77 +18,126 @@ public class CospendImportsService(
     IUnitOfWork unitOfWork,
     ISchedulerFactory schedulerFactory) : IImportsService
 {
-    private static readonly ConcurrentDictionary<Guid, string> TempFilePaths = new();
-
-    public async Task<Result<ImportStatusDto>> InsertImportJobAsync(IFormFile file, int groupId, int userId)
+    public async Task<Result> IsValidImportAsync(IFormFile file, int groupId)
     {
-        string? tempFilePath = null;
+        var result = FileUtils.CheckExtensionAndSize(file);
+        if (result.IsFailure) return result;
+
+        var hash = await HashUtils.ComputeSha256Async(file);
+        var isDuplicateResult = await IsDuplicateFileAsync(hash, groupId);
+
+        return isDuplicateResult.IsSuccess
+            ? Result.Conflict("This file has already been imported")
+            : Result.Success();
+    }
+
+    public async Task<Result> IsDuplicateFileAsync(string fileHash, int groupId)
+    {
+        var any = await unitOfWork.Imports
+            .AnyAsync(i => i.GroupId == groupId && i.FileHash == fileHash);
+        return any ? Result.Success() : Result.NotFound("No duplicate file found");
+    }
+
+    public async Task<Result<CospendImportAnalysisDto>> AnalyzeFileAsync(IFormFile file)
+    {
         try
         {
-            // Validate file type
-            var validationResult = ValidateFile(file);
-            if (validationResult.IsFailure)
+            var sectionsToParse = new List<CospendSection>
             {
-                return Result<ImportStatusDto>.BadRequest(validationResult.Error);
-            }
-
-            // Calculate file hash for duplicate detection
-            var fileHash = await HashUtils.CalculateFileHashAsync(file);
-
-            // Check if this file has already been imported for this group
-            var existingImport = await unitOfWork.Imports
-                .FirstOrDefaultAsync(i => i.GroupId == groupId && i.FileHash == fileHash);
-
-            if (existingImport != null)
+                CospendSection.Categories,
+                CospendSection.Members,
+                CospendSection.PaymentModes
+            };
+            var parseResult = await CospendCsvParser.ParseAsync(file, sectionsToParse);
+            var fileHash = await HashUtils.ComputeSha256Async(file);
+            var result = new CospendImportAnalysisDto
             {
-                return Result<ImportStatusDto>.Conflict(
-                    $"This file has already been imported on {existingImport.ImportDate:yyyy-MM-dd}. " +
-                    $"Import status: {existingImport.Status}");
-            }
+                FileHash = fileHash,
+                Members = parseResult.Members.Select(m => m.ToKeyValueDto()).ToList(),
+                Categories = parseResult.Categories.Select(c => c.ToKeyValueDto()).ToList(),
+                PaymentModes = parseResult.PaymentModes.Select(p => p.ToKeyValueDto()).ToList()
+            };
 
-            // Create Import entity immediately with Pending status
+
+            logger.LogInformation("Successfully analyzed file with hash: {Hash}", fileHash);
+            return Result<CospendImportAnalysisDto>.Success(result);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "An error occurred while analyzing import file: {FileName}", file.FileName);
+            return Result<CospendImportAnalysisDto>.InternalServerError($"Failed to analyze file: {e.Message}");
+        }
+    }
+
+    public async Task<Result<ImportStatusDto>> CreateImportJobAsync(
+        IFormFile file,
+        int groupId,
+        int userId,
+        CospendImportAnalysisDto analysisDto)
+    {
+        try
+        {
             var import = new Import
             {
-                FileName = file.FileName,
-                FileHash = fileHash,
-                ImportDate = DateOnly.FromDateTime(DateTime.UtcNow),
                 GroupId = groupId,
                 UserId = userId,
-                Status = ImportStatus.Pending,
-                ImportType = ImportType.Cospend
+                FileName = file.FileName,
+                FileHash = analysisDto.FileHash,
+                ImportDate = DateOnly.FromDateTime(DateTime.UtcNow),
+                ImportType = ImportType.Cospend,
+                Status = ImportStatus.Pending
             };
+
+            import.SetAnalysisResults(analysisDto);
 
             await unitOfWork.Imports.AddAsync(import);
 
-            // Save file temporarily for background processing
-            tempFilePath = Path.GetTempFileName();
-            await using (var fileStream = new FileStream(tempFilePath, FileMode.Create))
+            try
             {
-                await file.CopyToAsync(fileStream);
+                await FileUtils.SaveTempFileAsync(file, import.Guid);
             }
-
-            // Store temp file path for later cleanup
-            TempFilePaths[import.Guid] = tempFilePath;
+            catch (Exception e)
+            {
+                logger.LogError("Failed to save temp file for import {ImportGuid}: {Error}", import.Guid, e.Message);
+                return Result<ImportStatusDto>.InternalServerError("Failed to save import file");
+            }
 
             var response = new ImportStatusDto(import);
             return Result<ImportStatusDto>.Success(response);
         }
         catch (Exception e)
         {
-            // Clean up temp file on error
-            if (tempFilePath != null && File.Exists(tempFilePath))
+            logger.LogError(e, "An error occurred while creating import job");
+            return Result<ImportStatusDto>.InternalServerError("Failed to create import job");
+        }
+    }
+
+    public async Task<Result<ImportStatusDto>> UpdateImportMappingsAsync(Guid importGuid,
+        CospendImportMappingDto mappingDto)
+    {
+        try
+        {
+            var import = await unitOfWork.Imports.FirstOrDefaultAsync(i => i.Guid == importGuid);
+
+            if (import == null)
             {
-                try
-                {
-                    File.Delete(tempFilePath);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogWarning(ex, "Failed to cleanup temp file during error: {TempFilePath}", tempFilePath);
-                }
+                return Result<ImportStatusDto>.NotFound("Import not found");
             }
 
-            logger.LogError(e, "An error occurred while preparing import job");
+            var validationResult = await ValidateMappingConfiguration(mappingDto, import.GroupId);
+            if (validationResult.IsFailure)
+            {
+                return Result<ImportStatusDto>.BadRequest(validationResult.Error);
+            }
+
+            import.SetMappingConfiguration(mappingDto);
+
+            var response = new ImportStatusDto(import);
+            return Result<ImportStatusDto>.Success(response);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "An error occurred while updating import mappings for {ImportGuid}", importGuid);
             return Result<ImportStatusDto>.InternalServerError(e.Message);
         }
     }
@@ -98,29 +146,28 @@ public class CospendImportsService(
     {
         try
         {
-            // Find the import entity (should exist and be saved to DB by now)
-            var import = await unitOfWork.Imports
-                .FirstOrDefaultAsync(i => i.Guid == importGuid);
+            var import = await unitOfWork.Imports.FirstOrDefaultAsync(i => i.Guid == importGuid);
 
             if (import == null)
             {
-                // Clean up temp file if import not found
-                if (TempFilePaths.TryRemove(importGuid, out var orphanedTempFilePath))
+                try
                 {
-                    CleanupTempFile(orphanedTempFilePath);
+                    FileUtils.CleanupTempFile(importGuid);
+                }
+                catch (Exception e)
+                {
+                    logger.LogError(e, "Failed to clean up temp file for non-existent import {ImportGuid}", importGuid);
                 }
 
                 return Result<ImportStatusDto>.NotFound("Import not found");
             }
 
-            // Get the temp file path from our storage
-            if (!TempFilePaths.TryGetValue(importGuid, out var tempFilePath) ||
-                string.IsNullOrEmpty(tempFilePath) || !File.Exists(tempFilePath))
+            var tempFilePath = Path.Combine(Path.GetTempPath(), FileUtils.GetTempFileName(importGuid));
+            if (!File.Exists(tempFilePath))
             {
-                return Result<ImportStatusDto>.BadRequest("Import temp file not found");
+                return Result<ImportStatusDto>.BadRequest("Import file not found");
             }
 
-            // Schedule background job
             var scheduler = await schedulerFactory.GetScheduler();
             var jobData = new JobDataMap
             {
@@ -141,20 +188,12 @@ public class CospendImportsService(
 
             await scheduler.ScheduleJob(job, trigger);
 
-            // Remove from our temp storage since the job will handle cleanup
-            TempFilePaths.TryRemove(importGuid, out _);
-
             var response = new ImportStatusDto(import);
             return Result<ImportStatusDto>.Success(response);
         }
         catch (Exception e)
         {
-            // Clean up temp file on error
-            if (TempFilePaths.TryRemove(importGuid, out var tempFilePath))
-            {
-                CleanupTempFile(tempFilePath);
-            }
-
+            FileUtils.CleanupTempFile(importGuid);
             logger.LogError(e, "An error occurred while triggering import job for {ImportGuid}", importGuid);
             return Result<ImportStatusDto>.InternalServerError(e.Message);
         }
@@ -164,18 +203,17 @@ public class CospendImportsService(
     {
         try
         {
-            await using var fileStream = File.OpenRead(filePath);
-            using var streamReader = new StreamReader(fileStream);
-            using var reader = new CsvReader(streamReader, CultureInfo.InvariantCulture);
+            var sectionsToParse = new List<CospendSection>
+            {
+                CospendSection.Categories,
+                CospendSection.Members,
+                CospendSection.PaymentModes,
+                CospendSection.Expenses
+            };
+            var parseResult = await CospendCsvParser.ParseAsync(filePath, sectionsToParse);
+            var createResult = await CreateExpensesAsync(parseResult, groupId, importId);
 
-            // Configure CsvHelper to handle missing fields gracefully
-            reader.Context.Configuration.MissingFieldFound = null;
-            reader.Context.Configuration.HeaderValidated = null;
-
-            var expenses = await ParseExpensesSection(reader);
-            var result = await CreateExpensesAsync(expenses, groupId, importId);
-
-            return result;
+            return createResult;
         }
         catch (Exception e)
         {
@@ -184,279 +222,200 @@ public class CospendImportsService(
         }
     }
 
-    private async Task<List<CospendExpenseDto>> ParseExpensesSection(CsvReader reader)
+    private async Task<Result<int>> CreateExpensesAsync(CospendParseResult parseResult, int groupId, int importId)
     {
-        var expenses = new List<CospendExpenseDto>();
+        // Start a transaction to ensure all-or-nothing behavior
+        await unitOfWork.BeginTransactionAsync();
 
-        // Skip members section by reading until we find the expenses header
-        var foundExpensesSection = false;
-
-        while (await reader.ReadAsync())
+        try
         {
-            // Check if current line is the expenses header
-            var currentRecord = reader.Parser.Record;
-            if (currentRecord is not { Length: > 0 }) continue;
-            var firstField = currentRecord[0].Trim('"');
-            if (firstField != "what") continue;
-            foundExpensesSection = true;
-            break;
-        }
-
-        if (!foundExpensesSection)
-        {
-            throw new InvalidOperationException("Expenses section not found in CSV file");
-        }
-
-        // Read the header to set up CsvHelper's mapping
-        reader.ReadHeader();
-
-        // Now read expenses until we hit an empty line (end of expenses section)
-        while (await reader.ReadAsync())
-        {
-            var currentRecord = reader.Parser.Record;
-
-            // Stop if we hit an empty line (section separator)
-            if (IsEmptyOrSectionSeparator(currentRecord)) break;
-
-            try
+            // Get the import record to retrieve mapping configuration
+            var import = await unitOfWork.Imports.FirstOrDefaultAsync(i => i.Id == importId);
+            if (import == null)
             {
-                var expense = reader.GetRecord<CospendExpenseDto>();
-                expenses.Add(expense);
-            }
-            catch (Exception ex)
-            {
-                logger.LogWarning(
-                    ex,
-                    "Failed to parse expense record at line {LineNumber}",
-                    reader.Parser.RawRow);
-            }
-        }
-
-        logger.LogInformation("Successfully parsed {Count} expense records", expenses.Count);
-        return expenses;
-    }
-
-    // Data transformation methods
-    private async Task<Result<int>> CreateExpensesAsync(List<CospendExpenseDto> expenses, int groupId, int importId)
-    {
-        var categoryMapping = BuildCategoryMapping();
-        var paymentModeMapping = BuildPaymentModeMapping();
-        var userNameMapping = BuildStaticUserMapping();
-
-        var expensesToInsert = new List<Expense>();
-
-        foreach (var exp in expenses.Where(e => !e.IsDeleted))
-        {
-            // Map category and payment mode
-            var category = categoryMapping.GetValueOrDefault(exp.CategoryId, ExpenseCategory.Other);
-            var paymentMode = paymentModeMapping.GetValueOrDefault(exp.PaymentModeId, PaymentMode.Other);
-
-            // Find payer using static mapping - skip if not found
-            if (!userNameMapping.TryGetValue(exp.PayerName, out var payerId)) continue;
-
-            // Prepare owers list
-            var owersUserIds = exp.OwersNames
-                .Select(name => userNameMapping.GetValueOrDefault(name))
-                .Where(id => id > 0)
-                .ToList();
-
-            if (owersUserIds.Count == 0)
-            {
-                logger.LogWarning("No valid users found for expense '{ExpenseTitle}', skipping", exp.What);
-                continue;
+                return Result<int>.NotFound("Import record not found");
             }
 
-            // Create expense with splits using navigation property
-            var expense = new Expense
+            // Get mapping configuration from the import record
+            var mappingConfig = import.GetMappingConfiguration<CospendImportMappingDto>();
+            if (mappingConfig == null)
             {
-                GroupId = groupId,
-                Title = exp.What,
-                Description = exp.Comment,
-                Amount = exp.Amount,
-                PaidBy = payerId,
-                ExpenseDate = exp.ParsedDate,
-                Category = category,
-                PaymentMode = paymentMode,
-                ImportId = importId
-            };
-
-            // Add splits using navigation property - EF Core will handle the relationships
-            var splits = CalculateEqualSplits(expense.Amount, owersUserIds);
-            foreach (var split in splits)
-            {
-                expense.ExpenseSplits.Add(split);
+                logger.LogError("No mapping configuration found for import {ImportId}", importId);
+                return Result<int>.BadRequest("No mapping configuration found");
             }
 
-            expensesToInsert.Add(expense);
-        }
+            var groupMembers = await unitOfWork.GroupMembers
+                .Where(gm => gm.GroupId == groupId)
+                .Include(gm => gm.User)
+                .Select(gm => gm.User)
+                .ToListAsync();
 
-        if (expensesToInsert.Count == 0)
-        {
-            logger.LogWarning("No valid expenses to import");
-            return Result<int>.Success(0);
-        }
+            var expensesToInsert = new List<Expense>();
 
-        // Bulk insert expenses with their splits - single SaveChanges call
-        logger.LogInformation("Bulk inserting {Count} expenses with their splits", expensesToInsert.Count);
-        await unitOfWork.Expenses.AddRangeAsync(expensesToInsert);
-        await unitOfWork.SaveChangesAsync();
-
-        var totalSplits = expensesToInsert.Sum(e => e.ExpenseSplits.Count);
-        logger.LogInformation("Successfully imported {ExpenseCount} expenses with {SplitCount} splits",
-            expensesToInsert.Count, totalSplits);
-
-        return Result<int>.Success(expensesToInsert.Count);
-    }
-
-    private static Dictionary<int, PaymentMode> BuildPaymentModeMapping()
-    {
-        return new Dictionary<int, PaymentMode>
-        {
-            { 1, PaymentMode.Card },
-            { 2, PaymentMode.Cash },
-            { 3, PaymentMode.Other },
-            { 4, PaymentMode.Transfer },
-            { 5, PaymentMode.OnlineService }
-        };
-    }
-
-    private static Dictionary<int, ExpenseCategory> BuildCategoryMapping()
-    {
-        return new Dictionary<int, ExpenseCategory>
-        {
-            { 5, ExpenseCategory.Groceries },
-            { 15, ExpenseCategory.Groceries },
-            { 9, ExpenseCategory.Groceries },
-            { 6, ExpenseCategory.Dining },
-            { 4, ExpenseCategory.Transportation },
-            { 1, ExpenseCategory.Transportation },
-            { 7, ExpenseCategory.Transportation },
-            { 27, ExpenseCategory.Transportation },
-            { 8, ExpenseCategory.Transportation },
-            { 30, ExpenseCategory.Transportation },
-            { 32, ExpenseCategory.Transportation },
-            { 2, ExpenseCategory.Utilities },
-            { 21, ExpenseCategory.Utilities },
-            { 19, ExpenseCategory.Utilities },
-            { 33, ExpenseCategory.Utilities },
-            { 12, ExpenseCategory.Utilities },
-            { 25, ExpenseCategory.Housing },
-            { 16, ExpenseCategory.Housing },
-            { 24, ExpenseCategory.Housing },
-            { 35, ExpenseCategory.Housing },
-            { 11, ExpenseCategory.Entertainment },
-            { 28, ExpenseCategory.Entertainment },
-            { 31, ExpenseCategory.Entertainment },
-            { 13, ExpenseCategory.Entertainment },
-            { 26, ExpenseCategory.Shopping },
-            { 14, ExpenseCategory.Shopping },
-            { 20, ExpenseCategory.Shopping },
-            { 17, ExpenseCategory.Shopping },
-            { 34, ExpenseCategory.Shopping },
-            { 36, ExpenseCategory.Travel },
-            { 22, ExpenseCategory.Health },
-            { 18, ExpenseCategory.Education },
-            { 23, ExpenseCategory.Other },
-            { 3, ExpenseCategory.Other },
-            { 10, ExpenseCategory.Other },
-            { 29, ExpenseCategory.Other },
-            { 0, ExpenseCategory.Other },
-            { -11, ExpenseCategory.Other }
-        };
-    }
-
-    private static Dictionary<string, int> BuildStaticUserMapping()
-    {
-        return new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
-        {
-            { "Francesco", 1 },
-            { "Beatrice", 2 }
-        };
-    }
-
-    private static ExpenseSplit[] CalculateEqualSplits(decimal amount, List<int> userIds)
-    {
-        if (userIds.Count == 0)
-            throw new ArgumentException("User list cannot be empty", nameof(userIds));
-
-        var splitAmount = Math.Round(amount / userIds.Count, 2, MidpointRounding.AwayFromZero);
-        var splits = new List<ExpenseSplit>();
-        var totalAssigned = 0m;
-
-        // Assign equal amounts to all but the last user
-        for (var i = 0; i < userIds.Count - 1; i++)
-        {
-            splits.Add(new ExpenseSplit
+            foreach (var exp in parseResult.Expenses.Where(e => !e.IsDeleted))
             {
-                UserId = userIds[i],
-                SplitAmount = splitAmount
-            });
-            totalAssigned += splitAmount;
+                // Map category and payment mode using dynamic mappings
+                var category = mappingConfig.CategoryMappings
+                    .TryGetValue(exp.CategoryId, out var categoryId)
+                    ? (ExpenseCategory)categoryId
+                    : ExpenseCategory.Other;
+
+                var paymentMode = mappingConfig.PaymentModeMappings
+                    .TryGetValue(exp.PaymentModeId, out var paymentModeId)
+                    ? (PaymentMode)paymentModeId
+                    : PaymentMode.Other;
+
+                // Find payer using dynamic mapping - skip if not found
+                if (!mappingConfig.UserMappings.TryGetValue(exp.PayerName, out var payerIdStr) ||
+                    !Guid.TryParse(payerIdStr, out var payerGuid))
+                {
+                    logger.LogWarning(
+                        "Payer '{PayerName}' not found in mapping configuration, skipping expense '{ExpenseTitle}'",
+                        exp.PayerName,
+                        exp.What);
+                    continue;
+                }
+
+                // Prepare owers list using dynamic mapping
+                var owersUserIds = exp.OwersNames
+                    .Where(name => mappingConfig.UserMappings.TryGetValue(name, out var userIdStr)
+                                   && Guid.TryParse(userIdStr, out _))
+                    .Select(name => Guid.Parse(mappingConfig.UserMappings[name]))
+                    .Select(guid => groupMembers.FirstOrDefault(u => u.Guid == guid)?.Id)
+                    .Where(id => id.HasValue)
+                    .Select(id => id!.Value)
+                    .ToList();
+
+                if (owersUserIds.Count == 0)
+                {
+                    logger.LogWarning("No valid users found for expense '{ExpenseTitle}', skipping", exp.What);
+                    continue;
+                }
+
+
+                // Create expense with splits using navigation property
+                var expense = new Expense
+                {
+                    GroupId = groupId,
+                    Title = exp.What,
+                    Description = exp.Comment,
+                    Amount = exp.Amount,
+                    PaidBy = groupMembers.FirstOrDefault(u => u.Guid == payerGuid)?.Id ??
+                             throw new InvalidOperationException("Payer user not found"),
+                    ExpenseDate = exp.ParsedDate,
+                    Category = category,
+                    PaymentMode = paymentMode,
+                    ImportId = importId
+                };
+
+                // Add splits using navigation property - EF Core will handle the relationships
+                var splits = CalculateEqualSplits(expense.Amount, owersUserIds);
+                foreach (var split in splits)
+                {
+                    expense.ExpenseSplits.Add(split);
+                }
+
+                expensesToInsert.Add(expense);
+            }
+
+            if (expensesToInsert.Count == 0)
+            {
+                logger.LogWarning("No valid expenses to import");
+                await unitOfWork.RollbackTransactionAsync();
+                return Result<int>.Success(0);
+            }
+
+            // Bulk insert expenses with their splits - single SaveChanges call
+            logger.LogInformation("Bulk inserting {Count} expenses with their splits", expensesToInsert.Count);
+            await unitOfWork.Expenses.AddRangeAsync(expensesToInsert);
+            await unitOfWork.SaveChangesAsync();
+
+            // Commit the transaction
+            await unitOfWork.CommitTransactionAsync();
+
+            var totalSplits = expensesToInsert.Sum(e => e.ExpenseSplits.Count);
+            logger.LogInformation("Successfully imported {ExpenseCount} expenses with {SplitCount} splits",
+                expensesToInsert.Count, totalSplits);
+
+            return Result<int>.Success(expensesToInsert.Count);
         }
-
-        // Assign the remainder to the last user to handle rounding differences
-        var remainingAmount = amount - totalAssigned;
-        splits.Add(new ExpenseSplit
+        catch (Exception ex)
         {
-            UserId = userIds[^1],
-            SplitAmount = remainingAmount
-        });
-
-        return splits.ToArray();
+            logger.LogError(ex, "Error during import processing, rolling back transaction for import {ImportId}",
+                importId);
+            await unitOfWork.RollbackTransactionAsync();
+            return Result<int>.InternalServerError($"Import failed: {ex.Message}");
+        }
     }
 
-    private static Result ValidateFile(IFormFile file)
+    private static List<ExpenseSplit> CalculateEqualSplits(decimal totalAmount, List<int> userIds)
     {
-        // Validate file is provided
-        if (file == null)
+        var amountPerUser = Math.Round(totalAmount / userIds.Count, 2, MidpointRounding.AwayFromZero);
+
+        var splits = userIds.Select(userId => new ExpenseSplit
         {
-            return Result.BadRequest("No file provided");
+            UserId = userId,
+            SplitAmount = amountPerUser
+        }).ToList();
+
+        // Handle rounding differences by adjusting the last split
+        var totalSplitAmount = splits.Sum(s => s.SplitAmount);
+        var difference = totalAmount - totalSplitAmount;
+
+        if (difference != 0 && splits.Count > 0)
+        {
+            splits[^1].SplitAmount += difference;
         }
 
-        // Validate file extension
-        var fileName = file.FileName?.ToLowerInvariant();
-        if (string.IsNullOrEmpty(fileName) || !fileName.EndsWith(".csv"))
+        return splits;
+    }
+
+    private async Task<Result> ValidateMappingConfiguration(CospendImportMappingDto mappings, int groupId)
+    {
+        var groupMemberIds = await unitOfWork.GroupMembers
+            .Where(g => g.Id == groupId)
+            .Include(g => g.User)
+            .Select(g => g.User.Guid)
+            .ToListAsync();
+
+        foreach (var userMapping in mappings.UserMappings)
         {
-            return Result.BadRequest("File must have a .csv extension");
+            if (Guid.TryParse(userMapping.Value, out var userGuid) && groupMemberIds.Contains(userGuid)) continue;
+
+            var message =
+                $"User mapping for '{userMapping.Key}' maps to invalid or non-member user ID '{userMapping.Value}'";
+            logger.LogWarning("User mapping error: {Message}", message);
+            return Result.BadRequest(message);
         }
 
-        // Validate file size (max 10MB as per specification)
-        const long maxFileSizeBytes = 10 * 1024 * 1024; // 10MB
-        if (file.Length > maxFileSizeBytes)
+        var validCategories = Enum.GetValues<ExpenseCategory>().Cast<int>().ToHashSet();
+        foreach (var categoryMapping in mappings.CategoryMappings)
         {
-            return Result.BadRequest(
-                $"File size must not exceed 10MB. Current size: {file.Length / 1024.0 / 1024.0:F2}MB");
+            if (validCategories.Contains(categoryMapping.Value)) continue;
+            var message =
+                $"Category mapping for ID '{categoryMapping.Key}' maps to invalid category '{categoryMapping.Value}'";
+            logger.LogWarning("Category mapping error: {Message}", message);
+            return Result.BadRequest(message);
         }
 
-        // Validate file is not empty
-        if (file.Length == 0)
+        var validPaymentModes = Enum.GetValues<PaymentMode>().Cast<int>().ToHashSet();
+        foreach (var paymentModeMapping in mappings.PaymentModeMappings)
         {
-            return Result.BadRequest("File cannot be empty");
+            if (validPaymentModes.Contains(paymentModeMapping.Value)) continue;
+            var message =
+                $"Payment mode mapping for ID '{paymentModeMapping.Key}' maps to invalid payment mode '{paymentModeMapping.Value}'";
+            logger.LogWarning("Payment mode mapping error: {Message}", message);
+            return Result.BadRequest(message);
         }
 
         return Result.Success();
     }
+}
 
-    private static bool IsEmptyOrSectionSeparator(string[]? record)
-    {
-        return record == null
-               || record.Length == 0
-               || string.IsNullOrWhiteSpace(string.Join("", record));
-    }
-
-    private void CleanupTempFile(string tempFilePath)
-    {
-        try
-        {
-            if (File.Exists(tempFilePath))
-            {
-                File.Delete(tempFilePath);
-                logger.LogDebug("Cleaned up temp file: {TempFilePath}", tempFilePath);
-            }
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "Failed to cleanup temp file: {TempFilePath}", tempFilePath);
-        }
-    }
+public class CospendImportAnalysisDto
+{
+    public string FileHash { get; set; } = "";
+    public List<KeyValueDto> Members { get; set; } = [];
+    public List<KeyValueDto> Categories { get; set; } = [];
+    public List<KeyValueDto> PaymentModes { get; set; } = [];
 }

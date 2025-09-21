@@ -4,7 +4,7 @@ using SplitDuo.Api.Features.Groups.Dto;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Domain.Enums;
-using SplitDuo.Core.Dto;
+using SplitDuo.Core.Dto.Imports;
 using SplitDuo.Core.Persistence;
 
 namespace SplitDuo.Api.Features.Groups.Services;
@@ -23,8 +23,13 @@ public interface IGroupsService
 
     Task<Result> RemoveGroupMemberAsync(string groupId, string userId, Guid currentUserId);
 
-    Task<Result<PaginatedResponseDto<ImportStatusDto>>> GetGroupImportsAsync(string groupId, Guid currentUserId,
-        int page = 1, int limit = 20);
+    Task<Result<PaginatedResponseDto<ImportStatusDto>>> GetGroupImportsAsync(
+        string groupId,
+        Guid currentUserId,
+        int page = 1,
+        int limit = 20);
+
+    Task<Result<ImportStatusDto>> GetImportStatusAsync(Guid importId, Guid currentUserId);
 }
 
 public class GroupsService(IUnitOfWork unitOfWork) : IGroupsService
@@ -425,8 +430,11 @@ public class GroupsService(IUnitOfWork unitOfWork) : IGroupsService
         return Result.Success();
     }
 
-    public async Task<Result<PaginatedResponseDto<ImportStatusDto>>> GetGroupImportsAsync(string groupId,
-        Guid currentUserId, int page = 1, int limit = 20)
+    public async Task<Result<PaginatedResponseDto<ImportStatusDto>>> GetGroupImportsAsync(
+        string groupId,
+        Guid currentUserId,
+        int page = 1,
+        int limit = 20)
     {
         if (!Guid.TryParse(groupId, out var groupGuid))
             return Result<PaginatedResponseDto<ImportStatusDto>>.BadRequest("Invalid group ID format");
@@ -478,5 +486,32 @@ public class GroupsService(IUnitOfWork unitOfWork) : IGroupsService
 
         var paginatedResponse = PaginatedResponseDto<ImportStatusDto>.SuccessResponse(importDtos, pagination);
         return Result<PaginatedResponseDto<ImportStatusDto>>.Success(paginatedResponse);
+    }
+
+    public async Task<Result<ImportStatusDto>> GetImportStatusAsync(Guid importId, Guid currentUserId)
+    {
+        var import = await unitOfWork.Imports
+            .Include(i => i.Group)
+            .Include(i => i.User)
+            .FirstOrDefaultAsync(i => i.Guid == importId);
+        if (import == null)
+            return Result<ImportStatusDto>.NotFound("Import not found");
+
+        var user = await unitOfWork.Users
+            .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
+        if (user == null)
+            return Result<ImportStatusDto>.Unauthorized("User not found");
+
+        var isMember = await unitOfWork.GroupMembers
+            .AnyAsync(gm => gm.GroupId == import.GroupId && gm.UserId == user.Id && gm.DeletedAt == null);
+        if (!isMember)
+            return Result<ImportStatusDto>.Forbidden("Access to this group is not allowed");
+
+        var isImportOwner = import.UserId == user.Id;
+        if (!isImportOwner)
+            return Result<ImportStatusDto>.Forbidden("You can only view the status of your own imports");
+
+        var result = new ImportStatusDto(import);
+        return Result<ImportStatusDto>.Success(result);
     }
 }
