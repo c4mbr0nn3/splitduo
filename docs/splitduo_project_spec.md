@@ -90,31 +90,35 @@
 - [x] Implement groups management service (create, manage members, authorization)
 - [x] Implement core expense CRUD operations (with integrated split calculation)
 - [x] Implement balance calculation service (automatic debt calculation)
-- [x] Implement settlement optimization (minimize transaction suggestions)
-- [x] Implement settlements management (payment recording between users)
-- [ ] Create mobile-first Vue.js frontend with Nuxt UI
-- [ ] Deploy with Docker Compose (single app container + PostgreSQL container)
+- [x] Implement Categories as enum (no CRUD for now)
+- [x] Implement Payment Modes as enum (no CRUD for now)
+- [x] Implement Cospend backup file import (CSV parsing and data mapping)
+- [x] Add data validation and error handling
+- [x] Create mobile-first Vue.js frontend with Nuxt UI
+- [x] Deploy with Docker Compose (single app container + PostgreSQL container)
+- [ ] GitLab CI/CD pipeline for automated builds and push to Docker registry
 
-### Phase 2: Data Compatibility
+### Phase 2: Enhancements & Additional Imports/Exports
 
-- [ ] Implement Cospend backup file import
-- [ ] Create CSV export with Cospend structure compatibility
-- [ ] Add data validation and error handling
+- [ ] Implement invite system (email-based invitations)
+- [ ] Multi-user group support (beyond two users)
+- [ ] Implement custom categories and payment modes (CRUD operations)
+- [ ] Implement Splitwise data import (CSV parsing and data mapping)
+- [ ] Implement CSV export with proprietary format
+- [ ] Implement CSV import with proprietary format
 
-### Phase 3: Polish & Enhancement
+### Phase 3: Polish
 
+- [ ] Implement settlements management (payment recording between users)
+- [ ] Implement settlement optimization (minimize transaction suggestions)
 - [ ] Improve mobile UI/UX and responsive design
-- [ ] Add expense categories and filtering
-- [ ] Basic performance optimization for mobile devices
-- [ ] Comprehensive testing across devices
+- [ ] Improve desktop UI/UX
+- [ ] Implement unit and integration tests
 
 ### Phase 4: Future Expansion
 
-- [ ] Multi-user group support
 - [ ] Advanced features (recurring expenses, payment tracking)
 - [ ] Implement data visualization (charts, reports)
-- [ ] Native mobile app development
-- [ ] Progressive Web App (PWA) features
 
 ## Technical Considerations
 
