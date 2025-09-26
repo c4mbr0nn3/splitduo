@@ -12,7 +12,7 @@ using SplitDuo.Core.Persistence;
 namespace SplitDuo.Core.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250921155318_Initial")]
+    [Migration("20250926183510_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -313,6 +313,10 @@ namespace SplitDuo.Core.Migrations
                     b.Property<int>("StatusId")
                         .HasColumnType("integer")
                         .HasColumnName("status_id");
+
+                    b.Property<byte[]>("TempFile")
+                        .HasColumnType("bytea")
+                        .HasColumnName("temp_file");
 
                     b.Property<long>("UpdatedAt")
                         .HasColumnType("bigint")

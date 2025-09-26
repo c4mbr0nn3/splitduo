@@ -186,6 +186,7 @@ namespace SplitDuo.Core.Migrations
                     started_at = table.Column<long>(type: "bigint", nullable: true),
                     completed_at = table.Column<long>(type: "bigint", nullable: true),
                     duration_ms = table.Column<long>(type: "bigint", nullable: true),
+                    temp_file = table.Column<byte[]>(type: "bytea", nullable: true),
                     analysis_results = table.Column<string>(type: "jsonb", nullable: true),
                     mapping_configuration = table.Column<string>(type: "jsonb", nullable: true),
                     created_at = table.Column<long>(type: "bigint", nullable: false),

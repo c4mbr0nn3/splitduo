@@ -311,6 +311,10 @@ namespace SplitDuo.Core.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("status_id");
 
+                    b.Property<byte[]>("TempFile")
+                        .HasColumnType("bytea")
+                        .HasColumnName("temp_file");
+
                     b.Property<long>("UpdatedAt")
                         .HasColumnType("bigint")
                         .HasColumnName("updated_at");
