@@ -7,13 +7,16 @@ This report documents the comprehensive implementation of Two-Factor Authenticat
 ## Implementation Overview
 
 ### Architecture Decision
+
 The 2FA implementation follows the existing SplitDuo architecture patterns:
+
 - **Vertical Slice Architecture** - 2FA features are organized within the Authentication feature folder
 - **Enhanced Result Pattern** - All services return Result<T> with appropriate HTTP status codes
 - **Service Layer Pattern** - Business logic is contained within dedicated service classes
 - **Unit of Work Pattern** - Database operations are managed through centralized transaction handling
 
 ### Key Features Implemented
+
 1. **TOTP Support** - Compatible with authenticator apps (Google Authenticator, Authy, etc.)
 2. **Email-based 2FA** - Fallback authentication via email codes
 3. **Backup Codes** - Emergency access codes for account recovery
@@ -23,6 +26,7 @@ The 2FA implementation follows the existing SplitDuo architecture patterns:
 ## Database Schema Changes
 
 ### User Entity Updates
+
 ```csharp
 // Added to User.cs
 [Column("two_factor_enabled")] public bool TwoFactorEnabled { get; set; } = false;
@@ -31,6 +35,7 @@ The 2FA implementation follows the existing SplitDuo architecture patterns:
 ```
 
 ### New TwoFactorToken Entity
+
 ```sql
 CREATE TABLE two_factor_tokens (
     id SERIAL PRIMARY KEY,
@@ -57,9 +62,11 @@ CREATE INDEX idx_two_factor_tokens_type ON two_factor_tokens(token_type);
 ## Service Layer Implementation
 
 ### TwoFactorService (`ITwoFactorService`)
+
 **Location**: `sd-backend/SplitDuo.Api/Features/Authentication/Services/TwoFactorService.cs`
 
 **Key Methods**:
+
 - `InitiateSetupAsync()` - Generates TOTP secret and QR code for setup
 - `VerifySetupAsync()` - Confirms TOTP setup and enables 2FA
 - `DisableAsync()` - Securely disables 2FA with password verification
@@ -70,6 +77,7 @@ CREATE INDEX idx_two_factor_tokens_type ON two_factor_tokens(token_type);
 - `GenerateBackupCodesAsync()` - Creates new backup codes
 
 **Security Features**:
+
 - **Cryptographically Secure Token Generation** - Uses `RandomNumberGenerator` for all tokens
 - **SHA256 Hashing** - All stored tokens are hashed for security
 - **Rate Limiting** - Email codes limited to 3 attempts before expiration
@@ -78,7 +86,9 @@ CREATE INDEX idx_two_factor_tokens_type ON two_factor_tokens(token_type);
 - **Backup Code Consumption** - Used backup codes are immediately removed
 
 ### AuthenticationService Updates
+
 **Enhanced Login Flow**:
+
 1. Validate email/password credentials
 2. Check if 2FA is enabled for user
 3. If 2FA enabled:
@@ -87,12 +97,14 @@ CREATE INDEX idx_two_factor_tokens_type ON two_factor_tokens(token_type);
 4. If 2FA disabled: Complete login normally
 
 **New Method**: `VerifyTwoFactorAndCompleteLoginAsync()`
+
 - Supports TOTP, email, and backup code verification
 - Completes authentication flow after successful 2FA verification
 
 ## API Endpoints
 
 ### Authentication Endpoints (AuthController)
+
 ```
 POST /api/v1/auth/login          - Primary login (checks for 2FA requirement)
 POST /api/v1/auth/verify-2fa     - Complete login after 2FA verification
@@ -101,6 +113,7 @@ POST /api/v1/auth/revoke         - Token revocation (unchanged)
 ```
 
 ### 2FA Management Endpoints (TwoFactorController)
+
 ```
 POST /api/v1/2fa/setup/initiate           - Start 2FA setup process
 POST /api/v1/2fa/setup/verify             - Complete 2FA setup
@@ -112,6 +125,7 @@ POST /api/v1/2fa/backup-codes/generate    - Generate new backup codes
 ## Authentication Flow Changes
 
 ### Standard Login (No 2FA)
+
 ```
 1. POST /auth/login {email, password}
 2. Validate credentials
@@ -119,6 +133,7 @@ POST /api/v1/2fa/backup-codes/generate    - Generate new backup codes
 ```
 
 ### 2FA-Enabled Login
+
 ```
 1. POST /auth/login {email, password}
 2. Validate credentials
@@ -130,6 +145,7 @@ POST /api/v1/2fa/backup-codes/generate    - Generate new backup codes
 ```
 
 ### 2FA Setup Flow
+
 ```
 1. POST /2fa/setup/initiate
 2. Return {secret, qrCodeUri, backupCodes}
@@ -143,18 +159,21 @@ POST /api/v1/2fa/backup-codes/generate    - Generate new backup codes
 ## Security Considerations
 
 ### Token Security
+
 - **Email Codes**: 6-digit numeric, SHA256 hashed, 10-minute expiration
 - **TOTP Secrets**: 20-byte cryptographically random, Base32 encoded
 - **Backup Codes**: 10 codes, hexadecimal format, SHA256 hashed
 - **Rate Limiting**: Maximum 3 attempts per email code
 
 ### Database Security
+
 - All sensitive tokens stored as SHA256 hashes
 - TOTP secrets encrypted at application level
 - Backup codes stored as hashed JSON array
 - Automatic cleanup of expired/used tokens
 
 ### TOTP Implementation
+
 - RFC 6238 compliant Time-based OTP
 - 30-second time steps
 - 6-digit codes
@@ -164,13 +183,16 @@ POST /api/v1/2fa/backup-codes/generate    - Generate new backup codes
 ## Error Handling
 
 ### Consistent Error Responses
+
 All 2FA operations use the Enhanced Result Pattern:
+
 - `400 Bad Request` - Invalid input or business logic violations
 - `401 Unauthorized` - Invalid credentials or codes
 - `404 Not Found` - User or resource not found
 - `409 Conflict` - 2FA already enabled/disabled
 
 ### Logging Strategy
+
 - **Info Level**: Successful operations, setup completions
 - **Warning Level**: Failed verification attempts, invalid codes
 - **Error Level**: System errors, service failures
@@ -178,13 +200,16 @@ All 2FA operations use the Enhanced Result Pattern:
 ## Integration Points
 
 ### Email Notification Service
+
 2FA integrates with existing `INotificationService` for:
+
 - Setup confirmation emails
-- Disable confirmation emails  
+- Disable confirmation emails
 - Email verification codes
 - Uses existing outbox pattern for reliable delivery
 
 ### User Management
+
 - Extends existing User entity
 - Maintains backward compatibility
 - Integrates with existing password hashing
@@ -193,13 +218,16 @@ All 2FA operations use the Enhanced Result Pattern:
 ## Testing Strategy
 
 ### Unit Testing Areas
+
 1. **TwoFactorService Methods**
+
    - TOTP generation and validation
    - Email code generation and verification
    - Backup code management
    - Setup and disable workflows
 
 2. **AuthenticationService Integration**
+
    - Login flow with 2FA enabled/disabled
    - 2FA verification completions
    - Error handling scenarios
@@ -210,6 +238,7 @@ All 2FA operations use the Enhanced Result Pattern:
    - Error response formats
 
 ### Security Testing
+
 - Rate limiting effectiveness
 - Token expiration handling
 - Code reuse prevention
@@ -219,17 +248,21 @@ All 2FA operations use the Enhanced Result Pattern:
 ## Deployment Considerations
 
 ### Database Migration
+
 - User table schema updates (3 new columns)
 - New TwoFactorToken table creation
 - Indexes for performance optimization
 
 ### Configuration
+
 No new configuration required - leverages existing:
+
 - SMTP settings for email codes
 - JWT configuration for tokens
 - Database connection settings
 
 ### Backward Compatibility
+
 - Existing users: 2FA disabled by default
 - Existing login flow: Unchanged for non-2FA users
 - API responses: Enhanced with `RequiresTwoFactor` field
@@ -237,27 +270,32 @@ No new configuration required - leverages existing:
 ## Performance Impact
 
 ### Database Queries
+
 - Login: +1 query to check 2FA status
 - 2FA Setup: +2-3 queries for token management
 - Code Validation: +1-2 queries for token verification
 
 ### Memory Usage
+
 - Minimal impact: Additional service registrations
 - Token caching: Uses existing Entity Framework tracking
 
 ### Network Traffic
+
 - Email codes: Additional SMTP calls
 - QR codes: Generated as URI strings (no image processing)
 
 ## Security Benefits
 
 ### Attack Mitigation
+
 1. **Credential Stuffing**: 2FA blocks access even with valid passwords
 2. **Phishing**: TOTP codes are time-limited and app-generated
 3. **Account Takeover**: Email notifications alert users to 2FA changes
 4. **Brute Force**: Rate limiting on email codes, TOTP attempts
 
 ### Compliance Readiness
+
 - Industry-standard TOTP implementation
 - Secure token management practices
 - Audit trail for all 2FA operations
@@ -266,6 +304,7 @@ No new configuration required - leverages existing:
 ## Future Enhancements
 
 ### Potential Additions
+
 1. **SMS-based 2FA** - Additional code delivery method
 2. **Hardware Security Keys** - WebAuthn/FIDO2 support
 3. **Trusted Devices** - Device-based exemptions
@@ -273,6 +312,7 @@ No new configuration required - leverages existing:
 5. **Admin 2FA Management** - Force enable/disable for users
 
 ### Monitoring Opportunities
+
 1. **2FA Adoption Rates** - Track user enablement metrics
 2. **Authentication Success Rates** - Monitor 2FA verification success
 3. **Support Impact** - Track backup code usage for user support
@@ -282,6 +322,7 @@ No new configuration required - leverages existing:
 The 2FA implementation for SplitDuo provides enterprise-grade security while maintaining the application's user-friendly approach. The solution integrates seamlessly with existing architecture patterns and provides multiple authentication factors to accommodate different user preferences and scenarios.
 
 ### Key Achievements
+
 - ✅ **Multi-factor Support** - TOTP, email, and backup codes
 - ✅ **Security Best Practices** - Proper hashing, rate limiting, expiration
 - ✅ **Backward Compatibility** - No disruption to existing users
