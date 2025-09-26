@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto p-6">
+  <div class="py-6">
     <UCard>
       <template #header>
         <div>

@@ -1,90 +1,80 @@
 <template>
-  <header class="sticky top-0 z-50 bg-default">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between items-center h-16">
-        <NuxtLink
-          to="/dashboard"
-          class="flex items-center"
-        >
-          <div class="text-2xl font-bold text-primary">
-            SplitDuo
-          </div>
-        </NuxtLink>
-        <UModal
-          v-model:open="isMobileMenuOpen"
-          :ui="{
-            content: 'top-0 left-1/2 -translate-x-1/2 translate-y-4 w-[calc(100vw-2rem)] max-w-lg max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-4rem)] rounded-lg shadow-lg ring ring-default overflow-hidden',
-          }"
-        >
-          <UButton
-            variant="ghost"
-            size="sm"
-            icon="i-lucide-menu"
-          />
-          <template #content>
-            <UCard
-              class="flex flex-col flex-1"
-              :ui="{ body: { base: 'flex-1' } }"
-            >
-              <template #header>
-                <div class="flex items-center">
-                  <UAvatar
-                    icon="i-lucide-user"
-                    size="xl"
-                  />
-                  <div class="ml-3">
-                    <div class="text-base font-medium text-primary">
-                      {{ user?.firstName || 'User' }} {{ user?.lastName || '' }}
-                    </div>
-                    <div class="text-sm text-dimmed">
-                      {{ user?.email || '' }}
-                    </div>
-                  </div>
-                  <UButton
-                    variant="ghost"
-                    color="neutral"
-                    icon="i-lucide-x"
-                    class="ml-auto"
-                    @click="isMobileMenuOpen = false"
-                  />
-                </div>
-              </template>
-              <!-- Mobile navigation items -->
-              <UNavigationMenu
-                variant="link"
-                orientation="vertical"
-                color="secondary"
-                :items="navigationItems"
-                :ui="{ list: 'flex flex-col space-y-3' }"
-              />
-              <!-- Mobile user actions -->
-              <template #footer>
-                <div class="flex flex-col space-y-4">
-                  <ButtonColorMode />
-                  <UButton
-                    variant="ghost"
-                    color="error"
-                    icon="i-lucide-log-out"
-                    label="Logout"
-                    :loading="isLoggingOut"
-                    @click="handleLogout"
-                  />
-                </div>
-              </template>
-            </UCard>
-          </template>
-        </UModal>
+  <UHeader
+    title="SplitDuo"
+    to="/dashboard"
+    mode="drawer"
+  >
+    <UNavigationMenu
+
+      :items="navigationItems"
+    />
+    <template #right>
+      <div class="flex items-center gap-2">
+        <UColorModeButton />
+        <UButton
+          variant="ghost"
+          color="error"
+          icon="i-lucide-log-out"
+          label="Logout"
+          :loading="isLoggingOut"
+          class="hidden md:inline-flex"
+          @click="handleLogout"
+        />
       </div>
-    </div>
-  </header>
+    </template>
+
+    <template #body>
+      <UCard
+        class="flex flex-col flex-1"
+        variant="soft"
+        :ui="{ body: { base: 'flex-1' } }"
+      >
+        <template #header>
+          <div class="flex items-center">
+            <UAvatar
+              icon="i-lucide-user"
+              size="xl"
+            />
+            <div class="ml-3">
+              <div class="text-base font-medium text-primary">
+                {{ user?.firstName || 'User' }} {{ user?.lastName || '' }}
+              </div>
+              <div class="text-sm text-dimmed">
+                {{ user?.email || '' }}
+              </div>
+            </div>
+          </div>
+        </template>
+        <UNavigationMenu
+          variant="link"
+          orientation="vertical"
+          :items="navigationItems"
+          :ui="{ list: 'flex flex-col space-y-3' }"
+        />
+        <template #footer>
+          <div class="flex flex-col space-y-4">
+            <ButtonColorMode />
+            <UButton
+              variant="ghost"
+              color="error"
+              icon="i-lucide-log-out"
+              label="Logout"
+              :loading="isLoggingOut"
+              @click="handleLogout"
+            />
+          </div>
+        </template>
+      </UCard>
+    </template>
+  </UHeader>
 </template>
 
 <script setup>
 const { user, isGlobalAdmin, logout } = useAuth()
 const { showSuccess } = useNotifications()
+
 const route = useRoute()
 
-const isMobileMenuOpen = ref(false)
 const isLoggingOut = ref(false)
 
 const handleLogout = async () => {
@@ -109,16 +99,19 @@ const navigationItems = computed(() => {
       to: '/dashboard',
       label: 'Dashboard',
       icon: 'i-lucide-home',
+      active: route.path.startsWith('/dashboard'),
     },
     {
       to: '/groups',
       label: 'Groups',
       icon: 'i-lucide-users',
+      active: route.path.startsWith('/groups'),
     },
     {
       to: '/profile',
       label: 'Profile',
       icon: 'i-lucide-heart',
+      active: route.path.startsWith('/profile'),
     },
   ]
 
@@ -128,13 +121,10 @@ const navigationItems = computed(() => {
       to: '/admin/users',
       label: 'Admin',
       icon: 'i-lucide-shield-user',
+      active: route.path.startsWith('/admin'),
     })
   }
 
   return items
-})
-
-watch(() => route.path, () => {
-  isMobileMenuOpen.value = false
 })
 </script>

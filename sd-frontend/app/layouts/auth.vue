@@ -1,10 +1,5 @@
 <template>
-  <div class="min-h-screen">
+  <UMain>
     <slot />
-  </div>
+  </UMain>
 </template>
-
-<script setup>
-// This layout is used for authentication pages (login, register, etc.)
-// No header or navigation is shown
-</script>
