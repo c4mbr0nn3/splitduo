@@ -80,7 +80,6 @@
         v-else-if="currentStep === 'configure'"
         class="space-y-6"
       >
-        <ImportAnalysisResults :analysis-results="analysisResults" />
         <ImportMappingForm
           :analysis-results="analysisResults"
           :group-id="groupId"
