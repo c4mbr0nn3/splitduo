@@ -11,15 +11,7 @@
     <template #right>
       <div class="flex items-center gap-2">
         <UColorModeButton />
-        <UButton
-          variant="ghost"
-          color="error"
-          icon="i-lucide-log-out"
-          label="Logout"
-          :loading="isLoggingOut"
-          class="hidden md:inline-flex"
-          @click="handleLogout"
-        />
+        <LayoutLogoutButton class="hidden md:inline-flex" />
       </div>
     </template>
 
@@ -54,14 +46,7 @@
         <template #footer>
           <div class="flex flex-col space-y-4">
             <ButtonColorMode />
-            <UButton
-              variant="ghost"
-              color="error"
-              icon="i-lucide-log-out"
-              label="Logout"
-              :loading="isLoggingOut"
-              @click="handleLogout"
-            />
+            <LayoutLogoutButton />
           </div>
         </template>
       </UCard>
@@ -70,28 +55,9 @@
 </template>
 
 <script setup>
-const { user, isGlobalAdmin, logout } = useAuth()
-const { showSuccess } = useNotifications()
+const { user, isGlobalAdmin } = useAuth()
 
 const route = useRoute()
-
-const isLoggingOut = ref(false)
-
-const handleLogout = async () => {
-  isLoggingOut.value = true
-
-  try {
-    await logout()
-    showSuccess('Logged out successfully')
-    await navigateTo('/')
-  }
-  catch (error) {
-    console.error('Logout failed:', error)
-  }
-  finally {
-    isLoggingOut.value = false
-  }
-}
 
 const navigationItems = computed(() => {
   const items = [
