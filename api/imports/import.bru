@@ -5,19 +5,69 @@ meta {
 }
 
 post {
-  url: http://localhost:8080/api/v1/groups/01993e06-36e9-7ad4-84cc-4b3d148da2ed/import
-  body: multipartForm
+  url: http://localhost:8080/api/v1/groups/019985ca-b8d2-7a1f-92f9-b9f577f8a89b/imports
+  body: json
   auth: inherit
+}
+
+body:json {
+  {
+    "importId": "019986be-0598-75ce-b885-49c918a8b8de",
+    "userMappings": {
+      "Beatrice": "019985ca-809f-7b37-95e8-59b63801b2c7",
+      "Francesco": "01998537-729e-75c2-9da3-15731dc70891"
+    },
+    "categoryMappings": {
+      "1": 3,
+      "2": 4,
+      "3": 1,
+      "4": 3,
+      "5": 2,
+      "6": 11,
+      "7": 3,
+      "8": 8,
+      "9": 2,
+      "10": 4,
+      "11": 5,
+      "12": 1,
+      "13": 6,
+      "14": 9,
+      "15": 11,
+      "16": 10,
+      "17": 9,
+      "18": 7,
+      "19": 4,
+      "20": 9,
+      "21": 4,
+      "22": 6,
+      "23": 1,
+      "24": 1,
+      "25": 10,
+      "26": 10,
+      "27": 3,
+      "28": 5,
+      "29": 9,
+      "30": 3,
+      "31": 5,
+      "32": 3,
+      "33": 4,
+      "34": 10,
+      "35": 10,
+      "36": 8
+    },
+    "paymentModeMappings": {
+      "1": 2,
+      "2": 3,
+      "3": 4,
+      "4": 4,
+      "5": 5
+    }
+  }
 }
 
 body:form-urlencoded {
   File: 
   : 
-}
-
-body:multipart-form {
-  importTypeId: 1
-  file: @file(/home/j1mm0/Workspace/splitduo/trash/ciccionetti-club_2023-11-11_export_2025-01-26.csv)
 }
 
 settings {
