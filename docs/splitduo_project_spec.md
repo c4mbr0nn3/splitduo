@@ -78,7 +78,7 @@
 4. **Couple-Focused**: Initially optimized for two-person use cases
 5. **Migration Friendly**: Easy import from Cospend, easy export to other systems
 
-## Development Phases
+## Roadmap & Milestones
 
 ### Phase 1: Core MVP
 
@@ -106,6 +106,7 @@
 - [ ] Implement Splitwise data import (CSV parsing and data mapping)
 - [ ] Implement CSV export with proprietary format
 - [ ] Implement CSV import with proprietary format
+- [ ] Implement 2FA (Two-Factor Authentication) on frontend
 
 ### Phase 3: Polish
 
