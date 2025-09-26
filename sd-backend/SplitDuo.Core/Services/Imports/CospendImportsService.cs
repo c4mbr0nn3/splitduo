@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Globalization;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -415,7 +416,10 @@ public class CospendImportsService(
 public class CospendImportAnalysisDto
 {
     public string FileHash { get; set; } = "";
+    [JsonPropertyName("members")]
     public List<KeyValueDto> Members { get; set; } = [];
+    [JsonPropertyName("categories")]
     public List<KeyValueDto> Categories { get; set; } = [];
+    [JsonPropertyName("paymentModes")]
     public List<KeyValueDto> PaymentModes { get; set; } = [];
 }

@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using CsvHelper.Configuration.Attributes;
 
 namespace SplitDuo.Core.Dto.Imports;
@@ -61,7 +62,9 @@ public class CospendPaymentModeDto
 
 public class KeyValueDto
 {
+    [JsonPropertyName("key")]
     public string Key { get; set; }
+    [JsonPropertyName("value")]
     public string Value { get; set; } = "";
 }
 
