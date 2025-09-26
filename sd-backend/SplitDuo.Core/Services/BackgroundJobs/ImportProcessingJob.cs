@@ -18,7 +18,6 @@ public class ImportProcessingJob(
     public async Task Execute(IJobExecutionContext context)
     {
         var importGuid = context.JobDetail.JobDataMap.GetString("ImportGuid");
-        var filePath = context.JobDetail.JobDataMap.GetString("FilePath");
         var importTypeString = context.JobDetail.JobDataMap.GetString("ImportType");
 
         // Validate required job data first
@@ -45,9 +44,9 @@ public class ImportProcessingJob(
             return;
         }
 
-        if (string.IsNullOrEmpty(filePath))
+        if (import.TempFile == null || import.TempFile.Length == 0)
         {
-            await HandleImportFailure(import, "Missing file path in job data");
+            await HandleImportFailure(import, "Temporary file is missing or empty");
             return;
         }
 
@@ -63,7 +62,7 @@ public class ImportProcessingJob(
             return;
         }
 
-        await ProcessImport(import, filePath, importType);
+        await ProcessImportAsync(import, importType);
     }
 
     private async Task HandleImportFailure(Import import, string errorMessage)
@@ -75,6 +74,7 @@ public class ImportProcessingJob(
         {
             var currentTime = DateTimeOffset.UtcNow;
             import.Status = ImportStatus.Failed;
+            import.TempFile = null;
             import.CompletedAt = currentTime.ToUnixTimeSeconds();
             import.Duration = import.StartedAt.HasValue
                 ? (currentTime.ToUnixTimeSeconds() - import.StartedAt.Value) * 1000
@@ -90,7 +90,7 @@ public class ImportProcessingJob(
         }
     }
 
-    private async Task ProcessImport(Import import, string filePath, ImportType importType)
+    private async Task ProcessImportAsync(Import import, ImportType importType)
     {
         var startTime = DateTimeOffset.UtcNow;
         import.StartedAt = startTime.ToUnixTimeSeconds();
@@ -104,7 +104,7 @@ public class ImportProcessingJob(
             var importService = importServiceFactory.GetImportService(importType);
 
             // Process import using the service - this now handles transactions internally
-            var result = await importService.ProcessImportAsync(filePath, import.GroupId, import.Id);
+            var result = await importService.ProcessImportAsync(import.TempFile, import.GroupId, import.Id);
 
             var completedTime = DateTimeOffset.UtcNow;
             import.CompletedAt = completedTime.ToUnixTimeSeconds();
@@ -113,6 +113,7 @@ public class ImportProcessingJob(
             if (result.IsSuccess)
             {
                 import.Status = ImportStatus.Completed;
+                import.TempFile = null;
                 import.RecordsCount = result.Value;
                 logger.LogInformation(
                     "Import completed successfully: {ImportGuid}, Records: {RecordsCount}",
@@ -122,6 +123,7 @@ public class ImportProcessingJob(
             else
             {
                 import.Status = ImportStatus.Failed;
+                import.TempFile = null;
                 import.ErrorDetails = result.Error;
                 logger.LogError("Import failed: {ImportGuid}, Error: {Error}", import.Guid, result.Error);
             }
@@ -132,6 +134,7 @@ public class ImportProcessingJob(
             import.CompletedAt = completedTime.ToUnixTimeSeconds();
             import.Duration = (completedTime - startTime).Milliseconds;
             import.Status = ImportStatus.Failed;
+            import.TempFile = null;
             import.ErrorDetails = ex.Message;
 
             logger.LogError(ex, "Import processing failed: {ImportGuid}", import.Guid);
@@ -139,19 +142,6 @@ public class ImportProcessingJob(
         finally
         {
             await unitOfWork.SaveChangesAsync();
-            CleanupTempFile(import.Guid);
-        }
-    }
-
-    private void CleanupTempFile(Guid importGuid)
-    {
-        try
-        {
-            FileUtils.CleanupTempFile(importGuid);
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "Failed to delete temporary file for Import: {ImportGuid}", importGuid);
         }
     }
 }

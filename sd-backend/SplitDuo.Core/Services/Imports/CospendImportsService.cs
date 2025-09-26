@@ -78,6 +78,13 @@ public class CospendImportsService(
     {
         try
         {
+            var validationResult = FileUtils.CheckExtensionAndSize(file);
+            if (validationResult.IsFailure)
+            {
+                return Result<ImportStatusDto>.BadRequest(validationResult.Error);
+            }
+
+            var byteFile = await FileUtils.ConvertToByteArrayAsync(file);
             var import = new Import
             {
                 GroupId = groupId,
@@ -86,22 +93,13 @@ public class CospendImportsService(
                 FileHash = analysisDto.FileHash,
                 ImportDate = DateOnly.FromDateTime(DateTime.UtcNow),
                 ImportType = ImportType.Cospend,
-                Status = ImportStatus.Pending
+                Status = ImportStatus.Pending,
+                TempFile = byteFile
             };
 
             import.SetAnalysisResults(analysisDto);
 
             await unitOfWork.Imports.AddAsync(import);
-
-            try
-            {
-                await FileUtils.SaveTempFileAsync(file, import.Guid);
-            }
-            catch (Exception e)
-            {
-                logger.LogError("Failed to save temp file for import {ImportGuid}: {Error}", import.Guid, e.Message);
-                return Result<ImportStatusDto>.InternalServerError("Failed to save import file");
-            }
 
             var response = new ImportStatusDto(import);
             return Result<ImportStatusDto>.Success(response);
@@ -151,29 +149,13 @@ public class CospendImportsService(
 
             if (import == null)
             {
-                try
-                {
-                    FileUtils.CleanupTempFile(importGuid);
-                }
-                catch (Exception e)
-                {
-                    logger.LogError(e, "Failed to clean up temp file for non-existent import {ImportGuid}", importGuid);
-                }
-
                 return Result<ImportStatusDto>.NotFound("Import not found");
-            }
-
-            var tempFilePath = Path.Combine(Path.GetTempPath(), FileUtils.GetTempFileName(importGuid));
-            if (!File.Exists(tempFilePath))
-            {
-                return Result<ImportStatusDto>.BadRequest("Import file not found");
             }
 
             var scheduler = await schedulerFactory.GetScheduler();
             var jobData = new JobDataMap
             {
                 ["ImportGuid"] = import.Guid.ToString(),
-                ["FilePath"] = tempFilePath,
                 ["ImportType"] = nameof(ImportType.Cospend)
             };
 
@@ -194,13 +176,12 @@ public class CospendImportsService(
         }
         catch (Exception e)
         {
-            FileUtils.CleanupTempFile(importGuid);
             logger.LogError(e, "An error occurred while triggering import job for {ImportGuid}", importGuid);
             return Result<ImportStatusDto>.InternalServerError(e.Message);
         }
     }
 
-    public async Task<Result<int>> ProcessImportAsync(string filePath, int groupId, int importId)
+    public async Task<Result<int>> ProcessImportAsync(byte[] file, int groupId, int importId)
     {
         try
         {
@@ -211,14 +192,14 @@ public class CospendImportsService(
                 CospendSection.PaymentModes,
                 CospendSection.Expenses
             };
-            var parseResult = await CospendCsvParser.ParseAsync(filePath, sectionsToParse);
+            var parseResult = await CospendCsvParser.ParseAsync(file, sectionsToParse);
             var createResult = await CreateExpensesAsync(parseResult, groupId, importId);
 
             return createResult;
         }
         catch (Exception e)
         {
-            logger.LogError(e, "An error occurred while processing import file: {FilePath}", filePath);
+            logger.LogError(e, "An error occurred while processing import file for ImportId {ImportId}", importId);
             return Result<int>.InternalServerError(e.Message);
         }
     }

@@ -41,9 +41,9 @@ public class CospendCsvParser
         return CospendSection.None;
     }
 
-    public static async Task<CospendParseResult> ParseAsync(string filePath, List<CospendSection> includeSections)
+    public static async Task<CospendParseResult> ParseAsync(byte[] file, List<CospendSection> includeSections)
     {
-        await using var fileStream = File.OpenRead(filePath);
+        await using var fileStream = new MemoryStream(file);
         return await ParseAsync(fileStream, includeSections);
     }
 

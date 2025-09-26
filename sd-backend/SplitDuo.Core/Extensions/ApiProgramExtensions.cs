@@ -105,6 +105,13 @@ public static class ApiProgramExtensions
                 .WithIdentity("LogCleanupTrigger")
                 .WithCronSchedule("0 0 2 * * ?")); // every day at 02:00
 
+            var tempFileCleanupJobKey = new JobKey("TempFileCleanupJob");
+            q.AddJob<TempFileCleanupJob>(opts => opts.WithIdentity(tempFileCleanupJobKey));
+            q.AddTrigger(opts => opts
+                .ForJob(tempFileCleanupJobKey)
+                .WithIdentity("TempFileCleanupTrigger")
+                .WithCronSchedule("0 0 4 * * ?")); // every day at 04:00
+
             var emailNotificationProcessingJobKey = new JobKey("EmailNotificationProcessingJob");
             q.AddJob<EmailNotificationProcessingJob>(opts => opts.WithIdentity(emailNotificationProcessingJobKey));
             q.AddTrigger(opts => opts

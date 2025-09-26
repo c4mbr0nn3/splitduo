@@ -30,6 +30,9 @@ public class Import : AuditableEntity
     [Column("completed_at")] public long? CompletedAt { get; set; }
     [Column("duration_ms")] public long? Duration { get; set; }
 
+    [Column("temp_file", TypeName = "bytea")]
+    public byte[]? TempFile { get; set; }
+
     [Column("analysis_results", TypeName = "jsonb")]
     public string? AnalysisResults { get; set; }
 

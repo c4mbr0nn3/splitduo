@@ -12,5 +12,5 @@ public interface IImportsService
     Task<Result<ImportStatusDto>> CreateImportJobAsync(IFormFile file, int groupId, int userId, CospendImportAnalysisDto analysisDto);
     Task<Result<ImportStatusDto>> UpdateImportMappingsAsync(Guid importGuid, CospendImportMappingDto mappingDto);
     Task<Result<ImportStatusDto>> TriggerImportJobAsync(Guid importGuid);
-    Task<Result<int>> ProcessImportAsync(string filePath, int groupId, int importId);
+    Task<Result<int>> ProcessImportAsync(byte[] file, int groupId, int importId);
 }

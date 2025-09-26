@@ -37,6 +37,13 @@ public static class FileUtils
         return tempFilePath;
     }
 
+    public static async Task<byte[]> ConvertToByteArrayAsync(IFormFile file)
+    {
+        await using var memoryStream = new MemoryStream();
+        await file.CopyToAsync(memoryStream);
+        return memoryStream.ToArray();
+    }
+
     public static void CleanupTempFile(Guid importGuid)
     {
         var tempDir = Path.GetTempPath();
