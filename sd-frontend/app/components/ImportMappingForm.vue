@@ -15,7 +15,7 @@
     <UForm
       ref="form"
       :state="mappingState"
-      :schema="validationSchema"
+      :validate="validate"
       class="space-y-6"
       @submit="onSubmit"
     >
@@ -42,17 +42,11 @@
                 </UAvatar>
                 <div>
                   <div class="font-medium">
-                    {{ member.key }}
-                  </div>
-                  <div class="text-xs text-gray-500">
                     {{ member.value }}
                   </div>
                 </div>
               </div>
-              <UFormField
-                :name="`userMappings.${member.key}`"
-                :label="`Map '${member.key}' to:`"
-              >
+              <UFormField :name="`userMappings.${member.key}`">
                 <USelect
                   v-model="mappingState.userMappings[member.key]"
                   :items="groupMemberOptions"
@@ -87,17 +81,11 @@
                 />
                 <div>
                   <div class="font-medium">
-                    Category {{ category.key }}
-                  </div>
-                  <div class="text-xs text-gray-500">
                     {{ category.value }}
                   </div>
                 </div>
               </div>
-              <UFormField
-                :name="`categoryMappings.${category.key}`"
-                :label="`Map category '${category.key}' to:`"
-              >
+              <UFormField :name="`categoryMappings.${category.key}`">
                 <USelect
                   v-model="mappingState.categoryMappings[category.key]"
                   :items="categories"
@@ -134,17 +122,11 @@
                 />
                 <div>
                   <div class="font-medium">
-                    Mode {{ paymentMode.key }}
-                  </div>
-                  <div class="text-xs text-gray-500">
                     {{ paymentMode.value }}
                   </div>
                 </div>
               </div>
-              <UFormField
-                :name="`paymentModeMappings.${paymentMode.key}`"
-                :label="`Map payment mode '${paymentMode.key}' to:`"
-              >
+              <UFormField :name="`paymentModeMappings.${paymentMode.key}`">
                 <USelect
                   v-model="mappingState.paymentModeMappings[paymentMode.key]"
                   :items="paymentModes"
@@ -191,8 +173,6 @@
 </template>
 
 <script setup>
-import { z } from 'zod'
-
 const props = defineProps({
   analysisResults: {
     type: Object,
@@ -246,27 +226,33 @@ const initializeMappings = () => {
   })
 }
 
-// Validation schema
-const validationSchema = computed(() => {
-  const schema = {}
+// Form validation
+const validate = () => {
+  const errors = []
 
   // User mapping validation - all required
   props.analysisResults.members?.forEach((member) => {
-    schema[`userMappings.${member.key}`] = z.string().min(1, 'User mapping is required')
+    if (!mappingState.userMappings[member.key]) {
+      errors.push({ name: `userMappings.${member.key}`, message: 'User mapping is required' })
+    }
   })
 
   // Category mapping validation - all required
   props.analysisResults.categories?.forEach((category) => {
-    schema[`categoryMappings.${category.key}`] = z.number().min(1, 'Category mapping is required')
+    if (!mappingState.categoryMappings[parseInt(category.key)]) {
+      errors.push({ name: `categoryMappings.${category.key}`, message: 'Category mapping is required' })
+    }
   })
 
   // Payment mode mapping validation - all required
   props.analysisResults.paymentModes?.forEach((paymentMode) => {
-    schema[`paymentModeMappings.${paymentMode.key}`] = z.number().min(1, 'Payment mode mapping is required')
+    if (!mappingState.paymentModeMappings[parseInt(paymentMode.key)]) {
+      errors.push({ name: `paymentModeMappings.${paymentMode.key}`, message: 'Payment mode mapping is required' })
+    }
   })
 
-  return z.object(schema)
-})
+  return errors
+}
 
 // Check if there are validation errors
 const hasValidationErrors = computed(() => {
