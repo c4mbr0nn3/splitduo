@@ -1,54 +1,12 @@
 <template>
   <div class="flex justify-center items-center h-screen p-4">
     <UCard class="w-full">
-      <template #header>
-        <div class="text-2xl">
-          Welcome Back
-        </div>
-      </template>
-      <UForm
-        :state="form"
-        @submit.prevent="onSubmit"
-      >
-        <div class="grid grid-cols-1 gap-4 mb-4">
-          <UFormField
-            label="Email"
-            name="email"
-            required
-          >
-            <UInput
-              v-model="form.email"
-              type="email"
-              placeholder="Enter your email"
-              required
-              class="w-full"
-              size="lg"
-            />
-          </UFormField>
-          <UFormField
-            label="Password"
-            name="password"
-            required
-          >
-            <UInput
-              v-model="form.password"
-              type="password"
-              placeholder="Enter your password"
-              required
-              class="w-full"
-              size="lg"
-            />
-          </UFormField>
-        </div>
-        <UButton
-          type="submit"
-          label="Login"
-          block
-          size="lg"
-          :disabled="isLoading"
-          :loading="isLoading"
-        />
-      </UForm>
+      <UAuthForm
+        title="Welcome Back"
+        :fields="fields"
+        :submit="{ label: 'Login', loading: isLoading }"
+        @submit="onSubmit"
+      />
     </UCard>
   </div>
 </template>
@@ -62,24 +20,39 @@ definePageMeta({
   layout: 'auth',
 })
 
-const form = ref({
-  email: '',
-  password: '',
-})
+const fields = [
+  {
+    name: 'email',
+    type: 'email',
+    label: 'Email',
+    placeholder: 'Enter your email',
+    required: true,
+    size: 'lg',
+  },
+  {
+    name: 'password',
+    type: 'password',
+    label: 'Password',
+    placeholder: 'Enter your password',
+    required: true,
+    size: 'lg',
+  },
+]
 
 const { login, isLoading } = useAuth()
 const { showError, showSuccess } = useNotifications()
 
-async function onSubmit() {
-  if (!form.value.email || !form.value.password) {
+async function onSubmit(event) {
+  const { data } = event
+  if (!data.email || !data.password) {
     showError('Please fill in all fields')
     return
   }
 
   try {
     const result = await login({
-      email: form.value.email,
-      password: form.value.password,
+      email: data.email,
+      password: data.password,
     })
 
     if (result.success) {
