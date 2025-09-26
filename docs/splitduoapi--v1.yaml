@@ -416,6 +416,41 @@ paths:
             type: string
       requestBody:
         content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CospendImportMappingDto"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/CospendImportMappingDto"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/CospendImportMappingDto"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfImportStatusDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfImportStatusDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfImportStatusDto"
+  /api/v1/groups/{groupId}/imports/analyze:
+    post:
+      tags:
+        - Imports
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
           application/x-www-form-urlencoded:
             schema:
               type: object
@@ -1561,6 +1596,25 @@ components:
         newPassword:
           minLength: 6
           type: string
+    CospendImportMappingDto:
+      type: object
+      properties:
+        importId:
+          type: string
+        userMappings:
+          type: object
+          additionalProperties:
+            type: string
+        categoryMappings:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int32
+        paymentModeMappings:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int32
     CreateExpenseRequestDto:
       required:
         - title
@@ -1892,6 +1946,14 @@ components:
         updatedAt:
           type: integer
           format: int64
+        analysisResults:
+          type:
+            - string
+            - "null"
+        mappingConfiguration:
+          type:
+            - string
+            - "null"
     ImportStatusDto2:
       type:
         - object
@@ -1941,6 +2003,14 @@ components:
         updatedAt:
           type: integer
           format: int64
+        analysisResults:
+          type:
+            - string
+            - "null"
+        mappingConfiguration:
+          type:
+            - string
+            - "null"
     LoginRequestDto:
       required:
         - email
