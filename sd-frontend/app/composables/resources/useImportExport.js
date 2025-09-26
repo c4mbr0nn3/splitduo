@@ -15,6 +15,36 @@ export default function useImportExport(groupId) {
   const isImporting = ref(false)
   const isExporting = ref(false)
   const isLoading = ref(false)
+  // Two-phase import state
+  const isAnalyzing = ref(false)
+  const analysisResults = ref(null)
+  const currentImport = ref(null)
+
+  // Helper function to safely parse JSON strings from backend
+  const parseJsonField = (jsonString, fieldName = 'JSON field') => {
+    if (!jsonString) {
+      return null
+    }
+
+    // If it's already an object, return as-is (for future backend changes)
+    if (typeof jsonString === 'object') {
+      return jsonString
+    }
+
+    // If it's a string, try to parse it
+    if (typeof jsonString === 'string') {
+      try {
+        return JSON.parse(jsonString)
+      }
+      catch (error) {
+        console.error(`Failed to parse ${fieldName}:`, error)
+        showError(`Invalid ${fieldName} format received from server`)
+        return null
+      }
+    }
+
+    return null
+  }
 
   // Fetch imports with pagination
   const fetchImports = async (filters = {}) => {
@@ -33,7 +63,14 @@ export default function useImportExport(groupId) {
       )
 
       if (response.success && response.data) {
-        imports.value = response.data
+        // Parse JSON fields for each import
+        const parsedImports = response.data.map(importItem => ({
+          ...importItem,
+          analysisResults: parseJsonField(importItem.analysisResults, 'analysis results'),
+          mappingConfiguration: parseJsonField(importItem.mappingConfiguration, 'mapping configuration'),
+        }))
+
+        imports.value = parsedImports
         pagination.value = response.pagination || {
           page: 1, limit: 20, total: 0, totalPages: 0,
           hasNext: false, hasPrev: false,
@@ -49,7 +86,78 @@ export default function useImportExport(groupId) {
     }
   }
 
-  // Import data backup
+  // Phase 1: Analyze import file
+  const analyzeFile = async (file, importTypeId = 1) => {
+    if (!groupIdRef.value) return
+
+    isAnalyzing.value = true
+    try {
+      const formData = new FormData()
+      formData.append('File', file)
+      formData.append('ImportTypeId', importTypeId)
+
+      const response = await api.post(
+        `/groups/${groupIdRef.value}/imports/analyze`,
+        formData,
+      )
+
+      if (response.success && response.data) {
+        currentImport.value = response.data
+        // Parse the JSON string from backend to object
+        analysisResults.value = parseJsonField(
+          response.data.analysisResults,
+          'analysis results',
+        )
+
+        showSuccess('File analyzed successfully')
+        return response.data
+      }
+    }
+    catch (error) {
+      showError('Failed to analyze file')
+      throw error
+    }
+    finally {
+      isAnalyzing.value = false
+    }
+  }
+
+  // Phase 2: Import with mapping configuration
+  const importWithMapping = async (mappingConfig) => {
+    if (!groupIdRef.value || !currentImport.value) return
+
+    isImporting.value = true
+    try {
+      const requestData = {
+        importId: currentImport.value.guid,
+        userMappings: mappingConfig.userMappings || {},
+        categoryMappings: mappingConfig.categoryMappings || {},
+        paymentModeMappings: mappingConfig.paymentModeMappings || {},
+      }
+
+      const response = await api.post(
+        `/groups/${groupIdRef.value}/imports`,
+        requestData,
+      )
+
+      if (response.success && response.data) {
+        showSuccess('Import started successfully')
+        // Clear state after successful import trigger
+        analysisResults.value = null
+        currentImport.value = null
+        return response.data
+      }
+    }
+    catch (error) {
+      showError('Failed to start import')
+      throw error
+    }
+    finally {
+      isImporting.value = false
+    }
+  }
+
+  // Legacy single-phase import (for backwards compatibility)
   const importData = async (file, importTypeId = 1) => {
     if (!groupIdRef.value) return
 
@@ -76,6 +184,12 @@ export default function useImportExport(groupId) {
     finally {
       isImporting.value = false
     }
+  }
+
+  // Clear analysis state
+  const clearAnalysis = () => {
+    analysisResults.value = null
+    currentImport.value = null
   }
 
   // Export to CSV
@@ -144,6 +258,14 @@ export default function useImportExport(groupId) {
     isImporting: readonly(isImporting),
     isExporting: readonly(isExporting),
     isLoading: readonly(isLoading),
+    // Two-phase import state and methods
+    isAnalyzing: readonly(isAnalyzing),
+    analysisResults: readonly(analysisResults),
+    currentImport: readonly(currentImport),
+    analyzeFile,
+    importWithMapping,
+    clearAnalysis,
+    // Legacy methods
     fetchImports,
     importData,
     exportToCsv,

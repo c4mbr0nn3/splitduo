@@ -83,6 +83,26 @@
                     icon="i-lucide-triangle-alert"
                     class="mt-4"
                   />
+                  <UAlert
+                    v-if="importItem.importStatusId === 5"
+                    color="warning"
+                    title="Configuration Required"
+                    description="File analysis is complete. Click 'Configure' to set up mappings and continue with the import."
+                    variant="subtle"
+                    icon="i-lucide-settings"
+                    class="mt-4"
+                  >
+                    <template #actions>
+                      <UButton
+                        label="Configure"
+                        color="warning"
+                        variant="outline"
+                        size="xs"
+                        icon="i-lucide-settings"
+                        @click="continueImport(importItem)"
+                      />
+                    </template>
+                  </UAlert>
                 </div>
               </div>
             </UCard>
@@ -129,6 +149,7 @@ const importStatusMap = {
   2: { label: 'Processing', color: 'info', variant: 'soft' },
   3: { label: 'Completed', color: 'success', variant: 'soft' },
   4: { label: 'Failed', color: 'error', variant: 'soft' },
+  5: { label: 'Analysis Complete', color: 'warning', variant: 'soft' },
 }
 
 // Import type mapping (based on backend ImportType enum)
@@ -150,6 +171,12 @@ const getStatusVariant = (statusId) => {
 
 const getImportTypeLabel = (typeId) => {
   return importTypeMap[typeId] || 'Unknown'
+}
+
+const continueImport = (importItem) => {
+  // Navigate to add page with the import ID as a query parameter
+  // This will allow the add page to load the existing analysis results
+  navigateTo(`/groups/${groupId}/imports/add?continue=${importItem.guid}`)
 }
 
 watch(currentPage, async (newPage) => {
