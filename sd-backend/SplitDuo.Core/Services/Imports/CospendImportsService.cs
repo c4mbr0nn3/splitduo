@@ -374,7 +374,7 @@ public class CospendImportsService(
     private async Task<Result> ValidateMappingConfiguration(CospendImportMappingDto mappings, int groupId)
     {
         var groupMemberIds = await unitOfWork.GroupMembers
-            .Where(g => g.Id == groupId)
+            .Where(g => g.GroupId == groupId)
             .Include(g => g.User)
             .Select(g => g.User.Guid)
             .ToListAsync();
@@ -416,10 +416,7 @@ public class CospendImportsService(
 public class CospendImportAnalysisDto
 {
     public string FileHash { get; set; } = "";
-    [JsonPropertyName("members")]
-    public List<KeyValueDto> Members { get; set; } = [];
-    [JsonPropertyName("categories")]
-    public List<KeyValueDto> Categories { get; set; } = [];
-    [JsonPropertyName("paymentModes")]
-    public List<KeyValueDto> PaymentModes { get; set; } = [];
+    [JsonPropertyName("members")] public List<KeyValueDto> Members { get; set; } = [];
+    [JsonPropertyName("categories")] public List<KeyValueDto> Categories { get; set; } = [];
+    [JsonPropertyName("paymentModes")] public List<KeyValueDto> PaymentModes { get; set; } = [];
 }
