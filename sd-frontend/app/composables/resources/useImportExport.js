@@ -129,7 +129,7 @@ export default function useImportExport(groupId) {
     isImporting.value = true
     try {
       const requestData = {
-        importId: currentImport.value.guid,
+        importId: currentImport.value.id,
         userMappings: mappingConfig.userMappings || {},
         categoryMappings: mappingConfig.categoryMappings || {},
         paymentModeMappings: mappingConfig.paymentModeMappings || {},
