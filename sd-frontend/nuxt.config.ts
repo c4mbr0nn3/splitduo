@@ -23,6 +23,12 @@ export default defineNuxtConfig({
 
   compatibilityDate: '2025-07-16',
 
+  hooks: {
+    'prerender:routes'({ routes }) {
+      routes.clear() // Do not generate any routes (except the defaults)
+    },
+  },
+
   eslint: {
     config: {
       stylistic: true,

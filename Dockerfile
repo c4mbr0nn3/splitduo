@@ -10,7 +10,7 @@ RUN npm ci
 
 # Copy frontend source code and build
 COPY sd-frontend/ ./
-RUN npm run build
+RUN npm run generate
 
 # Stage 2: Build backend (.NET 9)
 FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS backend-build
