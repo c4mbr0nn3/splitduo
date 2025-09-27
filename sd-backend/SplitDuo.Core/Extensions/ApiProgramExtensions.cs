@@ -136,6 +136,9 @@ public static class ApiProgramExtensions
         if (jwtOptions == null)
             throw new InvalidOperationException($"Configuration section '{JwtOptions.SectionName}' is missing.");
 
+        if (string.IsNullOrWhiteSpace(jwtOptions.SecretKey))
+            throw new InvalidOperationException("JWT SecretKey is not configured.");
+
         builder.Services.AddAuthentication(options =>
         {
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
