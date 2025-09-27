@@ -136,7 +136,8 @@ public static class ApiProgramExtensions
         if (jwtOptions == null)
             throw new InvalidOperationException($"Configuration section '{JwtOptions.SectionName}' is missing.");
 
-        if (string.IsNullOrWhiteSpace(jwtOptions.SecretKey))
+        var secretKey = Environment.GetEnvironmentVariable("SD_JWT_SECRET_KEY") ?? jwtOptions.SecretKey;
+        if (string.IsNullOrWhiteSpace(secretKey))
             throw new InvalidOperationException("JWT SecretKey is not configured.");
 
         builder.Services.AddAuthentication(options =>
@@ -154,7 +155,7 @@ public static class ApiProgramExtensions
                 ValidateIssuerSigningKey = true,
                 ValidIssuer = jwtOptions.Issuer,
                 ValidAudience = jwtOptions.Audience,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtOptions.SecretKey))
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(secretKey))
             };
         });
 
