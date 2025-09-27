@@ -11,8 +11,10 @@ public class JwtOptionsSetup(IConfiguration configuration) : IConfigureOptions<J
         if (opt == null) throw new Exception("JWT options not found");
 
         options.SecretKey = Environment.GetEnvironmentVariable("SD_JWT_SECRET_KEY") ?? opt.SecretKey;
-        options.Issuer = opt.Issuer;
-        options.Audience = opt.Audience;
-        options.Expires = opt.Expires;
+        options.Issuer = Environment.GetEnvironmentVariable("SD_JWT_ISSUER") ?? opt.Issuer;
+        options.Audience = Environment.GetEnvironmentVariable("SD_JWT_AUDIENCE") ?? opt.Audience;
+        options.Expires = int.TryParse(Environment.GetEnvironmentVariable("SD_JWT_EXPIRES"), out var expires)
+            ? expires
+            : opt.Expires;
     }
 }
