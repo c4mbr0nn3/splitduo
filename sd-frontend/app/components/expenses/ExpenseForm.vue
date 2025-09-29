@@ -125,9 +125,33 @@
 
         <!-- Split Section -->
         <div class="space-y-2">
-          <label class="block text-sm font-medium">
-            Split Between
-          </label>
+          <div class="flex items-center justify-between">
+            <label class="block text-sm font-medium">
+              Split Between
+            </label>
+            <div class="flex gap-2">
+              <UButton
+                type="button"
+                size="xs"
+                variant="outline"
+                label="Split Equally"
+                :disabled="!model.amount || !groupMembers.length"
+                @click="splitEqually"
+              />
+              <UDropdownMenu
+                :items="splitTemplates.map(t => ({ ...t, onSelect: () => applySplitTemplate(t.value) }))"
+              >
+                <UButton
+                  type="button"
+                  size="xs"
+                  variant="outline"
+                  trailing-icon="i-heroicons-chevron-down"
+                  :disabled="!model.amount || !groupMembers.length"
+                  label="Templates"
+                />
+              </UDropdownMenu>
+            </div>
+          </div>
           <div class="space-y-3">
             <template
               v-for="member in groupMembers"
@@ -142,31 +166,57 @@
                     <UCheckbox
                       v-model="splitByUser(member.userId).included"
                       :color="splitByUser(member.userId).included ? 'success' : 'default'"
+                      @update:model-value="(value) => handleSplitToggle(member.userId, value)"
                     />
                   </div>
                 </template>
-                <UInputNumber
-                  v-model="splitByUser(member.userId).splitAmount"
-                  :step="0.001"
-                  :min="0"
-                  placeholder="Amount"
-                  :variant="splitByUser(member.userId).included ? 'subtle' : 'ghost'"
-                  :disabled="!splitByUser(member.userId).included"
-                  class="w-full"
-                />
+                <div class="space-y-1">
+                  <UInputNumber
+                    v-model="splitByUser(member.userId).splitAmount"
+                    :step="0.001"
+                    :min="0"
+                    placeholder="Amount"
+                    :variant="splitByUser(member.userId).included ? 'subtle' : 'ghost'"
+                    :disabled="!splitByUser(member.userId).included"
+                    :color="getSplitValidationState(member.userId)?.state === 'error' ? 'red' : undefined"
+                    class="w-full"
+                  />
+                  <span
+                    v-if="getSplitValidationState(member.userId)?.state === 'error'"
+                    class="text-xs text-red-500"
+                  >
+                    {{ getSplitValidationState(member.userId)?.message }}
+                  </span>
+                </div>
               </UCard>
             </template>
           </div>
-          <div class="text-xs text-muted">
-            <span v-if="splitTotal > 0">
-              Split total: {{ formatCurrency(splitTotal) }}
-              <span
-                v-if="model.amount && splitTotal !== parseFloat(model.amount)"
-                class="text-orange-500"
-              >
-                ({{ splitTotal > parseFloat(model.amount) ? 'Over' : 'Under' }} by {{ formatCurrency(Math.abs(splitTotal - parseFloat(model.amount))) }})
-              </span>
-            </span>
+          <div class="text-xs space-y-1">
+            <div v-if="model.amount" class="flex justify-between items-center">
+              <span class="text-gray-600">Expense Total:</span>
+              <span class="font-medium">{{ formatCurrency(parseFloat(model.amount)) }}</span>
+            </div>
+            <div v-if="splitTotal > 0" class="flex justify-between items-center">
+              <span class="text-gray-600">Split Total:</span>
+              <span class="font-medium">{{ formatCurrency(splitTotal) }}</span>
+            </div>
+            <div
+              v-if="model.amount && Math.abs(remainingAmount) > 0.001"
+              class="flex justify-between items-center font-semibold"
+              :class="{
+                'text-red-500': remainingAmount < 0,
+                'text-orange-500': remainingAmount > 0
+              }"
+            >
+              <span>{{ remainingAmount > 0 ? 'Remaining:' : 'Over by:' }}</span>
+              <span>{{ formatCurrency(Math.abs(remainingAmount)) }}</span>
+            </div>
+            <div
+              v-if="model.amount && Math.abs(remainingAmount) <= 0.001"
+              class="flex justify-between items-center text-green-600 font-semibold"
+            >
+              <span>✓ Splits balanced</span>
+            </div>
           </div>
         </div>
 
@@ -268,6 +318,11 @@ const splitTotal = computed(() => {
     : 0
 })
 
+const remainingAmount = computed(() => {
+  const amount = parseFloat(model.value.amount) || 0
+  return amount - splitTotal.value
+})
+
 const splitByUser = (userId) => {
   return model.value.splits.find(s => s.userId === userId) || { userId: userId, included: false, splitAmount: 0 }
 }
@@ -278,6 +333,144 @@ const formatCurrency = (amount) => {
     currency: 'USD',
   }).format(amount)
 }
+
+// Real-time validation for individual splits
+const getSplitValidationState = (userId) => {
+  const split = splitByUser(userId)
+  if (!split.included) return null
+
+  const amount = parseFloat(model.value.amount) || 0
+  if (amount === 0) return null
+
+  if (!split.splitAmount || split.splitAmount <= 0) {
+    return { state: 'error', message: 'Amount must be greater than zero' }
+  }
+
+  if (split.splitAmount > amount) {
+    return { state: 'error', message: 'Amount exceeds total expense' }
+  }
+
+  return null
+}
+
+// Handle split inclusion toggle
+const handleSplitToggle = (userId, included) => {
+  const split = splitByUser(userId)
+  split.included = included
+
+  if (!model.value.amount) return
+
+  const amount = parseFloat(model.value.amount)
+  const includedSplits = model.value.splits.filter(s => s.included)
+
+  if (includedSplits.length === 0) return
+
+  // Redistribute amount equally among included splits
+  const equalSplit = amount / includedSplits.length
+  const roundedSplit = Math.floor(equalSplit * 100) / 100
+  const remainder = amount - (roundedSplit * includedSplits.length)
+
+  includedSplits.forEach((s, index) => {
+    s.splitAmount = index === 0 ? roundedSplit + remainder : roundedSplit
+  })
+
+  // Reset excluded splits to 0
+  model.value.splits.filter(s => !s.included).forEach(s => {
+    s.splitAmount = 0
+  })
+}
+
+// Split equally among all included members
+const splitEqually = () => {
+  if (!model.value.amount || !model.value.splits) return
+
+  const amount = parseFloat(model.value.amount)
+  const includedSplits = model.value.splits.filter(s => s.included)
+
+  if (includedSplits.length === 0) return
+
+  const equalSplit = amount / includedSplits.length
+  const roundedSplit = Math.floor(equalSplit * 100) / 100
+  const remainder = amount - (roundedSplit * includedSplits.length)
+
+  includedSplits.forEach((s, index) => {
+    s.splitAmount = index === 0 ? roundedSplit + remainder : roundedSplit
+  })
+}
+
+// Split templates
+const applySplitTemplate = (template) => {
+  if (!model.value.amount || !model.value.splits) return
+
+  const amount = parseFloat(model.value.amount)
+  const currentUserId = user.value?.id
+
+  switch (template) {
+    case 'equal':
+      splitEqually()
+      break
+
+    case 'exclude_me':
+      // Exclude current user, split equally among others
+      model.value.splits.forEach((s) => {
+        if (s.userId === currentUserId) {
+          s.included = false
+          s.splitAmount = 0
+        }
+        else {
+          s.included = true
+        }
+      })
+      splitEqually()
+      break
+
+    case 'i_paid_split_others':
+      // Current user paid but doesn't owe, split among others
+      const otherMembers = model.value.splits.filter(s => s.userId !== currentUserId)
+      if (otherMembers.length === 0) return
+
+      model.value.splits.forEach((s) => {
+        if (s.userId === currentUserId) {
+          s.included = false
+          s.splitAmount = 0
+        }
+        else {
+          s.included = true
+        }
+      })
+
+      const equalSplit = amount / otherMembers.length
+      const roundedSplit = Math.floor(equalSplit * 100) / 100
+      const remainder = amount - (roundedSplit * otherMembers.length)
+
+      otherMembers.forEach((s, index) => {
+        s.splitAmount = index === 0 ? roundedSplit + remainder : roundedSplit
+      })
+      break
+
+    case 'only_me':
+      // Only current user
+      model.value.splits.forEach((s) => {
+        if (s.userId === currentUserId) {
+          s.included = true
+          s.splitAmount = amount
+        }
+        else {
+          s.included = false
+          s.splitAmount = 0
+        }
+      })
+      break
+  }
+}
+
+const showTemplateMenu = ref(false)
+const splitTemplates = [
+  { value: 'equal', label: 'Split Equally', icon: 'i-heroicons-users' },
+  { value: 'exclude_me', label: 'Exclude Me', icon: 'i-heroicons-user-minus' },
+  { value: 'i_paid_split_others', label: 'I Paid, Split Others', icon: 'i-heroicons-banknotes' },
+  { value: 'only_me', label: 'Only Me', icon: 'i-heroicons-user' },
+]
 
 // Load group members when group changes
 const loadGroupMembers = async (groupId) => {
