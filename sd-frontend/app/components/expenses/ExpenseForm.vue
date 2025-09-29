@@ -342,24 +342,72 @@ const validate = () => {
   if (!model.value.paymentModeId) {
     errors.push({ name: 'paymentModeId', message: 'Payment Mode is required' })
   }
+
+  // Validate splits
+  if (!model.value.splits || model.value.splits.filter(s => s.included).length === 0) {
+    errors.push({ name: 'splits', message: 'At least one person must be included in the split' })
+  }
+  else if (model.value.amount) {
+    const difference = Math.abs(splitTotal.value - parseFloat(model.value.amount))
+    if (difference > 0.001) {
+      errors.push({
+        name: 'splits',
+        message: `Split total (${formatCurrency(splitTotal.value)}) must equal expense amount (${formatCurrency(parseFloat(model.value.amount))})`
+      })
+    }
+  }
+
   return errors
 }
 
 const updateSplits = () => {
-  // If splits are empty or total doesn't match amount, reset splits to equal distribution
-  if (!model.value.splits || model.value.splits.length === 0 || splitTotal.value !== parseFloat(model.value.amount)) {
-    const members = groupMembers.value || []
-    const equalSplitAmount = model.value.amount && members.length > 0
-      ? (parseFloat(model.value.amount) / members.length).toFixed(2)
-      : 0
+  const members = groupMembers.value || []
+  const amount = parseFloat(model.value.amount) || 0
 
-    model.value.splits = members.map((m) => {
-      return {
-        userId: m.userId,
-        included: true,
-        splitAmount: parseFloat(equalSplitAmount),
+  // Initialize splits if empty or member count changed
+  if (!model.value.splits || model.value.splits.length === 0 || model.value.splits.length !== members.length) {
+    if (amount > 0 && members.length > 0) {
+      const equalSplit = amount / members.length
+      const roundedSplit = Math.floor(equalSplit * 100) / 100
+      const remainder = amount - (roundedSplit * members.length)
+
+      model.value.splits = members.map((m, index) => {
+        return {
+          userId: m.userId,
+          included: true,
+          splitAmount: index === 0 ? roundedSplit + remainder : roundedSplit,
+        }
+      })
+    }
+    else {
+      model.value.splits = members.map((m) => {
+        return {
+          userId: m.userId,
+          included: true,
+          splitAmount: 0,
+        }
+      })
+    }
+  }
+  else {
+    // Smart adjustment: redistribute amount proportionally when it changes
+    const currentTotal = splitTotal.value
+    if (currentTotal > 0 && amount > 0 && Math.abs(currentTotal - amount) > 0.001) {
+      const ratio = amount / currentTotal
+      const includedSplits = model.value.splits.filter(s => s.included)
+
+      if (includedSplits.length > 0) {
+        let newTotal = 0
+        includedSplits.forEach((split, index) => {
+          if (index < includedSplits.length - 1) {
+            split.splitAmount = Math.floor(split.splitAmount * ratio * 100) / 100
+            newTotal += split.splitAmount
+          }
+        })
+        // Assign remainder to last split to ensure exact total
+        includedSplits[includedSplits.length - 1].splitAmount = amount - newTotal
       }
-    })
+    }
   }
 }
 

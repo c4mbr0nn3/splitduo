@@ -185,6 +185,12 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
         if (request.Splits == null || request.Splits.Count == 0)
             return Result<ExpenseDto>.BadRequest("At least one expense split is required");
 
+        // Check for duplicate users in splits
+        var userIds = request.Splits.Select(s => s.UserId).ToList();
+        var duplicateUsers = userIds.GroupBy(id => id).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
+        if (duplicateUsers.Any())
+            return Result<ExpenseDto>.BadRequest($"Duplicate users found in splits: {string.Join(", ", duplicateUsers)}");
+
         var splitUsers = new List<User>();
         var totalSplitAmount = 0m;
 
@@ -218,7 +224,7 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
 
         // Validate that splits sum up to total amount (allow for small rounding differences)
         var difference = Math.Abs(totalSplitAmount - request.Amount);
-        if (difference > 0.01m)
+        if (difference > 0.001m)
             return Result<ExpenseDto>.BadRequest(
                 $"Split amounts ({totalSplitAmount:F2}) do not sum up to expense amount ({request.Amount:F2})");
 
@@ -421,6 +427,12 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
             }
 
             // Validate and create new splits
+            // Check for duplicate users in splits
+            var userIds = request.Splits.Select(s => s.UserId).ToList();
+            var duplicateUsers = userIds.GroupBy(id => id).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
+            if (duplicateUsers.Any())
+                return Result<ExpenseDto>.BadRequest($"Duplicate users found in splits: {string.Join(", ", duplicateUsers)}");
+
             var splitUsers = new List<User>();
             var totalSplitAmount = 0m;
 
@@ -454,7 +466,7 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
 
             // Validate that splits sum up to total amount (allow for small rounding differences)
             var difference = Math.Abs(totalSplitAmount - expense.Amount);
-            if (difference > 0.01m)
+            if (difference > 0.001m)
                 return Result<ExpenseDto>.BadRequest(
                     $"Split amounts ({totalSplitAmount:F2}) do not sum up to expense amount ({expense.Amount:F2})");
 
