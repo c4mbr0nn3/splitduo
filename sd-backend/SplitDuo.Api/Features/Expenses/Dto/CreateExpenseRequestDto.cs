@@ -21,6 +21,5 @@ public class CreateExpenseRequestDto
 public class CreateExpenseSplitDto
 {
     [Required] public string UserId { get; set; } = "";
-    public decimal? SplitAmount { get; set; }
-    [Range(0, 100)] public decimal? SplitPercentage { get; set; }
+    [Required] public decimal SplitAmount { get; set; }
 }

@@ -209,25 +209,11 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
 
             splitUsers.Add(splitUser);
 
-            // Calculate split amount
-            decimal splitAmount;
-            if (split.SplitAmount.HasValue)
-            {
-                splitAmount = split.SplitAmount.Value;
-            }
-            else if (split.SplitPercentage.HasValue)
-            {
-                splitAmount = request.Amount * (split.SplitPercentage.Value / 100);
-            }
-            else
-            {
-                return Result<ExpenseDto>.BadRequest("Either split amount or split percentage must be provided");
-            }
-
-            if (splitAmount <= 0)
+            // Validate split amount
+            if (split.SplitAmount <= 0)
                 return Result<ExpenseDto>.BadRequest("Split amount must be greater than zero");
 
-            totalSplitAmount += splitAmount;
+            totalSplitAmount += split.SplitAmount;
         }
 
         // Validate that splits sum up to total amount (allow for small rounding differences)
@@ -255,20 +241,10 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
             var split = request.Splits[i];
             var splitUser = splitUsers[i];
 
-            decimal splitAmount;
-            if (split.SplitAmount.HasValue)
-            {
-                splitAmount = split.SplitAmount.Value;
-            }
-            else
-            {
-                splitAmount = request.Amount * (split.SplitPercentage!.Value / 100);
-            }
-
             var expenseSplit = new ExpenseSplit
             {
                 UserId = splitUser.Id,
-                SplitAmount = splitAmount
+                SplitAmount = split.SplitAmount
             };
 
             expense.ExpenseSplits.Add(expenseSplit);
@@ -469,25 +445,11 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
 
                 splitUsers.Add(splitUser);
 
-                // Calculate split amount
-                decimal splitAmount;
-                if (split.SplitAmount.HasValue)
-                {
-                    splitAmount = split.SplitAmount.Value;
-                }
-                else if (split.SplitPercentage.HasValue)
-                {
-                    splitAmount = expense.Amount * (split.SplitPercentage.Value / 100);
-                }
-                else
-                {
-                    return Result<ExpenseDto>.BadRequest("Either split amount or split percentage must be provided");
-                }
-
-                if (splitAmount <= 0)
+                // Validate split amount
+                if (split.SplitAmount <= 0)
                     return Result<ExpenseDto>.BadRequest("Split amount must be greater than zero");
 
-                totalSplitAmount += splitAmount;
+                totalSplitAmount += split.SplitAmount;
             }
 
             // Validate that splits sum up to total amount (allow for small rounding differences)
@@ -502,21 +464,11 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
                 var split = request.Splits[i];
                 var splitUser = splitUsers[i];
 
-                decimal splitAmount;
-                if (split.SplitAmount.HasValue)
-                {
-                    splitAmount = split.SplitAmount.Value;
-                }
-                else
-                {
-                    splitAmount = expense.Amount * (split.SplitPercentage!.Value / 100);
-                }
-
                 var expenseSplit = new ExpenseSplit
                 {
                     ExpenseId = expense.Id,
                     UserId = splitUser.Id,
-                    SplitAmount = splitAmount
+                    SplitAmount = split.SplitAmount
                 };
 
                 unitOfWork.ExpenseSplits.Add(expenseSplit);

@@ -17,6 +17,5 @@ public class UpdateExpenseRequestDto
 public class UpdateExpenseSplitDto
 {
     [Required] public string UserId { get; set; } = "";
-    public decimal? SplitAmount { get; set; }
-    [Range(0, 100)] public decimal? SplitPercentage { get; set; }
+    [Required] public decimal SplitAmount { get; set; }
 }
