@@ -9,7 +9,7 @@
     </p>
     <p
       v-if="subtitle"
-      class="text-sm text-gray-400 mt-1 mb-4"
+      class="text-sm text-muted mt-1 mb-4"
     >
       {{ subtitle }}
     </p>
@@ -33,7 +33,7 @@ defineProps({
   },
   iconClass: {
     type: String,
-    default: 'w-12 h-12 text-gray-300 mx-auto mb-4',
+    default: 'w-12 h-12 text-dimmed mx-auto mb-4',
   },
 })
 </script>

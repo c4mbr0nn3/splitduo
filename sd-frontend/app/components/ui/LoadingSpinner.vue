@@ -6,7 +6,7 @@
     />
     <p
       v-if="text"
-      class="text-sm text-gray-500 mt-2"
+      class="text-sm text-muted mt-2"
     >
       {{ text }}
     </p>
@@ -29,7 +29,7 @@ defineProps({
   },
   spinnerClass: {
     type: String,
-    default: 'w-6 h-6 animate-spin text-gray-400',
+    default: 'w-6 h-6 animate-spin text-muted',
   },
 })
 </script>

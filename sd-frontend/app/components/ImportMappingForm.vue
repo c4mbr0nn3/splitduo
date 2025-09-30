@@ -76,7 +76,7 @@
               <div class="flex items-center gap-2">
                 <UIcon
                   name="i-lucide-tag"
-                  class="text-neutral-500"
+                  class="text-muted"
                   size="20"
                 />
                 <div>
@@ -117,7 +117,7 @@
               <div class="flex items-center gap-2">
                 <UIcon
                   name="i-lucide-credit-card"
-                  class="text-neutral-500"
+                  class="text-muted"
                   size="20"
                 />
                 <div>

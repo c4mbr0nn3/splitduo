@@ -102,7 +102,7 @@ const iconColor = computed(() => {
     case 'amber':
       return { bg: 'bg-amber-100', text: 'text-amber-600', border: 'border-amber-600' }
     default:
-      return { bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-600' }
+      return { bg: 'bg-gray-100', text: 'text-toned', border: 'border-gray-600' }
   }
 })
 </script>

@@ -29,7 +29,7 @@
         v-if="expense.description"
         class="flex justify-between items-start gap-4"
       >
-        <p class="text-xs text-gray-400 truncate">
+        <p class="text-xs text-muted truncate">
           {{ expense.description }}
         </p>
       </div>

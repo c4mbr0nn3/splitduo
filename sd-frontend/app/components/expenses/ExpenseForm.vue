@@ -193,11 +193,11 @@
           </div>
           <div class="text-xs space-y-1">
             <div v-if="model.amount" class="flex justify-between items-center">
-              <span class="text-gray-600">Expense Total:</span>
+              <span class="text-toned">Expense Total:</span>
               <span class="font-medium">{{ formatCurrency(parseFloat(model.amount)) }}</span>
             </div>
             <div v-if="splitTotal > 0" class="flex justify-between items-center">
-              <span class="text-gray-600">Split Total:</span>
+              <span class="text-toned">Split Total:</span>
               <span class="font-medium">{{ formatCurrency(splitTotal) }}</span>
             </div>
             <div

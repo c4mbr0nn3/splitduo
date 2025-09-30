@@ -22,7 +22,7 @@
             />
             <UIcon
               name="i-lucide-chevron-right"
-              class="text-gray-400"
+              class="text-muted"
               size="16"
             />
             <UBadge
@@ -32,7 +32,7 @@
             />
             <UIcon
               name="i-lucide-chevron-right"
-              class="text-gray-400"
+              class="text-muted"
               size="16"
             />
             <UBadge

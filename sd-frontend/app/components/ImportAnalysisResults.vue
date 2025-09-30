@@ -32,7 +32,7 @@
 
       <!-- Users/Members Section -->
       <div v-if="analysisResults.members?.length">
-        <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">
+        <h4 class="text-sm font-medium text-highlighted mb-3">
           Users Found ({{ analysisResults.members.length }})
         </h4>
         <div class="grid gap-2">
@@ -65,7 +65,7 @@
 
       <!-- Categories Section -->
       <div v-if="analysisResults.categories?.length">
-        <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">
+        <h4 class="text-sm font-medium text-highlighted mb-3">
           Categories Found ({{ analysisResults.categories.length }})
         </h4>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -79,7 +79,7 @@
               <div class="flex items-center gap-2">
                 <UIcon
                   name="i-lucide-tag"
-                  class="text-neutral-500"
+                  class="text-muted"
                   size="16"
                 />
                 <span class="font-medium">Category {{ category.key }}</span>
@@ -96,7 +96,7 @@
 
       <!-- Payment Modes Section -->
       <div v-if="analysisResults.paymentModes?.length">
-        <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">
+        <h4 class="text-sm font-medium text-highlighted mb-3">
           Payment Modes Found ({{ analysisResults.paymentModes.length }})
         </h4>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -110,7 +110,7 @@
               <div class="flex items-center gap-2">
                 <UIcon
                   name="i-lucide-credit-card"
-                  class="text-neutral-500"
+                  class="text-muted"
                   size="16"
                 />
                 <span class="font-medium">Mode {{ paymentMode.key }}</span>
@@ -142,7 +142,7 @@
     </div>
 
     <template #footer>
-      <div class="text-xs text-gray-500 dark:text-gray-400">
+      <div class="text-xs text-muted">
         Next: Configure how these items should be mapped to your SplitDuo group
       </div>
     </template>
