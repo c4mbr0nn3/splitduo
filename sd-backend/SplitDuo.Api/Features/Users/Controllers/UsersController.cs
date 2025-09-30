@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using SplitDuo.Api.Features.Common.Controllers;
 using SplitDuo.Api.Features.Common.Dto;
 using SplitDuo.Api.Features.Users.Dto;
@@ -7,6 +8,7 @@ using SplitDuo.Api.Features.Users.Services;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Dto.Imports;
+using SplitDuo.Core.Options;
 using SplitDuo.Core.Persistence;
 using SplitDuo.Core.Services;
 
@@ -19,6 +21,7 @@ public class UsersController(
     IUsersService usersService,
     IUnitOfWork unitOfWork,
     INotificationService notificationService,
+    IOptions<AppOptions> appOptions,
     ILogger<UsersController> logger) : BaseApiController
 {
     [HttpGet]
@@ -160,8 +163,9 @@ public class UsersController(
         return HandleResult(result, "User deleted successfully");
     }
 
-    private static string CreateWelcomeEmailBody(UserDto user, string generatedPassword)
+    private string CreateWelcomeEmailBody(UserDto user, string generatedPassword)
     {
+        var appUrl = appOptions.Value.BaseUrl;
         return $"""
                 <p>Hello {user.FullName},</p>
                 <p>Your SplitDuo account has been successfully created. You can now start tracking and splitting expenses with your partner or group.</p>
@@ -170,10 +174,9 @@ public class UsersController(
                 Password: <strong>{generatedPassword}</strong></p>
                 <p><strong>Important:</strong> Please change your password after your first login for security reasons.</p>
                 <p>To get started:<br>
-                1. Log in to SplitDuo using the credentials above<br>
+                1. <a href="{appUrl}/login">Log in to SplitDuo</a> using the credentials above<br>
                 2. Change your password in your profile settings<br>
                 3. Create or join a group to start splitting expenses</p>
-                <p>If you didn't expect this email, please contact your administrator.</p>
                 <p>Best regards,<br>
                 The SplitDuo Team</p>
                 """;
