@@ -7,8 +7,7 @@ public class AppOptionsSetup(IConfiguration configuration) : IConfigureOptions<A
 {
     public void Configure(AppOptions options)
     {
-        options.Environment = Environment.GetEnvironmentVariable("SD_ENVIRONMENT") ??
-                              configuration["Environment"] ?? "Development";
+        options.Environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
         options.BaseUrl = Environment.GetEnvironmentVariable("SD_BASE_URL") ?? "http://localhost:3000";
         options.InitialUserEmail = Environment.GetEnvironmentVariable("SD_INITIAL_USER_EMAIL") ?? "admin@localhost";
         options.InitialUserFirstName = Environment.GetEnvironmentVariable("SD_INITIAL_USER_FIRSTNAME") ?? "Super";
