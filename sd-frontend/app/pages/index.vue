@@ -1,6 +1,6 @@
 <template>
   <div class="flex justify-center items-center h-screen p-4">
-    <UCard class="w-full">
+    <UCard class="w-full sm:w-3/4 md:w-1/2">
       <UAuthForm
         title="Welcome Back"
         :fields="fields"
