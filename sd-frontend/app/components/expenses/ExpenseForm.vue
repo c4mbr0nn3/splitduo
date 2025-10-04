@@ -126,7 +126,7 @@
         <!-- Split Section -->
         <div class="space-y-2">
           <div class="flex items-center justify-between">
-            <label class="block text-sm font-medium">
+            <label class="block text-sm font-medium py-2">
               Split Between
             </label>
             <div class="flex gap-2">
@@ -141,6 +141,7 @@
                 @click="distributeRemaining"
               />
               <UButton
+                v-if="!areSplitsEqual"
                 type="button"
                 size="xs"
                 variant="outline"
@@ -182,7 +183,7 @@
                     placeholder="Amount"
                     :variant="splitByUser(member.userId).included ? 'subtle' : 'ghost'"
                     :disabled="!splitByUser(member.userId).included"
-                    :color="getSplitValidationState(member.userId)?.state === 'error' ? 'red' : undefined"
+                    :color="getSplitValidationState(member.userId)?.state === 'error' ? 'error' : undefined"
                     class="w-full"
                     @update:model-value="trackUser(member.userId)"
                   />
@@ -341,6 +342,22 @@ const showDistributeButton = computed(() => {
   if (!model.value.amount) return false
   const remaining = Math.abs(remainingAmount.value)
   return remaining > 0.001
+})
+
+const areSplitsEqual = computed(() => {
+  if (!model.value.amount || !model.value.splits) return true
+
+  const amount = parseFloat(model.value.amount)
+  const includedSplits = model.value.splits.filter(s => s.included)
+
+  if (includedSplits.length === 0) return true
+
+  const equalAmount = amount / includedSplits.length
+  const tolerance = 0.01 // Tolerance for rounding differences
+
+  return includedSplits.every(s =>
+    Math.abs(s.splitAmount - equalAmount) < tolerance,
+  )
 })
 
 const splitByUser = (userId) => {
