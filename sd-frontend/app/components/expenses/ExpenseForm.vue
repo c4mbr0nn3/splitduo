@@ -129,28 +129,14 @@
             <label class="block text-sm font-medium">
               Split Between
             </label>
-            <div class="flex gap-2">
-              <UButton
-                type="button"
-                size="xs"
-                variant="outline"
-                label="Split Equally"
-                :disabled="!model.amount || !groupMembers.length"
-                @click="splitEqually"
-              />
-              <UDropdownMenu
-                :items="splitTemplates.map(t => ({ ...t, onSelect: () => applySplitTemplate(t.value) }))"
-              >
-                <UButton
-                  type="button"
-                  size="xs"
-                  variant="outline"
-                  trailing-icon="i-heroicons-chevron-down"
-                  :disabled="!model.amount || !groupMembers.length"
-                  label="Templates"
-                />
-              </UDropdownMenu>
-            </div>
+            <UButton
+              type="button"
+              size="xs"
+              variant="outline"
+              label="Split Equally"
+              :disabled="!model.amount || !groupMembers.length"
+              @click="splitEqually"
+            />
           </div>
           <div class="space-y-3">
             <template
@@ -192,11 +178,17 @@
             </template>
           </div>
           <div class="text-xs space-y-1">
-            <div v-if="model.amount" class="flex justify-between items-center">
+            <div
+              v-if="model.amount"
+              class="flex justify-between items-center"
+            >
               <span class="text-toned">Expense Total:</span>
               <span class="font-medium">{{ formatCurrency(parseFloat(model.amount)) }}</span>
             </div>
-            <div v-if="splitTotal > 0" class="flex justify-between items-center">
+            <div
+              v-if="splitTotal > 0"
+              class="flex justify-between items-center"
+            >
               <span class="text-toned">Split Total:</span>
               <span class="font-medium">{{ formatCurrency(splitTotal) }}</span>
             </div>
@@ -205,7 +197,7 @@
               class="flex justify-between items-center font-semibold"
               :class="{
                 'text-red-500': remainingAmount < 0,
-                'text-orange-500': remainingAmount > 0
+                'text-orange-500': remainingAmount > 0,
               }"
             >
               <span>{{ remainingAmount > 0 ? 'Remaining:' : 'Over by:' }}</span>
@@ -375,7 +367,7 @@ const handleSplitToggle = (userId, included) => {
   })
 
   // Reset excluded splits to 0
-  model.value.splits.filter(s => !s.included).forEach(s => {
+  model.value.splits.filter(s => !s.included).forEach((s) => {
     s.splitAmount = 0
   })
 }
@@ -397,80 +389,6 @@ const splitEqually = () => {
     s.splitAmount = index === 0 ? roundedSplit + remainder : roundedSplit
   })
 }
-
-// Split templates
-const applySplitTemplate = (template) => {
-  if (!model.value.amount || !model.value.splits) return
-
-  const amount = parseFloat(model.value.amount)
-  const currentUserId = user.value?.id
-
-  switch (template) {
-    case 'equal':
-      splitEqually()
-      break
-
-    case 'exclude_me':
-      // Exclude current user, split equally among others
-      model.value.splits.forEach((s) => {
-        if (s.userId === currentUserId) {
-          s.included = false
-          s.splitAmount = 0
-        }
-        else {
-          s.included = true
-        }
-      })
-      splitEqually()
-      break
-
-    case 'i_paid_split_others':
-      // Current user paid but doesn't owe, split among others
-      const otherMembers = model.value.splits.filter(s => s.userId !== currentUserId)
-      if (otherMembers.length === 0) return
-
-      model.value.splits.forEach((s) => {
-        if (s.userId === currentUserId) {
-          s.included = false
-          s.splitAmount = 0
-        }
-        else {
-          s.included = true
-        }
-      })
-
-      const equalSplit = amount / otherMembers.length
-      const roundedSplit = Math.floor(equalSplit * 100) / 100
-      const remainder = amount - (roundedSplit * otherMembers.length)
-
-      otherMembers.forEach((s, index) => {
-        s.splitAmount = index === 0 ? roundedSplit + remainder : roundedSplit
-      })
-      break
-
-    case 'only_me':
-      // Only current user
-      model.value.splits.forEach((s) => {
-        if (s.userId === currentUserId) {
-          s.included = true
-          s.splitAmount = amount
-        }
-        else {
-          s.included = false
-          s.splitAmount = 0
-        }
-      })
-      break
-  }
-}
-
-const showTemplateMenu = ref(false)
-const splitTemplates = [
-  { value: 'equal', label: 'Split Equally', icon: 'i-heroicons-users' },
-  { value: 'exclude_me', label: 'Exclude Me', icon: 'i-heroicons-user-minus' },
-  { value: 'i_paid_split_others', label: 'I Paid, Split Others', icon: 'i-heroicons-banknotes' },
-  { value: 'only_me', label: 'Only Me', icon: 'i-heroicons-user' },
-]
 
 // Load group members when group changes
 const loadGroupMembers = async (groupId) => {
@@ -545,7 +463,7 @@ const validate = () => {
     if (difference > 0.001) {
       errors.push({
         name: 'splits',
-        message: `Split total (${formatCurrency(splitTotal.value)}) must equal expense amount (${formatCurrency(parseFloat(model.value.amount))})`
+        message: `Split total (${formatCurrency(splitTotal.value)}) must equal expense amount (${formatCurrency(parseFloat(model.value.amount))})`,
       })
     }
   }
