@@ -34,9 +34,9 @@ build_and_push:
         echo "Pushed version $VERSION_TAG and latest tags"
       fi
 
-    # Handle branch pushes (any branch except tags)
+    # Handle dev branch pushes (any branch except main)
     - |
-      if [[ -z "$CI_COMMIT_TAG" ]]; then
+      if [[ -z "$CI_COMMIT_TAG" ]] && [[ "$CI_COMMIT_REF_NAME" != "main" ]]; then
         BRANCH_TAG=$(echo $CI_COMMIT_REF_NAME | sed 's/[^a-zA-Z0-9._-]/-/g')
         docker tag $IMAGE_NAME:temp $IMAGE_NAME:$BRANCH_TAG
         docker push $IMAGE_NAME:$BRANCH_TAG
@@ -44,10 +44,11 @@ build_and_push:
       fi
 
   rules:
-    # Version tags: only on main branch
+    # Version tags: only on main branch with v prefix (pushes latest)
     - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+.*$/ && $CI_COMMIT_REF_NAME == "main"'
-    # Branch pushes: any branch, no tags
-    - if: '$CI_COMMIT_TAG == null && $CI_PIPELINE_SOURCE != "merge_request_event"'
+    # Dev branch pushes: manual trigger, auto-continue on success
+    - if: '$CI_COMMIT_TAG == null && $CI_COMMIT_REF_NAME != "main" && $CI_PIPELINE_SOURCE != "merge_request_event"'
+      when: manual
 
 after_script:
   - docker logout
