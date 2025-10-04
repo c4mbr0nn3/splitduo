@@ -129,14 +129,26 @@
             <label class="block text-sm font-medium">
               Split Between
             </label>
-            <UButton
-              type="button"
-              size="xs"
-              variant="outline"
-              label="Split Equally"
-              :disabled="!model.amount || !groupMembers.length"
-              @click="splitEqually"
-            />
+            <div class="flex gap-2">
+              <UButton
+                v-if="showDistributeButton"
+                type="button"
+                size="xs"
+                variant="soft"
+                color="success"
+                label="Distribute Remaining"
+                :disabled="!model.amount || !groupMembers.length"
+                @click="distributeRemaining"
+              />
+              <UButton
+                type="button"
+                size="xs"
+                variant="outline"
+                label="Split Equally"
+                :disabled="!model.amount || !groupMembers.length"
+                @click="splitEqually"
+              />
+            </div>
           </div>
           <div class="space-y-3">
             <template
@@ -146,8 +158,14 @@
               <UCard :variant="splitByUser(member.userId).included ? 'subtle' : 'outline'">
                 <template #header>
                   <div class="flex items-center justify-between">
-                    <span class="font-medium text-sm">
+                    <span class="flex items-center gap-2 font-medium text-sm">
                       {{ member.user.firstName }} {{ member.user.lastName }}
+                      <span
+                        v-if="model.amount && splitByUser(member.userId).splitAmount > 0"
+                        class="text-xs text-muted"
+                      >
+                        ({{ getSplitPercentage(member.userId) }}%)
+                      </span>
                     </span>
                     <UCheckbox
                       v-model="splitByUser(member.userId).included"
@@ -166,6 +184,7 @@
                     :disabled="!splitByUser(member.userId).included"
                     :color="getSplitValidationState(member.userId)?.state === 'error' ? 'red' : undefined"
                     class="w-full"
+                    @update:model-value="trackUser(member.userId)"
                   />
                   <span
                     v-if="getSplitValidationState(member.userId)?.state === 'error'"
@@ -272,6 +291,9 @@ const isLoadingMembers = ref(false)
 // Group members
 const groupMembers = ref([])
 
+// Track last modified user for distribute remaining
+const lastModifiedUserId = ref(null)
+
 // Computed options for selects
 const groupOptions = computed(() => {
   return groups.value.map(g => ({
@@ -315,6 +337,12 @@ const remainingAmount = computed(() => {
   return amount - splitTotal.value
 })
 
+const showDistributeButton = computed(() => {
+  if (!model.value.amount) return false
+  const remaining = Math.abs(remainingAmount.value)
+  return remaining > 0.001
+})
+
 const splitByUser = (userId) => {
   return model.value.splits.find(s => s.userId === userId) || { userId: userId, included: false, splitAmount: 0 }
 }
@@ -324,6 +352,18 @@ const formatCurrency = (amount) => {
     style: 'currency',
     currency: 'USD',
   }).format(amount)
+}
+
+const getSplitPercentage = (userId) => {
+  const split = splitByUser(userId)
+  const amount = parseFloat(model.value.amount) || 0
+  if (amount === 0 || !split.splitAmount) return 0
+  return Math.round((split.splitAmount / amount) * 100)
+}
+
+// Track when a user manually changes their split amount
+const trackUser = (userId) => {
+  lastModifiedUserId.value = userId
 }
 
 // Real-time validation for individual splits
@@ -388,6 +428,34 @@ const splitEqually = () => {
   includedSplits.forEach((s, index) => {
     s.splitAmount = index === 0 ? roundedSplit + remainder : roundedSplit
   })
+}
+
+// Distribute remaining amount equally among included members (excluding last modified user)
+const distributeRemaining = () => {
+  if (!model.value.amount || !model.value.splits) return
+
+  const remaining = remainingAmount.value
+
+  // Filter out the last modified user from distribution
+  const includedSplits = model.value.splits.filter(s =>
+    s.included && s.userId !== lastModifiedUserId.value,
+  )
+
+  if (includedSplits.length === 0 || Math.abs(remaining) <= 0.001) return
+
+  // Distribute remaining amount equally among other users
+  const adjustmentPerPerson = remaining / includedSplits.length
+  const roundedAdjustment = Math.floor(adjustmentPerPerson * 100) / 100
+  const finalRemainder = remaining - (roundedAdjustment * includedSplits.length)
+
+  includedSplits.forEach((s, index) => {
+    // Add adjustment to current split amount
+    const adjustment = index === 0 ? roundedAdjustment + finalRemainder : roundedAdjustment
+    s.splitAmount = Math.max(0, (s.splitAmount || 0) + adjustment)
+  })
+
+  // Reset tracking after distribution
+  lastModifiedUserId.value = null
 }
 
 // Load group members when group changes
