@@ -129,27 +129,14 @@
             <label class="block text-sm font-medium py-2">
               Split Between
             </label>
-            <div class="flex gap-2">
-              <UButton
-                v-if="showDistributeButton"
-                type="button"
-                size="xs"
-                variant="soft"
-                color="success"
-                label="Distribute Remaining"
-                :disabled="!model.amount || !groupMembers.length"
-                @click="distributeRemaining"
-              />
-              <UButton
-                v-if="!areSplitsEqual"
-                type="button"
-                size="xs"
-                variant="outline"
-                label="Split Equally"
-                :disabled="!model.amount || !groupMembers.length"
-                @click="splitEqually"
-              />
-            </div>
+            <UiButtonDropdown
+              label="Adjust Splits"
+              :items="adjustSplitsMenuItems"
+              size="sm"
+              variant="soft"
+              color="primary"
+              :disabled="!model.amount || !groupMembers.length"
+            />
           </div>
           <div class="space-y-3">
             <template
@@ -358,6 +345,23 @@ const areSplitsEqual = computed(() => {
   return includedSplits.every(s =>
     Math.abs(s.splitAmount - equalAmount) < tolerance,
   )
+})
+
+const adjustSplitsMenuItems = computed(() => {
+  return [
+    {
+      label: 'Distribute Remaining',
+      icon: 'i-heroicons-arrows-right-left',
+      onSelect: distributeRemaining,
+      visible: showDistributeButton.value,
+    },
+    {
+      label: 'Split Equally',
+      icon: 'i-heroicons-equals',
+      onSelect: splitEqually,
+      visible: !areSplitsEqual.value,
+    },
+  ]
 })
 
 const splitByUser = (userId) => {
