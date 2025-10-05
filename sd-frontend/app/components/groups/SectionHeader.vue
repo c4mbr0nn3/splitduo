@@ -8,58 +8,16 @@
           icon="i-lucide-users"
           :label="`${group.memberCount}`"
         />
-        <GroupsAddUserModal
-          v-if="group"
-          :group-id="group.id"
-          :group-members="groupMembers"
-          @user-added="onUserAdded"
-        >
-          <template #button>
-            <UButton
-              variant="ghost"
-              color="neutral"
-              size="sm"
-              icon="i-lucide-user-plus"
-            />
-          </template>
-        </GroupsAddUserModal>
       </div>
-      <div class="flex items-center gap-1">
-        <UButton
-          variant="ghost"
-          color="neutral"
-          size="sm"
-          icon="i-lucide-upload"
-          @click="navigateToImports(group?.id)"
-        />
-        <UButton
-          variant="ghost"
-          color="info"
-          size="sm"
-          icon="i-lucide-edit-2"
-          @click="navigateToEdit(group?.id)"
-        />
-        <UiConfirmDialog
-          title="Delete Group"
-          :message="`Are you sure you want to delete the group '${group?.name}'?`"
-          subtitle="This action cannot be undone and will remove all associated data."
-          confirm-text="Delete Group"
-          confirm-color="error"
-          icon="i-lucide-trash-2"
-          icon-color-class="text-error-500"
-          :is-processing="isDeletingGroup"
-          @confirm="deleteGroup"
-        >
-          <template #button>
-            <UButton
-              variant="ghost"
-              color="error"
-              size="sm"
-              icon="i-lucide-trash-2"
-            />
-          </template>
-        </UiConfirmDialog>
-      </div>
+      <GroupsActionsDropdown
+        :group="group"
+        :group-members="groupMembers"
+        :is-deleting="isDeletingGroup"
+        :is-exporting="isExporting"
+        @user-added="onUserAdded"
+        @delete-confirmed="deleteGroup"
+        @export="onExport"
+      />
     </div>
     <div class="flex">
       <div class="flex min-w-0">
@@ -87,26 +45,24 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  isExporting: {
+    type: Boolean,
+    default: false,
+  },
 })
 
-const emit = defineEmits(['user-added'])
+const emit = defineEmits(['user-added', 'export'])
 
 const { deleteGroup: deleteGroupAPI } = useGroups()
 
 const isDeletingGroup = ref(false)
 
-const navigateToEdit = (groupId) => {
-  if (!groupId) return
-  navigateTo(`/groups/${groupId}/edit/`)
-}
-
-const navigateToImports = (groupId) => {
-  if (!groupId) return
-  navigateTo(`/groups/${groupId}/imports`)
-}
-
 const onUserAdded = (users) => {
   emit('user-added', users)
+}
+
+const onExport = () => {
+  emit('export')
 }
 
 const deleteGroup = async () => {

@@ -8,7 +8,9 @@
         <GroupsSectionHeader
           :group="group"
           :group-members="groupMembers"
+          :is-exporting="isExporting"
           @user-added="onUserAdded"
+          @export="handleExport"
         />
       </template>
       <div class="mb-6">
@@ -91,6 +93,7 @@ const { user } = useAuth()
 const { currentGroup, fetchGroup, fetchGroupMembers } = useGroups()
 const { expenses, fetchExpenses, pagination: expensePagination, isLoading: isLoadingExpenses } = useExpenses(groupId)
 const { balanceSummary, fetchBalanceSummary } = useBalances(groupId)
+const { exportToCsv, isExporting } = useImportExport(groupId)
 
 const group = computed(() => currentGroup.value)
 const groupMembers = ref([])
@@ -142,6 +145,15 @@ const loadGroupMembers = async () => {
   catch (error) {
     console.error('Failed to load group members:', error)
     groupMembers.value = []
+  }
+}
+
+const handleExport = async () => {
+  try {
+    await exportToCsv()
+  }
+  catch (error) {
+    console.error('Failed to export group data:', error)
   }
 }
 
