@@ -82,7 +82,7 @@ public class SplitDuoImportsService(
             }
 
             // Get mapping configuration from the import record
-            var mappingConfig = import.GetMappingConfiguration<SplitDuoImportMappingDto>();
+            var mappingConfig = import.GetMappingConfiguration<ImportMappingDto>();
             if (mappingConfig == null)
             {
                 Logger.LogError("No mapping configuration found for import {ImportId}", importId);
