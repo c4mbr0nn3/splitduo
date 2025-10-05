@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -224,12 +223,4 @@ public class CospendImportsService(
 
         return splits;
     }
-}
-
-public class ImportAnalysisDto
-{
-    public string FileHash { get; set; } = "";
-    [JsonPropertyName("members")] public List<KeyValueDto> Members { get; set; } = [];
-    [JsonPropertyName("categories")] public List<KeyValueDto> Categories { get; set; } = [];
-    [JsonPropertyName("paymentModes")] public List<KeyValueDto> PaymentModes { get; set; } = [];
 }
