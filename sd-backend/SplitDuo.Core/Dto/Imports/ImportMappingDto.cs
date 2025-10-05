@@ -1,6 +1,6 @@
 namespace SplitDuo.Core.Dto.Imports;
 
-public class CospendImportMappingDto
+public class ImportMappingDto
 {
     public string ImportId { get; set; }
     public Dictionary<string, string> UserMappings { get; set; } = new();

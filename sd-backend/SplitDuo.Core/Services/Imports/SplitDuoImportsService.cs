@@ -15,47 +15,22 @@ namespace SplitDuo.Core.Services.Imports;
 public class SplitDuoImportsService(
     ILogger<SplitDuoImportsService> logger,
     IUnitOfWork unitOfWork,
-    ISchedulerFactory schedulerFactory) : IImportsService
+    ISchedulerFactory schedulerFactory,
+    IImportValidatorService validatorService) : IImportsService
 {
-    public async Task<Result> IsValidImportAsync(IFormFile file, int groupId)
-    {
-        // Validate file extension
-        if (!file.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
-        {
-            return Result.BadRequest("Invalid file format. Only CSV files are supported.");
-        }
-
-        // Validate file size (max 10MB)
-        if (file.Length > 10 * 1024 * 1024)
-        {
-            return Result.BadRequest("File size exceeds 10MB limit.");
-        }
-
-        return Result.Success();
-    }
-
-    public async Task<Result> IsDuplicateFileAsync(string fileHash, int groupId)
-    {
-        var exists = await unitOfWork.Imports.AnyAsync(i =>
-            i.FileHash == fileHash && i.GroupId == groupId);
-
-        return exists
-            ? Result.BadRequest("This file has already been imported.")
-            : Result.Success();
-    }
-
     public async Task<Result<ImportAnalysisDto>> AnalyzeFileAsync(IFormFile file)
     {
         try
         {
             var parseResult = await SplitDuoCsvParser.ParseAsync(file);
             var fileHash = await HashUtils.ComputeSha256Async(file);
+            var members = parseResult.UniqueEmails
+                .Select(email => new KeyValueDto { Key = email, Value = email })
+                .ToList();
             var result = new ImportAnalysisDto
             {
                 FileHash = fileHash,
-                Members = parseResult.UniqueEmails
-                    .Select(email => new KeyValueDto { Key = email, Value = email })
-                    .ToList(),
+                Members = members,
                 Categories = [],
                 PaymentModes = []
             };
@@ -78,17 +53,7 @@ public class SplitDuoImportsService(
     {
         try
         {
-            var duplicateCheck = await IsDuplicateFileAsync(analysisDto.FileHash, groupId);
-            if (duplicateCheck.IsFailure)
-            {
-                return Result<ImportStatusDto>.BadRequest(duplicateCheck.Error);
-            }
-
-            // Read file into memory
-            using var memoryStream = new MemoryStream();
-            await file.CopyToAsync(memoryStream);
-            var fileBytes = memoryStream.ToArray();
-
+            var byteFile = await FileUtils.ConvertToByteArrayAsync(file);
             var import = new Import
             {
                 GroupId = groupId,
@@ -96,9 +61,9 @@ public class SplitDuoImportsService(
                 FileName = file.FileName,
                 FileHash = analysisDto.FileHash,
                 ImportDate = DateOnly.FromDateTime(DateTime.UtcNow),
-                Status = ImportStatus.Pending,
                 ImportType = ImportType.SplitDuo,
-                TempFile = fileBytes
+                Status = ImportStatus.Pending,
+                TempFile = byteFile
             };
 
             import.SetAnalysisResults(analysisDto);
@@ -117,7 +82,7 @@ public class SplitDuoImportsService(
 
     public async Task<Result<ImportStatusDto>> UpdateImportMappingsAsync(
         Guid importGuid,
-        CospendImportMappingDto mappingDto)
+        ImportMappingDto mappingDto)
     {
         try
         {
@@ -127,34 +92,18 @@ public class SplitDuoImportsService(
                 return Result<ImportStatusDto>.NotFound("Import not found");
             }
 
-            // Convert CospendImportMappingDto to SplitDuoImportMappingDto structure
-            var splitDuoMappingDto = new SplitDuoImportMappingDto
-            {
-                ImportId = importGuid.ToString(),
-                UserMappings = mappingDto.UserMappings
-            };
 
             // Validate mapping configuration
-            var validationResult = await ValidateMappingConfiguration(splitDuoMappingDto, import.GroupId);
+            var validationResult = await validatorService.ValidateMappingConfigurationAsync(mappingDto, import.GroupId);
             if (validationResult.IsFailure)
             {
                 return Result<ImportStatusDto>.BadRequest(validationResult.Error);
             }
 
-            import.SetMappingConfiguration(splitDuoMappingDto);
+            import.SetMappingConfiguration(mappingDto);
 
-            var statusDto = new ImportStatusDto
-            {
-                Id = import.Guid.ToString(),
-                FileName = import.FileName,
-                ImportDate = import.ImportDate.ToString("yyyy-MM-dd"),
-                RecordsCount = import.RecordsCount,
-                ImportStatusId = import.StatusId,
-                ImportTypeId = (int)import.ImportType,
-                MappingConfiguration = import.MappingConfiguration ?? string.Empty
-            };
-
-            return Result<ImportStatusDto>.Success(statusDto);
+            var response = new ImportStatusDto(import);
+            return Result<ImportStatusDto>.Success(response);
         }
         catch (Exception e)
         {
@@ -394,27 +343,5 @@ public class SplitDuoImportsService(
             await unitOfWork.RollbackTransactionAsync();
             return Result<int>.InternalServerError($"Import failed: {ex.Message}");
         }
-    }
-
-    private async Task<Result> ValidateMappingConfiguration(SplitDuoImportMappingDto mappingDto, int groupId)
-    {
-        // Validate that all mapped user GUIDs exist in the group
-        var groupMembers = await unitOfWork.GroupMembers
-            .Where(gm => gm.GroupId == groupId)
-            .Include(gm => gm.User)
-            .Select(gm => gm.User)
-            .ToListAsync();
-
-        var groupMemberGuids = groupMembers.Select(u => u.Guid.ToString()).ToHashSet();
-
-        foreach (var mapping in mappingDto.UserMappings)
-        {
-            if (!groupMemberGuids.Contains(mapping.Value))
-            {
-                return Result.BadRequest($"User with GUID '{mapping.Value}' is not a member of this group");
-            }
-        }
-
-        return Result.Success();
     }
 }

@@ -32,6 +32,7 @@ public static class ApiProgramExtensions
         builder.Services.AddScoped<IBalancesService, BalancesService>();
         builder.Services.AddScoped<ISettlementsService, SettlementsService>();
         builder.Services.AddScoped<IExportsService, SplitDuoExportsService>();
+        builder.Services.AddScoped<IImportValidatorService, ImportValidatorServiceService>();
 
         // Register keyed services
         builder.Services.AddKeyedScoped<IImportsService, CospendImportsService>(ImportType.Cospend);

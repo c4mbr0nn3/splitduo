@@ -19,7 +19,8 @@ namespace SplitDuo.Api.Features.Imports.Controllers;
 public class ImportsController(
     IUnitOfWork unitOfWork,
     IGroupsService groupsService,
-    IImportServiceFactory importServiceFactory) : BaseApiController
+    IImportServiceFactory importServiceFactory,
+    IImportValidatorService validatorService) : BaseApiController
 {
     [HttpGet]
     public async Task<ActionResult<PaginatedResponseDto<ImportStatusDto>>> GetGroupImports(
@@ -66,7 +67,7 @@ public class ImportsController(
             return HandleResult(Result<ImportStatusDto>.BadRequest(ex.Message));
         }
 
-        var validationResult = await importsService.IsValidImportAsync(request.File, group!.OriginalId);
+        var validationResult = await validatorService.IsValidImportAsync(request.File, group!.OriginalId);
         if (validationResult.IsFailure) return HandleResult(Result<ImportStatusDto>.BadRequest(validationResult.Error));
 
         var analysisResult = await importsService.AnalyzeFileAsync(request.File);
@@ -94,7 +95,7 @@ public class ImportsController(
     [HttpPost]
     public async Task<ActionResult<ApiResponseDto<ImportStatusDto>>> ImportData(
         string groupId,
-        CospendImportMappingDto request)
+        ImportMappingDto request)
     {
         var user = await GetCurrentUserAsync();
         if (user == null) return HandleResult(Result<ImportStatusDto>.Unauthorized("User not authenticated"));
