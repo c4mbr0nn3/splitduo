@@ -29,7 +29,7 @@ public class SplitDuoImportsService(
         {
             var parseResult = await SplitDuoCsvParser.ParseAsync(file);
             var fileHash = await HashUtils.ComputeSha256Async(file);
-            var members = parseResult.UniqueEmails
+            var members = parseResult.Members
                 .Select(email => new KeyValueDto { Key = email, Value = email })
                 .ToList();
             var result = new ImportAnalysisDto

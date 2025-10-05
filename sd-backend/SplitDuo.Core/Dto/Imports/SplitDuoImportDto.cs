@@ -47,5 +47,5 @@ public class OwnerSplit
 public class SplitDuoParseResult
 {
     public List<SplitDuoExpenseDto> Expenses { get; set; } = [];
-    public HashSet<string> UniqueEmails { get; set; } = [];
+    public HashSet<string> Members { get; set; } = [];
 }

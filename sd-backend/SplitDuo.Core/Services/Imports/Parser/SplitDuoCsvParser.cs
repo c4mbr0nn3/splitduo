@@ -47,7 +47,7 @@ public static class SplitDuoCsvParser
         return new SplitDuoParseResult
         {
             Expenses = expenses,
-            UniqueEmails = uniqueEmails
+            Members = uniqueEmails
         };
     }
 }
