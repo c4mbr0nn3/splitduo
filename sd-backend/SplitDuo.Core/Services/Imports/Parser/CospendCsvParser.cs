@@ -3,9 +3,9 @@ using CsvHelper;
 using Microsoft.AspNetCore.Http;
 using SplitDuo.Core.Dto.Imports;
 
-namespace SplitDuo.Core.Services.Imports;
+namespace SplitDuo.Core.Services.Imports.Parser;
 
-public class CospendCsvParser
+public static class CospendCsvParser
 {
     private static readonly List<string> MembersHeader = ["name", "weight", "active", "color"];
 

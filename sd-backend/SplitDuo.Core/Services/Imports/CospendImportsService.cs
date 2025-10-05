@@ -1,5 +1,3 @@
-using System.Collections.Concurrent;
-using System.Globalization;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +9,7 @@ using SplitDuo.Core.Domain.Enums;
 using SplitDuo.Core.Dto.Imports;
 using SplitDuo.Core.Persistence;
 using SplitDuo.Core.Services.BackgroundJobs;
+using SplitDuo.Core.Services.Imports.Parser;
 
 namespace SplitDuo.Core.Services.Imports;
 
@@ -39,7 +38,7 @@ public class CospendImportsService(
         return any ? Result.Success() : Result.NotFound("No duplicate file found");
     }
 
-    public async Task<Result<CospendImportAnalysisDto>> AnalyzeFileAsync(IFormFile file)
+    public async Task<Result<ImportAnalysisDto>> AnalyzeFileAsync(IFormFile file)
     {
         try
         {
@@ -51,7 +50,7 @@ public class CospendImportsService(
             };
             var parseResult = await CospendCsvParser.ParseAsync(file, sectionsToParse);
             var fileHash = await HashUtils.ComputeSha256Async(file);
-            var result = new CospendImportAnalysisDto
+            var result = new ImportAnalysisDto
             {
                 FileHash = fileHash,
                 Members = parseResult.Members.Select(m => m.ToKeyValueDto()).ToList(),
@@ -59,14 +58,13 @@ public class CospendImportsService(
                 PaymentModes = parseResult.PaymentModes.Select(p => p.ToKeyValueDto()).ToList()
             };
 
-
             logger.LogInformation("Successfully analyzed file with hash: {Hash}", fileHash);
-            return Result<CospendImportAnalysisDto>.Success(result);
+            return Result<ImportAnalysisDto>.Success(result);
         }
         catch (Exception e)
         {
             logger.LogError(e, "An error occurred while analyzing import file: {FileName}", file.FileName);
-            return Result<CospendImportAnalysisDto>.InternalServerError($"Failed to analyze file: {e.Message}");
+            return Result<ImportAnalysisDto>.InternalServerError($"Failed to analyze file: {e.Message}");
         }
     }
 
@@ -74,7 +72,7 @@ public class CospendImportsService(
         IFormFile file,
         int groupId,
         int userId,
-        CospendImportAnalysisDto analysisDto)
+        ImportAnalysisDto analysisDto)
     {
         try
         {
@@ -111,13 +109,13 @@ public class CospendImportsService(
         }
     }
 
-    public async Task<Result<ImportStatusDto>> UpdateImportMappingsAsync(Guid importGuid,
+    public async Task<Result<ImportStatusDto>> UpdateImportMappingsAsync(
+        Guid importGuid,
         CospendImportMappingDto mappingDto)
     {
         try
         {
             var import = await unitOfWork.Imports.FirstOrDefaultAsync(i => i.Guid == importGuid);
-
             if (import == null)
             {
                 return Result<ImportStatusDto>.NotFound("Import not found");
@@ -394,7 +392,7 @@ public class CospendImportsService(
     }
 }
 
-public class CospendImportAnalysisDto
+public class ImportAnalysisDto
 {
     public string FileHash { get; set; } = "";
     [JsonPropertyName("members")] public List<KeyValueDto> Members { get; set; } = [];

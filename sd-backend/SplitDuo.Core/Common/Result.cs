@@ -29,6 +29,7 @@ public class Result<T>
     }
 
     public Result<TK> MapTo<TK>() => new() { IsSuccess = IsSuccess, Error = Error, StatusCode = StatusCode };
+    public Result ToResult() => new() { IsSuccess = IsSuccess, Error = Error, StatusCode = StatusCode };
 
     public static Result<T> Success(T value, HttpStatusCode statusCode = HttpStatusCode.OK) => new(value, statusCode);
 
@@ -54,10 +55,14 @@ public class Result<T>
 
 public class Result
 {
-    public bool IsSuccess { get; private set; }
+    public bool IsSuccess { get; set; }
     public bool IsFailure => !IsSuccess;
-    public string Error { get; private set; }
-    public HttpStatusCode StatusCode { get; private set; }
+    public string Error { get; set; } = "";
+    public HttpStatusCode StatusCode { get; set; }
+
+    public Result()
+    {
+    }
 
     private Result(bool isSuccess, string error = "", HttpStatusCode statusCode = HttpStatusCode.OK)
     {
@@ -65,7 +70,9 @@ public class Result
         Error = error;
         StatusCode = isSuccess
             ? statusCode
-            : statusCode == HttpStatusCode.OK ? HttpStatusCode.BadRequest : statusCode;
+            : statusCode == HttpStatusCode.OK
+                ? HttpStatusCode.BadRequest
+                : statusCode;
     }
 
     public static Result Success(HttpStatusCode statusCode = HttpStatusCode.OK) => new(true, "", statusCode);

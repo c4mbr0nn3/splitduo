@@ -9,6 +9,7 @@ using SplitDuo.Api.Features.Settlements.Services;
 using SplitDuo.Api.Features.Users.Services;
 using SplitDuo.Core.Extensions;
 using SplitDuo.Core.Factories;
+using SplitDuo.Core.Services.Exports;
 using SplitDuo.Core.Services.Imports;
 
 namespace SplitDuo.Api.Extensions;
@@ -30,9 +31,11 @@ public static class ApiProgramExtensions
         builder.Services.AddScoped<IExpensesService, ExpensesService>();
         builder.Services.AddScoped<IBalancesService, BalancesService>();
         builder.Services.AddScoped<ISettlementsService, SettlementsService>();
+        builder.Services.AddScoped<IExportsService, SplitDuoExportsService>();
 
         // Register keyed services
         builder.Services.AddKeyedScoped<IImportsService, CospendImportsService>(ImportType.Cospend);
+        builder.Services.AddKeyedScoped<IImportsService, SplitDuoImportsService>(ImportType.SplitDuo);
 
         // Register factories
         builder.Services.AddScoped<IImportServiceFactory, ImportServiceFactory>();
