@@ -7,14 +7,13 @@
           variant="soft"
           icon="i-lucide-users"
           :label="`${group.memberCount}`"
+          @click="navigateTo(`/groups/${group.id}/members`)"
         />
       </div>
       <GroupsActionsDropdown
         :group="group"
-        :group-members="groupMembers"
         :is-deleting="isDeletingGroup"
         :is-exporting="isExporting"
-        @user-added="onUserAdded"
         @delete-confirmed="deleteGroup"
         @export="onExport"
       />
@@ -41,25 +40,17 @@ const props = defineProps({
     type: Object,
     default: null,
   },
-  groupMembers: {
-    type: Array,
-    default: () => [],
-  },
   isExporting: {
     type: Boolean,
     default: false,
   },
 })
 
-const emit = defineEmits(['user-added', 'export'])
+const emit = defineEmits(['export'])
 
 const { deleteGroup: deleteGroupAPI } = useGroups()
 
 const isDeletingGroup = ref(false)
-
-const onUserAdded = (users) => {
-  emit('user-added', users)
-}
 
 const onExport = () => {
   emit('export')

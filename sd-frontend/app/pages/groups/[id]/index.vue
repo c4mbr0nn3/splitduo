@@ -7,9 +7,7 @@
       <template #header>
         <GroupsSectionHeader
           :group="group"
-          :group-members="groupMembers"
           :is-exporting="isExporting"
-          @user-added="onUserAdded"
           @export="handleExport"
         />
       </template>
@@ -90,13 +88,12 @@
 const route = useRoute()
 const groupId = route.params.id
 const { user } = useAuth()
-const { currentGroup, fetchGroup, fetchGroupMembers } = useGroups()
+const { currentGroup, fetchGroup } = useGroups()
 const { expenses, fetchExpenses, pagination: expensePagination, isLoading: isLoadingExpenses } = useExpenses(groupId)
 const { balanceSummary, fetchBalanceSummary } = useBalances(groupId)
 const { exportToCsv, isExporting } = useImportExport(groupId)
 
 const group = computed(() => currentGroup.value)
-const groupMembers = ref([])
 const summary = computed(() => balanceSummary.value)
 const mySummary = computed(() => {
   if (!summary.value) return null
@@ -128,26 +125,6 @@ const onExpenseDeleted = async () => {
   ])
 }
 
-const onUserAdded = async () => {
-  await Promise.all([
-    fetchGroup(groupId),
-    fetchBalanceSummary(),
-    loadGroupMembers(),
-  ])
-}
-
-const loadGroupMembers = async () => {
-  try {
-    const data = await fetchGroupMembers(groupId)
-    const members = data.map(item => item.user)
-    groupMembers.value = members || []
-  }
-  catch (error) {
-    console.error('Failed to load group members:', error)
-    groupMembers.value = []
-  }
-}
-
 const handleExport = async () => {
   try {
     await exportToCsv()
@@ -167,7 +144,6 @@ onMounted(async () => {
       fetchGroup(groupId),
       fetchExpenses({ page: 1 }),
       fetchBalanceSummary(),
-      loadGroupMembers(),
     ])
   }
 })

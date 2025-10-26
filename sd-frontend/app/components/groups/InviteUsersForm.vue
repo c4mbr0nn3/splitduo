@@ -1,50 +1,37 @@
 <template>
-  <UModal>
-    <slot name="button" />
-    <template #title>
-      <div class="flex items-center gap-2">
-        <UIcon
-          name="i-lucide-user-plus"
-          class="text-primary"
-        />
-        <h3 class="text-lg font-semibold">
-          Invite User to Group
-        </h3>
-      </div>
-    </template>
-    <template #body>
-      <UCard
-        variant="soft"
-        :ui="{ body: 'p-1' }"
+  <div class="space-y-4">
+    <UCard
+      variant="soft"
+      :ui="{ body: 'p-1' }"
+    >
+      <UCommandPalette
+        v-model="selectedUsers"
+        multiple
+        :groups="commandGroups"
+        placeholder="Search users by name or email..."
+        :fuse="{
+          fuseOptions: {
+            includeMatches: true,
+            threshold: 0.3,
+            keys: ['label', 'suffix'],
+          },
+        }"
+      />
+    </UCard>
+
+    <div class="flex items-center gap-3 w-full">
+      <UButton
+        color="primary"
+        size="lg"
+        block
+        :disabled="!selectedUsers.length"
+        :loading="isProcessing"
+        @click="onInviteUsers"
       >
-        <UCommandPalette
-          v-model="selectedUsers"
-          multiple
-          :groups="commandGroups"
-          placeholder="Search users by name or email..."
-          :fuse="{
-            fuseOptions: {
-              includeMatches: true,
-              threshold: 0.3,
-              keys: ['label', 'suffix'],
-            },
-          }"
-        />
-      </UCard>
-    </template>
-    <template #footer>
-      <div class="flex items-center gap-3 w-full">
-        <UButton
-          color="primary"
-          :disabled="!selectedUsers.length"
-          :loading="isProcessing"
-          @click="onInviteUsers"
-        >
-          Invite {{ selectedUsers.length }} User{{ selectedUsers.length !== 1 ? 's' : '' }}
-        </UButton>
-      </div>
-    </template>
-  </UModal>
+        Invite {{ selectedUsers.length }} User{{ selectedUsers.length !== 1 ? 's' : '' }}
+      </UButton>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -55,22 +42,30 @@ const props = defineProps({
   },
   groupMembers: {
     type: Array,
-    default: () => [],
+    default: null,
   },
 })
 
-const emit = defineEmits(['user-added', 'cancel'])
+const emit = defineEmits(['success'])
 
 const { fetchUsers, users } = useUsers()
-const { addGroupMember } = useGroups()
+const { addGroupMember, fetchGroupMembers } = useGroups()
 
 const selectedUsers = ref([])
 const isProcessing = ref(false)
+const members = ref([])
+
+// Watch for changes to groupMembers prop
+watch(() => props.groupMembers, (newMembers) => {
+  if (newMembers) {
+    members.value = newMembers
+  }
+}, { immediate: true })
 
 const availableUsers = computed(() => {
   if (!users.value) return []
 
-  const memberIds = new Set(props.groupMembers.map(member => member.id))
+  const memberIds = new Set(members.value.map(member => member.id))
   return users.value.filter(user => !memberIds.has(user.id))
 })
 
@@ -113,7 +108,7 @@ const onInviteUsers = async () => {
 
     await Promise.all(invitePromises)
 
-    emit('user-added', selectedUsers.value)
+    emit('success', selectedUsers.value)
     selectedUsers.value = []
   }
   catch (error) {
@@ -126,10 +121,17 @@ const onInviteUsers = async () => {
 
 onMounted(async () => {
   try {
+    // Fetch all users
     await fetchUsers()
+
+    // Fetch group members if not provided
+    if (!props.groupMembers) {
+      const data = await fetchGroupMembers(props.groupId)
+      members.value = data.map(item => item.user)
+    }
   }
   catch (error) {
-    console.error('Failed to load users:', error)
+    console.error('Failed to load data:', error)
   }
 })
 </script>

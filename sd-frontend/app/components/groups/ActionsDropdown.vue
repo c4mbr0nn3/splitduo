@@ -1,14 +1,5 @@
 <template>
   <div class="flex items-center gap-1">
-    <!-- Add User Modal -->
-    <GroupsAddUserModal
-      v-if="group"
-      ref="addUserModalRef"
-      :group-id="group.id"
-      :group-members="groupMembers"
-      @user-added="onUserAdded"
-    />
-
     <!-- Delete Confirmation Dialog -->
     <UiConfirmDialog
       ref="deleteDialogRef"
@@ -25,7 +16,7 @@
 
     <!-- Actions Dropdown -->
     <UiButtonDropdown
-      label="Actions"
+      label="Manage Group"
       :items="dropdownItems"
       size="sm"
       variant="soft"
@@ -39,10 +30,6 @@ const props = defineProps({
     type: Object,
     default: null,
   },
-  groupMembers: {
-    type: Array,
-    default: () => [],
-  },
   isDeleting: {
     type: Boolean,
     default: false,
@@ -53,9 +40,8 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['user-added', 'delete-confirmed', 'export'])
+const emit = defineEmits(['delete-confirmed', 'export'])
 
-const addUserModalRef = ref(null)
 const deleteDialogRef = ref(null)
 
 const navigateToEdit = () => {
@@ -68,18 +54,9 @@ const navigateToImports = () => {
   navigateTo(`/groups/${props.group.id}/imports`)
 }
 
-const openAddUserModal = () => {
-  // The modal should open when its button slot is clicked
-  // This is handled by the GroupsAddUserModal component itself
-}
-
-const openDeleteDialog = () => {
-  // The dialog should open when its button slot is clicked
-  // This is handled by the UiConfirmDialog component itself
-}
-
-const onUserAdded = (users) => {
-  emit('user-added', users)
+const navigateToInvite = () => {
+  if (!props.group?.id) return
+  navigateTo(`/groups/${props.group.id}/invite`)
 }
 
 const onDeleteConfirmed = () => {
@@ -92,12 +69,9 @@ const handleExport = () => {
 
 const dropdownItems = computed(() => [
   {
-    label: 'Add User',
+    label: 'Invite Users',
     icon: 'i-lucide-user-plus',
-    onSelect: () => {
-      // Trigger the modal programmatically
-      addUserModalRef.value?.$el?.querySelector('button')?.click()
-    },
+    onSelect: navigateToInvite,
   },
   {
     label: 'Import File',
