@@ -1,10 +1,10 @@
 <template>
-  <div class="flex flex-col items-center justify-center p-4">
-    <UCard class="w-full max-w-md">
+  <div class="flex flex-col items-center justify-center py-4">
+    <UCard class="w-full max-w-2xl">
       <template #header>
-        <h2 class="text-xl font-bold text-center">
+        <h1 class="text-xl font-bold text-primary">
           {{ title }}
-        </h2>
+        </h1>
       </template>
       <UForm
         :state="form"
@@ -35,13 +35,23 @@
             class="w-full"
           />
         </UFormField>
-        <UButton
-          type="submit"
-          :label="submitLabel"
-          block
-          size="lg"
-          :loading="loading"
-        />
+        <div class="flex space-x-3 pt-4">
+          <UButton
+            type="button"
+            label="Back"
+            variant="outline"
+            size="lg"
+            class="flex-1"
+            @click="emit('cancel')"
+          />
+          <UButton
+            type="submit"
+            :label="submitLabel"
+            size="lg"
+            class="flex-1"
+            :loading="loading"
+          />
+        </div>
       </UForm>
     </UCard>
   </div>
@@ -67,7 +77,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['submit'])
+const emit = defineEmits(['submit', 'cancel'])
 
 const form = ref({ ...props.initialData })
 

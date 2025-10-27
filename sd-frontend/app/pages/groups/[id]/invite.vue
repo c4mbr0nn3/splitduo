@@ -3,12 +3,6 @@
     <UCard class="w-full max-w-2xl">
       <template #header>
         <div class="space-y-4">
-          <UButton
-            variant="ghost"
-            icon="i-lucide-arrow-left"
-            label="Back to Group"
-            @click="navigateBack"
-          />
           <div>
             <h1 class="text-xl font-bold text-primary">
               Invite Users
@@ -33,6 +27,7 @@
         :group-id="groupId"
         :group-members="groupMembers"
         @success="onSuccess"
+        @cancel="onCancel"
       />
     </UCard>
   </div>
@@ -47,7 +42,7 @@ const { currentGroup, fetchGroup, fetchGroupMembers, isLoading } = useGroups()
 const group = computed(() => currentGroup.value)
 const groupMembers = ref([])
 
-const navigateBack = () => {
+const onCancel = () => {
   navigateTo(`/groups/${groupId}`)
 }
 

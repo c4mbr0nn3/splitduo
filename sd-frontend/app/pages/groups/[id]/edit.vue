@@ -5,6 +5,7 @@
     :initial-data="initialData"
     :loading="isLoading"
     @submit="onSubmit"
+    @cancel="onCancel"
   />
 </template>
 
@@ -29,6 +30,10 @@ async function onSubmit(formData) {
   catch (err) {
     console.error('Error updating group:', err)
   }
+}
+
+function onCancel() {
+  navigateTo(`/groups/${groupId}`)
 }
 
 onMounted(async () => {

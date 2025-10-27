@@ -19,13 +19,21 @@
       />
     </UCard>
 
-    <div class="flex items-center gap-3 w-full">
+    <div class="flex space-x-3 pt-4">
+      <UButton
+        type="button"
+        label="Back"
+        variant="outline"
+        size="lg"
+        class="flex-1"
+        @click="emit('cancel')"
+      />
       <UButton
         color="primary"
         size="lg"
-        block
         :disabled="!selectedUsers.length"
         :loading="isProcessing"
+        class="flex-1"
         @click="onInviteUsers"
       >
         Invite {{ selectedUsers.length }} User{{ selectedUsers.length !== 1 ? 's' : '' }}
@@ -46,7 +54,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['success'])
+const emit = defineEmits(['success', 'cancel'])
 
 const { fetchUsers, users } = useUsers()
 const { addGroupMember, fetchGroupMembers } = useGroups()

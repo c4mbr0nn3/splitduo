@@ -4,6 +4,7 @@
     submit-label="Create"
     :loading="isLoading"
     @submit="onSubmit"
+    @cancel="onCancel"
   />
 </template>
 
@@ -20,6 +21,10 @@ async function onSubmit(formData) {
   catch (err) {
     console.error('Error creating group:', err)
   }
+}
+
+function onCancel() {
+  navigateTo('/groups')
 }
 
 useHead({
