@@ -103,7 +103,7 @@ public abstract class AbstractImportService<T>(
             var jobData = new JobDataMap
             {
                 ["ImportGuid"] = import.Guid.ToString(),
-                ["ImportType"] = nameof(ImportType.Cospend)
+                ["ImportType"] = import.ImportType.ToString()
             };
 
             var job = JobBuilder.Create<ImportProcessingJob>()
