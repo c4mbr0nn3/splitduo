@@ -1,9 +1,11 @@
 <template>
   <UiButtonDropdown
-    label="Manage Group"
     :items="dropdownItems"
+    icon-only
+    dropdown-icon="i-heroicons-ellipsis-vertical"
     size="sm"
-    variant="soft"
+    variant="outline"
+    color="neutral"
   />
 </template>
 

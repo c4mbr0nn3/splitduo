@@ -1,27 +1,43 @@
 <template>
-  <UFieldGroup v-if="visibleItems.length > 0">
-    <UButton
-      :label="label"
-      :variant="variant"
-      :size="size"
-      :disabled="disabled"
-    />
-    <UDropdownMenu :items="visibleItems">
+  <div v-if="visibleItems.length > 0">
+    <UDropdownMenu
+      v-if="iconOnly"
+      :items="visibleItems"
+    >
       <UButton
         :icon="dropdownIcon"
+        :color="color"
         :variant="variant"
         :size="size"
         :disabled="disabled"
       />
     </UDropdownMenu>
-  </UFieldGroup>
+    <UFieldGroup v-else>
+      <UButton
+        :label="label"
+        :color="color"
+        :variant="variant"
+        :size="size"
+        :disabled="disabled"
+      />
+      <UDropdownMenu :items="visibleItems">
+        <UButton
+          :icon="dropdownIcon"
+          :color="color"
+          :variant="variant"
+          :size="size"
+          :disabled="disabled"
+        />
+      </UDropdownMenu>
+    </UFieldGroup>
+  </div>
 </template>
 
 <script setup>
 const props = defineProps({
   label: {
     type: String,
-    required: true,
+    required: false,
   },
   items: {
     type: Array,
@@ -46,6 +62,10 @@ const props = defineProps({
   dropdownIcon: {
     type: String,
     default: 'i-heroicons-chevron-down',
+  },
+  iconOnly: {
+    type: Boolean,
+    default: false,
   },
 })
 
