@@ -164,6 +164,7 @@ const currentStep = ref('upload') // 'upload', 'analysis', 'configure', 'importi
 
 const importTypeOptions = [
   { value: 1, label: 'Cospend' },
+  { value: 2, label: 'SplitDuo' },
 ]
 
 const acceptedFileTypes = computed(() => {
@@ -174,6 +175,9 @@ const acceptedFileTypes = computed(() => {
 const fileFormatDescription = computed(() => {
   if (selectedImportType.value === 1) {
     return 'Upload a Cospend .csv file (max 10MB)'
+  }
+  if (selectedImportType.value === 2) {
+    return 'Upload a SplitDuo .csv file with columns: Date, Title, Description, Amount, PaidByEmail, Category, PaymentMode, Owers (max 10MB)'
   }
   return 'Upload a file (max 10MB)'
 })
@@ -196,7 +200,7 @@ const validateFile = (file) => {
 
   // Validate file type
   const extension = file.name.split('.').pop()?.toLowerCase()
-  const expectedExtension = selectedImportType.value === 1 ? 'csv' : 'csv'
+  const expectedExtension = 'csv' // Both Cospend and SplitDuo use CSV format
 
   if (extension !== expectedExtension) {
     showError(`Please select a ${expectedExtension.toUpperCase()} file for ${getImportTypeLabel()} import`)
@@ -293,7 +297,7 @@ const getImportTypeLabel = () => {
 watch(selectedImportType, () => {
   if (selectedFile.value) {
     const extension = selectedFile.value.name.split('.').pop()?.toLowerCase()
-    const expectedExtension = selectedImportType.value === 1 ? 'csv' : 'csv'
+    const expectedExtension = 'csv' // Both Cospend and SplitDuo use CSV format
 
     if (extension !== expectedExtension) {
       clearFile()

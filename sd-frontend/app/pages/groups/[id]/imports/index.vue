@@ -155,6 +155,7 @@ const importStatusMap = {
 // Import type mapping (based on backend ImportType enum)
 const importTypeMap = {
   1: 'Cospend',
+  2: 'SplitDuo',
 }
 
 const getStatusLabel = (statusId) => {

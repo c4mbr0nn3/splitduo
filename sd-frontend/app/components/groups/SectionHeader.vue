@@ -10,13 +10,33 @@
           @click="navigateTo(`/groups/${group.id}/members`)"
         />
       </div>
-      <GroupsActionsDropdown
-        :group="group"
-        :is-deleting="isDeletingGroup"
-        :is-exporting="isExporting"
-        @delete-confirmed="deleteGroup"
-        @export="onExport"
-      />
+      <div class="flex items-center gap-2">
+        <GroupsActionsDropdown
+          :group="group"
+          :is-exporting="isExporting"
+          @export="onExport"
+        />
+        <UiConfirmDialog
+          title="Delete Group"
+          :message="`Are you sure you want to delete the group '${group?.name}'?`"
+          subtitle="This action cannot be undone and will remove all associated data."
+          confirm-text="Delete Group"
+          confirm-color="error"
+          icon="i-lucide-trash-2"
+          icon-color-class="text-error-500"
+          :is-processing="isDeletingGroup"
+          @confirm="deleteGroup"
+        >
+          <template #button>
+            <UButton
+              icon="i-lucide-trash-2"
+              color="error"
+              variant="soft"
+              size="sm"
+            />
+          </template>
+        </UiConfirmDialog>
+      </div>
     </div>
     <div class="flex">
       <div class="flex min-w-0">
