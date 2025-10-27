@@ -24,45 +24,9 @@
           </div>
         </div>
       </template>
-      <UiLoadingSpinner
-        v-if="isLoading"
-        text="Loading members..."
-      />
-      <div
-        v-else-if="members.length"
-        class="space-y-2"
-      >
-        <UCard
-          v-for="member in members"
-          :key="member.id"
-          variant="outline"
-        >
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <div>
-                <p class="font-semibold">
-                  {{ member.fullName || `${member.firstName} ${member.lastName || ''}`.trim() }}
-                </p>
-                <p class="text-sm text-muted">
-                  {{ member.email }}
-                </p>
-              </div>
-            </div>
-            <UBadge
-              variant="soft"
-              :color="member.role === 'admin' ? 'success' : 'primary'"
-              :label="member.role"
-              :icon="member.role === 'admin' ? 'i-lucide-crown' : 'i-lucide-user'"
-              class="capitalize"
-            />
-          </div>
-        </UCard>
-      </div>
-      <UiEmptyState
-        v-else
-        icon="i-lucide-users"
-        title="No members yet"
-        subtitle="Invite users to join this group"
+      <GroupsMembersList
+        :members="members"
+        :is-loading="isLoading"
       />
       <template #footer>
         <div class="flex justify-end gap-3">
