@@ -56,7 +56,8 @@ public class AuthController(
     }
 
     [HttpPost("verify-2fa")]
-    public async Task<ActionResult<ApiResponseDto<AuthResponseDto>>> VerifyTwoFactor([FromBody] VerifyTwoFactorLoginDto request)
+    public async Task<ActionResult<ApiResponseDto<AuthResponseDto>>> VerifyTwoFactor(
+        [FromBody] VerifyTwoFactorLoginDto request)
     {
         logger.LogInformation("2FA verification attempt for email: {Email}", request.Email);
 
@@ -64,7 +65,8 @@ public class AuthController(
 
         if (result.IsFailure)
         {
-            logger.LogWarning("2FA verification failed for email: {Email}. Error: {Error}", request.Email, result.Error);
+            logger.LogWarning("2FA verification failed for email: {Email}. Error: {Error}", request.Email,
+                result.Error);
         }
         else
         {
@@ -84,7 +86,7 @@ public class AuthController(
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
             return HandleResult(Result.Unauthorized("User not authenticated"));
-        
+
         var result = await authenticationService.RevokeRefreshTokenAsync(request.RefreshToken, currentUserId.Value);
 
         if (result.IsSuccess)
@@ -99,7 +101,7 @@ public class AuthController(
 
         return HandleResult(result, "Token revoked successfully");
     }
-    
+
 
     [Authorize(Policy = "SystemAdmin")]
     [HttpPost("{userGuid}/revoke")]
@@ -119,6 +121,68 @@ public class AuthController(
         logger.LogInformation("Token revoked successfully for user: {UserGuid}", userGuid);
 
         return HandleResult(result, "Token revoked successfully");
+    }
+
+    [AllowAnonymous]
+    [HttpPost("forgot-password")]
+    public async Task<ActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDto request)
+    {
+        logger.LogInformation("Password reset request for email: {Email}", request.Email);
+
+        var result = await authenticationService.InitiatePasswordResetAsync(request.Email);
+
+        if (result.IsSuccess)
+        {
+            await unitOfWork.SaveChangesAsync();
+            logger.LogInformation("Password reset email sent (if user exists) for email: {Email}", request.Email);
+        }
+
+        // Always return success to prevent email enumeration
+        return HandleResult(Result.Success(),
+            "If your email is registered, you will receive password reset instructions.");
+    }
+
+    [AllowAnonymous]
+    [HttpGet("validate-reset-token")]
+    public async Task<ActionResult<ApiResponseDto<bool>>> ValidateResetToken([FromQuery] string email,
+        [FromQuery] string token)
+    {
+        logger.LogInformation("Reset token validation attempt for email: {Email}", email);
+
+        var result = await authenticationService.ValidateResetTokenAsync(email, token);
+
+        if (result.IsSuccess)
+        {
+            await unitOfWork.SaveChangesAsync();
+            logger.LogInformation("Reset token validated successfully for email: {Email}", email);
+        }
+        else
+        {
+            logger.LogWarning("Reset token validation failed for email: {Email}. Error: {Error}", email, result.Error);
+        }
+
+        return HandleResult(result, "Reset token is valid");
+    }
+
+    [AllowAnonymous]
+    [HttpPost("reset-password")]
+    public async Task<ActionResult> ResetPassword([FromBody] ResetPasswordRequestDto request)
+    {
+        logger.LogInformation("Password reset attempt for email: {Email}", request.Email);
+
+        var result = await authenticationService.ResetPasswordAsync(request);
+
+        if (result.IsSuccess)
+        {
+            await unitOfWork.SaveChangesAsync();
+            logger.LogInformation("Password reset successful for email: {Email}", request.Email);
+        }
+        else
+        {
+            logger.LogWarning("Password reset failed for email: {Email}. Error: {Error}", request.Email, result.Error);
+        }
+
+        return HandleResult(result, "Password reset successful. You can now log in with your new password.");
     }
 }
 

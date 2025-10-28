@@ -12,6 +12,7 @@ using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Options;
 using SplitDuo.Core.Persistence;
+using SplitDuo.Core.Services;
 
 namespace SplitDuo.Api.Features.Authentication.Services;
 
@@ -22,15 +23,21 @@ public interface IAuthenticationService
     Task<Result<AuthResponseDto>> RefreshTokenAsync(RefreshTokenRequestDto request);
     Task<Result> RevokeRefreshTokenAsync(string refreshToken, Guid userGuid);
     Task<Result> RevokeAllUserTokensAsync(string userGuid);
+    Task<Result> InitiatePasswordResetAsync(string email);
+    Task<Result<bool>> ValidateResetTokenAsync(string email, string token);
+    Task<Result> ResetPasswordAsync(ResetPasswordRequestDto request);
 }
 
 public class AuthenticationService(
     IUnitOfWork unitOfWork,
     IPasswordHasher<User> passwordHasher,
     IOptions<JwtOptions> jwtOptions,
-    ITwoFactorService twoFactorService) : IAuthenticationService
+    ITwoFactorService twoFactorService,
+    INotificationService notificationService,
+    IOptions<AppOptions> appOptions) : IAuthenticationService
 {
     private readonly JwtOptions _jwtOptions = jwtOptions.Value;
+    private readonly AppOptions _appOptions = appOptions.Value;
 
     public async Task<Result<AuthResponseDto>> LoginAsync(LoginRequestDto request)
     {
@@ -313,5 +320,175 @@ public class AuthenticationService(
             token.RevokedAt = currentTimestamp;
             token.RevokedReason = reason;
         }
+    }
+
+    public async Task<Result> InitiatePasswordResetAsync(string email)
+    {
+        var user = await unitOfWork.Users
+            .FirstOrDefaultAsync(u => u.Email == email && u.DeletedAt == null);
+
+        // Always return success to prevent email enumeration
+        if (user == null)
+            return Result.Success();
+
+        // Generate secure random token
+        var resetToken = GenerateSecureRefreshToken();
+        var hashedToken = HashToken(resetToken);
+
+        // Invalidate any existing password reset tokens for this user
+        var existingTokens = await unitOfWork.TwoFactorTokens
+            .Where(t => t.UserId == user.Id && t.Purpose == "password_reset" && t.UsedAt == null)
+            .ToListAsync();
+
+        foreach (var token in existingTokens)
+        {
+            token.UsedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        }
+
+        // Create new password reset token
+        var resetTokenEntity = new TwoFactorToken
+        {
+            UserId = user.Id,
+            TokenHash = hashedToken,
+            TokenType = "password_reset",
+            Purpose = "password_reset",
+            ExpiresAt = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds(), // 1 hour expiration
+            MaxAttempts = 3,
+            ClientInfo = "Password Reset"
+        };
+
+        unitOfWork.TwoFactorTokens.Add(resetTokenEntity);
+
+        // Send password reset email
+        var notification = new Notification
+        {
+            To = user.Email,
+            Subject = "SplitDuo - Password Reset Request",
+            Body = CreatePasswordResetEmailBody(user, resetToken)
+        };
+
+        await notificationService.EnqueueAsync(notification);
+
+        return Result.Success();
+    }
+
+    public async Task<Result<bool>> ValidateResetTokenAsync(string email, string token)
+    {
+        var user = await unitOfWork.Users
+            .FirstOrDefaultAsync(u => u.Email == email && u.DeletedAt == null);
+
+        if (user == null)
+            return Result<bool>.BadRequest("Invalid email or token");
+
+        var hashedToken = HashToken(token);
+        var resetToken = await unitOfWork.TwoFactorTokens
+            .FirstOrDefaultAsync(t =>
+                t.UserId == user.Id &&
+                t.TokenHash == hashedToken &&
+                t.Purpose == "password_reset" &&
+                t.UsedAt == null);
+
+        if (resetToken == null)
+            return Result<bool>.BadRequest("Invalid or expired reset token");
+
+        var currentTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+        // Check if token is expired
+        if (resetToken.ExpiresAt < currentTimestamp)
+            return Result<bool>.BadRequest("Reset token has expired");
+
+        // Check if max attempts reached
+        if (resetToken.Attempts >= resetToken.MaxAttempts)
+            return Result<bool>.BadRequest("Maximum validation attempts exceeded");
+
+        // Increment attempts
+        resetToken.Attempts++;
+
+        return Result<bool>.Success(true);
+    }
+
+    public async Task<Result> ResetPasswordAsync(ResetPasswordRequestDto request)
+    {
+        var user = await unitOfWork.Users
+            .FirstOrDefaultAsync(u => u.Email == request.Email && u.DeletedAt == null);
+
+        if (user == null)
+            return Result.BadRequest("Invalid email or token");
+
+        var hashedToken = HashToken(request.Token);
+        var resetToken = await unitOfWork.TwoFactorTokens
+            .FirstOrDefaultAsync(t =>
+                t.UserId == user.Id &&
+                t.TokenHash == hashedToken &&
+                t.Purpose == "password_reset" &&
+                t.UsedAt == null);
+
+        if (resetToken == null)
+            return Result.BadRequest("Invalid or expired reset token");
+
+        var currentTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+        // Check if token is expired
+        if (resetToken.ExpiresAt < currentTimestamp)
+            return Result.BadRequest("Reset token has expired");
+
+        // Check if max attempts reached
+        if (resetToken.Attempts >= resetToken.MaxAttempts)
+            return Result.BadRequest("Maximum validation attempts exceeded");
+
+        // Mark token as used
+        resetToken.UsedAt = currentTimestamp;
+
+        // Update user password
+        user.PasswordHash = passwordHasher.HashPassword(user, request.NewPassword);
+
+        // Revoke all refresh tokens (force logout on all devices)
+        await RevokeAllUserTokensAsync(user.Id, "Password reset");
+
+        // Send password reset success email
+        var notification = new Notification
+        {
+            To = user.Email,
+            Subject = "SplitDuo - Password Successfully Reset",
+            Body = CreatePasswordResetSuccessEmailBody(user)
+        };
+
+        await notificationService.EnqueueAsync(notification);
+
+        return Result.Success();
+    }
+
+    private string CreatePasswordResetEmailBody(User user, string resetToken)
+    {
+        var resetUrl =
+            $"{_appOptions.BaseUrl}/reset-password?email={Uri.EscapeDataString(user.Email)}&token={Uri.EscapeDataString(resetToken)}";
+        return $"""
+                <p>Hello {user.FirstName} {user.LastName},</p>
+                <p>We received a request to reset your SplitDuo account password.</p>
+                <p>To reset your password, click the link below:</p>
+                <p><a href="{resetUrl}">Reset Password</a></p>
+                <p><strong>This link will expire in 1 hour.</strong></p>
+                <p><strong>Important:</strong> If you did not request this password reset, please ignore this email. Your password will remain unchanged.</p>
+                <p>For security reasons, this link can only be used once.</p>
+                <p>Best regards,<br>
+                The SplitDuo Team</p>
+                """;
+    }
+
+    private string CreatePasswordResetSuccessEmailBody(User user)
+    {
+        var timestamp = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd HH:mm:ss 'UTC'");
+        return $"""
+                <p>Hello {user.FirstName} {user.LastName},</p>
+                <p>Your SplitDuo account password has been successfully reset.</p>
+                <p><strong>Reset Details:</strong><br>
+                Email: {user.Email}<br>
+                Date & Time: {timestamp}</p>
+                <p><strong>Security Notice:</strong> For your security, all active sessions have been logged out. Please log in with your new password.</p>
+                <p><strong>Didn't make this change?</strong><br>
+                If you did not reset your password, please contact support immediately as your account may be compromised.</p>
+                <p>Best regards,<br>
+                The SplitDuo Team</p>
+                """;
     }
 }

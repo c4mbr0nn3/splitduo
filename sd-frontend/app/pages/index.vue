@@ -1,13 +1,24 @@
 <template>
   <div class="flex justify-center items-center h-screen p-4">
-    <UCard class="w-full sm:w-3/4 md:w-1/2">
-      <UAuthForm
-        title="Welcome Back"
-        :fields="fields"
-        :submit="{ label: 'Login', loading: isLoading }"
-        @submit="onSubmit"
-      />
-    </UCard>
+    <div class="w-full sm:w-3/4 md:w-1/2 space-y-4">
+      <UCard>
+        <UAuthForm
+          title="Welcome Back"
+          :fields="fields"
+          :submit="{ label: 'Login', loading: isLoading }"
+          @submit="onSubmit"
+        />
+      </UCard>
+
+      <div class="text-center">
+        <NuxtLink
+          to="/forgot-password"
+          class="text-sm text-muted hover:text-primary transition-colors"
+        >
+          Forgot your password?
+        </NuxtLink>
+      </div>
+    </div>
   </div>
 </template>
 

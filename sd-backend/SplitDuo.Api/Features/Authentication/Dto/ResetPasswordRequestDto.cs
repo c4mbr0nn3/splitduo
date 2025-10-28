@@ -1,11 +1,13 @@
 using System.ComponentModel.DataAnnotations;
 using SplitDuo.Api.Features.Users.Validation;
 
-namespace SplitDuo.Api.Features.Users.Dto;
+namespace SplitDuo.Api.Features.Authentication.Dto;
 
-public class ChangePasswordRequestDto
+public class ResetPasswordRequestDto
 {
-    [Required] public string CurrentPassword { get; set; } = "";
+    [Required] [EmailAddress] public string Email { get; set; } = "";
+
+    [Required] public string Token { get; set; } = "";
 
     [Required, MinLength(8), PasswordComplexity]
     public string NewPassword { get; set; } = "";
