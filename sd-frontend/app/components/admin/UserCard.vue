@@ -36,7 +36,8 @@
             size="sm"
             icon="i-lucide-rotate-ccw-key"
             :disabled="isSameUser"
-            @click="onRevokeTokens"
+            :loading="isRevokingTokens"
+            @click="confirmRevokeTokens"
           />
           <UButton
             variant="ghost"
@@ -81,6 +82,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  isRevokingTokens: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const emit = defineEmits(['edit', 'revoke-tokens', 'delete'])
@@ -108,8 +113,20 @@ const confirmDeleteUser = async () => {
   }
 }
 
-const onRevokeTokens = () => {
-  emit('revoke-tokens', props.user)
+const confirmRevokeTokens = async () => {
+  const userName = props.user.fullName || `${props.user.firstName} ${props.user.lastName || ''}`.trim()
+
+  const confirmed = await modal.warning({
+    title: 'Revoke User Tokens',
+    subtitle: 'This will invalidate all active sessions',
+    content: `All active sessions for '${userName}' will be terminated and the user will need to log in again. Are you sure you want to revoke all tokens?`,
+    confirmText: 'Revoke Tokens',
+    cancelText: 'Cancel',
+  })
+
+  if (confirmed) {
+    emit('revoke-tokens', props.user)
+  }
 }
 
 const onEdit = () => {
