@@ -2,9 +2,7 @@
   <div class="flex flex-col items-center justify-center py-4">
     <UCard class="w-full max-w-2xl">
       <template #header>
-        <h1 class="text-xl font-bold text-primary">
-          {{ title }}
-        </h1>
+        <UiCardHeader :title="title" />
       </template>
       <UForm
         :state="form"

@@ -2,26 +2,18 @@
   <div class="min-h-screen p-4 flex flex-col items-center">
     <UCard class="w-full max-w-2xl">
       <template #header>
-        <div class="space-y-4">
-          <div class="flex items-center justify-between">
-            <div>
-              <h1 class="text-xl font-bold text-primary">
-                Members
-              </h1>
-              <p
-                v-if="group"
-                class="text-sm text-muted mt-1"
-              >
-                {{ group.name }}
-              </p>
-            </div>
-            <UBadge
-              v-if="members.length"
-              variant="soft"
-              icon="i-lucide-users"
-              :label="members.length"
-            />
-          </div>
+        <div class="flex items-center justify-between">
+          <UiCardHeader
+            title="Members"
+            :subtitle="group?.name"
+            :back-to="`/groups/${groupId}`"
+          />
+          <UBadge
+            v-if="members.length"
+            variant="soft"
+            icon="i-lucide-users"
+            :label="members.length"
+          />
         </div>
       </template>
       <GroupsMembersList
@@ -29,12 +21,7 @@
         :is-loading="isLoading"
       />
       <template #footer>
-        <div class="flex justify-end gap-3">
-          <UButton
-            variant="ghost"
-            label="Back to Group"
-            @click="navigateToGroup"
-          />
+        <div class="flex justify-end">
           <UButton
             icon="i-lucide-user-plus"
             label="Invite Users"
@@ -54,10 +41,6 @@ const { currentGroup, fetchGroup, fetchGroupMembers, isLoading } = useGroups()
 
 const group = computed(() => currentGroup.value)
 const members = ref([])
-
-const navigateToGroup = () => {
-  navigateTo(`/groups/${groupId}`)
-}
 
 const navigateToInvite = () => {
   navigateTo(`/groups/${groupId}/invite`)

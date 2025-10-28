@@ -4,6 +4,7 @@
     submit-label="Create"
     :loading="isLoading"
     @submit="onSubmit"
+    @cancel="navigateTo('/admin/users')"
   />
 </template>
 

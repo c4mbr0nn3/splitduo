@@ -2,14 +2,10 @@
   <div class="py-6">
     <UCard>
       <template #header>
-        <div>
-          <h1 class="text-2xl font-bold">
-            Profile
-          </h1>
-          <p class="text-dimmed">
-            Manage your personal information
-          </p>
-        </div>
+        <UiCardHeader
+          title="Profile"
+          subtitle="Manage your personal information"
+        />
       </template>
       <div
         v-if="isLoading"

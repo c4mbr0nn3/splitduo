@@ -19,21 +19,13 @@
       />
     </UCard>
 
-    <div class="flex space-x-3 pt-4">
-      <UButton
-        type="button"
-        label="Back"
-        variant="outline"
-        size="lg"
-        class="flex-1"
-        @click="emit('cancel')"
-      />
+    <div class="flex pt-4">
       <UButton
         color="primary"
         size="lg"
         :disabled="!selectedUsers.length"
         :loading="isProcessing"
-        class="flex-1"
+        class="ml-auto"
         @click="onInviteUsers"
       >
         Invite {{ selectedUsers.length }} User{{ selectedUsers.length !== 1 ? 's' : '' }}

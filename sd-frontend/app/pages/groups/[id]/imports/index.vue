@@ -5,16 +5,11 @@
       variant="soft"
     >
       <template #header>
-        <div class="flex items-center justify-between">
-          <div>
-            <h2 class="text-xl font-semibold text-primary">
-              {{ group?.name }}
-            </h2>
-            <p class="text-sm text-muted">
-              Manage your group imports and view import history
-            </p>
-          </div>
-        </div>
+        <UiCardHeader
+          :title="group?.name || 'Group Imports'"
+          subtitle="Manage your group imports and view import history"
+          :back-to="`/groups/${groupId}`"
+        />
       </template>
 
       <div>

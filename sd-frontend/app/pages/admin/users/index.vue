@@ -1,13 +1,5 @@
 <template>
   <div class="py-8">
-    <!-- Header with Create User Button -->
-    <UButton
-      label="Create User"
-      icon="i-lucide-user-plus"
-      block
-      class="mb-6"
-      @click="navigateToAdd"
-    />
     <div class="mb-8">
       <h1 class="text-2xl font-bold text-primary">
         Users
@@ -37,31 +29,35 @@
         color="green"
       />
     </div>
-
-    <!-- Search and Refresh Controls -->
-    <div class="flex ustify-between items-center mb-6 w-full">
+    <div class="flex justify-between items-center mb-6 w-full">
       <UInput
         v-model="searchInput"
         icon="i-lucide-search"
         placeholder="Search users..."
         class="w-64"
       />
-      <UButton
-        icon="i-lucide-refresh-cw"
-        variant="ghost"
-        class="ml-auto"
-        :loading="isLoading"
-        @click="refreshUsers"
-      />
-    </div>
+      <div class="flex gap-2">
+        <UButton
+          icon="i-lucide-refresh-cw"
+          variant="ghost"
+          square
+          :loading="isLoading"
+          @click="refreshUsers"
+        />
+        <UButton
+          icon="i-lucide-user-plus"
+          square
 
-    <!-- Loading State -->
+          color="success"
+          variant="outline"
+          @click="navigateToAdd"
+        />
+      </div>
+    </div>
     <UiLoadingSpinner
       v-if="isLoading && !users.length"
       text="Loading users..."
     />
-
-    <!-- Empty State -->
     <UiEmptyState
       v-else-if="filteredUsers.length === 0"
       icon="i-lucide-users"

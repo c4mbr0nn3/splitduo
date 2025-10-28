@@ -6,6 +6,7 @@
     :loading="isLoading"
     :is-edit="true"
     @submit="onSubmit"
+    @cancel="navigateTo('/admin/users')"
   />
 </template>
 

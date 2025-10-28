@@ -2,9 +2,10 @@
   <div class="flex flex-col items-center justify-center p-4">
     <UCard class="w-full max-w-lg">
       <template #header>
-        <h2 class="text-xl font-bold text-center">
-          {{ title }}
-        </h2>
+        <UiCardHeader
+          :title="title"
+          variant="centered"
+        />
       </template>
       <UForm
         :state="model"
