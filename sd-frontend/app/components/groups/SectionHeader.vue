@@ -2,10 +2,11 @@
   <div class="grid grid-cols-1 items-start">
     <div class="flex items-center justify-between mb-2">
       <div class="flex items-center gap-2">
-        <UBadge
+        <UButton
           v-if="group?.memberCount"
           variant="soft"
           icon="i-lucide-users"
+          size="sm"
           :label="`${group.memberCount}`"
           @click="navigateTo(`/groups/${group.id}/members`)"
         />
