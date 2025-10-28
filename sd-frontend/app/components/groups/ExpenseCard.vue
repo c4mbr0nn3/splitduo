@@ -75,27 +75,14 @@
           </template>
         </UBadge>
         <div class="flex items-center gap-1">
-          <UiConfirmDialog
-            title="Delete Expense"
-            message="Are you sure you want to delete this expense?"
-            subtitle="This action cannot be undone and will remove all associated data."
-            confirm-text="Delete Expense"
-            confirm-color="error"
+          <UButton
+            variant="ghost"
+            color="error"
+            size="sm"
             icon="i-lucide-trash-2"
-            icon-color-class="text-error-500"
-            :is-processing="isDeletingExpense"
-            @confirm="deleteExpense"
-          >
-            <template #button>
-              <UButton
-                variant="ghost"
-                color="error"
-                size="sm"
-                icon="i-lucide-trash-2"
-                @click.stop
-              />
-            </template>
-          </UiConfirmDialog>
+            :loading="isDeletingExpense"
+            @click.stop="confirmDeleteExpense"
+          />
           <UButton
             variant="ghost"
             color="info"
@@ -123,6 +110,7 @@ const props = defineProps({
 
 const { getCategoryName } = useCategories()
 const { getPaymentModeName } = usePaymentModes()
+const modal = useModal()
 
 const isDeletingExpense = ref(false)
 
@@ -179,6 +167,20 @@ const userSplit = computed(() => {
 })
 
 const emit = defineEmits(['expense-deleted'])
+
+const confirmDeleteExpense = async () => {
+  const confirmed = await modal.error({
+    title: 'Delete Expense',
+    subtitle: 'This action cannot be undone.',
+    content: 'The expense will be permanently deleted. Are you sure you want to delete this expense?',
+    confirmText: 'Delete Expense',
+    cancelText: 'Cancel',
+  })
+
+  if (confirmed) {
+    await deleteExpense()
+  }
+}
 
 const deleteExpense = async () => {
   isDeletingExpense.value = true

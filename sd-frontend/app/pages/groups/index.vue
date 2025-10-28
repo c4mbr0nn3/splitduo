@@ -97,27 +97,14 @@
                 icon="i-lucide-edit-2"
                 @click="navigateToEdit(group.id)"
               />
-              <UiConfirmDialog
-                title="Delete Group"
-                :message="`Are you sure you want to delete the group '${groupToDelete?.name}'?`"
-                subtitle="This action cannot be undone and will remove all associated data."
-                confirm-text="Delete Group"
-                confirm-color="error"
+              <UButton
+                variant="ghost"
+                color="error"
+                size="sm"
                 icon="i-lucide-trash-2"
-                icon-color-class="text-error-500"
-                :is-processing="isDeletingGroup"
-                @confirm="deleteGroup"
-              >
-                <template #button>
-                  <UButton
-                    variant="ghost"
-                    color="error"
-                    size="sm"
-                    icon="i-lucide-trash-2"
-                    @click.stop="confirmDeleteGroup(group)"
-                  />
-                </template>
-              </UiConfirmDialog>
+                :loading="isDeletingGroup"
+                @click.stop="confirmDeleteGroup(group)"
+              />
             </div>
           </div>
 
@@ -145,12 +132,12 @@
 
 <script setup>
 const { groups, fetchGroups, isLoading: isLoadingGroups, deleteGroup: deleteGroupAPI } = useGroups()
+const modal = useModal()
 
 // Search functionality
 const { searchInput, debouncedSearchQuery } = useDebounceSearch()
 
 // Delete group state
-const groupToDelete = ref(null)
 const isDeletingGroup = ref(false)
 
 // Computed
@@ -195,17 +182,24 @@ const navigateToEdit = (groupId) => {
 }
 
 // Delete group handlers
-const confirmDeleteGroup = (group) => {
-  groupToDelete.value = group
+const confirmDeleteGroup = async (group) => {
+  const confirmed = await modal.error({
+    title: 'Delete Group',
+    subtitle: 'This action cannot be undone.',
+    content: `The group '${group.name}' will be permanently deleted. Are you sure you want to delete this group?`,
+    confirmText: 'Delete Group',
+    cancelText: 'Cancel',
+  })
+
+  if (confirmed) {
+    await deleteGroup(group.id)
+  }
 }
 
-const deleteGroup = async () => {
-  if (!groupToDelete.value) return
-
+const deleteGroup = async (groupId) => {
   isDeletingGroup.value = true
   try {
-    await deleteGroupAPI(groupToDelete.value.id)
-    groupToDelete.value = null
+    await deleteGroupAPI(groupId)
   }
   catch (error) {
     console.error('Failed to delete group:', error)

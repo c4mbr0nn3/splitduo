@@ -13,3 +13,4 @@ export { default as useErrorHandling } from '@/composables/utils/useErrorHandlin
 export { default as useNotifications } from '@/composables/utils/useNotifications'
 export { default as usePagination } from '@/composables/utils/usePagination'
 export { default as useDebounceSearch } from '@/composables/utils/useDebounceSearch'
+export { default as useModal } from '@/composables/ui/useModal'

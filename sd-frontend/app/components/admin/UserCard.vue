@@ -38,28 +38,15 @@
             :disabled="isSameUser"
             @click="onRevokeTokens"
           />
-          <UiConfirmDialog
-            title="Delete User"
-            :message="`Are you sure you want to delete ${user.fullName || `${user.firstName} ${user.lastName || ''}`.trim()}?`"
-            subtitle="This action cannot be undone."
-            confirm-text="Delete User"
-            confirm-color="error"
+          <UButton
+            variant="ghost"
+            :color="isSameUser ? '' : 'error'"
+            size="sm"
             icon="i-lucide-trash-2"
-            icon-color-class="text-error-500"
-            :is-processing="isDeleting"
-            @confirm="onConfirmDelete"
-          >
-            <template #button>
-              <UButton
-                variant="ghost"
-                :color="isSameUser ? '' : 'error'"
-                size="sm"
-                icon="i-lucide-trash-2"
-                :disabled="isSameUser"
-                @click.stop
-              />
-            </template>
-          </UiConfirmDialog>
+            :disabled="isSameUser"
+            :loading="isDeleting"
+            @click.stop="confirmDeleteUser"
+          />
         </div>
       </div>
 
@@ -99,13 +86,26 @@ const props = defineProps({
 const emit = defineEmits(['edit', 'revoke-tokens', 'delete'])
 
 const { user: authUser } = useAuth()
+const modal = useModal()
 
 const isSameUser = computed(() => {
   return authUser.value?.id === props.user.id
 })
 
-const onConfirmDelete = () => {
-  emit('delete', props.user)
+const confirmDeleteUser = async () => {
+  const userName = props.user.fullName || `${props.user.firstName} ${props.user.lastName || ''}`.trim()
+
+  const confirmed = await modal.error({
+    title: 'Delete User',
+    subtitle: 'This action cannot be undone.',
+    content: `The user '${userName}' will be permanently deleted. Are you sure you want to delete this user?`,
+    confirmText: 'Delete User',
+    cancelText: 'Cancel',
+  })
+
+  if (confirmed) {
+    emit('delete', props.user)
+  }
 }
 
 const onRevokeTokens = () => {

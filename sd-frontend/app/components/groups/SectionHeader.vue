@@ -17,26 +17,14 @@
           :is-exporting="isExporting"
           @export="onExport"
         />
-        <UiConfirmDialog
-          title="Delete Group"
-          :message="`Are you sure you want to delete the group '${group?.name}'?`"
-          subtitle="This action cannot be undone and will remove all associated data."
-          confirm-text="Delete Group"
-          confirm-color="error"
+        <UButton
           icon="i-lucide-trash-2"
-          icon-color-class="text-error-500"
-          :is-processing="isDeletingGroup"
-          @confirm="deleteGroup"
-        >
-          <template #button>
-            <UButton
-              icon="i-lucide-trash-2"
-              color="error"
-              variant="soft"
-              size="sm"
-            />
-          </template>
-        </UiConfirmDialog>
+          color="error"
+          variant="soft"
+          size="sm"
+          :loading="isDeletingGroup"
+          @click="confirmDeleteGroup"
+        />
       </div>
     </div>
     <div class="flex">
@@ -70,6 +58,7 @@ const props = defineProps({
 const emit = defineEmits(['export'])
 
 const { deleteGroup: deleteGroupAPI } = useGroups()
+const modal = useModal()
 
 const isDeletingGroup = ref(false)
 
@@ -77,9 +66,23 @@ const onExport = () => {
   emit('export')
 }
 
-const deleteGroup = async () => {
+const confirmDeleteGroup = async () => {
   if (!props.group) return
 
+  const confirmed = await modal.error({
+    title: 'Delete Group',
+    subtitle: 'This action cannot be undone.',
+    content: `The group '${props.group.name}' will be permanently deleted. Are you sure you want to delete this group?`,
+    confirmText: 'Delete Group',
+    cancelText: 'Cancel',
+  })
+
+  if (confirmed) {
+    await deleteGroup()
+  }
+}
+
+const deleteGroup = async () => {
   isDeletingGroup.value = true
   try {
     await deleteGroupAPI(props.group.id)
