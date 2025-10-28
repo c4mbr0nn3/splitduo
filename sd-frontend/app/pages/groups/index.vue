@@ -1,13 +1,5 @@
 <template>
   <div class="py-8">
-    <!-- Header with Create Group Button -->
-    <UButton
-      label="Create Group"
-      icon="i-lucide-plus"
-      block
-      class="mb-6"
-      @click="createNewGroup"
-    />
     <div class="mb-8">
       <h1 class="text-2xl font-bold text-primary">
         Groups
@@ -25,13 +17,21 @@
         placeholder="Search groups..."
         class="w-64"
       />
-      <UButton
-        icon="i-lucide-refresh-cw"
-        variant="ghost"
-        class="ml-auto"
-        :loading="isLoadingGroups"
-        @click="refreshGroups"
-      />
+      <div class="flex gap-2">
+        <UButton
+          icon="i-lucide-refresh-cw"
+          variant="ghost"
+          :loading="isLoadingGroups"
+          @click="refreshGroups"
+        />
+        <UButton
+          icon="i-lucide-plus"
+          variant="outline"
+          color="success"
+          square
+          @click="createNewGroup"
+        />
+      </div>
     </div>
 
     <!-- Loading State -->
