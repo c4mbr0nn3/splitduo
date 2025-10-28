@@ -2,10 +2,12 @@
   <div class="py-6">
     <UCard>
       <template #header>
-        <UiCardHeader
-          title="Profile"
-          subtitle="Manage your personal information"
-        />
+        <div class="flex items-center justify-between">
+          <UiCardHeader
+            title="Profile"
+            subtitle="Manage your personal information"
+          />
+        </div>
       </template>
       <div
         v-if="isLoading"
@@ -18,6 +20,15 @@
         v-else-if="user"
         class="space-y-6"
       >
+        <UButton
+          v-if="user"
+          icon="i-lucide-key"
+          color="primary"
+          block
+          @click="isPasswordModalOpen = true"
+        >
+          Change Password
+        </UButton>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <template
             v-for="field in userForm"
@@ -76,6 +87,10 @@
         </UButton>
       </div>
     </UCard>
+    <ChangePasswordModal
+      v-model:open="isPasswordModalOpen"
+      @success="handlePasswordChangeSuccess"
+    />
   </div>
 </template>
 
@@ -84,6 +99,14 @@ import { useClipboard } from '@vueuse/core'
 
 const { user, isLoading } = useAuth()
 const { copy, copied } = useClipboard()
+
+// Password change modal state
+const isPasswordModalOpen = ref(false)
+
+const handlePasswordChangeSuccess = () => {
+  // Modal will handle redirection to login
+  // This is just here for potential future use
+}
 
 const userForm = [
   {

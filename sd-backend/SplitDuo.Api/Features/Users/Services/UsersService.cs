@@ -1,12 +1,15 @@
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using SplitDuo.Api.Features.Authentication.Services;
 using SplitDuo.Api.Features.Common.Services;
 using SplitDuo.Api.Features.Users.Dto;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Dto.Imports;
 using SplitDuo.Core.Persistence;
+using SplitDuo.Core.Services;
 
 namespace SplitDuo.Api.Features.Users.Services;
 
@@ -26,7 +29,11 @@ public interface IUsersService
 public class UsersService(
     IUnitOfWork unitOfWork,
     IPasswordHasher<User> passwordHasher,
-    IUserContextService userContextService) : IUsersService
+    IUserContextService userContextService,
+    IAuthenticationService authenticationService,
+    INotificationService notificationService,
+    ILogger<UsersService> logger,
+    TimeProvider timeProvider) : IUsersService
 {
     public async Task<Result<List<UserDto>>> GetUsersAsync()
     {
@@ -182,6 +189,35 @@ public class UsersService(
 
         user.PasswordHash = passwordHasher.HashPassword(user, request.NewPassword);
 
+        // Revoke all refresh tokens for security (force logout on all devices)
+        logger.LogInformation("Revoking all refresh tokens for user {UserId} after password change", user.Guid);
+        var revokeResult = await authenticationService.RevokeAllUserTokensAsync(user.Guid.ToString());
+
+        if (revokeResult.IsFailure)
+        {
+            logger.LogWarning("Failed to revoke tokens for user {UserId}: {Error}", user.Guid, revokeResult.Error);
+        }
+
+        // Send password change notification email
+        var notification = new Notification
+        {
+            To = user.Email,
+            Subject = "SplitDuo - Password Changed",
+            Body = CreatePasswordChangedEmailBody(user)
+        };
+
+        var emailResult = await notificationService.EnqueueAsync(notification);
+
+        if (emailResult.IsFailure)
+        {
+            logger.LogWarning("Failed to enqueue password change email for user {UserId}: {Error}",
+                user.Guid, emailResult.Error);
+        }
+        else
+        {
+            logger.LogInformation("Password change notification email enqueued for user {UserId}", user.Guid);
+        }
+
         return Result.Success();
     }
 
@@ -268,6 +304,23 @@ public class UsersService(
         user.DeletedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         return Result.Success();
+    }
+
+    private string CreatePasswordChangedEmailBody(User user)
+    {
+        var timestamp = timeProvider.GetUtcNow().ToString("yyyy-MM-dd HH:mm:ss 'UTC'");
+        return $"""
+                <p>Hello {user.FirstName} {user.LastName},</p>
+                <p>This is a security notification to inform you that your SplitDuo account password was successfully changed.</p>
+                <p><strong>Change Details:</strong><br>
+                Email: {user.Email}<br>
+                Date & Time: {timestamp}</p>
+                <p><strong>Security Notice:</strong> For your security, all active sessions have been logged out. You will need to log in again with your new password.</p>
+                <p><strong>Didn't make this change?</strong><br>
+                If you did not request this password change, please contact support immediately as your account may be compromised.</p>
+                <p>Best regards,<br>
+                The SplitDuo Team</p>
+                """;
     }
 
     private static string GenerateSecurePassword()
