@@ -1,7 +1,6 @@
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using SplitDuo.Api.Features.Authentication.Services;
 using SplitDuo.Api.Features.Common.Services;
 using SplitDuo.Api.Features.Users.Dto;

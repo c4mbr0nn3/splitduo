@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.Text;
 
 namespace SplitDuo.Api.Features.Users.Validation;
 
