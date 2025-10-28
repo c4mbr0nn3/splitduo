@@ -97,7 +97,6 @@
 <script setup>
 const { groups, fetchGroups, isLoading: isLoadingGroups } = useGroups()
 const { userStats, fetchUserStats } = useUsers()
-const { showInfo } = useNotifications()
 
 onMounted(async () => {
   try {
@@ -135,13 +134,6 @@ const quickActions = [
     icon: 'i-lucide-receipt',
     variant: 'outline',
     handler: () => navigateTo('/expenses/add'),
-  },
-  {
-    id: 'settle-up',
-    label: 'Settle Up',
-    icon: 'i-lucide-credit-card',
-    variant: 'outline',
-    handler: () => showInfo('Settle up coming soon!'),
   },
 ]
 
