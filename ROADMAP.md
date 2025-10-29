@@ -23,8 +23,8 @@ The MVP is feature-complete with:
 
 ## Phase 1: UI/UX Consolidation & Polish
 
-**Timeline:** Months 1-3
-**Focus:** Align and improve the user interface across mobile and desktop platforms
+- **Timeline:** Months 1-3
+- **Focus:** Align and improve the user interface across mobile and desktop platforms
 
 ### Goals
 
@@ -60,8 +60,8 @@ The MVP is feature-complete with:
 
 ## Phase 2: Feature Enhancements
 
-**Timeline:** Months 4-7
-**Focus:** Extend core functionality and improve user experience
+- **Timeline:** Months 4-7
+- **Focus:** Extend core functionality and improve user experience
 
 ### Goals
 
@@ -135,8 +135,8 @@ The MVP is feature-complete with:
 
 ## Phase 3: Security & Testing
 
-**Timeline:** Months 8-10
-**Focus:** Enhance security features and establish comprehensive test coverage
+- **Timeline:** Months 8-10
+- **Focus:** Enhance security features and establish comprehensive test coverage
 
 ### Goals
 
@@ -168,8 +168,8 @@ The MVP is feature-complete with:
 
 ## Phase 4: Documentation & Long-term Polish
 
-**Timeline:** Months 11-12
-**Focus:** Polish the product and provide comprehensive documentation
+- **Timeline:** Months 11-12
+- **Focus:** Polish the product and provide comprehensive documentation
 
 ### Goals
 
@@ -242,5 +242,5 @@ Phases are sequential but may overlap. Features within a phase can be implemente
 
 ---
 
-**Last Updated:** 2025-10-29
-**Current Version:** v0.1.2
+- **Last Updated:** 2025-10-29
+- **Current Version:** v0.1.2
