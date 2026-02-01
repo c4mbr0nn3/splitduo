@@ -106,7 +106,7 @@ public class TwoFactorService(
         // Validate current password for security
         var passwordHasher = new Microsoft.AspNetCore.Identity.PasswordHasher<User>();
         var verificationResult = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
-        
+
         if (verificationResult == Microsoft.AspNetCore.Identity.PasswordVerificationResult.Failed)
             return Result.Unauthorized("Invalid password");
 
@@ -203,10 +203,10 @@ public class TwoFactorService(
 
         var hashedCode = HashToken(code);
         var token = await unitOfWork.TwoFactorTokens
-            .FirstOrDefaultAsync(t => t.UserId == user.Id && 
-                                     t.TokenHash == hashedCode && 
-                                     t.Purpose == purpose &&
-                                     t.TokenType == "email_verification");
+            .FirstOrDefaultAsync(t => t.UserId == user.Id &&
+                                      t.TokenHash == hashedCode &&
+                                      t.Purpose == purpose &&
+                                      t.TokenType == "email_verification");
 
         if (token == null)
         {
@@ -295,14 +295,15 @@ public class TwoFactorService(
     {
         var issuer = "SplitDuo";
         var accountName = $"{issuer}:{email}";
-        return $"otpauth://totp/{Uri.EscapeDataString(accountName)}?secret={secret}&issuer={Uri.EscapeDataString(issuer)}";
+        return
+            $"otpauth://totp/{Uri.EscapeDataString(accountName)}?secret={secret}&issuer={Uri.EscapeDataString(issuer)}";
     }
 
     private static List<string> GenerateBackupCodes()
     {
         var codes = new List<string>();
         using var rng = RandomNumberGenerator.Create();
-        
+
         for (int i = 0; i < 10; i++)
         {
             var codeBytes = new byte[5];
@@ -310,7 +311,7 @@ public class TwoFactorService(
             var code = Convert.ToHexString(codeBytes).ToLower();
             codes.Add($"{code[..4]}-{code[4..]}");
         }
-        
+
         return codes;
     }
 
@@ -363,7 +364,7 @@ public class TwoFactorService(
 
         using var hmac = new HMACSHA1(secret);
         var hash = hmac.ComputeHash(timeBytes);
-        
+
         var offset = hash[^1] & 0xf;
         var binaryCode = ((hash[offset] & 0x7f) << 24) |
                          ((hash[offset + 1] & 0xff) << 16) |
@@ -413,12 +414,12 @@ public static class Base32Extensions
 
         base32 = base32.ToUpper().Replace("=", "");
         var result = new List<byte>();
-        
+
         for (int i = 0; i < base32.Length; i += 8)
         {
             var blockLength = Math.Min(8, base32.Length - i);
             ulong buffer = 0;
-            
+
             for (int j = 0; j < blockLength; j++)
             {
                 var index = Base32Alphabet.IndexOf(base32[i + j]);

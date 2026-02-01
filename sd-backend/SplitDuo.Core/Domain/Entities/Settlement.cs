@@ -21,7 +21,7 @@ public class Settlement : AuditableAndSoftDeletableEntity
     [Column("amount")] public decimal Amount { get; set; }
     [Column("settlement_date")] public DateOnly SettlementDate { get; set; }
     [Column("description")] public string? Description { get; set; }
-    
+
     [ForeignKey(nameof(GroupId))] public Group Group { get; set; }
     [ForeignKey(nameof(FromUserId))] public User FromUser { get; set; }
     [ForeignKey(nameof(ToUserId))] public User ToUser { get; set; }

@@ -114,10 +114,10 @@ public class EmailNotificationService(
     {
         try
         {
-            logger.LogInformation("Pruning email notification {Id}",notification.Id);
+            logger.LogInformation("Pruning email notification {Id}", notification.Id);
 
             unitOfWork.Notifications.Remove(notification);
-            
+
             return Result.Success();
         }
         catch (Exception ex)

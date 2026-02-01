@@ -34,7 +34,8 @@ public class TwoFactorController(
         }
         else
         {
-            logger.LogWarning("Failed to initiate 2FA setup for user: {UserId}. Error: {Error}", currentUserId, result.Error);
+            logger.LogWarning("Failed to initiate 2FA setup for user: {UserId}. Error: {Error}", currentUserId,
+                result.Error);
         }
 
         return HandleResult(result, "2FA setup initiated successfully");
@@ -58,7 +59,8 @@ public class TwoFactorController(
         }
         else
         {
-            logger.LogWarning("Failed to verify 2FA setup for user: {UserId}. Error: {Error}", currentUserId, result.Error);
+            logger.LogWarning("Failed to verify 2FA setup for user: {UserId}. Error: {Error}", currentUserId,
+                result.Error);
         }
 
         return HandleResult(result, "Two-factor authentication has been successfully enabled");
@@ -105,7 +107,8 @@ public class TwoFactorController(
         }
         else
         {
-            logger.LogWarning("Failed to generate email 2FA code for user: {UserId}. Error: {Error}", currentUserId, result.Error);
+            logger.LogWarning("Failed to generate email 2FA code for user: {UserId}. Error: {Error}", currentUserId,
+                result.Error);
         }
 
         return HandleResult(result, "Verification code sent to your email");
@@ -129,7 +132,8 @@ public class TwoFactorController(
         }
         else
         {
-            logger.LogWarning("Failed to generate backup codes for user: {UserId}. Error: {Error}", currentUserId, result.Error);
+            logger.LogWarning("Failed to generate backup codes for user: {UserId}. Error: {Error}", currentUserId,
+                result.Error);
         }
 
         return HandleResult(result, "New backup codes generated successfully");
