@@ -14,7 +14,7 @@ A lightweight, open-source expense splitting application designed for couples an
 
 ## Tech Stack
 
-- **Backend**: .NET 9 Web API with Entity Framework Core
+- **Backend**: .NET 10 Web API with Entity Framework Core
 - **Frontend**: Vue.js with Nuxt UI (served as static files)
 - **Database**: PostgreSQL 17
 - **Deployment**: Single Docker container + PostgreSQL
@@ -102,7 +102,7 @@ SD_EMAIL_SSL: "false"
 
 ### Local Development
 
-**Backend** (.NET 9):
+**Backend** (.NET 10):
 
 ```bash
 cd sd-backend
