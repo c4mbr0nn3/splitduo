@@ -2,6 +2,11 @@
 
 # Stage 1: Build frontend (Nuxt.js)
 FROM node:22-alpine AS frontend-build
+
+# Accept version as build argument
+ARG APP_VERSION
+ENV NUXT_PUBLIC_APP_VERSION=${APP_VERSION}
+
 WORKDIR /app/frontend
 
 # Copy frontend package files

@@ -20,8 +20,9 @@ before_script:
 build_and_push:
   stage: build
   script:
-    # Build the Docker image
-    - docker build -t $IMAGE_NAME:temp .
+    # Extract version and build with version arg
+    - VERSION=$(cat VERSION)
+    - docker build --build-arg APP_VERSION=$VERSION -t $IMAGE_NAME:temp .
 
     # Handle version tags (only on main branch)
     - |

@@ -10,7 +10,7 @@
     </div>
 
     <!-- User Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <DashboardStatCard
         :stats="totalUsersStats"
         icon="i-lucide-users"
@@ -27,6 +27,12 @@
         :stats="regularUsersStats"
         icon="i-lucide-user"
         color="green"
+      />
+
+      <DashboardStatCard
+        :stats="appVersionStats"
+        icon="i-lucide-info"
+        color="amber"
       />
     </div>
     <div class="flex justify-between items-center mb-6 w-full">
@@ -151,6 +157,12 @@ const regularUsersStats = computed(() => ({
   label: 'Regular Users',
   value: regularUsers.value.length,
   color: 'green',
+}))
+
+const appVersionStats = computed(() => ({
+  label: 'App Version',
+  value: useRuntimeConfig().public.appVersion,
+  color: 'amber',
 }))
 
 // Methods

@@ -18,6 +18,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBaseUrl: '/api/v1',
+      appVersion: process.env.NUXT_PUBLIC_APP_VERSION || 'dev',
     },
   },
 
