@@ -1,5 +1,93 @@
 # CLAUDE.md
 
+## Project: SplitDuo
+
+Expense splitting app for couples. .NET 10 backend + Vue.js/Nuxt frontend, PostgreSQL database, deployed as single Docker container.
+
+## Quick Start
+
+**Development (local)**:
+
+```bash
+# Backend (.NET 10)
+cd sd-backend
+dotnet restore
+dotnet run --project SplitDuo.Api  # Runs on http://localhost:5000
+
+# Frontend (Nuxt)
+cd sd-frontend
+npm install
+npm run dev  # Runs on http://localhost:3000
+
+# Database migrations
+cd sd-backend
+dotnet ef migrations add <MigrationName> --project SplitDuo.Api
+dotnet ef database update --project SplitDuo.Api
+```
+
+**Docker (production)**:
+
+```bash
+docker compose up -d        # Start app + postgres
+docker compose down         # Stop services
+docker compose logs -f      # View logs
+```
+
+Access at `http://localhost:3000`. Default login: `admin@splitduo.local` / `changeme123`
+
+## Architecture
+
+**Two-project structure**:
+
+- `SplitDuo.Api` - REST API with vertical slice architecture (Features/)
+- `SplitDuo.Core` - Domain models, services, data access
+
+**Vertical slices in Features/**:
+
+- Each feature has Controllers/ and Dto/ subdirectories
+- Authentication, Users, Groups, Expenses, Settlements, Categories, PaymentModes, Import, Export
+
+**Deployment**:
+
+- Multi-stage Docker build: frontend → backend → runtime
+- Frontend builds to static files served from wwwroot by .NET
+- Single container exposes port 8080 (maps to host 3000)
+
+## Environment Variables
+
+**Required in production**:
+
+- `SD_JWT_SECRET_KEY` - Change from default!
+- `SD_INITIAL_USER_PASSWORD` - Change from default!
+
+**Database** (docker-compose.yml):
+
+- `SD_DB_HOST`, `SD_DB_PORT`, `SD_DB_NAME`, `SD_DB_USERNAME`, `SD_DB_PASSWORD`
+
+**Optional**:
+
+- Email SMTP settings for notifications
+
+## Common Gotchas
+
+- **Port mapping**: Container runs on 8080, host maps to 3000
+- **Frontend builds into backend**: `npm run generate` creates static files copied to wwwroot
+- **Database connection**: .NET connects to `postgres` hostname (Docker network), not localhost
+- **No tests yet**: No test projects exist in the codebase
+- **EF migrations**: Always run from SplitDuo.Api project, not Core
+- **Version management**: VERSION file read by GitLab CI for Docker tags
+
+## Docs
+
+Extensive docs in `docs/`:
+
+- `backend_architecture.md` - Detailed architecture patterns
+- `splitduo_project_spec.md` - Full specification
+- `rest_api_structure.md` - API endpoints
+- `frontend_architecture.md` - Vue/Nuxt structure
+
+---
+
 ## 1. Think Before Coding
 
 **Don't assume. Don't hide confusion. Surface tradeoffs.**
