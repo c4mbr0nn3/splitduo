@@ -1,7 +1,7 @@
 # Multi-stage Dockerfile for SplitDuo application
 
 # Stage 1: Build frontend (Nuxt.js)
-FROM node:22-alpine AS frontend-build
+FROM node:24-alpine AS frontend-build
 WORKDIR /app/frontend
 
 # Copy frontend package files
@@ -12,8 +12,8 @@ RUN npm ci
 COPY sd-frontend/ ./
 RUN npm run generate
 
-# Stage 2: Build backend (.NET 9)
-FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS backend-build
+# Stage 2: Build backend (.NET 10)
+FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS backend-build
 WORKDIR /app/backend
 
 # Copy solution and project files
@@ -29,7 +29,7 @@ COPY sd-backend/ ./
 RUN dotnet publish SplitDuo.Api/SplitDuo.Api.csproj -c Release -o /app/publish --no-restore
 
 # Stage 3: Final runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS runtime
 WORKDIR /app
 
 # Copy backend application
