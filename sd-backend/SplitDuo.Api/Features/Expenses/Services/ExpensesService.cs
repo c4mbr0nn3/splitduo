@@ -189,7 +189,8 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
         var userIds = request.Splits.Select(s => s.UserId).ToList();
         var duplicateUsers = userIds.GroupBy(id => id).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
         if (duplicateUsers.Any())
-            return Result<ExpenseDto>.BadRequest($"Duplicate users found in splits: {string.Join(", ", duplicateUsers)}");
+            return Result<ExpenseDto>.BadRequest(
+                $"Duplicate users found in splits: {string.Join(", ", duplicateUsers)}");
 
         var splitUsers = new List<User>();
         var totalSplitAmount = 0m;
@@ -413,27 +414,27 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
             expense.PaidByUser = paidByUser;
         }
 
+        var newSplits = new List<ExpenseSplit>();
+
         // Update splits if provided
-        if (request.Splits != null && request.Splits.Count > 0)
+        if (request.Splits is { Count: > 0 })
         {
             // Remove existing splits
             var existingSplits = await unitOfWork.ExpenseSplits
                 .Where(es => es.ExpenseId == expense.Id)
                 .ToListAsync();
 
-            foreach (var split in existingSplits)
-            {
-                unitOfWork.ExpenseSplits.Remove(split);
-            }
+            unitOfWork.ExpenseSplits.RemoveRange(existingSplits);
 
             // Validate and create new splits
             // Check for duplicate users in splits
             var userIds = request.Splits.Select(s => s.UserId).ToList();
             var duplicateUsers = userIds.GroupBy(id => id).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
-            if (duplicateUsers.Any())
-                return Result<ExpenseDto>.BadRequest($"Duplicate users found in splits: {string.Join(", ", duplicateUsers)}");
+            if (duplicateUsers.Count > 0)
+                return Result<ExpenseDto>.BadRequest(
+                    $"Duplicate users found in splits: {string.Join(", ", duplicateUsers)}");
 
-            var splitUsers = new List<User>();
+            var splitUsersByUserId = new Dictionary<int, User>();
             var totalSplitAmount = 0m;
 
             foreach (var split in request.Splits)
@@ -455,7 +456,7 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
                     return Result<ExpenseDto>.BadRequest(
                         $"User {splitUser.FirstName} {splitUser.LastName} is not a member of this group");
 
-                splitUsers.Add(splitUser);
+                splitUsersByUserId[splitUser.Id] = splitUser;
 
                 // Validate split amount
                 if (split.SplitAmount <= 0)
@@ -471,30 +472,26 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
                     $"Split amounts ({totalSplitAmount:F2}) do not sum up to expense amount ({expense.Amount:F2})");
 
             // Create new splits
-            for (var i = 0; i < request.Splits.Count; i++)
+            foreach (var split in request.Splits)
             {
-                var split = request.Splits[i];
-                var splitUser = splitUsers[i];
+                var splitUserGuid = Guid.Parse(split.UserId);
+                var splitUser = splitUsersByUserId.Values.First(u => u.Guid == splitUserGuid);
 
                 var expenseSplit = new ExpenseSplit
                 {
                     ExpenseId = expense.Id,
                     UserId = splitUser.Id,
+                    User = splitUser,
                     SplitAmount = split.SplitAmount
                 };
 
                 unitOfWork.ExpenseSplits.Add(expenseSplit);
+                newSplits.Add(expenseSplit);
             }
         }
 
-        // Load splits for response
-        var currentSplits = await unitOfWork.ExpenseSplits
-            .Where(es => es.ExpenseId == expense.Id)
-            .Include(es => es.User)
-            .ToListAsync();
-
-        var expenseDto = new ExpenseDto(expense, currentSplits);
-
+        // Return with in-memory splits (avoids EF Core identity resolution issue)
+        var expenseDto = new ExpenseDto(expense, newSplits);
         return Result<ExpenseDto>.Success(expenseDto);
     }
 
