@@ -230,6 +230,16 @@
             @click="goBack"
           />
           <UButton
+            v-if="showAddMore"
+            type="button"
+            label="Add & Add More"
+            variant="soft"
+            size="lg"
+            class="flex-1"
+            :loading="loading"
+            @click="onAddMore"
+          />
+          <UButton
             type="submit"
             :label="submitLabel"
             size="lg"
@@ -260,6 +270,10 @@ const props = defineProps({
     type: String,
     default: null,
   },
+  showAddMore: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const model = defineModel({
@@ -267,7 +281,7 @@ const model = defineModel({
   default: () => ({}),
 })
 
-const emit = defineEmits(['submit', 'cancel'])
+const emit = defineEmits(['submit', 'addMore', 'cancel'])
 
 const { user } = useAuth()
 const { groups, fetchGroups, fetchGroupMembers, isLoading: isLoadingGroups } = useGroups()
@@ -614,26 +628,34 @@ const updateSplits = () => {
 
 // Form submission
 const onSubmit = async () => {
-  const expenseData = {
-    title: model.value.title,
-    description: model.value.description || null,
-    amount: parseFloat(model.value.amount),
-    paidByUserId: model.value.paidByUserId,
-    expenseDate: model.value.expenseDate,
-    categoryId: model.value.categoryId || undefined,
-    paymentModeId: model.value.paymentModeId || undefined,
-    splits: model.value.splits
-      ? model.value.splits.filter(s => s.included).map(s => ({
-          userId: s.userId,
-          splitAmount: parseFloat(s.splitAmount) || 0,
-        }))
-      : [],
-  }
+  emit('submit', buildExpensePayload())
+}
 
-  emit('submit', {
+const buildExpensePayload = () => {
+  return {
     groupId: props.preSelectedGroupId || model.value.groupId,
-    expenseData,
-  })
+    expenseData: {
+      title: model.value.title,
+      description: model.value.description || null,
+      amount: parseFloat(model.value.amount),
+      paidByUserId: model.value.paidByUserId,
+      expenseDate: model.value.expenseDate,
+      categoryId: model.value.categoryId || undefined,
+      paymentModeId: model.value.paymentModeId || undefined,
+      splits: model.value.splits
+        ? model.value.splits.filter(s => s.included).map(s => ({
+            userId: s.userId,
+            splitAmount: parseFloat(s.splitAmount) || 0,
+          }))
+        : [],
+    },
+  }
+}
+
+const onAddMore = () => {
+  const errors = validate()
+  if (errors.length > 0) return
+  emit('addMore', buildExpensePayload())
 }
 
 const goBack = () => {
