@@ -100,20 +100,13 @@ public class UsersService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<UserDto>> CreateUserAsync(CreateUserRequestDto request)
+    public async Task<Result<UserDto>> GetUserAsync(Guid userId)
     {
-        // Business logic and validation
-        if (await EmailExistsAsync(request.Email))
-            return Result<UserDto>.Conflict("Email already exists");
+        var user = await _unitOfWork.Users.FindByGuidAsync(userId);
+        if (user == null)
+            return Result<UserDto>.NotFound("User not found");
 
-        if (!IsValidEmail(request.Email))
-            return Result<UserDto>.UnprocessableEntity("Invalid email format");
-
-        // Queue database operations (no save)
-        _unitOfWork.Users.Add(user);
-        // Note: Notification system would be implemented separately
-
-        return Result<UserDto>.Success(userDto);
+        return Result<UserDto>.Success(new UserDto(user));
     }
 }
 
@@ -123,14 +116,10 @@ public class UsersController : BaseApiController
     private readonly UsersService _usersService;
     private readonly IUnitOfWork _unitOfWork;
 
-    public async Task<ActionResult<ApiResponseDto<UserDto>>> CreateUser(CreateUserRequestDto request)
+    public async Task<ActionResult<ApiResponseDto<UserDto>>> GetUser(Guid userId)
     {
-        var result = await _usersService.CreateUserAsync(request);
-
-        if (result.IsSuccess)
-            await _unitOfWork.SaveChangesAsync();
-
-        return HandleResult(result, "User created successfully");
+        var result = await _usersService.GetUserAsync(userId);
+        return HandleResult(result);
     }
 }
 ```
@@ -549,11 +538,10 @@ The following services are needed to implement the core features outlined in the
 
 2. **UsersService** _(implemented)_
 
-   - **User Management**: Create users with secure random password generation (admin-only)
+   - **User Management**: User listing, profile operations, and admin CRUD
    - **Profile Operations**: Update user profiles (current user and admin operations)
    - **Password Management**: Change password with current password verification
    - **CRUD Operations**: Get users, individual user retrieval, soft delete operations
-   - **Security Features**: Email uniqueness validation, secure 12-character password generation
    - **Location**: `SplitDuo.Api/Features/Users/Services/UsersService.cs`
    - **Features**: Enhanced Result pattern with HTTP status codes, UserDto constructor mapping, Unit of Work data access
    - **Password Generation**: Cryptographically secure passwords (uppercase, lowercase, digits, special chars) with Fisher-Yates shuffle
@@ -1053,7 +1041,7 @@ public async Task<Result<AuthResponseDto>> RefreshTokenAsync(RefreshTokenRequest
 
 - Password hashing using ASP.NET Core Identity `PasswordHasher<User>`
 - Bearer token authentication for API access
-- No registration endpoint - admin-managed user creation only
+- No self-registration endpoint - new users onboard via the invitation system
 - Individual password change capabilities with proper validation
 
 **Configuration Security**:
@@ -1117,7 +1105,7 @@ The application uses a **Global Exception Handler** for centralized error manage
 5. **RefreshToken Database Storage** - Server-side token storage with SHA256 hashing, revocation, and audit capabilities
 6. **Unit of Work Pattern** - Centralized transaction and save operations management
 7. **Single DbContext** - Centralized data access point
-8. **No Registration Endpoint** - Admin-managed user creation only
+8. **Invitation System** - Email-based user onboarding with secure token registration
 9. **Hosted Service Seeding** - Post-migration data initialization
 10. **Options Pattern** - Strongly-typed configuration management
 11. **Global Exception Handler** - Centralized error handling and logging across all endpoints

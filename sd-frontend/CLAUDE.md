@@ -81,7 +81,6 @@ app/
 | `/groups/[id]/expenses/[expenseId]/edit` | | default | auth | Edit expense |
 | `/expenses/add` | | default | auth | Add expense (?groupId=) |
 | `/admin/users` | | default | auth, admin | User management |
-| `/admin/users/add` | | default | auth, admin | Create user |
 | `/admin/users/[id]/edit` | | default | auth, admin | Edit user |
 
 ## API Layer

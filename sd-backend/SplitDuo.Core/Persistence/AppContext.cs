@@ -15,4 +15,5 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<User> Users { get; set; }
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<TwoFactorToken> TwoFactorTokens { get; set; }
+    public DbSet<InvitationToken> InvitationTokens { get; set; }
 }

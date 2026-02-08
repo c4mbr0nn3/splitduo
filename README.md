@@ -8,6 +8,7 @@ A lightweight, open-source expense splitting application designed for couples an
 - **Mobile-First Design**: Responsive UI optimized for smartphones
 - **Expense Tracking**: Add, edit, and manage shared expenses with automatic split calculations
 - **Balance Management**: Real-time balance tracking with settlement optimization
+- **Invitation System**: Invite users via email with secure token-based registration
 - **Secure Authentication**: JWT-based authentication with refresh token rotation
 - **Data Migration**: Import from Cospend, export to CSV
 - **Self-Hosted**: Complete control over your data and privacy

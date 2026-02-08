@@ -257,7 +257,7 @@ graph TB
 - 🛡️ **Group-based Authorization** with membership validation
 - 📧 **Secure Email Processing** with outbox pattern
 - 🔑 **Password Hashing** using ASP.NET Core Identity
-- 🚫 **No Registration Endpoint** - admin-managed user creation only
+- 📨 **Invitation System** - email-based user onboarding with secure token registration
 - 🛡️ **Two-Factor Authentication** - TOTP, email codes, and backup codes
 - 🔒 **Cryptographic Security** - SHA256 token hashing, secure random generation
 - ⏱️ **Time-based Security** - Expiring verification codes with rate limiting

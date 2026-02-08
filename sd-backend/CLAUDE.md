@@ -47,6 +47,10 @@ sd-backend/
 │       ├── Imports/
 │       │   ├── Controllers/
 │       │   └── Dto/
+│       ├── Invitations/
+│       │   ├── Controllers/                # InvitationsController
+│       │   ├── Dto/
+│       │   └── Services/                   # InvitationsService
 │       ├── PaymentModes/
 │       │   └── Controllers/                # Enum-based, no DB table
 │       ├── Settlements/
@@ -189,6 +193,7 @@ public class ExpenseDto
 | `RefreshToken` | TokenHash (SHA256), JwtId, ExpiresAt, RevokedAt | Token rotation chain |
 | `TwoFactorToken` | TokenHash, TokenType, Purpose, MaxAttempts, Attempts | Rate-limited |
 | `Notification` | To, Subject, Body (HTML), SentAt, RetryCount | Email queue |
+| `InvitationToken` | Email, GroupId, InvitedByUserId, TokenHash (SHA256), ExpiresAt, AcceptedAt, RevokedAt | 48h expiry, IsPending computed |
 | `Import` | ImportType, Status, TempFile (byte[]), RecordsCount | File cleared post-processing |
 
 ### Enums
@@ -235,6 +240,34 @@ Group membership checks are done in services (not policies).
 ### Password Reset
 
 Token stored as SHA256 hash in `TwoFactorToken` (purpose: "password_reset", 1-hour expiry, max 3 attempts). Always returns success to prevent email enumeration.
+
+## Invitation System
+
+Email-based user onboarding. Replaces the old admin user creation endpoint.
+
+### Flow
+
+- **Existing user invited**: Group admin types email → user found → added as `GroupMember` directly → notification email sent
+- **New user invited**: Group admin types email → no user found → `InvitationToken` created (SHA256-hashed, 48h expiry) → invitation email with registration link
+- **Accept invitation**: New user clicks link → validates token → creates account → resolves **all** pending invitations for that email across all groups (adds as member to each)
+
+### Endpoints
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| POST | `/groups/{groupId}/invitations` | Group admin | Send invitation (adds existing user or creates token) |
+| GET | `/groups/{groupId}/invitations` | Group admin | List pending invitations for group |
+| POST | `/groups/{groupId}/invitations/{id}/resend` | Group admin | Revoke old token, create new one, resend email |
+| DELETE | `/groups/{groupId}/invitations/{id}` | Group admin | Revoke invitation |
+| GET | `/invitations/validate?token=` | Anonymous | Validate token, return email + group name |
+| POST | `/invitations/accept` | Anonymous | Create account from invitation token |
+
+### Key Details
+
+- Token: 64 random bytes → Base64 → SHA256 hash stored in DB
+- `AcceptInvitation` uses an explicit transaction (needs intermediate save to get `User.Id` for `GroupMember` records)
+- Resend revokes the old token and creates a fresh one
+- Admin user list page shows active users and pending invitations (via `GetPendingInvitationsAsync`)
 
 ## Configuration (Options Pattern)
 

@@ -868,21 +868,6 @@ export function useUsers() {
     }
   }
 
-  // Create user (admin only)
-  const createUser = async (userData) => {
-    try {
-      const response = await api.post('/users', userData)
-      if (response.success && response.data) {
-        users.value.push(response.data)
-        showSuccess('User created successfully')
-        return response.data
-      }
-    } catch (error) {
-      showError('Failed to create user')
-      throw error
-    }
-  }
-
   // Get user by ID
   const fetchUser = async (userId) => {
     try {
@@ -936,7 +921,6 @@ export function useUsers() {
     updateCurrentUser,
     changePassword,
     fetchUserImports,
-    createUser,
     fetchUser,
     updateUser,
     deleteUser

@@ -1,4 +1,3 @@
-using System.Security.Cryptography;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SplitDuo.Api.Features.Authentication.Services;
@@ -15,7 +14,6 @@ namespace SplitDuo.Api.Features.Users.Services;
 public interface IUsersService
 {
     Task<Result<List<UserDto>>> GetUsersAsync();
-    Task<Result<CreateUserDto>> CreateUserAsync(CreateUserRequestDto request);
     Task<Result<List<ImportStatusDto>>> GetCurrentUserImports(string currentUserId);
     Task<Result<UserStatsDto>> GetCurrentUserStatsAsync(string currentUserId);
     Task<Result<UserDto>> UpdateCurrentUserAsync(Guid currentUserId, UpdateUserRequestDto request);
@@ -44,35 +42,6 @@ public class UsersService(
 
         var response = users.Select(x => new UserDto(x)).ToList();
         return Result<List<UserDto>>.Success(response);
-    }
-
-    public async Task<Result<CreateUserDto>> CreateUserAsync(CreateUserRequestDto request)
-    {
-        var existingUser = await unitOfWork.Users
-            .FirstOrDefaultAsync(u => u.Email == request.Email);
-
-        if (existingUser != null)
-            return Result<CreateUserDto>.Conflict("User with this email already exists");
-
-        var generatedPassword = GenerateSecurePassword();
-
-        var user = new User
-        {
-            Email = request.Email,
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-            PasswordHash = passwordHasher.HashPassword(null!, generatedPassword)
-        };
-
-        unitOfWork.Users.Add(user);
-
-        var response = new CreateUserDto
-        {
-            User = new UserDto(user),
-            GeneratedPassword = generatedPassword
-        };
-
-        return Result<CreateUserDto>.Success(response);
     }
 
     public async Task<Result<List<ImportStatusDto>>> GetCurrentUserImports(string currentUserId)
@@ -320,50 +289,5 @@ public class UsersService(
                 <p>Best regards,<br>
                 The SplitDuo Team</p>
                 """;
-    }
-
-    private static string GenerateSecurePassword()
-    {
-        const string upperCase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        const string lowerCase = "abcdefghijklmnopqrstuvwxyz";
-        const string digits = "0123456789";
-        const string specialChars = "!@#$%^&*";
-
-        const string allChars = upperCase + lowerCase + digits + specialChars;
-        const int passwordLength = 12;
-
-        using var rng = RandomNumberGenerator.Create();
-        var password = new char[passwordLength];
-
-        // Ensure at least one character from each category
-        password[0] = GetRandomChar(upperCase, rng);
-        password[1] = GetRandomChar(lowerCase, rng);
-        password[2] = GetRandomChar(digits, rng);
-        password[3] = GetRandomChar(specialChars, rng);
-
-        // Fill the rest randomly
-        for (var i = 4; i < passwordLength; i++)
-        {
-            password[i] = GetRandomChar(allChars, rng);
-        }
-
-        // Shuffle the password to avoid predictable patterns
-        for (var i = passwordLength - 1; i > 0; i--)
-        {
-            var randomBytes = new byte[4];
-            rng.GetBytes(randomBytes);
-            var j = Math.Abs(BitConverter.ToInt32(randomBytes, 0)) % (i + 1);
-            (password[i], password[j]) = (password[j], password[i]);
-        }
-
-        return new string(password);
-    }
-
-    private static char GetRandomChar(string chars, RandomNumberGenerator rng)
-    {
-        var randomBytes = new byte[4];
-        rng.GetBytes(randomBytes);
-        var randomIndex = Math.Abs(BitConverter.ToInt32(randomBytes, 0)) % chars.Length;
-        return chars[randomIndex];
     }
 }

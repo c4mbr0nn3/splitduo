@@ -3,23 +3,21 @@
     <UCard class="w-full max-w-2xl">
       <template #header>
         <UiCardHeader
-          title="Invite Users"
+          title="Invite User"
           :subtitle="group?.name"
-          :back-to="`/groups/${groupId}`"
+          :back-to="`/groups/${groupId}/members`"
         />
       </template>
 
       <UiLoadingSpinner
-        v-if="isLoading"
+        v-if="groupLoading"
         text="Loading group details..."
       />
 
       <GroupsInviteUsersForm
         v-else-if="group"
         :group-id="groupId"
-        :group-members="groupMembers"
         @success="onSuccess"
-        @cancel="onCancel"
       />
     </UCard>
   </div>
@@ -29,42 +27,22 @@
 const route = useRoute()
 const groupId = route.params.id
 
-const { currentGroup, fetchGroup, fetchGroupMembers, isLoading } = useGroups()
+const { currentGroup, fetchGroup, isLoading: groupLoading } = useGroups()
 
 const group = computed(() => currentGroup.value)
-const groupMembers = ref([])
 
-const onCancel = () => {
-  navigateTo(`/groups/${groupId}`)
-}
-
-const onSuccess = async (_users) => {
-  // Navigate to members page after successfully adding users
+const onSuccess = async () => {
   await navigateTo(`/groups/${groupId}/members`)
-}
-
-const loadGroupMembers = async () => {
-  try {
-    const data = await fetchGroupMembers(groupId)
-    groupMembers.value = data.map(item => item.user)
-  }
-  catch (error) {
-    console.error('Failed to load group members:', error)
-    groupMembers.value = []
-  }
 }
 
 onMounted(async () => {
   if (groupId) {
-    await Promise.all([
-      fetchGroup(groupId),
-      loadGroupMembers(),
-    ])
+    await fetchGroup(groupId)
   }
 })
 
 useHead({
-  title: computed(() => `Invite Users - ${group.value?.name || 'Group'}`),
+  title: computed(() => `Invite User - ${group.value?.name || 'Group'}`),
 })
 
 definePageMeta({

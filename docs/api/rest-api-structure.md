@@ -175,7 +175,6 @@ Authorization: Bearer <jwt-token>
 | Method | Endpoint             | Description                  |
 | ------ | -------------------- | ---------------------------- |
 | GET    | `/users`             | List all users               |
-| POST   | `/users`             | Create new user (admin only) |
 | GET    | `/users/me`          | Get current user profile     |
 | PUT    | `/users/me`          | Update current user profile  |
 | PUT    | `/users/me/password` | Change current user password |
@@ -338,15 +337,13 @@ GET /api/v1/groups/123/expenses?startDate=2024-01-01&endDate=2024-01-31&category
 ### User Creation
 
 - No self-registration endpoint available
-- Initial users created via AppOptions configuration
+- Initial admin user created via AppOptions configuration
 - DataSeederService automatically creates first user on startup using:
   - `App:InitialUserEmail`
   - `App:InitialUserFirstName`
   - `App:InitialUserLastName`
   - `App:InitialUserPassword`
-- Additional users created through admin user management endpoints
-- User creation generates secure random passwords automatically
-- Welcome emails sent with generated credentials
+- Additional users onboard through the invitation system (email-based invitations with token registration)
 
 ### Email Notifications
 

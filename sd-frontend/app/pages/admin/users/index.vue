@@ -42,23 +42,13 @@
         placeholder="Search users..."
         class="w-64"
       />
-      <div class="flex gap-2">
-        <UButton
-          icon="i-lucide-refresh-cw"
-          variant="ghost"
-          square
-          :loading="isLoading"
-          @click="refreshUsers"
-        />
-        <UButton
-          icon="i-lucide-user-plus"
-          square
-
-          color="success"
-          variant="outline"
-          @click="navigateToAdd"
-        />
-      </div>
+      <UButton
+        icon="i-lucide-refresh-cw"
+        variant="ghost"
+        square
+        :loading="isLoading"
+        @click="refreshUsers"
+      />
     </div>
     <UiLoadingSpinner
       v-if="isLoading && !users.length"
@@ -69,15 +59,7 @@
       icon="i-lucide-users"
       title="No users found"
       subtitle="No users match your search criteria or no users exist yet"
-    >
-      <template #action>
-        <UButton
-          label="Create Your First User"
-          icon="i-lucide-user-plus"
-          @click="navigateToAdd"
-        />
-      </template>
-    </UiEmptyState>
+    />
 
     <!-- Users Grid -->
     <div
@@ -93,6 +75,62 @@
         @revoke-tokens="revokeTokens"
         @delete="handleDeleteUser"
       />
+    </div>
+
+    <!-- Pending Invitations Section -->
+    <div
+      v-if="pendingUsers.length"
+      class="mt-12"
+    >
+      <USeparator class="mb-8" />
+      <div class="mb-6">
+        <h2 class="text-xl font-bold text-primary">
+          Pending Invitations
+        </h2>
+        <p class="text-sm text-muted mt-1">
+          Users who have been invited but haven't registered yet
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <UCard
+          v-for="pending in pendingUsers"
+          :key="pending.email"
+          variant="outline"
+        >
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <UIcon
+                  name="i-lucide-mail"
+                  class="text-muted"
+                />
+                <span class="font-medium text-sm">{{ pending.email }}</span>
+              </div>
+              <UBadge
+                variant="soft"
+                color="warning"
+                label="Pending"
+                size="xs"
+              />
+            </div>
+            <div class="space-y-1">
+              <p class="text-xs text-muted">
+                Invited to:
+              </p>
+              <div class="flex flex-wrap gap-1">
+                <UBadge
+                  v-for="group in pending.groups"
+                  :key="group.id"
+                  variant="subtle"
+                  size="xs"
+                  :label="group.name"
+                />
+              </div>
+            </div>
+          </div>
+        </UCard>
+      </div>
     </div>
   </div>
 </template>
@@ -110,6 +148,8 @@ const {
   deleteUser,
   revokeUserTokens,
 } = useUsers()
+
+const { pendingUsers, fetchPendingInvitations } = useInvitations()
 
 // Search functionality
 const { searchInput, debouncedSearchQuery } = useDebounceSearch()
@@ -188,10 +228,6 @@ const revokeTokens = async (user) => {
   }
 }
 
-const navigateToAdd = () => {
-  navigateTo('/admin/users/add')
-}
-
 const handleDeleteUser = async (user) => {
   userToDelete.value = user
   isDeleting.value = true
@@ -209,7 +245,10 @@ const handleDeleteUser = async (user) => {
 
 // Load users on mount
 onMounted(async () => {
-  await refreshUsers()
+  await Promise.all([
+    refreshUsers(),
+    fetchPendingInvitations(),
+  ])
 })
 
 useHead({
