@@ -74,7 +74,7 @@ categoryname,categoryid,icon,color
 "TV/Phone/Internet",2,"","#000000"
 ```
 
-**Mapping:** Use existing category mapping from `docs/cospend_category_mapping.md`
+**Mapping:** Use existing category mapping from `docs/migration/cospend-category-mapping.md`
 
 ### Section 4: Payment Modes
 

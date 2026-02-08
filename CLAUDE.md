@@ -81,10 +81,12 @@ Access at `http://localhost:3000`. Default login: `admin@splitduo.local` / `chan
 
 Extensive docs in `docs/`:
 
-- `backend_architecture.md` - Detailed architecture patterns
-- `splitduo_project_spec.md` - Full specification
-- `rest_api_structure.md` - API endpoints
-- `frontend_architecture.md` - Vue/Nuxt structure
+- `architecture/` - System, backend, and frontend architecture
+- `api/` - REST endpoints, DTOs, OpenAPI spec, frontend composables
+- `database/` - Schema (DBML) and index suggestions
+- `features/` - Feature implementation docs (2FA, CSV import)
+- `migration/` - External system mappings (Cospend)
+- `project-spec.md` - Full project specification
 
 ---
 

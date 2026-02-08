@@ -141,11 +141,11 @@ Base URL: `http://localhost:3000/api/v1`
 
 ## Documentation
 
-- [Project Specification](docs/splitduo_project_spec.md)
-- [Backend Architecture](docs/backend_architecture.md)
-- [Database Schema](docs/splitduo_database_schema.txt)
-- [REST API Structure](docs/rest_api_structure.md)
-- [API DTO Definitions](docs/api_dto_definitions.md)
+- [Project Specification](docs/project-spec.md)
+- [Backend Architecture](docs/architecture/backend-architecture.md)
+- [Database Schema](docs/database/database-schema.dbml)
+- [REST API Structure](docs/api/rest-api-structure.md)
+- [API DTO Definitions](docs/api/api-dto-definitions.md)
 
 ## License
 
