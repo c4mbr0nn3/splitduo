@@ -2,91 +2,72 @@
 
 ## Project: SplitDuo
 
-Expense splitting app for couples. .NET 10 backend + Vue.js/Nuxt frontend, PostgreSQL database, deployed as single Docker container.
+Expense splitting app for couples. .NET 10 backend + Nuxt 4 frontend, PostgreSQL, deployed as single Docker container.
+
+See `sd-backend/CLAUDE.md` and `sd-frontend/CLAUDE.md` for detailed codebase docs.
 
 ## Quick Start
 
-**Development (local)**:
-
 ```bash
-# Backend (.NET 10)
-cd sd-backend
-dotnet restore
-dotnet run --project SplitDuo.Api  # Runs on http://localhost:5000
+# Backend — http://localhost:5000
+cd sd-backend && dotnet restore && dotnet run --project SplitDuo.Api
 
-# Frontend (Nuxt)
-cd sd-frontend
-npm install
-npm run dev  # Runs on http://localhost:3000
+# Frontend — http://localhost:3000 (proxies API to backend on :8080)
+cd sd-frontend && npm install && npm run dev
 
-# Database migrations
-cd sd-backend
-dotnet ef migrations add <MigrationName> --project SplitDuo.Api
-dotnet ef database update --project SplitDuo.Api
+# Docker (production) — http://localhost:3000
+docker compose up -d
 ```
 
-**Docker (production)**:
+Default login: `admin@splitduo.local` / `changeme123`
 
-```bash
-docker compose up -d        # Start app + postgres
-docker compose down         # Stop services
-docker compose logs -f      # View logs
+## Repo Layout
+
+```
+sd-backend/          # .NET 10 — SplitDuo.Api + SplitDuo.Core
+sd-frontend/         # Nuxt 4 SPA — Vue 3, Nuxt UI v4, TailwindCSS v4
+docs/                # Architecture, API, database, feature, and migration docs
+docker-compose.yml   # App + PostgreSQL
+Dockerfile           # Multi-stage: frontend build → backend build → runtime
+VERSION              # Read by CI for Docker tags
 ```
 
-Access at `http://localhost:3000`. Default login: `admin@splitduo.local` / `changeme123`
+## Deployment
 
-## Architecture
-
-**Two-project structure**:
-
-- `SplitDuo.Api` - REST API with vertical slice architecture (Features/)
-- `SplitDuo.Core` - Domain models, services, data access
-
-**Vertical slices in Features/**:
-
-- Each feature has Controllers/ and Dto/ subdirectories
-- Authentication, Users, Groups, Expenses, Settlements, Categories, PaymentModes, Import, Export
-
-**Deployment**:
-
-- Multi-stage Docker build: frontend → backend → runtime
-- Frontend builds to static files served from wwwroot by .NET
-- Single container exposes port 8080 (maps to host 3000)
+- Multi-stage Docker build: frontend `npm run generate` → static files copied to backend `wwwroot` → single .NET container
+- Container runs on port 8080, host maps to 3000
+- .NET serves both API (`/api/v1/`) and frontend static files (fallback to `index.html`)
+- Auto-migrates database on startup
+- Seeds initial admin user if DB is empty
 
 ## Environment Variables
 
-**Required in production**:
-
-- `SD_JWT_SECRET_KEY` - Change from default!
-- `SD_INITIAL_USER_PASSWORD` - Change from default!
-
-**Database** (docker-compose.yml):
-
-- `SD_DB_HOST`, `SD_DB_PORT`, `SD_DB_NAME`, `SD_DB_USERNAME`, `SD_DB_PASSWORD`
-
-**Optional**:
-
-- Email SMTP settings for notifications
+| Variable | Required | Purpose |
+|---|---|---|
+| `SD_JWT_SECRET_KEY` | Yes (prod) | JWT signing key |
+| `SD_INITIAL_USER_PASSWORD` | Yes (prod) | Initial admin password |
+| `SD_DB_HOST/PORT/NAME/USERNAME/PASSWORD` | Yes | PostgreSQL connection |
+| `SD_SMTP_*` | No | Email notifications (SMTP) |
+| `NUXT_PUBLIC_APP_VERSION` | No | Version shown in frontend UI |
 
 ## Common Gotchas
 
-- **Port mapping**: Container runs on 8080, host maps to 3000
-- **Frontend builds into backend**: `npm run generate` creates static files copied to wwwroot
-- **Database connection**: .NET connects to `postgres` hostname (Docker network), not localhost
-- **No tests yet**: No test projects exist in the codebase
-- **EF migrations**: Always run from SplitDuo.Api project, not Core
-- **Version management**: VERSION file read by GitLab CI for Docker tags
+- **Frontend → backend in dev**: Frontend dev server hits `http://localhost:8080/api/v1`, not 5000
+- **EF migrations**: Always run from `SplitDuo.Api` project, not Core
+- **No tests**: No test projects exist yet
+- **DB hostname in Docker**: .NET connects to `postgres` (Docker network), not localhost
 
 ## Docs
 
-Extensive docs in `docs/`:
-
-- `architecture/` - System, backend, and frontend architecture
-- `api/` - REST endpoints, DTOs, OpenAPI spec, frontend composables
-- `database/` - Schema (DBML) and index suggestions
-- `features/` - Feature implementation docs (2FA, CSV import)
-- `migration/` - External system mappings (Cospend)
-- `project-spec.md` - Full project specification
+```
+docs/
+├── architecture/    # System, backend, frontend architecture
+├── api/             # REST endpoints, DTOs, OpenAPI spec, composables
+├── database/        # Schema (DBML), index suggestions
+├── features/        # 2FA, CSV import implementation docs
+├── migration/       # Cospend mapping
+└── project-spec.md  # Full project specification
+```
 
 ---
 
