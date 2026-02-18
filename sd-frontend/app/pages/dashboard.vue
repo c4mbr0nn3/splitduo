@@ -19,6 +19,12 @@
         icon="i-lucide-smile"
         color="green"
       />
+      <DashboardStatCard
+        :stats="{ label: 'Net Balance', value: netBalance, color: netBalanceColor }"
+        type="currency"
+        :icon="netBalance >= 0 ? 'i-lucide-trending-up' : 'i-lucide-trending-down'"
+        :color="netBalanceColor"
+      />
     </div>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <UCard>
@@ -97,6 +103,9 @@
 <script setup>
 const { groups, fetchGroups, isLoading: isLoadingGroups } = useGroups()
 const { userStats, fetchUserStats } = useUsers()
+
+const netBalance = computed(() => (userStats.value?.youreOwed || 0) - (userStats.value?.youOwe || 0))
+const netBalanceColor = computed(() => netBalance.value > 0 ? 'green' : netBalance.value < 0 ? 'red' : 'blue')
 
 onMounted(async () => {
   try {
