@@ -185,6 +185,13 @@ No Pinia. State is managed through:
 
 **File exports**: Create `Blob` from API response, trigger browser download. Supports CSV and Cospend JSON formats.
 
+## Documentation Resources
+
+To get up-to-date docs on Nuxt and Nuxt UI, fetch these LLMs.txt files — they list all available markdown doc URLs:
+
+- **Nuxt**: https://nuxt.com/llms.txt
+- **Nuxt UI**: https://ui.nuxt.com/llms.txt
+
 ## Rules When Modifying This Code
 
 - **Don't add TypeScript** to `.vue` or `.js` files — project uses plain JS with runtime validation
