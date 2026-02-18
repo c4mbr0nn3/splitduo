@@ -6,7 +6,7 @@
 
 SplitDuo is a lightweight, self-hosted expense splitting application designed for couples and small groups. This roadmap outlines the planned improvements and features to grow SplitDuo into a polished, feature-complete solution for managing shared expenses while maintaining its core principle of simplicity and self-hosted control.
 
-## Current Status (v0.1.10)
+## Current Status (v0.1.11)
 
 The core application is fully functional and self-hostable.
 
@@ -22,10 +22,12 @@ The core application is fully functional and self-hostable.
 - ✅ Balance calculation and settlement optimization
 - ✅ Group management with role-based permissions
 - ✅ "Add & Add More" flow for rapid expense entry
+- ✅ Group statistics (spending breakdown by category, member, and period)
+- ✅ Notifications for expense and group deletions
 
 ### Data
 
-- ✅ CSV import (Cospend and SplitDuo formats)
+- ✅ CSV import (Cospend, SplitDuo, and Splitwise formats)
 - ✅ CSV export (SplitDuo proprietary format)
 - ✅ Email notifications with outbox pattern
 
@@ -86,11 +88,10 @@ The core application is fully functional and self-hostable.
   - Allow users to create custom payment methods
   - Support for credit cards, digital wallets, etc.
 
-- [ ] **Splitwise Import**
+- ✅ **Splitwise Import**
   - CSV parser for Splitwise export format
   - Data mapping and validation
   - Frontend import wizard UI
-  - Migration guide documentation
 
 - [ ] **Settlement Management Improvements**
   - Enhanced settlement suggestion UI
@@ -215,7 +216,7 @@ Ideas for beyond the 12-month roadmap:
 - **Multi-currency Support**: Handle expenses in different currencies
 - **Advanced Splitting**: Percentage-based, custom ratio splits
 - **Expense Templates**: Quick-add frequently used expenses
-- **Group Statistics**: Advanced analytics and insights
+- **Group Statistics**: ✅ Shipped in v0.1.11
 - **Collaborative Features**: Comments on expenses, @mentions
 - **Receipt Attachments**: Upload and store receipt images
 - **Webhooks & Integrations**: Connect with other services
@@ -236,4 +237,4 @@ Phases are sequential but may overlap. Features within a phase can be implemente
 ---
 
 - **Last Updated:** 2026-02-18
-- **Current Version:** v0.1.10
+- **Current Version:** v0.1.11
