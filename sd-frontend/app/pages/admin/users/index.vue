@@ -11,29 +11,34 @@
 
     <!-- User Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <DashboardStatCard
-        :stats="totalUsersStats"
-        icon="i-lucide-users"
-        color="blue"
-      />
-
-      <DashboardStatCard
-        :stats="adminUsersStats"
-        icon="i-lucide-crown"
-        color="purple"
-      />
-
-      <DashboardStatCard
-        :stats="regularUsersStats"
-        icon="i-lucide-user"
-        color="green"
-      />
-
-      <DashboardStatCard
-        :stats="appVersionStats"
-        icon="i-lucide-info"
-        color="amber"
-      />
+      <template v-if="showSkeleton">
+        <DashboardStatCardSkeleton
+          v-for="i in 4"
+          :key="i"
+        />
+      </template>
+      <template v-else>
+        <DashboardStatCard
+          :stats="totalUsersStats"
+          icon="i-lucide-users"
+          color="blue"
+        />
+        <DashboardStatCard
+          :stats="adminUsersStats"
+          icon="i-lucide-crown"
+          color="purple"
+        />
+        <DashboardStatCard
+          :stats="regularUsersStats"
+          icon="i-lucide-user"
+          color="green"
+        />
+        <DashboardStatCard
+          :stats="appVersionStats"
+          icon="i-lucide-info"
+          color="amber"
+        />
+      </template>
     </div>
     <div class="flex justify-between items-center mb-6 w-full">
       <UInput
@@ -50,10 +55,15 @@
         @click="refreshUsers"
       />
     </div>
-    <UiLoadingSpinner
-      v-if="isLoading && !users.length"
-      text="Loading users..."
-    />
+    <div
+      v-if="showSkeleton"
+      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+    >
+      <AdminUserCardSkeleton
+        v-for="i in 6"
+        :key="i"
+      />
+    </div>
     <UiEmptyState
       v-else-if="filteredUsers.length === 0"
       icon="i-lucide-users"
@@ -155,6 +165,7 @@ const { pendingUsers, fetchPendingInvitations } = useInvitations()
 const { searchInput, debouncedSearchQuery } = useDebounceSearch()
 
 // State
+const showSkeleton = ref(true)
 const userToDelete = ref(null)
 const isDeleting = ref(false)
 
@@ -245,10 +256,14 @@ const handleDeleteUser = async (user) => {
 
 // Load users on mount
 onMounted(async () => {
-  await Promise.all([
-    refreshUsers(),
-    fetchPendingInvitations(),
-  ])
+  try {
+    await withMinDuration(async () => {
+      await Promise.all([refreshUsers(), fetchPendingInvitations()])
+    })
+  }
+  finally {
+    showSkeleton.value = false
+  }
 })
 
 useHead({

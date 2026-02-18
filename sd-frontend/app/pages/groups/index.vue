@@ -35,10 +35,15 @@
     </div>
 
     <!-- Loading State -->
-    <UiLoadingSpinner
-      v-if="isLoadingGroups"
-      text="Loading groups..."
-    />
+    <div
+      v-if="showSkeleton"
+      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+    >
+      <GroupsGroupCardSkeleton
+        v-for="i in 6"
+        :key="i"
+      />
+    </div>
 
     <!-- Empty State -->
     <UiEmptyState
@@ -132,6 +137,8 @@
 
 <script setup>
 const { groups, fetchGroups, isLoading: isLoadingGroups, deleteGroup: deleteGroupAPI } = useGroups()
+
+const showSkeleton = ref(true)
 const modal = useModal()
 
 // Search functionality
@@ -165,7 +172,12 @@ const refreshGroups = async () => {
 
 // Fetch groups on component mount
 onMounted(async () => {
-  await refreshGroups()
+  try {
+    await withMinDuration(() => refreshGroups())
+  }
+  finally {
+    showSkeleton.value = false
+  }
 })
 
 // Navigation handlers

@@ -34,10 +34,15 @@
           @click="addExpense"
         />
       </div>
-      <UiLoadingSpinner
-        v-if="isLoadingExpenses"
-        text="Loading expenses..."
-      />
+      <div
+        v-if="showSkeleton"
+        class="space-y-3"
+      >
+        <GroupsExpenseCardSkeleton
+          v-for="i in 4"
+          :key="i"
+        />
+      </div>
       <div v-else-if="expenses.length">
         <div class="space-y-3">
           <GroupsExpenseCard
@@ -76,10 +81,11 @@ const props = defineProps({
 })
 
 const { user } = useAuth()
-const { expenses, fetchExpenses, pagination: expensePagination, isLoading: isLoadingExpenses } = useExpenses(props.groupId)
+const { expenses, fetchExpenses, pagination: expensePagination } = useExpenses(props.groupId)
 const { balanceSummary, fetchBalanceSummary } = useBalances(props.groupId)
 
 const currentPage = ref(1)
+const showSkeleton = ref(true)
 
 const summary = computed(() => balanceSummary.value)
 const mySummary = computed(() => {
@@ -115,6 +121,13 @@ watch(currentPage, async (newPage) => {
 }, { immediate: false })
 
 onMounted(async () => {
-  await Promise.all([fetchExpenses({ page: 1 }), fetchBalanceSummary()])
+  try {
+    await withMinDuration(async () => {
+      await Promise.all([fetchExpenses({ page: 1 }), fetchBalanceSummary()])
+    })
+  }
+  finally {
+    showSkeleton.value = false
+  }
 })
 </script>

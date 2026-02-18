@@ -2,29 +2,37 @@
   <div class="py-8">
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <DashboardStatCard
-        :stats="{ label: 'Total Groups', value: userStats?.totalGroups }"
-        icon="i-lucide-users"
-        color="blue"
-      />
-      <DashboardStatCard
-        :stats="{ label: 'You Owe', value: userStats?.youOwe, color: 'red' }"
-        type="currency"
-        icon="i-lucide-frown"
-        color="red"
-      />
-      <DashboardStatCard
-        :stats="{ label: `You're Owed`, value: userStats?.youreOwed, color: 'green' }"
-        type="currency"
-        icon="i-lucide-smile"
-        color="green"
-      />
-      <DashboardStatCard
-        :stats="{ label: 'Net Balance', value: netBalance, color: netBalanceColor }"
-        type="currency"
-        :icon="netBalance >= 0 ? 'i-lucide-trending-up' : 'i-lucide-trending-down'"
-        :color="netBalanceColor"
-      />
+      <template v-if="showSkeleton">
+        <DashboardStatCardSkeleton
+          v-for="i in 4"
+          :key="i"
+        />
+      </template>
+      <template v-else>
+        <DashboardStatCard
+          :stats="{ label: 'Total Groups', value: userStats?.totalGroups }"
+          icon="i-lucide-users"
+          color="blue"
+        />
+        <DashboardStatCard
+          :stats="{ label: 'You Owe', value: userStats?.youOwe, color: 'red' }"
+          type="currency"
+          icon="i-lucide-frown"
+          color="red"
+        />
+        <DashboardStatCard
+          :stats="{ label: `You're Owed`, value: userStats?.youreOwed, color: 'green' }"
+          type="currency"
+          icon="i-lucide-smile"
+          color="green"
+        />
+        <DashboardStatCard
+          :stats="{ label: 'Net Balance', value: netBalance, color: netBalanceColor }"
+          type="currency"
+          :icon="netBalance >= 0 ? 'i-lucide-trending-up' : 'i-lucide-trending-down'"
+          :color="netBalanceColor"
+        />
+      </template>
     </div>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <UCard>
@@ -41,10 +49,16 @@
             />
           </div>
         </template>
-        <UiLoadingSpinner
-          v-if="isLoadingGroups"
-          text="Loading groups..."
-        />
+
+        <div
+          v-if="showSkeleton"
+          class="space-y-4"
+        >
+          <DashboardGroupCardSkeleton
+            v-for="i in 3"
+            :key="i"
+          />
+        </div>
 
         <UiEmptyState
           v-else-if="groups.length === 0"
@@ -101,19 +115,25 @@
 </template>
 
 <script setup>
-const { groups, fetchGroups, isLoading: isLoadingGroups } = useGroups()
+const { groups, fetchGroups } = useGroups()
 const { userStats, fetchUserStats } = useUsers()
+
+const showSkeleton = ref(true)
 
 const netBalance = computed(() => (userStats.value?.youreOwed || 0) - (userStats.value?.youOwe || 0))
 const netBalanceColor = computed(() => netBalance.value > 0 ? 'green' : netBalance.value < 0 ? 'red' : 'blue')
 
 onMounted(async () => {
   try {
-    await fetchGroups()
-    await fetchUserStats()
+    await withMinDuration(async () => {
+      await Promise.all([fetchGroups(), fetchUserStats()])
+    })
   }
   catch (error) {
-    console.error('Failed to fetch groups:', error)
+    console.error('Failed to fetch dashboard data:', error)
+  }
+  finally {
+    showSkeleton.value = false
   }
 })
 
