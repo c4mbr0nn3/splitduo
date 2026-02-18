@@ -73,10 +73,6 @@ public static class SplitwiseCsvParser
 
             var category = fields[2].Trim().Trim('"');
 
-            // Skip "Payment" category rows (debt settlements)
-            if (string.Equals(category, "Payment", StringComparison.OrdinalIgnoreCase))
-                continue;
-
             // Parse participant values
             string? payerName = null;
             var owers = new List<SplitwiseOwer>();
