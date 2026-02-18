@@ -1,6 +1,6 @@
 <template>
-  <div class="min-h-screen p-4 flex flex-col items-center">
-    <UCard class="w-full max-w-2xl">
+  <div class="py-8">
+    <UCard>
       <template #header>
         <div class="flex items-center justify-between">
           <UiCardHeader
