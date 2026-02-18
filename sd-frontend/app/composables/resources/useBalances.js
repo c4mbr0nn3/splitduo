@@ -5,6 +5,7 @@ export default function useBalances(groupId) {
   const groupIdRef = toRef(groupId)
   const balances = ref([])
   const balanceSummary = ref(null)
+  const groupStats = ref(null)
   const isLoading = ref(false)
 
   // Get current balances
@@ -47,11 +48,32 @@ export default function useBalances(groupId) {
     }
   }
 
+  const fetchGroupStats = async () => {
+    if (!groupIdRef.value) return
+
+    isLoading.value = true
+    try {
+      const response = await api.get(`/groups/${groupIdRef.value}/stats`)
+      if (response.success && response.data) {
+        groupStats.value = response.data
+      }
+    }
+    catch (error) {
+      showError('Failed to load group stats')
+      throw error
+    }
+    finally {
+      isLoading.value = false
+    }
+  }
+
   return {
     balances: readonly(balances),
     balanceSummary: readonly(balanceSummary),
+    groupStats: readonly(groupStats),
     isLoading: readonly(isLoading),
     fetchBalances,
     fetchBalanceSummary,
+    fetchGroupStats,
   }
 }

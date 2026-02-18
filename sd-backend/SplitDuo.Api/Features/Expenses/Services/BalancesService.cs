@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SplitDuo.Api.Features.Common.Dto;
 using SplitDuo.Api.Features.Expenses.Dto;
+using SplitDuo.Api.Features.Groups.Dto;
 using SplitDuo.Api.Features.Settlements.Services;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Persistence;
@@ -11,6 +12,7 @@ public interface IBalancesService
 {
     Task<Result<List<BalanceDto>>> GetBalancesAsync(string groupId, Guid currentUserId);
     Task<Result<BalanceSummaryDto>> GetBalanceSummaryAsync(string groupId, Guid currentUserId);
+    Task<Result<GroupStatsDto>> GetGroupStatsAsync(string groupId, Guid currentUserId);
 }
 
 public class BalancesService(IUnitOfWork unitOfWork, ISettlementsService settlementsService) : IBalancesService
@@ -41,6 +43,46 @@ public class BalancesService(IUnitOfWork unitOfWork, ISettlementsService settlem
 
         var balances = await CalculateBalancesAsync(group.Id);
         return Result<List<BalanceDto>>.Success(balances);
+    }
+
+    public async Task<Result<GroupStatsDto>> GetGroupStatsAsync(string groupId, Guid currentUserId)
+    {
+        if (!Guid.TryParse(groupId, out var groupGuid))
+            return Result<GroupStatsDto>.BadRequest("Invalid group ID format");
+
+        var currentUser = await unitOfWork.Users
+            .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
+
+        if (currentUser == null)
+            return Result<GroupStatsDto>.Unauthorized("User not authenticated");
+
+        var group = await unitOfWork.Groups
+            .FirstOrDefaultAsync(g => g.Guid == groupGuid && g.DeletedAt == null);
+
+        if (group == null)
+            return Result<GroupStatsDto>.NotFound("Group not found");
+
+        var isMember = await unitOfWork.GroupMembers
+            .AnyAsync(gm => gm.GroupId == group.Id && gm.UserId == currentUser.Id && gm.DeletedAt == null);
+
+        if (!isMember)
+            return Result<GroupStatsDto>.Forbidden("Access to this group is not allowed");
+
+        var totalExpenses = await unitOfWork.Expenses
+            .CountAsync(e => e.GroupId == group.Id && e.DeletedAt == null);
+
+        var totalAmount = await unitOfWork.Expenses
+            .Where(e => e.GroupId == group.Id && e.DeletedAt == null)
+            .SumAsync(e => (decimal?)e.Amount) ?? 0m;
+
+        var balances = await CalculateBalancesAsync(group.Id);
+
+        return Result<GroupStatsDto>.Success(new GroupStatsDto
+        {
+            TotalExpenses = totalExpenses,
+            TotalAmount = totalAmount,
+            Balances = balances,
+        });
     }
 
     public async Task<Result<BalanceSummaryDto>> GetBalanceSummaryAsync(string groupId, Guid currentUserId)

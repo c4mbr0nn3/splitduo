@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SplitDuo.Api.Features.Common.Controllers;
 using SplitDuo.Api.Features.Common.Dto;
+using SplitDuo.Api.Features.Expenses.Services;
 using SplitDuo.Api.Features.Groups.Dto;
 using SplitDuo.Api.Features.Groups.Services;
 using SplitDuo.Core.Common;
@@ -14,6 +15,7 @@ namespace SplitDuo.Api.Features.Groups.Controllers;
 [Authorize]
 public class GroupsController(
     IGroupsService groupsService,
+    IBalancesService balancesService,
     IUnitOfWork unitOfWork,
     ILogger<GroupsController> logger) : BaseApiController
 {
@@ -87,6 +89,17 @@ public class GroupsController(
             await unitOfWork.SaveChangesAsync();
 
         return HandleResult(result, "Group deleted successfully");
+    }
+
+    [HttpGet("{groupId}/stats")]
+    public async Task<ActionResult<ApiResponseDto<GroupStatsDto>>> GetGroupStats(string groupId)
+    {
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+            return HandleResult(Result<GroupStatsDto>.Unauthorized("User not authenticated"));
+
+        var result = await balancesService.GetGroupStatsAsync(groupId, currentUserId.Value);
+        return HandleResult(result, "Group stats retrieved successfully");
     }
 
     [HttpGet("{groupId}/members")]

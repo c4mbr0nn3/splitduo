@@ -11,6 +11,7 @@
           @export="handleExport"
         />
       </template>
+      <GroupsTabsNav :group-id="groupId" />
       <div class="mb-6">
         <div
           v-if="summary && mySummary"
