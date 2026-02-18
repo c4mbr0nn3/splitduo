@@ -1,20 +1,10 @@
 <template>
-  <div class="flex gap-1 border-b border-default pb-3 mb-4">
-    <UButton
-      :to="`/groups/${groupId}`"
-      label="Expenses"
-      icon="i-lucide-receipt"
-      size="sm"
-      :variant="isStats ? 'ghost' : 'soft'"
-    />
-    <UButton
-      :to="`/groups/${groupId}/stats`"
-      label="Stats"
-      icon="i-lucide-bar-chart-3"
-      size="sm"
-      :variant="isStats ? 'soft' : 'ghost'"
-    />
-  </div>
+  <UTabs
+    v-model="activeTab"
+    :content="false"
+    :items="items"
+    class="mb-4"
+  />
 </template>
 
 <script setup>
@@ -26,5 +16,19 @@ defineProps({
 })
 
 const route = useRoute()
-const isStats = computed(() => route.path.endsWith('/stats'))
+const router = useRouter()
+
+const items = [
+  { label: 'Expenses', icon: 'i-lucide-receipt', value: 'expenses' },
+  { label: 'Stats', icon: 'i-lucide-bar-chart-3', value: 'stats' },
+]
+
+const activeTab = computed({
+  get() {
+    return route.query.tab === 'stats' ? 'stats' : 'expenses'
+  },
+  set(tab) {
+    router.push({ path: route.path, query: tab === 'expenses' ? {} : { tab } })
+  },
+})
 </script>
