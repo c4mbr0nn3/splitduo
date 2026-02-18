@@ -304,7 +304,7 @@ public class TwoFactorService(
         var codes = new List<string>();
         using var rng = RandomNumberGenerator.Create();
 
-        for (int i = 0; i < 10; i++)
+        for (var i = 0; i < 10; i++)
         {
             var codeBytes = new byte[5];
             rng.GetBytes(codeBytes);
@@ -346,7 +346,7 @@ public class TwoFactorService(
         var currentTimeStep = DateTimeOffset.UtcNow.ToUnixTimeSeconds() / 30;
 
         // Check current time step and adjacent ones (to account for clock drift)
-        for (long i = currentTimeStep - 1; i <= currentTimeStep + 1; i++)
+        for (var i = currentTimeStep - 1; i <= currentTimeStep + 1; i++)
         {
             var expectedCode = GenerateTotpCode(secretBytes, i);
             if (expectedCode == code)
@@ -386,11 +386,11 @@ public static class Base32Extensions
         if (bytes.Length == 0) return string.Empty;
 
         var result = new StringBuilder();
-        for (int i = 0; i < bytes.Length; i += 5)
+        for (var i = 0; i < bytes.Length; i += 5)
         {
             var byteCount = Math.Min(5, bytes.Length - i);
             ulong buffer = 0;
-            for (int j = 0; j < byteCount; j++)
+            for (var j = 0; j < byteCount; j++)
             {
                 buffer = (buffer << 8) | bytes[i + j];
             }
@@ -415,12 +415,12 @@ public static class Base32Extensions
         base32 = base32.ToUpper().Replace("=", "");
         var result = new List<byte>();
 
-        for (int i = 0; i < base32.Length; i += 8)
+        for (var i = 0; i < base32.Length; i += 8)
         {
             var blockLength = Math.Min(8, base32.Length - i);
             ulong buffer = 0;
 
-            for (int j = 0; j < blockLength; j++)
+            for (var j = 0; j < blockLength; j++)
             {
                 var index = Base32Alphabet.IndexOf(base32[i + j]);
                 if (index < 0) throw new ArgumentException("Invalid Base32 character");
@@ -428,7 +428,7 @@ public static class Base32Extensions
             }
 
             var byteCount = blockLength * 5 / 8;
-            for (int j = byteCount - 1; j >= 0; j--)
+            for (var j = byteCount - 1; j >= 0; j--)
             {
                 result.Add((byte)((buffer >> (j * 8)) & 0xff));
             }

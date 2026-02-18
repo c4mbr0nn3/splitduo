@@ -39,6 +39,7 @@ public static class ApiProgramExtensions
         // Register keyed services
         builder.Services.AddKeyedScoped<IImportsService, CospendImportsService>(ImportType.Cospend);
         builder.Services.AddKeyedScoped<IImportsService, SplitDuoImportsService>(ImportType.SplitDuo);
+        builder.Services.AddKeyedScoped<IImportsService, SplitwiseImportsService>(ImportType.Splitwise);
 
         // Register factories
         builder.Services.AddScoped<IImportServiceFactory, ImportServiceFactory>();

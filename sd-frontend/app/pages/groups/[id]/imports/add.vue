@@ -165,6 +165,7 @@ const currentStep = ref('upload') // 'upload', 'analysis', 'configure', 'importi
 const importTypeOptions = [
   { value: 1, label: 'Cospend' },
   { value: 2, label: 'SplitDuo' },
+  { value: 3, label: 'Splitwise' },
 ]
 
 const acceptedFileTypes = computed(() => {
@@ -178,6 +179,9 @@ const fileFormatDescription = computed(() => {
   }
   if (selectedImportType.value === 2) {
     return 'Upload a SplitDuo .csv file with columns: Date, Title, Description, Amount, PaidByEmail, Category, PaymentMode, Owers (max 10MB)'
+  }
+  if (selectedImportType.value === 3) {
+    return 'Upload a Splitwise .csv export file (max 10MB)'
   }
   return 'Upload a file (max 10MB)'
 })

@@ -80,7 +80,7 @@ public class AuthenticationService(
         if (!user.TwoFactorEnabled)
             return Result<AuthResponseDto>.BadRequest("Two-factor authentication is not enabled for this user");
 
-        bool isValidCode = false;
+        var isValidCode = false;
 
         switch (request.CodeType.ToLower())
         {
