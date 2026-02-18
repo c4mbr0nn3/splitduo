@@ -1,10 +1,13 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using SplitDuo.Api.Features.Common.Dto;
 using SplitDuo.Api.Features.Expenses.Dto;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Domain.Enums;
+using SplitDuo.Core.Options;
 using SplitDuo.Core.Persistence;
+using SplitDuo.Core.Services;
 
 namespace SplitDuo.Api.Features.Expenses.Services;
 
@@ -23,8 +26,13 @@ public interface IExpensesService
     Task<Result> DeleteExpenseAsync(string groupId, string expenseId, Guid currentUserId);
 }
 
-public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
+public class ExpensesService(
+    IUnitOfWork unitOfWork,
+    INotificationService notificationService,
+    IOptions<AppOptions> appOptions) : IExpensesService
 {
+    private readonly AppOptions _appOptions = appOptions.Value;
+
     public async Task<Result<PaginatedResponseDto<ExpenseDto>>> GetGroupExpensesAsync(
         string groupId, Guid currentUserId, int page, int limit,
         string? startDate, string? endDate, string? category, string? userId)
@@ -262,6 +270,23 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
         // Set navigation properties for the DTO constructor
         expense.Group = group;
         expense.PaidByUser = paidByUser;
+
+        // Notify other group members
+        var otherMembersForCreate = await unitOfWork.GroupMembers
+            .Where(gm => gm.GroupId == group.Id && gm.UserId != currentUser.Id && gm.DeletedAt == null)
+            .Include(gm => gm.User)
+            .Where(gm => gm.User.DeletedAt == null)
+            .ToListAsync();
+
+        foreach (var member in otherMembersForCreate)
+        {
+            await notificationService.EnqueueAsync(new Notification
+            {
+                To = member.User.Email,
+                Subject = $"New expense in {group.Name}",
+                Body = CreateExpenseAddedEmailBody(member.User, currentUser, expense, group)
+            });
+        }
 
         // Map splits with users for the DTO
         var splitsWithUsers = expense.ExpenseSplits.Select((split, index) =>
@@ -531,6 +556,47 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
         // Soft delete the expense
         expense.DeletedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
+        // Notify other group members
+        var otherMembersForDelete = await unitOfWork.GroupMembers
+            .Where(gm => gm.GroupId == group.Id && gm.UserId != currentUser.Id && gm.DeletedAt == null)
+            .Include(gm => gm.User)
+            .Where(gm => gm.User.DeletedAt == null)
+            .ToListAsync();
+
+        foreach (var member in otherMembersForDelete)
+        {
+            await notificationService.EnqueueAsync(new Notification
+            {
+                To = member.User.Email,
+                Subject = $"Expense removed from {group.Name}",
+                Body = CreateExpenseDeletedEmailBody(member.User, currentUser, expense, group)
+            });
+        }
+
         return Result.Success();
+    }
+
+    private string CreateExpenseAddedEmailBody(User recipient, User addedBy, Expense expense, Group group)
+    {
+        var groupUrl = $"{_appOptions.BaseUrl}/groups/{group.Guid}";
+        return $"""
+                <p>Hello {recipient.FirstName},</p>
+                <p>{addedBy.FirstName} {addedBy.LastName} added a new expense to <strong>{group.Name}</strong>:</p>
+                <p><strong>{expense.Title}</strong> &mdash; {expense.Amount:F2} on {expense.ExpenseDate:yyyy-MM-dd}</p>
+                <p><a href="{groupUrl}">View group</a></p>
+                <p>Best regards,<br>The SplitDuo Team</p>
+                """;
+    }
+
+    private string CreateExpenseDeletedEmailBody(User recipient, User deletedBy, Expense expense, Group group)
+    {
+        var groupUrl = $"{_appOptions.BaseUrl}/groups/{group.Guid}";
+        return $"""
+                <p>Hello {recipient.FirstName},</p>
+                <p>{deletedBy.FirstName} {deletedBy.LastName} removed an expense from <strong>{group.Name}</strong>:</p>
+                <p><strong>{expense.Title}</strong> &mdash; {expense.Amount:F2} on {expense.ExpenseDate:yyyy-MM-dd}</p>
+                <p><a href="{groupUrl}">View group</a></p>
+                <p>Best regards,<br>The SplitDuo Team</p>
+                """;
     }
 }
