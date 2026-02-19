@@ -1,3 +1,6 @@
+// Shared across all useApi() instances — deduplicates concurrent refresh attempts
+let _refreshPromise = null
+
 export default function useApi() {
   const config = useRuntimeConfig()
   const { getToken } = useAuthToken()
@@ -14,24 +17,44 @@ export default function useApi() {
       : {}
   }
 
+  const fetchOnce = (endpoint, options) =>
+    $fetch(`${apiConfig.baseURL}${endpoint}`, {
+      headers: {
+        // 'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+        ...(options.headers || {}),
+      },
+      ...options,
+    })
+
   // Base request function with error handling
   const request = async (endpoint, options = {}) => {
     try {
-      const response = await $fetch(
-        `${apiConfig.baseURL}${endpoint}`,
-        {
-          headers: {
-            // 'Content-Type': 'application/json',
-            ...getAuthHeaders(),
-            ...(options.headers || {}),
-          },
-          ...options,
-        },
-      )
-      return response
+      return await fetchOnce(endpoint, options)
     }
     catch (error) {
-      // Handle different error types
+      // On 401: attempt one token refresh then retry.
+      // Skip /auth/* endpoints to avoid infinite loops.
+      if (error.status === 401 && !endpoint.startsWith('/auth/')) {
+        if (!_refreshPromise) {
+          const { refreshToken } = useAuth()
+          _refreshPromise = refreshToken().finally(() => {
+            _refreshPromise = null
+          })
+        }
+        const refreshed = await _refreshPromise
+        if (refreshed) {
+          try {
+            return await fetchOnce(endpoint, options)
+          }
+          catch (retryError) {
+            throw createError({
+              statusCode: retryError.status || 500,
+              statusMessage: retryError.message || 'API Error',
+            })
+          }
+        }
+      }
       throw createError({
         statusCode: error.status || 500,
         statusMessage: error.message || 'API Error',
