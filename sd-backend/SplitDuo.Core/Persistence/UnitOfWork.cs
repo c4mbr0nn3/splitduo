@@ -12,7 +12,6 @@ public interface IUnitOfWork : IDisposable, IAsyncDisposable
     DbSet<Expense> Expenses { get; }
     DbSet<ExpenseSplit> ExpenseSplits { get; }
     DbSet<RefreshToken> RefreshTokens { get; }
-    DbSet<Settlement> Settlements { get; }
     DbSet<Import> Imports { get; }
     DbSet<Notification> Notifications { get; }
     DbSet<TwoFactorToken> TwoFactorTokens { get; }
@@ -34,7 +33,6 @@ public class UnitOfWork(AppDbContext context) : IUnitOfWork
     public DbSet<Expense> Expenses => context.Expenses;
     public DbSet<ExpenseSplit> ExpenseSplits => context.ExpenseSplits;
     public DbSet<RefreshToken> RefreshTokens => context.RefreshTokens;
-    public DbSet<Settlement> Settlements => context.Settlements;
     public DbSet<Import> Imports => context.Imports;
     public DbSet<Notification> Notifications => context.Notifications;
     public DbSet<TwoFactorToken> TwoFactorTokens => context.TwoFactorTokens;

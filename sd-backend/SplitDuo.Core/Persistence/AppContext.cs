@@ -11,7 +11,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<GroupMember> GroupMembers { get; set; }
     public DbSet<Import> Imports { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
-    public DbSet<Settlement> Settlements { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<TwoFactorToken> TwoFactorTokens { get; set; }

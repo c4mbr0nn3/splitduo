@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using SplitDuo.Api.Features.Common.Dto;
 using SplitDuo.Api.Features.Expenses.Dto;
 using SplitDuo.Api.Features.Groups.Dto;
-using SplitDuo.Api.Features.Settlements.Services;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Persistence;
 
@@ -15,7 +14,7 @@ public interface IBalancesService
     Task<Result<GroupStatsDto>> GetGroupStatsAsync(string groupId, Guid currentUserId);
 }
 
-public class BalancesService(IUnitOfWork unitOfWork, ISettlementsService settlementsService) : IBalancesService
+public class BalancesService(IUnitOfWork unitOfWork) : IBalancesService
 {
     public async Task<Result<List<BalanceDto>>> GetBalancesAsync(string groupId, Guid currentUserId)
     {
@@ -176,25 +175,6 @@ public class BalancesService(IUnitOfWork unitOfWork, ISettlementsService settlem
                 {
                     balances[split.UserId].TotalOwed += split.SplitAmount;
                 }
-            }
-        }
-
-        // Calculate amounts from settlements (money transfers between users)
-        var settlements = await settlementsService.GetSettlementsForBalanceCalculationAsync(groupId);
-
-        foreach (var settlement in settlements)
-        {
-            // Adjust balances based on settlements
-            // When user A pays user B, A's balance decreases (they owe less or are owed more)
-            // and B's balance increases (they owe more or are owed less)
-            if (balances.ContainsKey(settlement.FromUserId))
-            {
-                balances[settlement.FromUserId].TotalPaid += settlement.Amount;
-            }
-
-            if (balances.ContainsKey(settlement.ToUserId))
-            {
-                balances[settlement.ToUserId].TotalOwed += settlement.Amount;
             }
         }
 

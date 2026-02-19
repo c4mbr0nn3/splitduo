@@ -6,7 +6,6 @@ using SplitDuo.Api.Features.Expenses.Services;
 using SplitDuo.Api.Features.Groups.Services;
 using SplitDuo.Api.Features.Invitations.Services;
 using SplitDuo.Core.Domain.Enums;
-using SplitDuo.Api.Features.Settlements.Services;
 using SplitDuo.Api.Features.Users.Services;
 using SplitDuo.Core.Extensions;
 using SplitDuo.Core.Factories;
@@ -32,7 +31,6 @@ public static class ApiProgramExtensions
         builder.Services.AddScoped<IInvitationsService, InvitationsService>();
         builder.Services.AddScoped<IExpensesService, ExpensesService>();
         builder.Services.AddScoped<IBalancesService, BalancesService>();
-        builder.Services.AddScoped<ISettlementsService, SettlementsService>();
         builder.Services.AddScoped<IExportsService, SplitDuoExportsService>();
         builder.Services.AddScoped<IImportValidatorService, ImportValidatorServiceService>();
 
