@@ -32,8 +32,8 @@ public class ExpensesController(
             return HandlePaginatedResult(
                 Result<PaginatedResponseDto<ExpenseDto>>.Unauthorized("User not authenticated"));
 
-        var result = await expensesService.GetGroupExpensesAsync(
-            groupId, currentUserId.Value, page, limit, startDate, endDate, category, userId);
+        var filters = new ExpenseFilterOptions(startDate, endDate, category, userId);
+        var result = await expensesService.GetGroupExpensesAsync(groupId, currentUserId.Value, page, limit, filters);
 
         return HandlePaginatedResult(result, "Expenses retrieved successfully");
     }

@@ -14,8 +14,7 @@ namespace SplitDuo.Api.Features.Expenses.Services;
 public interface IExpensesService
 {
     Task<Result<PaginatedResponseDto<ExpenseDto>>> GetGroupExpensesAsync(
-        string groupId, Guid currentUserId, int page, int limit,
-        string? startDate, string? endDate, string? category, string? userId);
+        string groupId, Guid currentUserId, int page, int limit, ExpenseFilterOptions filters);
 
     Task<Result<ExpenseDto>> CreateExpenseAsync(string groupId, Guid currentUserId, CreateExpenseRequestDto request);
     Task<Result<ExpenseDto>> GetExpenseAsync(string groupId, string expenseId, Guid currentUserId);
@@ -34,8 +33,7 @@ public class ExpensesService(
     private readonly AppOptions _appOptions = appOptions.Value;
 
     public async Task<Result<PaginatedResponseDto<ExpenseDto>>> GetGroupExpensesAsync(
-        string groupId, Guid currentUserId, int page, int limit,
-        string? startDate, string? endDate, string? category, string? userId)
+        string groupId, Guid currentUserId, int page, int limit, ExpenseFilterOptions filters)
     {
         if (!Guid.TryParse(groupId, out var groupGuid))
             return Result<PaginatedResponseDto<ExpenseDto>>.BadRequest("Invalid group ID format");
@@ -71,17 +69,17 @@ public class ExpensesService(
             .AsQueryable();
 
         // Apply filters
-        if (DateOnly.TryParse(startDate, out var startDateOnly))
+        if (DateOnly.TryParse(filters.StartDate, out var startDateOnly))
             query = query.Where(e => e.ExpenseDate >= startDateOnly);
 
-        if (DateOnly.TryParse(endDate, out var endDateOnly))
+        if (DateOnly.TryParse(filters.EndDate, out var endDateOnly))
             query = query.Where(e => e.ExpenseDate <= endDateOnly);
 
-        if (!string.IsNullOrWhiteSpace(category) &&
-            Enum.TryParse<ExpenseCategory>(category, true, out var categoryEnum))
+        if (!string.IsNullOrWhiteSpace(filters.Category) &&
+            Enum.TryParse<ExpenseCategory>(filters.Category, true, out var categoryEnum))
             query = query.Where(e => e.CategoryId == (int)categoryEnum);
 
-        if (!string.IsNullOrWhiteSpace(userId) && Guid.TryParse(userId, out var userGuid))
+        if (!string.IsNullOrWhiteSpace(filters.UserId) && Guid.TryParse(filters.UserId, out var userGuid))
         {
             var user = await unitOfWork.Users.FirstOrDefaultAsync(u => u.Guid == userGuid);
             if (user != null)
