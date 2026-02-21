@@ -22,34 +22,23 @@ paths:
             text/json:
               schema:
                 $ref: "#/components/schemas/ApiResponseDtoOfListOfUserDto"
-    post:
+  /api/v1/users/pending:
+    get:
       tags:
         - Users
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateUserRequestDto"
-          text/json:
-            schema:
-              $ref: "#/components/schemas/CreateUserRequestDto"
-          application/*+json:
-            schema:
-              $ref: "#/components/schemas/CreateUserRequestDto"
-        required: true
       responses:
         "200":
           description: OK
           content:
             text/plain:
               schema:
-                $ref: "#/components/schemas/ApiResponseDtoOfCreateUserResponseDto"
+                $ref: "#/components/schemas/ApiResponseDtoOfListOfPendingUserDto"
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponseDtoOfCreateUserResponseDto"
+                $ref: "#/components/schemas/ApiResponseDtoOfListOfPendingUserDto"
             text/json:
               schema:
-                $ref: "#/components/schemas/ApiResponseDtoOfCreateUserResponseDto"
+                $ref: "#/components/schemas/ApiResponseDtoOfListOfPendingUserDto"
   /api/v1/users/me:
     get:
       tags:
@@ -217,146 +206,6 @@ paths:
       responses:
         "200":
           description: OK
-  /api/v1/groups/{groupId}/settlements:
-    get:
-      tags:
-        - Settlements
-      parameters:
-        - name: groupId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: page
-          in: query
-          schema:
-            pattern: ^-?(?:0|[1-9]\d*)$
-            type:
-              - integer
-              - string
-            format: int32
-            default: 1
-        - name: limit
-          in: query
-          schema:
-            pattern: ^-?(?:0|[1-9]\d*)$
-            type:
-              - integer
-              - string
-            format: int32
-            default: 20
-        - name: startDate
-          in: query
-          schema:
-            type: string
-        - name: endDate
-          in: query
-          schema:
-            type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            text/plain:
-              schema:
-                $ref: "#/components/schemas/PaginatedResponseDtoOfSettlementDto"
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PaginatedResponseDtoOfSettlementDto"
-            text/json:
-              schema:
-                $ref: "#/components/schemas/PaginatedResponseDtoOfSettlementDto"
-    post:
-      tags:
-        - Settlements
-      parameters:
-        - name: groupId
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateSettlementRequestDto"
-          text/json:
-            schema:
-              $ref: "#/components/schemas/CreateSettlementRequestDto"
-          application/*+json:
-            schema:
-              $ref: "#/components/schemas/CreateSettlementRequestDto"
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            text/plain:
-              schema:
-                $ref: "#/components/schemas/ApiResponseDtoOfSettlementDto"
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponseDtoOfSettlementDto"
-            text/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponseDtoOfSettlementDto"
-  /api/v1/groups/{groupId}/settlements/{settlementId}:
-    put:
-      tags:
-        - Settlements
-      parameters:
-        - name: groupId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: settlementId
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateSettlementRequestDto"
-          text/json:
-            schema:
-              $ref: "#/components/schemas/UpdateSettlementRequestDto"
-          application/*+json:
-            schema:
-              $ref: "#/components/schemas/UpdateSettlementRequestDto"
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            text/plain:
-              schema:
-                $ref: "#/components/schemas/ApiResponseDtoOfSettlementDto"
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponseDtoOfSettlementDto"
-            text/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponseDtoOfSettlementDto"
-    delete:
-      tags:
-        - Settlements
-      parameters:
-        - name: groupId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: settlementId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: OK
   /api/v1/payment-modes:
     get:
       tags:
@@ -374,6 +223,150 @@ paths:
             text/json:
               schema:
                 $ref: "#/components/schemas/ApiResponseDtoOfListOfPaymentModeDto"
+  /api/v1/groups/{groupId}/invitations:
+    post:
+      tags:
+        - Invitations
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendInvitationRequestDto"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/SendInvitationRequestDto"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/SendInvitationRequestDto"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfSendInvitationResponseDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfSendInvitationResponseDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfSendInvitationResponseDto"
+    get:
+      tags:
+        - Invitations
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfListOfInvitationDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfListOfInvitationDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfListOfInvitationDto"
+  /api/v1/groups/{groupId}/invitations/{invitationId}/resend:
+    post:
+      tags:
+        - Invitations
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: invitationId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfInvitationDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfInvitationDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfInvitationDto"
+  /api/v1/groups/{groupId}/invitations/{invitationId}:
+    delete:
+      tags:
+        - Invitations
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: invitationId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+  /api/v1/invitations/validate:
+    get:
+      tags:
+        - Invitations
+      parameters:
+        - name: token
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfValidateInvitationResponseDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfValidateInvitationResponseDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfValidateInvitationResponseDto"
+  /api/v1/invitations/accept:
+    post:
+      tags:
+        - Invitations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AcceptInvitationRequestDto"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/AcceptInvitationRequestDto"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/AcceptInvitationRequestDto"
+        required: true
+      responses:
+        "200":
+          description: OK
   /api/v1/groups/{groupId}/imports:
     get:
       tags:
@@ -601,6 +594,29 @@ paths:
       responses:
         "200":
           description: OK
+  /api/v1/groups/{groupId}/stats:
+    get:
+      tags:
+        - Groups
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfGroupStatsDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfGroupStatsDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfGroupStatsDto"
   /api/v1/groups/{groupId}/members:
     get:
       tags:
@@ -776,6 +792,10 @@ paths:
           schema:
             type: string
         - name: userId
+          in: query
+          schema:
+            type: string
+        - name: search
           in: query
           schema:
             type: string
@@ -1221,6 +1241,27 @@ paths:
                 $ref: "#/components/schemas/ApiResponseDtoOfListOfstring"
 components:
   schemas:
+    AcceptInvitationRequestDto:
+      required:
+        - token
+        - firstName
+        - lastName
+        - password
+        - confirmPassword
+      type: object
+      properties:
+        token:
+          type: string
+        firstName:
+          maxLength: 100
+          type: string
+        lastName:
+          maxLength: 100
+          type: string
+        password:
+          type: string
+        confirmPassword:
+          type: string
     AddGroupMemberRequestDto:
       required:
         - userEmail
@@ -1292,23 +1333,6 @@ components:
           oneOf:
             - type: "null"
             - $ref: "#/components/schemas/ApiErrorDto"
-    ApiResponseDtoOfCreateUserResponseDto:
-      type: object
-      properties:
-        success:
-          type: boolean
-        data:
-          oneOf:
-            - type: "null"
-            - $ref: "#/components/schemas/CreateUserResponseDto"
-        message:
-          type:
-            - "null"
-            - string
-        error:
-          oneOf:
-            - type: "null"
-            - $ref: "#/components/schemas/ApiErrorDto"
     ApiResponseDtoOfExpenseDto:
       type: object
       properties:
@@ -1360,6 +1384,23 @@ components:
           oneOf:
             - type: "null"
             - $ref: "#/components/schemas/ApiErrorDto"
+    ApiResponseDtoOfGroupStatsDto:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/GroupStatsDto"
+        message:
+          type:
+            - "null"
+            - string
+        error:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/ApiErrorDto"
     ApiResponseDtoOfImportStatusDto:
       type: object
       properties:
@@ -1369,6 +1410,23 @@ components:
           oneOf:
             - type: "null"
             - $ref: "#/components/schemas/ImportStatusDto"
+        message:
+          type:
+            - "null"
+            - string
+        error:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/ApiErrorDto"
+    ApiResponseDtoOfInvitationDto:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/InvitationDto"
         message:
           type:
             - "null"
@@ -1472,6 +1530,25 @@ components:
           oneOf:
             - type: "null"
             - $ref: "#/components/schemas/ApiErrorDto"
+    ApiResponseDtoOfListOfInvitationDto:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type:
+            - "null"
+            - array
+          items:
+            $ref: "#/components/schemas/InvitationDto"
+        message:
+          type:
+            - "null"
+            - string
+        error:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/ApiErrorDto"
     ApiResponseDtoOfListOfPaymentModeDto:
       type: object
       properties:
@@ -1483,6 +1560,25 @@ components:
             - array
           items:
             $ref: "#/components/schemas/PaymentModeDto"
+        message:
+          type:
+            - "null"
+            - string
+        error:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/ApiErrorDto"
+    ApiResponseDtoOfListOfPendingUserDto:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type:
+            - "null"
+            - array
+          items:
+            $ref: "#/components/schemas/PendingUserDto"
         message:
           type:
             - "null"
@@ -1543,7 +1639,7 @@ components:
           oneOf:
             - type: "null"
             - $ref: "#/components/schemas/ApiErrorDto"
-    ApiResponseDtoOfSettlementDto:
+    ApiResponseDtoOfSendInvitationResponseDto:
       type: object
       properties:
         success:
@@ -1551,7 +1647,7 @@ components:
         data:
           oneOf:
             - type: "null"
-            - $ref: "#/components/schemas/SettlementDto"
+            - $ref: "#/components/schemas/SendInvitationResponseDto"
         message:
           type:
             - "null"
@@ -1620,6 +1716,23 @@ components:
           oneOf:
             - type: "null"
             - $ref: "#/components/schemas/UserStatsDto"
+        message:
+          type:
+            - "null"
+            - string
+        error:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/ApiErrorDto"
+    ApiResponseDtoOfValidateInvitationResponseDto:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/ValidateInvitationResponseDto"
         message:
           type:
             - "null"
@@ -1709,6 +1822,29 @@ components:
           format: int32
         name:
           type: string
+    CategoryStatDto:
+      type: object
+      properties:
+        categoryId:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        categoryName:
+          type: string
+        amount:
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+          format: double
+        count:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
     ChangePasswordRequestDto:
       required:
         - currentPassword
@@ -1791,49 +1927,6 @@ components:
           type:
             - "null"
             - string
-    CreateSettlementRequestDto:
-      required:
-        - fromUserId
-        - toUserId
-        - amount
-        - settlementDate
-      type: object
-      properties:
-        fromUserId:
-          type: string
-        toUserId:
-          type: string
-        amount:
-          minimum: 0.01
-          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
-          type:
-            - number
-            - string
-          format: double
-        settlementDate:
-          type: string
-        description:
-          type:
-            - "null"
-            - string
-    CreateUserRequestDto:
-      required:
-        - email
-        - firstName
-        - lastName
-      type: object
-      properties:
-        email:
-          type: string
-        firstName:
-          type: string
-        lastName:
-          type: string
-    CreateUserResponseDto:
-      type: object
-      properties:
-        user:
-          $ref: "#/components/schemas/UserDto"
     DisableTwoFactorDto:
       required:
         - password
@@ -1973,6 +2066,33 @@ components:
             - integer
             - string
           format: int64
+    GroupStatsDto:
+      type: object
+      properties:
+        totalExpenses:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        totalAmount:
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+          format: double
+        balances:
+          type: array
+          items:
+            $ref: "#/components/schemas/BalanceDto"
+        categoryBreakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategoryStatDto"
+        monthlyBreakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/MonthlyStatDto"
     IFormFile:
       type: string
       format: binary
@@ -2077,6 +2197,29 @@ components:
           type:
             - "null"
             - string
+    InvitationDto:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        invitedBy:
+          $ref: "#/components/schemas/UserInfoDto"
+        groupName:
+          type: string
+        invitedAt:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int64
+        expiresAt:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int64
     LoginRequestDto:
       required:
         - email
@@ -2088,6 +2231,33 @@ components:
         password:
           minLength: 8
           type: string
+    MonthlyStatDto:
+      type: object
+      properties:
+        year:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        month:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        amount:
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+          format: double
+        count:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
     PaginatedResponseDtoOfExpenseDto:
       type: object
       properties:
@@ -2116,25 +2286,6 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ImportStatusDto"
-        pagination:
-          $ref: "#/components/schemas/PaginationDto"
-        message:
-          type:
-            - "null"
-            - string
-        error:
-          oneOf:
-            - type: "null"
-            - $ref: "#/components/schemas/ApiErrorDto"
-    PaginatedResponseDtoOfSettlementDto:
-      type: object
-      properties:
-        success:
-          type: boolean
-        data:
-          type: array
-          items:
-            $ref: "#/components/schemas/SettlementDto"
         pagination:
           $ref: "#/components/schemas/PaginationDto"
         message:
@@ -2187,6 +2338,34 @@ components:
           format: int32
         name:
           type: string
+    PendingUserDto:
+      type: object
+      properties:
+        email:
+          type: string
+        groups:
+          type: array
+          items:
+            $ref: "#/components/schemas/PendingUserGroupDto"
+    PendingUserGroupDto:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        invitedAt:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int64
+        expiresAt:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int64
     RefreshTokenRequestDto:
       required:
         - token
@@ -2221,45 +2400,26 @@ components:
       properties:
         refreshToken:
           type: string
-    SettlementDto:
+    SendInvitationRequestDto:
+      required:
+        - email
       type: object
       properties:
-        id:
+        email:
           type: string
-        groupId:
+    SendInvitationResponseDto:
+      type: object
+      properties:
+        type:
           type: string
-        fromUserId:
-          type: string
-        fromUser:
-          $ref: "#/components/schemas/UserBasicInfoDto"
-        toUserId:
-          type: string
-        toUser:
-          $ref: "#/components/schemas/UserBasicInfoDto"
-        amount:
-          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
-          type:
-            - number
-            - string
-          format: double
-        settlementDate:
-          type: string
-        description:
-          type:
-            - "null"
-            - string
-        createdAt:
-          pattern: ^-?(?:0|[1-9]\d*)$
-          type:
-            - integer
-            - string
-          format: int64
-        updatedAt:
-          pattern: ^-?(?:0|[1-9]\d*)$
-          type:
-            - integer
-            - string
-          format: int64
+        member:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/GroupMemberDto"
+        invitation:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/InvitationDto"
     TwoFactorSetupDto:
       type: object
       properties:
@@ -2336,25 +2496,6 @@ components:
       properties:
         name:
           maxLength: 200
-          type:
-            - "null"
-            - string
-        description:
-          type:
-            - "null"
-            - string
-    UpdateSettlementRequestDto:
-      type: object
-      properties:
-        amount:
-          minimum: 0.01
-          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
-          type:
-            - "null"
-            - number
-            - string
-          format: double
-        settlementDate:
           type:
             - "null"
             - string
@@ -2463,6 +2604,19 @@ components:
             - number
             - string
           format: double
+    ValidateInvitationResponseDto:
+      type: object
+      properties:
+        email:
+          type: string
+        groupName:
+          type: string
+        expiresAt:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int64
     VerifyTwoFactorLoginDto:
       required:
         - email
@@ -2486,8 +2640,8 @@ components:
           type: string
 tags:
   - name: Users
-  - name: Settlements
   - name: PaymentModes
+  - name: Invitations
   - name: Imports
   - name: Groups
   - name: Exports
