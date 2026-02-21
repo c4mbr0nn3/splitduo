@@ -157,6 +157,7 @@ Global `ref()` declared **outside** the composable function — shared across al
 - Auto-imported by Nuxt — folder nesting creates name prefixes (e.g., `groups/ExpenseCard.vue` → `<GroupsExpenseCard />`)
 - Forms emit `@submit` and `@cancel` events
 - Use Nuxt UI components (`UButton`, `UInput`, `UCard`, `UModal`, etc.) — don't build custom equivalents
+- **Prefer components over inline markup** — when a piece of template has a clear responsibility or would otherwise be repeated, extract it into a focused component. This keeps templates readable and maintainable. Place reusable primitives in `components/ui/`, domain-specific pieces in their feature folder (e.g., `components/groups/`).
 
 ## Styling
 
@@ -197,6 +198,7 @@ To get up-to-date docs on Nuxt and Nuxt UI, fetch these LLMs.txt files — they 
 - **Don't add TypeScript** to `.vue` or `.js` files — project uses plain JS with runtime validation
 - **Don't add Pinia** — use composable patterns with `ref()`/`readonly()`/`useState()`
 - **Don't create custom UI components** when Nuxt UI provides one
+- **Extract into components** when a template chunk has a clear responsibility or would otherwise be repeated — don't leave everything inline in a single large template
 - **Don't add scoped styles** — use Tailwind utility classes
 - **Match existing patterns** — resource composables return `readonly()` state, catch errors internally, use `useNotifications`
 - **Use `useApi()`** for all API calls — never call `$fetch` directly
