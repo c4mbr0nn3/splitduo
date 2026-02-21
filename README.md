@@ -2,6 +2,18 @@
 
 A lightweight, open-source expense splitting application designed for couples and two-person households. SplitDuo provides a simple, self-hosted alternative to existing solutions like Splitwise and Cospend.
 
+## Screenshots
+
+![Login](docs/screenshots/login.png)
+
+![Dashboard](docs/screenshots/dashboard.png)
+
+![Groups](docs/screenshots/group_list.png)
+
+![Group Detail](docs/screenshots/group_page.png)
+
+![Add Expense](docs/screenshots/add_expense.png)
+
 ## Features
 
 - **Two-User Focus**: Optimized for couples and partners
@@ -37,13 +49,13 @@ git clone https://github.com/yourusername/splitduo.git
 cd splitduo
 ```
 
-2. Start the application:
+1. Start the application:
 
 ```bash
 docker compose up -d
 ```
 
-3. Access the application at `http://localhost:3000`
+1. Access the application at `http://localhost:3000`
 
 ### Default Login
 
