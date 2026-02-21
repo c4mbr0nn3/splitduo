@@ -1,6 +1,6 @@
 <template>
-  <div class="py-6">
-    <UCard>
+  <div class="flex flex-col items-center py-6">
+    <UCard class="w-full max-w-2xl">
       <template #header>
         <div class="flex items-center justify-between">
           <UiCardHeader
@@ -29,7 +29,7 @@
         >
           Change Password
         </UButton>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 gap-6">
           <template
             v-for="field in userForm"
             :key="field.label"
