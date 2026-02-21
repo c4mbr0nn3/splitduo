@@ -79,7 +79,7 @@
           class="space-y-4"
         >
           <template
-            v-for="group in groups.slice(0, 3)"
+            v-for="group in groups"
             :key="group.id"
           >
             <DashboardGroupCard
@@ -126,7 +126,7 @@ const netBalanceColor = computed(() => netBalance.value > 0 ? 'green' : netBalan
 onMounted(async () => {
   try {
     await withMinDuration(async () => {
-      await Promise.all([fetchGroups(), fetchUserStats()])
+      await Promise.all([fetchGroups({ limit: 3 }), fetchUserStats()])
     })
   }
   catch (error) {

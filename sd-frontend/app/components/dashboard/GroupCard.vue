@@ -20,19 +20,34 @@
           </p>
         </div>
       </div>
-      <UIcon
-        name="i-lucide-chevron-right"
-        class="size-5 text-primary"
-      />
+      <div class="flex items-center gap-2">
+        <UBadge
+          :color="badgeColor"
+          variant="subtle"
+          :label="badgeLabel"
+        />
+        <UIcon
+          name="i-lucide-chevron-right"
+          class="size-5 text-primary"
+        />
+      </div>
     </div>
   </UCard>
 </template>
 
 <script setup>
-defineProps({
+const props = defineProps({
   group: {
     type: Object,
     required: true,
   },
+})
+
+const net = computed(() => props.group.netBalance ?? 0)
+const badgeColor = computed(() => net.value > 0 ? 'success' : net.value < 0 ? 'error' : 'neutral')
+const badgeLabel = computed(() => {
+  if (net.value > 0) return `owed €${net.value.toFixed(2)}`
+  if (net.value < 0) return `owes €${Math.abs(net.value).toFixed(2)}`
+  return 'settled'
 })
 </script>

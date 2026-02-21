@@ -124,8 +124,12 @@
           <!-- Group Metadata -->
           <USeparator />
           <div class="flex items-center justify-between text-xs text-muted">
-            <span>Created {{ formatDate(group.createdAt) }}</span>
             <span>Updated {{ formatDate(group.updatedAt) }}</span>
+            <UBadge
+              :color="group.netBalance > 0 ? 'success' : group.netBalance < 0 ? 'error' : 'neutral'"
+              variant="subtle"
+              :label="group.netBalance > 0 ? `owed €${group.netBalance.toFixed(2)}` : group.netBalance < 0 ? `owes €${Math.abs(group.netBalance).toFixed(2)}` : 'settled'"
+            />
           </div>
         </div>
       </UCard>

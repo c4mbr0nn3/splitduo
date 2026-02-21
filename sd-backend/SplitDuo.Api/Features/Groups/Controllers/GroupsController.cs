@@ -20,13 +20,13 @@ public class GroupsController(
     ILogger<GroupsController> logger) : BaseApiController
 {
     [HttpGet]
-    public async Task<ActionResult<ApiResponseDto<List<GroupDto>>>> GetUserGroups()
+    public async Task<ActionResult<ApiResponseDto<List<GroupDto>>>> GetUserGroups([FromQuery] int? limit = null)
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
             return HandleResult(Result<List<GroupDto>>.Unauthorized("User not authenticated"));
 
-        var result = await groupsService.GetUserGroupsAsync(currentUserId.Value);
+        var result = await groupsService.GetUserGroupsAsync(currentUserId.Value, limit);
         return HandleResult(result, "User groups retrieved successfully");
     }
 

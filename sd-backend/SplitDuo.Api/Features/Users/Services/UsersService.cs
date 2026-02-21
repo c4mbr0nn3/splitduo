@@ -73,39 +73,41 @@ public class UsersService(
 
         if (user == null) return Result<UserStatsDto>.NotFound("User not found");
 
-        // Get total groups for the user
-        var totalGroups = await unitOfWork.GroupMembers
-            .Where(gm => gm.UserId == user.OriginalId)
-            .CountAsync();
-
-        // Get all expenses for the user's groups
         var userGroupIds = await unitOfWork.GroupMembers
             .Where(gm => gm.UserId == user.OriginalId)
             .Select(gm => gm.GroupId)
             .ToListAsync();
 
-        var totalExpenses = await unitOfWork.Expenses
-            .Where(e => userGroupIds.Contains(e.GroupId) && e.DeletedAt == null)
-            .SumAsync(e => e.Amount);
+        // Per-group: how much the user paid
+        var paidByGroup = await unitOfWork.Expenses
+            .Where(e => userGroupIds.Contains(e.GroupId) && e.PaidBy == user.OriginalId && e.DeletedAt == null)
+            .GroupBy(e => e.GroupId)
+            .Select(g => new { GroupId = g.Key, Total = g.Sum(e => e.Amount) })
+            .ToDictionaryAsync(x => x.GroupId, x => x.Total);
 
-        // Calculate what user owes (splits where user owes money)
-        var totalSplitsOwed = await unitOfWork.ExpenseSplits
+        // Per-group: how much of the user's split share (joined to exclude soft-deleted expenses)
+        var splitByGroup = await unitOfWork.ExpenseSplits
             .Where(es => es.UserId == user.OriginalId)
-            .SumAsync(es => es.SplitAmount);
+            .Join(unitOfWork.Expenses.Where(e => e.DeletedAt == null),
+                es => es.ExpenseId, e => e.Id,
+                (es, e) => new { e.GroupId, es.SplitAmount })
+            .GroupBy(x => x.GroupId)
+            .Select(g => new { GroupId = g.Key, Total = g.Sum(x => x.SplitAmount) })
+            .ToDictionaryAsync(x => x.GroupId, x => x.Total);
 
-        var totalPaidByUser = await unitOfWork.Expenses
-            .Where(e => e.PaidBy == user.OriginalId && e.DeletedAt == null)
-            .SumAsync(e => e.Amount);
-
-        // User owes: amount they owe in splits minus what they've paid
-        var youOwe = Math.Max(0, totalSplitsOwed - totalPaidByUser);
-
-        // User is owed: amount they've paid minus what they owe in splits
-        var youreOwed = Math.Max(0, totalPaidByUser - totalSplitsOwed);
+        // Sum per-group nets: positive → user is owed, negative → user owes
+        var youOwe = 0m;
+        var youreOwed = 0m;
+        foreach (var groupId in userGroupIds)
+        {
+            var net = paidByGroup.GetValueOrDefault(groupId, 0m) - splitByGroup.GetValueOrDefault(groupId, 0m);
+            if (net > 0) youreOwed += net;
+            else youOwe += -net;
+        }
 
         var stats = new UserStatsDto
         {
-            TotalGroups = totalGroups,
+            TotalGroups = userGroupIds.Count,
             YouOwe = youOwe,
             YoureOwed = youreOwed
         };

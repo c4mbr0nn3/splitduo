@@ -12,7 +12,7 @@ namespace SplitDuo.Api.Features.Groups.Services;
 
 public interface IGroupsService
 {
-    Task<Result<List<GroupDto>>> GetUserGroupsAsync(Guid currentUserId);
+    Task<Result<List<GroupDto>>> GetUserGroupsAsync(Guid currentUserId, int? limit = null);
     Task<Result<GroupDto>> CreateGroupAsync(Guid currentUserId, CreateGroupRequestDto request);
     Task<Result<GroupDto>> GetGroupAsync(string groupId, Guid currentUserId);
     Task<Result<GroupDto>> UpdateGroupAsync(string groupId, Guid currentUserId, UpdateGroupRequestDto request);
@@ -35,25 +35,60 @@ public interface IGroupsService
 
 public class GroupsService(IUnitOfWork unitOfWork, INotificationService notificationService) : IGroupsService
 {
-    public async Task<Result<List<GroupDto>>> GetUserGroupsAsync(Guid currentUserId)
+    public async Task<Result<List<GroupDto>>> GetUserGroupsAsync(Guid currentUserId, int? limit = null)
     {
         var user = await unitOfWork.Users
+            .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
 
         if (user == null)
             return Result<List<GroupDto>>.Unauthorized("User not found");
 
-        var userGroups = await unitOfWork.GroupMembers
+        var allGroups = await unitOfWork.GroupMembers
+            .AsNoTracking()
             .Where(gm => gm.UserId == user.Id && gm.DeletedAt == null)
             .Include(gm => gm.Group)
             .Where(gm => gm.Group.DeletedAt == null)
             .Select(gm => new
             {
                 Group = gm.Group,
-                MemberCount = unitOfWork.GroupMembers
-                    .Count(m => m.GroupId == gm.Group.Id && m.DeletedAt == null)
+                MemberCount = unitOfWork.GroupMembers.Count(m => m.GroupId == gm.Group.Id && m.DeletedAt == null)
             })
             .ToListAsync();
+
+        var allGroupIds = allGroups.Select(ug => ug.Group.Id).ToList();
+
+        var lastActivityByGroup = await unitOfWork.Expenses
+            .AsNoTracking()
+            .Where(e => allGroupIds.Contains(e.GroupId) && e.DeletedAt == null)
+            .GroupBy(e => e.GroupId)
+            .Select(g => new { GroupId = g.Key, LastActivity = g.Max(e => e.CreatedAt) })
+            .ToDictionaryAsync(x => x.GroupId, x => x.LastActivity);
+
+        var userGroups = allGroups
+            .OrderByDescending(ug => lastActivityByGroup.GetValueOrDefault(ug.Group.Id, 0L))
+            .Take(limit ?? allGroups.Count)
+            .ToList();
+
+        var groupIds = userGroups.Select(ug => ug.Group.Id).ToList();
+
+        var paidByGroup = await unitOfWork.Expenses
+            .AsNoTracking()
+            .Where(e => groupIds.Contains(e.GroupId) && e.PaidBy == user.Id && e.DeletedAt == null)
+            .GroupBy(e => e.GroupId)
+            .Select(g => new { GroupId = g.Key, Total = g.Sum(e => e.Amount) })
+            .ToDictionaryAsync(x => x.GroupId, x => x.Total);
+
+        var splitByGroup = await unitOfWork.ExpenseSplits
+            .AsNoTracking()
+            .Where(es => es.UserId == user.Id)
+            .Join(unitOfWork.Expenses.AsNoTracking().Where(e => e.DeletedAt == null),
+                es => es.ExpenseId, e => e.Id,
+                (es, e) => new { e.GroupId, es.SplitAmount })
+            .Where(x => groupIds.Contains(x.GroupId))
+            .GroupBy(x => x.GroupId)
+            .Select(g => new { GroupId = g.Key, Total = g.Sum(x => x.SplitAmount) })
+            .ToDictionaryAsync(x => x.GroupId, x => x.Total);
 
         var groupDtos = userGroups.Select(ug => new GroupDto
         {
@@ -64,7 +99,9 @@ public class GroupsService(IUnitOfWork unitOfWork, INotificationService notifica
             CreatedByUserId = ug.Group.CreatedByUser?.Guid.ToString() ?? "",
             MemberCount = ug.MemberCount,
             CreatedAt = ug.Group.CreatedAt,
-            UpdatedAt = ug.Group.UpdatedAt
+            UpdatedAt = ug.Group.UpdatedAt,
+            NetBalance = paidByGroup.GetValueOrDefault(ug.Group.Id, 0m)
+                         - splitByGroup.GetValueOrDefault(ug.Group.Id, 0m)
         }).ToList();
 
         return Result<List<GroupDto>>.Success(groupDtos);

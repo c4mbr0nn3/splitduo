@@ -7,10 +7,10 @@ export default function useGroups() {
   const isLoading = ref(false)
 
   // Get user's groups
-  const fetchGroups = async () => {
+  const fetchGroups = async (params = {}) => {
     isLoading.value = true
     try {
-      const response = await api.get('/groups')
+      const response = await api.get('/groups', params)
       if (response.success && response.data) {
         groups.value = response.data
       }
