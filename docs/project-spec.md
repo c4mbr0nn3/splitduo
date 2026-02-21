@@ -96,16 +96,16 @@
 - [x] Add data validation and error handling
 - [x] Create mobile-first Vue.js frontend with Nuxt UI
 - [x] Deploy with Docker Compose (single app container + PostgreSQL container)
-- [ ] GitLab CI/CD pipeline for automated builds and push to Docker registry
+- [x] GitLab CI/CD pipeline for automated builds and push to Docker registry
 
 ### Phase 2: Enhancements & Additional Imports/Exports
 
-- [ ] Implement invite system (email-based invitations)
-- [ ] Multi-user group support (beyond two users)
+- [x] Implement invite system (email-based invitations)
+- [x] Multi-user group support (beyond two users)
 - [ ] Implement custom categories and payment modes (CRUD operations)
-- [ ] Implement Splitwise data import (CSV parsing and data mapping)
-- [ ] Implement CSV export with proprietary format
-- [ ] Implement CSV import with proprietary format
+- [x] Implement Splitwise data import (CSV parsing and data mapping)
+- [x] Implement CSV export with proprietary format
+- [x] Implement CSV import with proprietary format
 - [ ] Implement 2FA (Two-Factor Authentication) on frontend
 
 ### Phase 3: Polish

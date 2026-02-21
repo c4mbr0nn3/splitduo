@@ -6,7 +6,7 @@
 
 SplitDuo is a lightweight, self-hosted expense splitting application designed for couples and small groups. This roadmap outlines the planned improvements and features to grow SplitDuo into a polished, feature-complete solution for managing shared expenses while maintaining its core principle of simplicity and self-hosted control.
 
-## Current Status (v0.1.11)
+## Current Status (v0.1.13)
 
 The core application is fully functional and self-hostable.
 
@@ -21,9 +21,12 @@ The core application is fully functional and self-hostable.
 - ✅ Expense tracking with automatic split calculations
 - ✅ Balance calculation and settlement optimization
 - ✅ Group management with role-based permissions
+- ✅ Multi-user group support (beyond two users)
 - ✅ "Add & Add More" flow for rapid expense entry
 - ✅ Group statistics (spending breakdown by category, member, and period)
 - ✅ Notifications for expense and group deletions
+- ✅ Expense filters with text search, date range, and category/payment mode selection
+- ✅ Persistent filters and pagination in group expense view
 
 ### Data
 
@@ -34,6 +37,8 @@ The core application is fully functional and self-hostable.
 ### Infrastructure
 
 - ✅ Responsive mobile-first UI with dark mode
+- ✅ Skeleton loaders for improved perceived performance
+- ✅ Net Balance card on dashboard
 - ✅ Docker deployment with PostgreSQL (single container)
 - ✅ App version displayed in dashboard
 
@@ -66,7 +71,7 @@ The core application is fully functional and self-hostable.
   - Screen reader optimization
   - Focus management in modals and forms
 
-- [ ] **Loading States Enhancement**
+- ✅ **Loading States Enhancement**
   - Add skeleton loaders for better perceived performance
   - Standardize loading indicators across components
 
@@ -236,5 +241,5 @@ Phases are sequential but may overlap. Features within a phase can be implemente
 
 ---
 
-- **Last Updated:** 2026-02-18
-- **Current Version:** v0.1.11
+- **Last Updated:** 2026-02-21
+- **Current Version:** v0.1.13
