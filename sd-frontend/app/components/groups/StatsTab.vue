@@ -12,6 +12,18 @@
         :total-expenses="groupStats.totalExpenses"
         :group-total="groupStats.totalAmount"
       />
+      <GroupsStatsCategoryChart
+        v-if="groupStats.categoryBreakdown?.length"
+        :category-breakdown="groupStats.categoryBreakdown"
+      />
+      <GroupsStatsMonthlyChart
+        v-if="groupStats.monthlyBreakdown?.length"
+        :monthly-breakdown="groupStats.monthlyBreakdown"
+      />
+      <GroupsStatsMemberPaidChart
+        v-if="groupStats.balances?.length"
+        :balances="groupStats.balances"
+      />
       <div>
         <h3 class="text-lg font-semibold text-primary mb-3">
           Member Balances

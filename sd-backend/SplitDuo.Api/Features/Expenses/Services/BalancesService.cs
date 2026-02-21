@@ -3,6 +3,7 @@ using SplitDuo.Api.Features.Common.Dto;
 using SplitDuo.Api.Features.Expenses.Dto;
 using SplitDuo.Api.Features.Groups.Dto;
 using SplitDuo.Core.Common;
+using SplitDuo.Core.Domain.Enums;
 using SplitDuo.Core.Persistence;
 
 namespace SplitDuo.Api.Features.Expenses.Services;
@@ -76,11 +77,42 @@ public class BalancesService(IUnitOfWork unitOfWork) : IBalancesService
 
         var balances = await CalculateBalancesAsync(group.Id);
 
+        var categoryData = await unitOfWork.Expenses
+            .Where(e => e.GroupId == group.Id && e.DeletedAt == null)
+            .GroupBy(e => e.CategoryId)
+            .Select(g => new { CategoryId = g.Key, Amount = g.Sum(e => (decimal?)e.Amount) ?? 0m, Count = g.Count() })
+            .OrderByDescending(x => x.Amount)
+            .ToListAsync();
+
+        var categoryBreakdown = categoryData
+            .Select(x => new CategoryStatDto
+            {
+                CategoryId = x.CategoryId,
+                CategoryName = ((ExpenseCategory)x.CategoryId).ToString(),
+                Amount = x.Amount,
+                Count = x.Count
+            }).ToList();
+
+        var firstDayOfWindow = new DateOnly(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1).AddMonths(-11);
+
+        var monthlyData = await unitOfWork.Expenses
+            .Where(e => e.GroupId == group.Id && e.DeletedAt == null)
+            .GroupBy(e => new { e.ExpenseDate.Year, e.ExpenseDate.Month })
+            .Select(g => new { Year = g.Key.Year, Month = g.Key.Month, Amount = g.Sum(e => (decimal?)e.Amount) ?? 0m, Count = g.Count() })
+            .OrderBy(x => x.Year).ThenBy(x => x.Month)
+            .ToListAsync();
+
+        var monthlyBreakdown = monthlyData
+            .Select(x => new MonthlyStatDto { Year = x.Year, Month = x.Month, Amount = x.Amount, Count = x.Count })
+            .ToList();
+
         return Result<GroupStatsDto>.Success(new GroupStatsDto
         {
             TotalExpenses = totalExpenses,
             TotalAmount = totalAmount,
             Balances = balances,
+            CategoryBreakdown = categoryBreakdown,
+            MonthlyBreakdown = monthlyBreakdown,
         });
     }
 
