@@ -98,7 +98,10 @@ public class BalancesService(IUnitOfWork unitOfWork) : IBalancesService
         var monthlyData = await unitOfWork.Expenses
             .Where(e => e.GroupId == group.Id && e.DeletedAt == null)
             .GroupBy(e => new { e.ExpenseDate.Year, e.ExpenseDate.Month })
-            .Select(g => new { Year = g.Key.Year, Month = g.Key.Month, Amount = g.Sum(e => (decimal?)e.Amount) ?? 0m, Count = g.Count() })
+            .Select(g => new
+            {
+                g.Key.Year, g.Key.Month, Amount = g.Sum(e => (decimal?)e.Amount) ?? 0m, Count = g.Count()
+            })
             .OrderBy(x => x.Year).ThenBy(x => x.Month)
             .ToListAsync();
 
