@@ -1,5 +1,5 @@
 <template>
-  <UMain>
+  <UMain class="sd-auth-layout">
     <UContainer>
       <slot />
     </UContainer>

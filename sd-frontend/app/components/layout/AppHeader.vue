@@ -3,6 +3,7 @@
     title="SplitDuo"
     to="/dashboard"
     mode="drawer"
+    class="shadow-xs"
   >
     <UNavigationMenu
 

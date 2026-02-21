@@ -1,5 +1,5 @@
 <template>
-  <UCard>
+  <UCard :class="cardBorder">
     <div class="flex items-center gap-4">
       <div class="flex-shrink-0">
         <div
@@ -85,6 +85,20 @@ const statsColor = computed(() => {
     default:
       return 'text-white'
   }
+})
+
+const cardBorder = computed(() => {
+  const borders = {
+    teal: 'border-l-4 border-l-teal-400 dark:border-l-teal-500',
+    green: 'border-l-4 border-l-green-400 dark:border-l-green-500',
+    red: 'border-l-4 border-l-red-400 dark:border-l-red-500',
+    yellow: 'border-l-4 border-l-yellow-400 dark:border-l-yellow-500',
+    purple: 'border-l-4 border-l-purple-400 dark:border-l-purple-500',
+    rose: 'border-l-4 border-l-rose-400 dark:border-l-rose-500',
+    pink: 'border-l-4 border-l-pink-400 dark:border-l-pink-500',
+    amber: 'border-l-4 border-l-amber-400 dark:border-l-amber-500',
+  }
+  return borders[props.color] || ''
 })
 
 const iconColor = computed(() => {

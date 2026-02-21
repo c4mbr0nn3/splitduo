@@ -2,7 +2,7 @@
 @import "@nuxt/ui";
 
 @theme static {
-  --font-sans: 'Public Sans', sans-serif;
+  --font-sans: 'Geist', sans-serif;
 
   --color-green-50: #effdf5;
   --color-green-100: #d9fbe8;
@@ -15,4 +15,26 @@
   --color-green-800: #016538;
   --color-green-900: #0a5331;
   --color-green-950: #052e16;
+}
+
+/* Slightly off-white background in light mode — less clinical than pure white */
+:root:not(.dark) {
+  --ui-bg: oklch(98.5% 0 0);
+}
+
+/* Auth page — subtle radial halo from the primary color at the top */
+.sd-auth-layout {
+  background: radial-gradient(
+    ellipse at 50% -10%,
+    color-mix(in oklch, var(--ui-color-primary-200) 30%, transparent),
+    transparent 60%
+  );
+}
+
+.dark .sd-auth-layout {
+  background: radial-gradient(
+    ellipse at 50% -10%,
+    color-mix(in oklch, var(--ui-color-primary-900) 40%, transparent),
+    transparent 60%
+  );
 }
