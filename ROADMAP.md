@@ -6,7 +6,7 @@
 
 SplitDuo is a lightweight, self-hosted expense splitting application designed for couples and small groups. This roadmap outlines the planned improvements and features to grow SplitDuo into a polished, feature-complete solution for managing shared expenses while maintaining its core principle of simplicity and self-hosted control.
 
-## Current Status (v0.1.13)
+## Current Status (v0.1.16)
 
 The core application is fully functional and self-hostable.
 
@@ -22,8 +22,9 @@ The core application is fully functional and self-hostable.
 - ✅ Balance calculation and settlement optimization
 - ✅ Group management with role-based permissions
 - ✅ Multi-user group support (beyond two users)
-- ✅ "Add & Add More" flow for rapid expense entry
+- ✅ "Add & Add More" split-button flow for rapid expense entry
 - ✅ Group statistics (spending breakdown by category, member, and period)
+- ✅ Interactive charts (category donut, monthly bar, member paid bar)
 - ✅ Notifications for expense and group deletions
 - ✅ Expense filters with text search, date range, and category/payment mode selection
 - ✅ Persistent filters and pagination in group expense view
@@ -34,13 +35,17 @@ The core application is fully functional and self-hostable.
 - ✅ CSV export (SplitDuo proprietary format)
 - ✅ Email notifications with outbox pattern
 
-### Infrastructure
+### Infrastructure & UI
 
 - ✅ Responsive mobile-first UI with dark mode
 - ✅ Skeleton loaders for improved perceived performance
 - ✅ Net Balance card on dashboard
 - ✅ Docker deployment with PostgreSQL (single container)
 - ✅ App version displayed in dashboard
+- ✅ Refined UI: Geist font, zinc neutral palette, off-white light mode background
+- ✅ Consistent form layouts (card width, header style, button placement)
+- ✅ Stat cards with color-coded left-border accents
+- ✅ Subtle auth page background gradient
 
 ## Phase 1: UI/UX Consolidation & Polish
 
@@ -49,16 +54,17 @@ The core application is fully functional and self-hostable.
 
 ### Goals
 
-- [ ] **Desktop Layout Optimization**
-  - Improve desktop-specific layouts for better use of horizontal space
-  - Audit all pages for responsive breakpoint usage
-  - Enhance grid layouts for larger screens
+- ✅ **Desktop Layout Optimization**
+  - Standardized form card width (`max-w-2xl`) across expense, group, user, and profile pages
+  - Profile page forced to single column on all screen sizes
+  - Consistent Cancel-left / Submit-right button layout on all forms
 
-- [ ] **Component Standardization**
+- ✅ **Component Standardization**
   - Standardize form components and validation patterns
   - Consolidate modal usage (consistent GenericModal implementation)
-  - Standardize card header patterns across all cards
-  - Create consistent error state components
+  - Standardized card header style (left-aligned, `text-primary`) across all forms
+  - Standardized submit button variant (`subtle`) across all app forms
+  - Split-button pattern (`UFieldGroup` + `UDropdownMenu`) for multi-action forms
 
 - [ ] **Responsive Design Improvements**
   - Review and enhance all page layouts for tablet/desktop views
@@ -111,10 +117,11 @@ The core application is fully functional and self-hostable.
   - Preview of upcoming recurring expenses
 
 - [ ] **Data Visualization & Reporting**
-  - Expense trends over time (charts)
-  - Category breakdown visualization
-  - Monthly/yearly spending reports
-  - Export reports as PDF
+  - ✅ Expense trends over time (monthly bar chart)
+  - ✅ Category breakdown visualization (donut chart)
+  - ✅ Member payment breakdown (bar chart)
+  - [ ] Monthly/yearly spending reports
+  - [ ] Export reports as PDF
 
 - [ ] **AI Integration (Experimental)**
 
@@ -242,4 +249,4 @@ Phases are sequential but may overlap. Features within a phase can be implemente
 ---
 
 - **Last Updated:** 2026-02-21
-- **Current Version:** v0.1.13
+- **Current Version:** v0.1.16

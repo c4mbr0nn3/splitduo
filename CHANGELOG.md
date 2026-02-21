@@ -2,6 +2,40 @@
 
 All notable changes to SplitDuo will be documented in this file.
 
+## [0.1.16] - 2026-02-21
+
+### Styling
+
+- improve layout and structure of profile page for better UI consistency
+- update button variants and layout for better UI consistency
+- enhance
+
+## [0.1.15] - 2026-02-21
+
+### Code Refactoring
+
+- consolidate style
+
+## [0.1.14] - 2026-02-21
+
+### Features
+
+- implement chart theme composable and update chart components
+- expenses stats charts
+
+### Code Refactoring
+
+- authentication setup and add JwtBearerOptions configuration using options pattern properly
+
+### Documentation
+
+- update roadmap and project spec for version 0.1.13
+- changelog
+
+### Styling
+
+- format
+
 ## [0.1.13] - 2026-02-21
 
 ### Features
