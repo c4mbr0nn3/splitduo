@@ -161,6 +161,7 @@
       <div class="flex justify-end">
         <UButton
           type="submit"
+          variant="subtle"
           icon="i-lucide-upload"
           :loading="isImporting"
           :disabled="hasValidationErrors || isImporting"

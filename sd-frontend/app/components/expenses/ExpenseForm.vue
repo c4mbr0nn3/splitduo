@@ -1,11 +1,8 @@
 <template>
   <div class="flex flex-col items-center justify-center p-4">
-    <UCard class="w-full max-w-lg">
+    <UCard class="w-full max-w-2xl">
       <template #header>
-        <UiCardHeader
-          :title="title"
-          variant="centered"
-        />
+        <UiCardHeader :title="title" />
       </template>
       <UForm
         :state="model"
@@ -220,32 +217,33 @@
           </div>
         </div>
 
-        <div class="flex space-x-3 pt-4">
+        <div class="flex justify-between items-center pt-4">
           <UButton
             type="button"
             label="Cancel"
             variant="outline"
             size="lg"
-            class="flex-1"
             @click="goBack"
           />
-          <UButton
-            v-if="showAddMore"
-            type="button"
-            label="Add & Add More"
-            variant="soft"
-            size="lg"
-            class="flex-1"
-            :loading="loading"
-            @click="onAddMore"
-          />
-          <UButton
-            type="submit"
-            :label="submitLabel"
-            size="lg"
-            class="flex-1"
-            :loading="loading"
-          />
+          <UFieldGroup size="lg">
+            <UButton
+              type="submit"
+              variant="subtle"
+              :label="submitLabel"
+              :loading="loading"
+            />
+            <UDropdownMenu
+              v-if="showAddMore"
+              :items="addMoreMenuItems"
+            >
+              <UButton
+                type="button"
+                variant="outline"
+                icon="i-lucide-chevron-down"
+                :loading="loading"
+              />
+            </UDropdownMenu>
+          </UFieldGroup>
         </div>
       </UForm>
     </UCard>
@@ -657,6 +655,14 @@ const onAddMore = () => {
   if (errors.length > 0) return
   emit('addMore', buildExpensePayload())
 }
+
+const addMoreMenuItems = computed(() => [[
+  {
+    label: 'Add & Add More',
+    icon: 'i-lucide-plus',
+    onSelect: onAddMore,
+  },
+]])
 
 const goBack = () => {
   emit('cancel')

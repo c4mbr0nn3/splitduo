@@ -33,20 +33,19 @@
             class="w-full"
           />
         </UFormField>
-        <div class="flex space-x-3 pt-4">
+        <div class="flex justify-between items-center pt-4">
           <UButton
             type="button"
             label="Back"
             variant="outline"
             size="lg"
-            class="flex-1"
             @click="emit('cancel')"
           />
           <UButton
             type="submit"
             :label="submitLabel"
+            variant="subtle"
             size="lg"
-            class="flex-1"
             :loading="loading"
           />
         </div>
