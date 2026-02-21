@@ -2,6 +2,73 @@
 
 All notable changes to SplitDuo will be documented in this file.
 
+## [0.1.13] - 2026-02-21
+
+### Features
+
+- persiste page and filters in group index view
+- add text search functionality to expense filters
+- replace UInput with UiDatePicker for date selection in ExpenseFilterCard
+- add filters in group expense page
+
+### Bug Fixes
+
+- update filter title styling to use primary color
+
+### Code Refactoring
+
+- implement ExpenseFilterCard component
+
+## [0.1.12] - 2026-02-21
+
+### Features
+
+- add skeleton components for user, group, and expense cards; implement loading state in dashboard and groups pages
+- add Net Balance card to dashboard with dynamic color and icon
+
+### Bug Fixes
+
+- simplify API request handling by creating fetchOnce function and improving error handling
+
+### Code Refactoring
+
+- introduce ExpenseFilterOptions for improved expense retrieval filtering
+- remove useless settlement entity
+- standardize page width
+
+## [0.1.11] - 2026-02-18
+
+### Features
+
+- group stats
+- add notification system for expense and group deletions
+- splitwise import
+
+### Bug Fixes
+
+- remove filtering of "Payment" category in Splitwise CSV parser
+
+### Code Refactoring
+
+- implement ExpensesTab and StatsTab components for group page
+- TabsNav component and integrate stats and expenses tabs in group page
+
+## [0.1.10] - 2026-02-08
+
+### Features
+
+- invitation system
+
+## [0.1.9] - 2026-02-08
+
+Internal dependency updates, no user-facing changes.
+
+## [0.1.8] - 2026-02-07
+
+### Features
+
+- add "Add & Add More" button and functionality to ExpenseForm
+
 ## [0.1.7] - 2026-02-01
 
 ### Features
