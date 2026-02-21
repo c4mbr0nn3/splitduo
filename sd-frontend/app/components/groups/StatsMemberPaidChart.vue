@@ -19,7 +19,7 @@ const props = defineProps({
   balances: { type: Array, required: true },
 })
 
-const colorMode = useColorMode()
+const { primaryColor, themeMode } = useChartTheme()
 
 const series = computed(() => [{
   name: 'Paid',
@@ -31,7 +31,8 @@ const chartOptions = computed(() => ({
     categories: props.balances.map(b => b.user.firstName),
   },
   plotOptions: { bar: { horizontal: true } },
-  theme: { mode: colorMode.value === 'dark' ? 'dark' : 'light' },
+  colors: [primaryColor.value],
+  theme: { mode: themeMode.value },
   chart: { background: 'transparent', toolbar: { show: false } },
   tooltip: {
     y: { formatter: val => `€ ${val.toFixed(2)}` },

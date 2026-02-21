@@ -19,7 +19,7 @@ const props = defineProps({
   monthlyBreakdown: { type: Array, required: true },
 })
 
-const colorMode = useColorMode()
+const { primaryColor, themeMode } = useChartTheme()
 
 const series = computed(() => [{
   name: 'Spending',
@@ -34,7 +34,8 @@ const chartOptions = computed(() => ({
     tickAmount: Math.min(props.monthlyBreakdown.length, 12),
     labels: { rotate: -45, hideOverlappingLabels: true, trim: true },
   },
-  theme: { mode: colorMode.value === 'dark' ? 'dark' : 'light' },
+  colors: [primaryColor.value],
+  theme: { mode: themeMode.value },
   chart: { background: 'transparent', toolbar: { show: false } },
   dataLabels: { enabled: false },
   tooltip: {

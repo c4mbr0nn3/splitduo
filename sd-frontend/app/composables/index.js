@@ -14,3 +14,4 @@ export { default as useNotifications } from '@/composables/utils/useNotification
 export { default as usePagination } from '@/composables/utils/usePagination'
 export { default as useDebounceSearch } from '@/composables/utils/useDebounceSearch'
 export { default as useModal } from '@/composables/ui/useModal'
+export { default as useChartTheme } from '@/composables/ui/useChartTheme'

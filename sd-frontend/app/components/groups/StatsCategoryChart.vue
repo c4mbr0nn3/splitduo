@@ -19,13 +19,14 @@ const props = defineProps({
   categoryBreakdown: { type: Array, required: true },
 })
 
-const colorMode = useColorMode()
+const { palette, themeMode } = useChartTheme()
 
 const series = computed(() => props.categoryBreakdown.map(c => Number(c.amount)))
 
 const chartOptions = computed(() => ({
   labels: props.categoryBreakdown.map(c => c.categoryName),
-  theme: { mode: colorMode.value === 'dark' ? 'dark' : 'light' },
+  colors: palette.value,
+  theme: { mode: themeMode.value },
   chart: { background: 'transparent' },
   dataLabels: { enabled: false },
   tooltip: {
