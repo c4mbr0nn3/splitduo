@@ -14,6 +14,7 @@
 
 <script setup>
 const route = useRoute()
+const router = useRouter()
 
 // Check if groupId is passed as query parameter (from group page) or route parameter
 const preSelectedGroupId = computed(() => route.query.groupId || route.params.groupId)
@@ -76,12 +77,7 @@ const onAddMore = async ({ groupId, expenseData }) => {
 }
 
 const goBack = () => {
-  if (preSelectedGroupId.value) {
-    navigateTo(`/groups/${preSelectedGroupId.value}`)
-  }
-  else {
-    navigateTo('/dashboard')
-  }
+  router.back()
 }
 
 useHead({

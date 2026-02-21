@@ -104,16 +104,34 @@ const props = defineProps({
   groupId: { type: String, required: true },
 })
 
+const route = useRoute()
+const router = useRouter()
 const { user } = useAuth()
 const { expenses, fetchExpenses, pagination: expensePagination } = useExpenses(props.groupId)
 const { balanceSummary, fetchBalanceSummary } = useBalances(props.groupId)
 const { categories } = useCategories()
 
-const currentPage = ref(1)
+const currentPage = ref(Number(route.query.page) || 1)
 const showSkeleton = ref(true)
 const mobileFiltersOpen = ref(false)
-const pendingFilters = ref({ startDate: null, endDate: null, category: null, userId: null, search: null })
-const activeFilters = ref({ startDate: null, endDate: null, category: null, userId: null, search: null })
+const pendingFilters = ref({
+  startDate: route.query.startDate || null,
+  endDate: route.query.endDate || null,
+  category: route.query.category || null,
+  userId: route.query.userId || null,
+  search: route.query.search || null,
+})
+const activeFilters = ref({ ...pendingFilters.value })
+
+const buildQuery = (filters, page) => {
+  const q = { tab: 'expenses', page }
+  if (filters.startDate) q.startDate = filters.startDate
+  if (filters.endDate) q.endDate = filters.endDate
+  if (filters.category) q.category = filters.category
+  if (filters.userId) q.userId = filters.userId
+  if (filters.search) q.search = filters.search
+  return q
+}
 const activeFilterCount = computed(() => Object.values(activeFilters.value).filter(Boolean).length)
 
 const summary = computed(() => balanceSummary.value)
@@ -157,14 +175,17 @@ const addExpense = () => {
 const applyFilters = async () => {
   activeFilters.value = { ...pendingFilters.value }
   currentPage.value = 1
+  router.push({ query: buildQuery(activeFilters.value, 1) })
   await fetchExpenses({ ...activeFilters.value, page: 1 })
   mobileFiltersOpen.value = false
 }
 
 const clearFilters = async () => {
-  pendingFilters.value = { startDate: null, endDate: null, category: null, userId: null, search: null }
-  activeFilters.value = { startDate: null, endDate: null, category: null, userId: null, search: null }
+  const empty = { startDate: null, endDate: null, category: null, userId: null, search: null }
+  pendingFilters.value = { ...empty }
+  activeFilters.value = { ...empty }
   currentPage.value = 1
+  router.push({ query: { tab: 'expenses', page: 1 } })
   await fetchExpenses({ page: 1 })
   mobileFiltersOpen.value = false
 }
@@ -177,13 +198,17 @@ const onExpenseDeleted = async () => {
 }
 
 watch(currentPage, async (newPage) => {
+  router.push({ query: buildQuery(activeFilters.value, newPage) })
   await fetchExpenses({ ...activeFilters.value, page: newPage })
 }, { immediate: false })
 
 onMounted(async () => {
   try {
     await withMinDuration(async () => {
-      await Promise.all([fetchExpenses({ page: 1 }), fetchBalanceSummary()])
+      await Promise.all([
+        fetchExpenses({ ...activeFilters.value, page: currentPage.value }),
+        fetchBalanceSummary(),
+      ])
     })
   }
   finally {

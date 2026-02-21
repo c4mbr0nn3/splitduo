@@ -28,7 +28,7 @@ const activeTab = computed({
     return route.query.tab === 'stats' ? 'stats' : 'expenses'
   },
   set(tab) {
-    router.push({ path: route.path, query: tab === 'expenses' ? {} : { tab } })
+    router.push({ path: route.path, query: { ...route.query, tab, page: 1 } })
   },
 })
 </script>
