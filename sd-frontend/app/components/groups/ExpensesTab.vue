@@ -46,66 +46,14 @@
       </div>
       <div class="md:grid md:grid-cols-3 md:gap-4">
         <div :class="['md:block', 'md:col-span-1', mobileFiltersOpen ? 'block mb-4' : 'hidden']">
-          <UCard variant="outline">
-            <div class="space-y-3">
-              <div class="flex items-center justify-between">
-                <span class="text-sm font-semibold">Filters</span>
-                <div class="flex items-center gap-1">
-                  <UButton
-                    icon="i-lucide-funnel-x"
-                    label="Clear"
-                    size="xs"
-                    variant="ghost"
-                    :color="activeFilterCount === 0 ? 'gray' : 'error'"
-                    :disabled="activeFilterCount === 0"
-                    @click="clearFilters"
-                  />
-                  <UButton
-                    label="Apply"
-                    size="xs"
-                    :disabled="pendingFilterCount === 0"
-                    @click="applyFilters"
-                  />
-                </div>
-              </div>
-              <div>
-                <label class="block text-sm font-medium mb-1">From</label>
-                <UInput
-                  v-model="pendingFilters.startDate"
-                  type="date"
-                  size="sm"
-                  class="w-full"
-                />
-              </div>
-              <div>
-                <label class="block text-sm font-medium mb-1">To</label>
-                <UInput
-                  v-model="pendingFilters.endDate"
-                  type="date"
-                  size="sm"
-                  class="w-full"
-                />
-              </div>
-              <div>
-                <label class="block text-sm font-medium mb-1">Category</label>
-                <USelect
-                  v-model="pendingFilters.category"
-                  :items="categoryOptions"
-                  size="sm"
-                  class="w-full"
-                />
-              </div>
-              <div>
-                <label class="block text-sm font-medium mb-1">Paid by</label>
-                <USelect
-                  v-model="pendingFilters.userId"
-                  :items="memberOptions"
-                  size="sm"
-                  class="w-full"
-                />
-              </div>
-            </div>
-          </UCard>
+          <GroupsExpenseFilterCard
+            v-model:filters="pendingFilters"
+            :category-options="categoryOptions"
+            :member-options="memberOptions"
+            :active-filter-count="activeFilterCount"
+            @apply="applyFilters"
+            @clear="clearFilters"
+          />
         </div>
         <div class="md:col-span-2">
           <div
@@ -166,7 +114,6 @@ const showSkeleton = ref(true)
 const mobileFiltersOpen = ref(false)
 const pendingFilters = ref({ startDate: null, endDate: null, category: null, userId: null })
 const activeFilters = ref({ startDate: null, endDate: null, category: null, userId: null })
-const pendingFilterCount = computed(() => Object.values(pendingFilters.value).filter(Boolean).length)
 const activeFilterCount = computed(() => Object.values(activeFilters.value).filter(Boolean).length)
 
 const summary = computed(() => balanceSummary.value)
