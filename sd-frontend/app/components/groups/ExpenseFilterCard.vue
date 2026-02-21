@@ -23,21 +23,11 @@
       </div>
       <div>
         <label class="block text-sm font-medium mb-1">From</label>
-        <UInput
-          v-model="filters.startDate"
-          type="date"
-          size="sm"
-          class="w-full"
-        />
+        <UiDatePicker v-model="filters.startDate" />
       </div>
       <div>
         <label class="block text-sm font-medium mb-1">To</label>
-        <UInput
-          v-model="filters.endDate"
-          type="date"
-          size="sm"
-          class="w-full"
-        />
+        <UiDatePicker v-model="filters.endDate" />
       </div>
       <div>
         <label class="block text-sm font-medium mb-1">Category</label>
