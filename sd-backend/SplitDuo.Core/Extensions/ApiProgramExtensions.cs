@@ -1,14 +1,11 @@
 using System.Security.Claims;
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 using Quartz;
 using Serilog;
 using SplitDuo.Core.Domain.Entities;
@@ -25,144 +22,128 @@ namespace SplitDuo.Core.Extensions;
 
 public static class ApiProgramExtensions
 {
-    public static void AddInfrastructure(this WebApplicationBuilder builder)
+    extension(WebApplicationBuilder builder)
     {
-        builder.Host.UseSerilog((context, serviceProvider, configuration) =>
+        public void AddInfrastructure()
         {
-            configuration.ReadFrom.Configuration(context.Configuration);
-
-            if (context.HostingEnvironment.IsDevelopment()) return;
-
-            var dbOptions = serviceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value;
-            configuration.WriteTo.PostgreSQL(
-                connectionString: dbOptions.ConnectionString,
-                tableName: "logs",
-                schemaName: "logging",
-                columnOptions: null,
-                needAutoCreateTable: true,
-                needAutoCreateSchema: true,
-                period: TimeSpan.FromSeconds(30),
-                batchSizeLimit: 100);
-        });
-
-        builder.ConfigureOptions();
-        builder.ConfigureServices();
-
-        builder.Services.AddDbContext<AppDbContext>((sp, options) =>
-        {
-            var dbOptions = sp.GetRequiredService<IOptions<DatabaseOptions>>().Value;
-            options.UseNpgsql(dbOptions.ConnectionString);
-            options.AddInterceptors(
-                sp.GetRequiredService<SoftDeleteSaveChangesInterceptor>(),
-                sp.GetRequiredService<AuditSaveChangesInterceptor>()
-            );
-        });
-
-        builder.AddAuthentication();
-    }
-
-    private static void ConfigureOptions(this WebApplicationBuilder builder)
-    {
-        builder.Services.ConfigureOptions<AppOptionsSetup>();
-        builder.Services.ConfigureOptions<DatabaseOptionsSetup>();
-        builder.Services.ConfigureOptions<JwtOptionsSetup>();
-        builder.Services.ConfigureOptions<SmtpOptionsSetup>();
-    }
-
-    private static void ConfigureServices(this WebApplicationBuilder builder)
-    {
-        builder.Services.AddHttpContextAccessor();
-
-        builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
-        builder.Services.AddProblemDetails();
-
-        builder.Services.AddScoped<AuditSaveChangesInterceptor>();
-        builder.Services.AddScoped<SoftDeleteSaveChangesInterceptor>();
-        builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-        builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
-        builder.Services.AddScoped<ISmtpService, SmtpService>();
-        builder.Services.AddScoped<INotificationService, EmailNotificationService>();
-
-        // hosted services
-        builder.Services.AddHostedService<DataSeederService>();
-
-        builder.AddQuartz();
-    }
-
-    private static void AddQuartz(this WebApplicationBuilder builder)
-    {
-        builder.Services.AddQuartz(q =>
-        {
-            q.SchedulerId = "SplitDuo-Scheduler";
-            q.UseSimpleTypeLoader();
-            q.UseInMemoryStore();
-            q.UseDefaultThreadPool(tp => { tp.MaxConcurrency = 5; });
-
-            var logCleanupJobKey = new JobKey("LogCleanupJob");
-            q.AddJob<LogCleanupJob>(opts => opts.WithIdentity(logCleanupJobKey));
-            q.AddTrigger(opts => opts
-                .ForJob(logCleanupJobKey)
-                .WithIdentity("LogCleanupTrigger")
-                .WithCronSchedule("0 0 2 * * ?")); // every day at 02:00
-
-            var tempFileCleanupJobKey = new JobKey("TempFileCleanupJob");
-            q.AddJob<TempFileCleanupJob>(opts => opts.WithIdentity(tempFileCleanupJobKey));
-            q.AddTrigger(opts => opts
-                .ForJob(tempFileCleanupJobKey)
-                .WithIdentity("TempFileCleanupTrigger")
-                .WithCronSchedule("0 0 4 * * ?")); // every day at 04:00
-
-            var emailNotificationProcessingJobKey = new JobKey("EmailNotificationProcessingJob");
-            q.AddJob<EmailNotificationProcessingJob>(opts => opts.WithIdentity(emailNotificationProcessingJobKey));
-            q.AddTrigger(opts => opts
-                .ForJob(emailNotificationProcessingJobKey)
-                .WithIdentity("EmailNotificationProcessingTrigger")
-                .WithCronSchedule("0 */2 * ? * *")); // every 2 minutes
-
-            var emailNotificationPruneJobKey = new JobKey("EmailNotificationPruneJob");
-            q.AddJob<EmailNotificationPruneJob>(opts => opts.WithIdentity(emailNotificationPruneJobKey));
-            q.AddTrigger(opts => opts
-                .ForJob(emailNotificationPruneJobKey)
-                .WithIdentity("EmailNotificationPruneTrigger")
-                .WithCronSchedule("0 0 1 * * ?")); // every day at 01:00
-        });
-
-        builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
-    }
-
-    private static void AddAuthentication(this WebApplicationBuilder builder)
-    {
-        var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>();
-        if (jwtOptions == null)
-            throw new InvalidOperationException($"Configuration section '{JwtOptions.SectionName}' is missing.");
-
-        var secretKey = Environment.GetEnvironmentVariable("SD_JWT_SECRET_KEY") ?? jwtOptions.SecretKey;
-        if (string.IsNullOrWhiteSpace(secretKey))
-            throw new InvalidOperationException("JWT SecretKey is not configured.");
-
-        builder.Services.AddAuthentication(options =>
-        {
-            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-        }).AddJwtBearer(options =>
-        {
-            options.TokenValidationParameters = new TokenValidationParameters
+            builder.Host.UseSerilog((context, serviceProvider, configuration) =>
             {
-                ValidateIssuer = false,
-                ValidateAudience = false,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
-                ValidIssuer = jwtOptions.Issuer,
-                ValidAudience = jwtOptions.Audience,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(secretKey))
-            };
-        });
+                configuration.ReadFrom.Configuration(context.Configuration);
 
-        builder.Services.AddAuthorizationBuilder()
-            .AddPolicy("SystemAdmin", policy =>
-                policy.RequireAssertion(context =>
-                    context.User.HasClaim(c =>
-                        c.Type == ClaimTypes.Role && c.Value == ((int)GlobalRole.SystemAdmin).ToString())));
+                if (context.HostingEnvironment.IsDevelopment()) return;
+
+                var dbOptions = serviceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value;
+                configuration.WriteTo.PostgreSQL(
+                    connectionString: dbOptions.ConnectionString,
+                    tableName: "logs",
+                    schemaName: "logging",
+                    columnOptions: null,
+                    needAutoCreateTable: true,
+                    needAutoCreateSchema: true,
+                    period: TimeSpan.FromSeconds(30),
+                    batchSizeLimit: 100);
+            });
+
+            builder.ConfigureOptions();
+            builder.ConfigureServices();
+
+            builder.Services.AddDbContext<AppDbContext>((sp, options) =>
+            {
+                var dbOptions = sp.GetRequiredService<IOptions<DatabaseOptions>>().Value;
+                options.UseNpgsql(dbOptions.ConnectionString);
+                options.AddInterceptors(
+                    sp.GetRequiredService<SoftDeleteSaveChangesInterceptor>(),
+                    sp.GetRequiredService<AuditSaveChangesInterceptor>()
+                );
+            });
+
+            builder.AddAuthentication();
+        }
+
+        private void ConfigureOptions()
+        {
+            builder.Services.ConfigureOptions<AppOptionsSetup>();
+            builder.Services.ConfigureOptions<DatabaseOptionsSetup>();
+            builder.Services.ConfigureOptions<JwtOptionsSetup>();
+            builder.Services.ConfigureOptions<JwtBearerOptionsSetup>();
+            builder.Services.ConfigureOptions<SmtpOptionsSetup>();
+        }
+
+        private void ConfigureServices()
+        {
+            builder.Services.AddHttpContextAccessor();
+
+            builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+            builder.Services.AddProblemDetails();
+
+            builder.Services.AddScoped<AuditSaveChangesInterceptor>();
+            builder.Services.AddScoped<SoftDeleteSaveChangesInterceptor>();
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+            builder.Services.AddScoped<ISmtpService, SmtpService>();
+            builder.Services.AddScoped<INotificationService, EmailNotificationService>();
+
+            // hosted services
+            builder.Services.AddHostedService<DataSeederService>();
+
+            builder.AddQuartz();
+        }
+
+        private void AddQuartz()
+        {
+            builder.Services.AddQuartz(q =>
+            {
+                q.SchedulerId = "SplitDuo-Scheduler";
+                q.UseSimpleTypeLoader();
+                q.UseInMemoryStore();
+                q.UseDefaultThreadPool(tp => { tp.MaxConcurrency = 5; });
+
+                var logCleanupJobKey = new JobKey("LogCleanupJob");
+                q.AddJob<LogCleanupJob>(opts => opts.WithIdentity(logCleanupJobKey));
+                q.AddTrigger(opts => opts
+                    .ForJob(logCleanupJobKey)
+                    .WithIdentity("LogCleanupTrigger")
+                    .WithCronSchedule("0 0 2 * * ?")); // every day at 02:00
+
+                var tempFileCleanupJobKey = new JobKey("TempFileCleanupJob");
+                q.AddJob<TempFileCleanupJob>(opts => opts.WithIdentity(tempFileCleanupJobKey));
+                q.AddTrigger(opts => opts
+                    .ForJob(tempFileCleanupJobKey)
+                    .WithIdentity("TempFileCleanupTrigger")
+                    .WithCronSchedule("0 0 4 * * ?")); // every day at 04:00
+
+                var emailNotificationProcessingJobKey = new JobKey("EmailNotificationProcessingJob");
+                q.AddJob<EmailNotificationProcessingJob>(opts => opts.WithIdentity(emailNotificationProcessingJobKey));
+                q.AddTrigger(opts => opts
+                    .ForJob(emailNotificationProcessingJobKey)
+                    .WithIdentity("EmailNotificationProcessingTrigger")
+                    .WithCronSchedule("0 */2 * ? * *")); // every 2 minutes
+
+                var emailNotificationPruneJobKey = new JobKey("EmailNotificationPruneJob");
+                q.AddJob<EmailNotificationPruneJob>(opts => opts.WithIdentity(emailNotificationPruneJobKey));
+                q.AddTrigger(opts => opts
+                    .ForJob(emailNotificationPruneJobKey)
+                    .WithIdentity("EmailNotificationPruneTrigger")
+                    .WithCronSchedule("0 0 1 * * ?")); // every day at 01:00
+            });
+
+            builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
+        }
+
+        private void AddAuthentication()
+        {
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer();
+
+            builder.Services.AddAuthorizationBuilder()
+                .AddPolicy("SystemAdmin", policy =>
+                    policy.RequireAssertion(context =>
+                        context.User.HasClaim(c =>
+                            c.Type == ClaimTypes.Role && c.Value == ((int)GlobalRole.SystemAdmin).ToString())));
+        }
     }
 }
