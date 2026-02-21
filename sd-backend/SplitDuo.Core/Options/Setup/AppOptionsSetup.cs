@@ -13,5 +13,7 @@ public class AppOptionsSetup(IConfiguration configuration) : IConfigureOptions<A
         options.InitialUserFirstName = Environment.GetEnvironmentVariable("SD_INITIAL_USER_FIRSTNAME") ?? "Super";
         options.InitialUserLastName = Environment.GetEnvironmentVariable("SD_INITIAL_USER_LASTNAME") ?? "Admin";
         options.InitialUserPassword = Environment.GetEnvironmentVariable("SD_INITIAL_USER_PASSWORD") ?? "changeme";
+        options.SeedDemoData = bool.TryParse(
+            Environment.GetEnvironmentVariable("SD_SEED_DEMO_DATA"), out var v) && v;
     }
 }

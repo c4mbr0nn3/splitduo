@@ -8,4 +8,5 @@ public class AppOptions
     public required string InitialUserFirstName { get; set; }
     public required string InitialUserLastName { get; set; }
     public required string InitialUserPassword { get; set; }
+    public bool SeedDemoData { get; set; }
 }
