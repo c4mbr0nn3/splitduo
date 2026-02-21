@@ -22,7 +22,7 @@ import { parseDate, getLocalTimeZone, DateFormatter } from '@internationalized/d
 
 const props = defineProps({
   placeholder: { type: String, default: 'Select date' },
-  size: { type: String, default: 'sm' },
+  size: { type: String, default: 'md' },
 })
 
 const modelValue = defineModel({ type: String, default: null })

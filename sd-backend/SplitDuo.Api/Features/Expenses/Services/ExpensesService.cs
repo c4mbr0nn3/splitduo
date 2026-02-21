@@ -86,6 +86,14 @@ public class ExpensesService(
                 query = query.Where(e => e.PaidBy == user.Id);
         }
 
+        if (!string.IsNullOrWhiteSpace(filters.Search))
+        {
+            var term = filters.Search.ToLower();
+            query = query.Where(e =>
+                e.Title.ToLower().Contains(term) ||
+                (e.Description != null && e.Description.ToLower().Contains(term)));
+        }
+
         // Get total count for pagination
         var totalCount = await query.CountAsync();
 

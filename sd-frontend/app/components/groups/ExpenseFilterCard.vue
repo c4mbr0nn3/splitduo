@@ -22,6 +22,14 @@
         </div>
       </div>
       <div>
+        <label class="block text-sm font-medium mb-1">Search</label>
+        <UInput
+          v-model="filters.search"
+          placeholder="Search title or description..."
+          class="w-full"
+        />
+      </div>
+      <div>
         <label class="block text-sm font-medium mb-1">From</label>
         <UiDatePicker v-model="filters.startDate" />
       </div>
@@ -34,7 +42,6 @@
         <USelect
           v-model="filters.category"
           :items="categoryOptions"
-          size="sm"
           class="w-full"
         />
       </div>
@@ -43,7 +50,6 @@
         <USelect
           v-model="filters.userId"
           :items="memberOptions"
-          size="sm"
           class="w-full"
         />
       </div>

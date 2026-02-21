@@ -112,8 +112,8 @@ const { categories } = useCategories()
 const currentPage = ref(1)
 const showSkeleton = ref(true)
 const mobileFiltersOpen = ref(false)
-const pendingFilters = ref({ startDate: null, endDate: null, category: null, userId: null })
-const activeFilters = ref({ startDate: null, endDate: null, category: null, userId: null })
+const pendingFilters = ref({ startDate: null, endDate: null, category: null, userId: null, search: null })
+const activeFilters = ref({ startDate: null, endDate: null, category: null, userId: null, search: null })
 const activeFilterCount = computed(() => Object.values(activeFilters.value).filter(Boolean).length)
 
 const summary = computed(() => balanceSummary.value)
@@ -162,8 +162,8 @@ const applyFilters = async () => {
 }
 
 const clearFilters = async () => {
-  pendingFilters.value = { startDate: null, endDate: null, category: null, userId: null }
-  activeFilters.value = { startDate: null, endDate: null, category: null, userId: null }
+  pendingFilters.value = { startDate: null, endDate: null, category: null, userId: null, search: null }
+  activeFilters.value = { startDate: null, endDate: null, category: null, userId: null, search: null }
   currentPage.value = 1
   await fetchExpenses({ page: 1 })
   mobileFiltersOpen.value = false

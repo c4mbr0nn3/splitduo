@@ -28,6 +28,7 @@ export default function useExpenses(groupId) {
         ...(filters.endDate && { endDate: filters.endDate }),
         ...(filters.category && { category: filters.category }),
         ...(filters.userId && { userId: filters.userId }),
+        ...(filters.search && { search: filters.search }),
       }
 
       const response = await api.get(
