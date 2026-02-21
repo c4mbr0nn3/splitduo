@@ -34,7 +34,7 @@
         <p class="text-xs text-dimmed mb-1">
           You Paid
         </p>
-        <p class="font-semibold text-blue-600">
+        <p class="font-semibold text-teal-600">
           {{ balance.totalPaid.toFixed(2) }} €
         </p>
       </div>

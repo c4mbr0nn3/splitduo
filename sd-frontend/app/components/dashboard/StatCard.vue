@@ -66,8 +66,8 @@ const statsValue = computed(() => {
 
 const statsColor = computed(() => {
   switch (props.stats.color) {
-    case 'blue':
-      return 'text-blue-600'
+    case 'teal':
+      return 'text-teal-600'
     case 'green':
       return 'text-green-600'
     case 'red':
@@ -76,6 +76,8 @@ const statsColor = computed(() => {
       return 'text-yellow-600'
     case 'purple':
       return 'text-purple-600'
+    case 'rose':
+      return 'text-rose-600'
     case 'pink':
       return 'text-pink-600'
     case 'amber':
@@ -87,8 +89,8 @@ const statsColor = computed(() => {
 
 const iconColor = computed(() => {
   switch (props.color) {
-    case 'blue':
-      return { bg: 'bg-blue-100', text: 'text-blue-600', border: 'border-blue-600' }
+    case 'teal':
+      return { bg: 'bg-teal-100', text: 'text-teal-600', border: 'border-teal-600' }
     case 'green':
       return { bg: 'bg-green-100', text: 'text-green-600', border: 'border-green-600' }
     case 'red':
@@ -97,6 +99,8 @@ const iconColor = computed(() => {
       return { bg: 'bg-yellow-100', text: 'text-yellow-600', border: 'border-yellow-600' }
     case 'purple':
       return { bg: 'bg-purple-100', text: 'text-purple-600', border: 'border-purple-600' }
+    case 'rose':
+      return { bg: 'bg-rose-100', text: 'text-rose-600', border: 'border-rose-600' }
     case 'pink':
       return { bg: 'bg-pink-100', text: 'text-pink-600', border: 'border-pink-600' }
     case 'amber':

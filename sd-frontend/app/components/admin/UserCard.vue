@@ -54,7 +54,7 @@
       <!-- User Role Badge -->
       <div class="flex items-center justify-between">
         <UBadge
-          :color="user.globalRoleId == 2 ? 'success' : 'neutral'"
+          :color="user.globalRoleId == 2 ? 'primary' : 'secondary'"
           variant="soft"
           :icon="user.globalRoleId == 2 ? 'i-lucide-crown' : 'i-lucide-user'"
         >

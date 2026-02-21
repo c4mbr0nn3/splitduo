@@ -21,12 +21,12 @@
         <DashboardStatCard
           :stats="totalUsersStats"
           icon="i-lucide-users"
-          color="blue"
+          color="teal"
         />
         <DashboardStatCard
           :stats="adminUsersStats"
           icon="i-lucide-crown"
-          color="purple"
+          color="rose"
         />
         <DashboardStatCard
           :stats="regularUsersStats"
@@ -195,13 +195,13 @@ const regularUsers = computed(() => {
 const totalUsersStats = computed(() => ({
   label: 'Total Users',
   value: users.value.length,
-  color: 'blue',
+  color: 'teal',
 }))
 
 const adminUsersStats = computed(() => ({
   label: 'Admin Users',
   value: adminUsers.value.length,
-  color: 'purple',
+  color: 'rose',
 }))
 
 const regularUsersStats = computed(() => ({

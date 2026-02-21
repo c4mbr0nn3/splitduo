@@ -12,7 +12,7 @@
         <DashboardStatCard
           :stats="{ label: 'Total Groups', value: userStats?.totalGroups }"
           icon="i-lucide-users"
-          color="blue"
+          color="teal"
         />
         <DashboardStatCard
           :stats="{ label: 'You Owe', value: userStats?.youOwe, color: 'red' }"
@@ -121,7 +121,7 @@ const { userStats, fetchUserStats } = useUsers()
 const showSkeleton = ref(true)
 
 const netBalance = computed(() => (userStats.value?.youreOwed || 0) - (userStats.value?.youOwe || 0))
-const netBalanceColor = computed(() => netBalance.value > 0 ? 'green' : netBalance.value < 0 ? 'red' : 'blue')
+const netBalanceColor = computed(() => netBalance.value > 0 ? 'green' : netBalance.value < 0 ? 'red' : 'teal')
 
 onMounted(async () => {
   try {
