@@ -2,7 +2,7 @@
   <UCard variant="outline">
     <div class="space-y-3">
       <div class="flex items-center justify-between">
-        <span class="text-sm font-semibold">Filters</span>
+        <span class="text-primary font-semibold">Filters</span>
         <div class="flex items-center gap-1">
           <UButton
             icon="i-lucide-funnel-x"
