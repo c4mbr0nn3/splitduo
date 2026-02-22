@@ -43,17 +43,14 @@ public class EmailTemplateProvider(IOptions<AppOptions> appOptions, TimeProvider
         return new Notification
         {
             To = m.To,
-            Subject = "SplitDuo - Password Reset Request",
+            Subject = "Reset your SplitDuo password",
             Body = $"""
-                    <p>Hello {m.FirstName} {m.LastName},</p>
-                    <p>We received a request to reset your SplitDuo account password.</p>
-                    <p>To reset your password, click the link below:</p>
-                    <p><a href="{resetUrl}">Reset Password</a></p>
-                    <p><strong>This link will expire in 1 hour.</strong></p>
-                    <p><strong>Important:</strong> If you did not request this password reset, please ignore this email. Your password will remain unchanged.</p>
-                    <p>For security reasons, this link can only be used once.</p>
-                    <p>Best regards,<br>
-                    The SplitDuo Team</p>
+                    <p>Hi {m.FirstName},</p>
+                    <p>We received a request to reset your password. Click the link below to choose a new one.</p>
+                    <p><a href="{resetUrl}">Reset my password</a></p>
+                    <p>This link expires in 1 hour and can only be used once.</p>
+                    <p>Didn't request this? You can safely ignore this email — your password won't change.</p>
+                    <p>— The SplitDuo Team</p>
                     """
         };
     }
@@ -64,18 +61,14 @@ public class EmailTemplateProvider(IOptions<AppOptions> appOptions, TimeProvider
         return new Notification
         {
             To = m.To,
-            Subject = "SplitDuo - Password Successfully Reset",
+            Subject = "Your SplitDuo password has been reset",
             Body = $"""
-                    <p>Hello {m.FirstName} {m.LastName},</p>
-                    <p>Your SplitDuo account password has been successfully reset.</p>
-                    <p><strong>Reset Details:</strong><br>
-                    Email: {m.To}<br>
-                    Date &amp; Time: {timestamp}</p>
-                    <p><strong>Security Notice:</strong> For your security, all active sessions have been logged out. Please log in with your new password.</p>
-                    <p><strong>Didn't make this change?</strong><br>
-                    If you did not reset your password, please contact support immediately as your account may be compromised.</p>
-                    <p>Best regards,<br>
-                    The SplitDuo Team</p>
+                    <p>Hi {m.FirstName},</p>
+                    <p>Your password was successfully reset. All active sessions have been signed out.</p>
+                    <p>Account: {m.To}<br>
+                    Time: {timestamp}</p>
+                    <p>Didn't do this? Contact support immediately — your account may be at risk.</p>
+                    <p>— The SplitDuo Team</p>
                     """
         };
     }
@@ -86,18 +79,14 @@ public class EmailTemplateProvider(IOptions<AppOptions> appOptions, TimeProvider
         return new Notification
         {
             To = m.To,
-            Subject = "SplitDuo - Password Changed",
+            Subject = "Your SplitDuo password was changed",
             Body = $"""
-                    <p>Hello {m.FirstName} {m.LastName},</p>
-                    <p>This is a security notification to inform you that your SplitDuo account password was successfully changed.</p>
-                    <p><strong>Change Details:</strong><br>
-                    Email: {m.To}<br>
-                    Date &amp; Time: {timestamp}</p>
-                    <p><strong>Security Notice:</strong> For your security, all active sessions have been logged out. You will need to log in again with your new password.</p>
-                    <p><strong>Didn't make this change?</strong><br>
-                    If you did not request this password change, please contact support immediately as your account may be compromised.</p>
-                    <p>Best regards,<br>
-                    The SplitDuo Team</p>
+                    <p>Hi {m.FirstName},</p>
+                    <p>Your password was changed. All active sessions have been signed out.</p>
+                    <p>Account: {m.To}<br>
+                    Time: {timestamp}</p>
+                    <p>Didn't make this change? Contact support immediately — your account may be at risk.</p>
+                    <p>— The SplitDuo Team</p>
                     """
         };
     }
@@ -106,33 +95,34 @@ public class EmailTemplateProvider(IOptions<AppOptions> appOptions, TimeProvider
         new()
         {
             To = m.To,
-            Subject = "Two-Factor Authentication Enabled",
-            Body = $"<p>Hello {m.FirstName},</p>" +
-                   "<p>Two-factor authentication has been successfully enabled on your SplitDuo account.</p>" +
-                   "<p>Your account is now more secure. You will need to provide a verification code when logging in.</p>" +
-                   "<p>If you did not enable this feature, please contact support immediately.</p>"
+            Subject = "Two-factor authentication is now active",
+            Body = $"<p>Hi {m.FirstName},</p>" +
+                   "<p>Two-factor authentication has been enabled on your account. You'll be asked for a verification code each time you sign in.</p>" +
+                   "<p>Didn't do this? Contact support immediately — your account may be at risk.</p>" +
+                   "<p>— The SplitDuo Team</p>"
         };
 
     private static Notification RenderTwoFactorDisabled(TwoFactorDisabledModel m) =>
         new()
         {
             To = m.To,
-            Subject = "Two-Factor Authentication Disabled",
-            Body = $"<p>Hello {m.FirstName},</p>" +
-                   "<p>Two-factor authentication has been disabled on your SplitDuo account.</p>" +
-                   "<p>Your account security has been reduced. Consider re-enabling 2FA for better protection.</p>" +
-                   "<p>If you did not disable this feature, please contact support immediately and secure your account.</p>"
+            Subject = "Two-factor authentication has been turned off",
+            Body = $"<p>Hi {m.FirstName},</p>" +
+                   "<p>Two-factor authentication has been disabled on your account. Consider re-enabling it for better protection.</p>" +
+                   "<p>Didn't do this? Contact support immediately — your account may be at risk.</p>" +
+                   "<p>— The SplitDuo Team</p>"
         };
 
     private static Notification RenderTwoFactorEmailCode(TwoFactorEmailCodeModel m) =>
         new()
         {
             To = m.To,
-            Subject = "Your SplitDuo Verification Code",
-            Body = $"<p>Hello {m.FirstName},</p>" +
+            Subject = $"Your SplitDuo login code: {m.Code}",
+            Body = $"<p>Hi {m.FirstName},</p>" +
                    $"<p>Your verification code is: <strong>{m.Code}</strong></p>" +
-                   "<p>This code will expire in 10 minutes.</p>" +
-                   "<p>If you did not request this code, please ignore this email.</p>"
+                   "<p>This code expires in 10 minutes. Do not share it with anyone.</p>" +
+                   "<p>If you didn't request this, you can safely ignore this email.</p>" +
+                   "<p>— The SplitDuo Team</p>"
         };
 
     private Notification RenderGroupInvitation(GroupInvitationModel m)
@@ -141,15 +131,14 @@ public class EmailTemplateProvider(IOptions<AppOptions> appOptions, TimeProvider
         return new Notification
         {
             To = m.To,
-            Subject = $"You've been invited to join {m.GroupName} on SplitDuo",
+            Subject = $"{m.InviterFirstName} invited you to join {m.GroupName} on SplitDuo",
             Body = $"""
-                    <p>Hello,</p>
-                    <p>{m.InviterFirstName} {m.InviterLastName} has invited you to join the group "{m.GroupName}" on SplitDuo.</p>
-                    <p>To get started, create your account by clicking the link below:</p>
-                    <p><a href="{acceptUrl}">Create Account</a></p>
-                    <p><strong>This link will expire in 48 hours.</strong></p>
-                    <p>If you did not expect this invitation, you can safely ignore this email.</p>
-                    <p>Best regards,<br>The SplitDuo Team</p>
+                    <p>Hi there,</p>
+                    <p>{m.InviterFirstName} {m.InviterLastName} has invited you to split expenses in {m.GroupName} on SplitDuo.</p>
+                    <p><a href="{acceptUrl}">Accept invitation</a></p>
+                    <p>This invitation expires in 48 hours.</p>
+                    <p>Not expecting this? You can safely ignore this email.</p>
+                    <p>— The SplitDuo Team</p>
                     """
         };
     }
@@ -160,13 +149,12 @@ public class EmailTemplateProvider(IOptions<AppOptions> appOptions, TimeProvider
         return new Notification
         {
             To = m.To,
-            Subject = $"You've been added to {m.GroupName} on SplitDuo",
+            Subject = $"You've been added to {m.GroupName}",
             Body = $"""
-                    <p>Hello {m.RecipientFirstName},</p>
-                    <p>{m.AddedByFirstName} {m.AddedByLastName} has added you to the group "{m.GroupName}" on SplitDuo.</p>
-                    <p>You can view the group here:</p>
-                    <p><a href="{groupUrl}">View Group</a></p>
-                    <p>Best regards,<br>The SplitDuo Team</p>
+                    <p>Hi {m.RecipientFirstName},</p>
+                    <p>{m.AddedByFirstName} {m.AddedByLastName} added you to {m.GroupName} on SplitDuo.</p>
+                    <p><a href="{groupUrl}">View group</a></p>
+                    <p>— The SplitDuo Team</p>
                     """
         };
     }
@@ -177,10 +165,9 @@ public class EmailTemplateProvider(IOptions<AppOptions> appOptions, TimeProvider
             To = m.To,
             Subject = $"{m.GroupName} has been deleted",
             Body = $"""
-                    <p>Hello {m.RecipientFirstName},</p>
-                    <p>{m.DeletedByFirstName} {m.DeletedByLastName} has deleted the group <strong>{m.GroupName}</strong>.</p>
-                    <p>All expenses and history for this group are no longer accessible.</p>
-                    <p>Best regards,<br>The SplitDuo Team</p>
+                    <p>Hi {m.RecipientFirstName},</p>
+                    <p>{m.DeletedByFirstName} {m.DeletedByLastName} deleted the group <strong>{m.GroupName}</strong>. All shared expenses and history for this group are no longer accessible.</p>
+                    <p>— The SplitDuo Team</p>
                     """
         };
 
@@ -190,10 +177,9 @@ public class EmailTemplateProvider(IOptions<AppOptions> appOptions, TimeProvider
             To = m.To,
             Subject = $"You've been removed from {m.GroupName}",
             Body = $"""
-                    <p>Hello {m.RecipientFirstName},</p>
-                    <p>{m.RemovedByFirstName} {m.RemovedByLastName} has removed you from the group <strong>{m.GroupName}</strong>.</p>
-                    <p>You no longer have access to this group's expenses.</p>
-                    <p>Best regards,<br>The SplitDuo Team</p>
+                    <p>Hi {m.RecipientFirstName},</p>
+                    <p>{m.RemovedByFirstName} {m.RemovedByLastName} removed you from <strong>{m.GroupName}</strong>. You no longer have access to this group's expenses.</p>
+                    <p>— The SplitDuo Team</p>
                     """
         };
 
@@ -203,13 +189,13 @@ public class EmailTemplateProvider(IOptions<AppOptions> appOptions, TimeProvider
         return new Notification
         {
             To = m.To,
-            Subject = $"New expense in {m.GroupName}",
+            Subject = $"{m.AddedByFirstName} added an expense to {m.GroupName}",
             Body = $"""
-                    <p>Hello {m.RecipientFirstName},</p>
+                    <p>Hi {m.RecipientFirstName},</p>
                     <p>{m.AddedByFirstName} {m.AddedByLastName} added a new expense to <strong>{m.GroupName}</strong>:</p>
-                    <p><strong>{m.ExpenseTitle}</strong> &mdash; {m.ExpenseAmount:F2} on {m.ExpenseDate:yyyy-MM-dd}</p>
+                    <p><strong>{m.ExpenseTitle}</strong> &mdash; {m.ExpenseAmount:F2} &middot; {m.ExpenseDate:MMMM d, yyyy}</p>
                     <p><a href="{groupUrl}">View group</a></p>
-                    <p>Best regards,<br>The SplitDuo Team</p>
+                    <p>— The SplitDuo Team</p>
                     """
         };
     }
@@ -220,13 +206,13 @@ public class EmailTemplateProvider(IOptions<AppOptions> appOptions, TimeProvider
         return new Notification
         {
             To = m.To,
-            Subject = $"Expense removed from {m.GroupName}",
+            Subject = $"An expense was removed from {m.GroupName}",
             Body = $"""
-                    <p>Hello {m.RecipientFirstName},</p>
+                    <p>Hi {m.RecipientFirstName},</p>
                     <p>{m.DeletedByFirstName} {m.DeletedByLastName} removed an expense from <strong>{m.GroupName}</strong>:</p>
-                    <p><strong>{m.ExpenseTitle}</strong> &mdash; {m.ExpenseAmount:F2} on {m.ExpenseDate:yyyy-MM-dd}</p>
+                    <p><strong>{m.ExpenseTitle}</strong> &mdash; {m.ExpenseAmount:F2} &middot; {m.ExpenseDate:MMMM d, yyyy}</p>
                     <p><a href="{groupUrl}">View group</a></p>
-                    <p>Best regards,<br>The SplitDuo Team</p>
+                    <p>— The SplitDuo Team</p>
                     """
         };
     }
