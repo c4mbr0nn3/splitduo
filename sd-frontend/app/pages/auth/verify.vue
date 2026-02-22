@@ -28,6 +28,7 @@
                 :length="6"
                 type="number"
                 otp
+                autofocus
                 autocomplete="one-time-code"
                 class="pb-3"
                 :disabled="isLoading"
@@ -109,7 +110,7 @@ const isLoading = ref(false)
 
 // Auto-submit when 6 digits are entered
 watch(totpCode, (val) => {
-  if (val.length === 6 && activeTab.value === 'totp') {
+  if (val.length === 6) {
     verify('totp', val.join(''))
   }
 })
