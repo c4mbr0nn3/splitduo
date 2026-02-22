@@ -1,11 +1,10 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using SplitDuo.Api.Features.Common.Dto;
 using SplitDuo.Api.Features.Expenses.Dto;
 using SplitDuo.Core.Common;
+using SplitDuo.Core.Domain.Email;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Domain.Enums;
-using SplitDuo.Core.Options;
 using SplitDuo.Core.Persistence;
 using SplitDuo.Core.Services;
 
@@ -28,10 +27,8 @@ public interface IExpensesService
 public class ExpensesService(
     IUnitOfWork unitOfWork,
     INotificationService notificationService,
-    IOptions<AppOptions> appOptions) : IExpensesService
+    IEmailTemplateProvider emailTemplateProvider) : IExpensesService
 {
-    private readonly AppOptions _appOptions = appOptions.Value;
-
     public async Task<Result<PaginatedResponseDto<ExpenseDto>>> GetGroupExpensesAsync(
         string groupId, Guid currentUserId, int page, int limit, ExpenseFilterOptions filters)
     {
@@ -286,12 +283,13 @@ public class ExpensesService(
 
         foreach (var member in otherMembersForCreate)
         {
-            await notificationService.EnqueueAsync(new Notification
+            await notificationService.EnqueueAsync(emailTemplateProvider.Render(new ExpenseAddedModel
             {
-                To = member.User.Email,
-                Subject = $"New expense in {group.Name}",
-                Body = CreateExpenseAddedEmailBody(member.User, currentUser, expense, group)
-            });
+                To = member.User.Email, RecipientFirstName = member.User.FirstName,
+                AddedByFirstName = currentUser.FirstName, AddedByLastName = currentUser.LastName,
+                GroupName = group.Name, GroupGuid = group.Guid,
+                ExpenseTitle = expense.Title, ExpenseAmount = expense.Amount, ExpenseDate = expense.ExpenseDate
+            }));
         }
 
         // Map splits with users for the DTO
@@ -571,38 +569,15 @@ public class ExpensesService(
 
         foreach (var member in otherMembersForDelete)
         {
-            await notificationService.EnqueueAsync(new Notification
+            await notificationService.EnqueueAsync(emailTemplateProvider.Render(new ExpenseDeletedModel
             {
-                To = member.User.Email,
-                Subject = $"Expense removed from {group.Name}",
-                Body = CreateExpenseDeletedEmailBody(member.User, currentUser, expense, group)
-            });
+                To = member.User.Email, RecipientFirstName = member.User.FirstName,
+                DeletedByFirstName = currentUser.FirstName, DeletedByLastName = currentUser.LastName,
+                GroupName = group.Name, GroupGuid = group.Guid,
+                ExpenseTitle = expense.Title, ExpenseAmount = expense.Amount, ExpenseDate = expense.ExpenseDate
+            }));
         }
 
         return Result.Success();
-    }
-
-    private string CreateExpenseAddedEmailBody(User recipient, User addedBy, Expense expense, Group group)
-    {
-        var groupUrl = $"{_appOptions.BaseUrl}/groups/{group.Guid}";
-        return $"""
-                <p>Hello {recipient.FirstName},</p>
-                <p>{addedBy.FirstName} {addedBy.LastName} added a new expense to <strong>{group.Name}</strong>:</p>
-                <p><strong>{expense.Title}</strong> &mdash; {expense.Amount:F2} on {expense.ExpenseDate:yyyy-MM-dd}</p>
-                <p><a href="{groupUrl}">View group</a></p>
-                <p>Best regards,<br>The SplitDuo Team</p>
-                """;
-    }
-
-    private string CreateExpenseDeletedEmailBody(User recipient, User deletedBy, Expense expense, Group group)
-    {
-        var groupUrl = $"{_appOptions.BaseUrl}/groups/{group.Guid}";
-        return $"""
-                <p>Hello {recipient.FirstName},</p>
-                <p>{deletedBy.FirstName} {deletedBy.LastName} removed an expense from <strong>{group.Name}</strong>:</p>
-                <p><strong>{expense.Title}</strong> &mdash; {expense.Amount:F2} on {expense.ExpenseDate:yyyy-MM-dd}</p>
-                <p><a href="{groupUrl}">View group</a></p>
-                <p>Best regards,<br>The SplitDuo Team</p>
-                """;
     }
 }

@@ -2,14 +2,13 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using SplitDuo.Api.Features.Common.Dto;
 using SplitDuo.Api.Features.Groups.Dto;
 using SplitDuo.Api.Features.Invitations.Dto;
 using SplitDuo.Core.Common;
+using SplitDuo.Core.Domain.Email;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Domain.Enums;
-using SplitDuo.Core.Options;
 using SplitDuo.Core.Persistence;
 using SplitDuo.Core.Services;
 
@@ -36,10 +35,9 @@ public interface IInvitationsService
 public class InvitationsService(
     IUnitOfWork unitOfWork,
     INotificationService notificationService,
-    IOptions<AppOptions> appOptions,
+    IEmailTemplateProvider emailTemplateProvider,
     IPasswordHasher<User> passwordHasher) : IInvitationsService
 {
-    private readonly AppOptions _appOptions = appOptions.Value;
     private const int TokenExpirationHours = 48;
 
     public async Task<Result<SendInvitationResponseDto>> SendInvitationAsync(string groupId, Guid currentUserId,
@@ -96,14 +94,12 @@ public class InvitationsService(
             unitOfWork.GroupMembers.Add(groupMember);
 
             // Send notification email
-            var notification = new Notification
+            await notificationService.EnqueueAsync(emailTemplateProvider.Render(new GroupMemberAddedModel
             {
-                To = existingUser.Email,
-                Subject = $"You've been added to {group.Name} on SplitDuo",
-                Body = CreateAddedToGroupEmailBody(existingUser, group, currentUser)
-            };
-
-            await notificationService.EnqueueAsync(notification);
+                To = existingUser.Email, RecipientFirstName = existingUser.FirstName,
+                AddedByFirstName = currentUser.FirstName, AddedByLastName = currentUser.LastName,
+                GroupName = group.Name, GroupGuid = group.Guid
+            }));
 
             return Result<SendInvitationResponseDto>.Success(new SendInvitationResponseDto
             {
@@ -152,14 +148,12 @@ public class InvitationsService(
         unitOfWork.InvitationTokens.Add(invitationToken);
 
         // Send invitation email
-        var invitationNotification = new Notification
+        await notificationService.EnqueueAsync(emailTemplateProvider.Render(new GroupInvitationModel
         {
-            To = email,
-            Subject = $"You've been invited to join {group.Name} on SplitDuo",
-            Body = CreateInvitationEmailBody(group, currentUser, rawToken)
-        };
-
-        await notificationService.EnqueueAsync(invitationNotification);
+            To = email, GroupName = group.Name,
+            InviterFirstName = currentUser.FirstName, InviterLastName = currentUser.LastName,
+            RawToken = rawToken
+        }));
 
         return Result<SendInvitationResponseDto>.Success(new SendInvitationResponseDto
         {
@@ -295,14 +289,12 @@ public class InvitationsService(
         unitOfWork.InvitationTokens.Add(newInvitation);
 
         // Send new email
-        var notification = new Notification
+        await notificationService.EnqueueAsync(emailTemplateProvider.Render(new GroupInvitationModel
         {
-            To = oldInvitation.Email,
-            Subject = $"You've been invited to join {group.Name} on SplitDuo",
-            Body = CreateInvitationEmailBody(group, currentUser, rawToken)
-        };
-
-        await notificationService.EnqueueAsync(notification);
+            To = oldInvitation.Email, GroupName = group.Name,
+            InviterFirstName = currentUser.FirstName, InviterLastName = currentUser.LastName,
+            RawToken = rawToken
+        }));
 
         return Result<InvitationDto>.Success(new InvitationDto
         {
@@ -519,32 +511,5 @@ public class InvitationsService(
     {
         var hashedBytes = SHA256.HashData(Encoding.UTF8.GetBytes(token));
         return Convert.ToBase64String(hashedBytes);
-    }
-
-    private string CreateInvitationEmailBody(Group group, User inviter, string rawToken)
-    {
-        var acceptUrl =
-            $"{_appOptions.BaseUrl}/invite/accept?token={Uri.EscapeDataString(rawToken)}";
-        return $"""
-                <p>Hello,</p>
-                <p>{inviter.FirstName} {inviter.LastName} has invited you to join the group "{group.Name}" on SplitDuo.</p>
-                <p>To get started, create your account by clicking the link below:</p>
-                <p><a href="{acceptUrl}">Create Account</a></p>
-                <p><strong>This link will expire in {TokenExpirationHours} hours.</strong></p>
-                <p>If you did not expect this invitation, you can safely ignore this email.</p>
-                <p>Best regards,<br>The SplitDuo Team</p>
-                """;
-    }
-
-    private string CreateAddedToGroupEmailBody(User user, Group group, User inviter)
-    {
-        var groupUrl = $"{_appOptions.BaseUrl}/groups/{group.Guid}";
-        return $"""
-                <p>Hello {user.FirstName},</p>
-                <p>{inviter.FirstName} {inviter.LastName} has added you to the group "{group.Name}" on SplitDuo.</p>
-                <p>You can view the group here:</p>
-                <p><a href="{groupUrl}">View Group</a></p>
-                <p>Best regards,<br>The SplitDuo Team</p>
-                """;
     }
 }

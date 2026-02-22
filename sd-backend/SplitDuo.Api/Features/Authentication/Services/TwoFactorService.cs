@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using SplitDuo.Core.Common;
+using SplitDuo.Core.Domain.Email;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Persistence;
 using SplitDuo.Core.Services;
@@ -24,7 +25,8 @@ public interface ITwoFactorService
 
 public class TwoFactorService(
     IUnitOfWork unitOfWork,
-    INotificationService notificationService) : ITwoFactorService
+    INotificationService notificationService,
+    IEmailTemplateProvider emailTemplateProvider) : ITwoFactorService
 {
     public async Task<Result<TwoFactorSetupDto>> InitiateSetupAsync(Guid userGuid)
     {
@@ -77,17 +79,8 @@ public class TwoFactorService(
         user.TwoFactorEnabled = true;
 
         // Send confirmation notification
-        var notification = new Notification
-        {
-            To = user.Email,
-            Subject = "Two-Factor Authentication Enabled",
-            Body = $"<p>Hello {user.FirstName},</p>" +
-                   "<p>Two-factor authentication has been successfully enabled on your SplitDuo account.</p>" +
-                   "<p>Your account is now more secure. You will need to provide a verification code when logging in.</p>" +
-                   "<p>If you did not enable this feature, please contact support immediately.</p>"
-        };
-
-        await notificationService.EnqueueAsync(notification);
+        await notificationService.EnqueueAsync(emailTemplateProvider.Render(new TwoFactorEnabledModel
+            { To = user.Email, FirstName = user.FirstName }));
 
         return Result.Success();
     }
@@ -126,17 +119,8 @@ public class TwoFactorService(
         }
 
         // Send notification
-        var notification = new Notification
-        {
-            To = user.Email,
-            Subject = "Two-Factor Authentication Disabled",
-            Body = $"<p>Hello {user.FirstName},</p>" +
-                   "<p>Two-factor authentication has been disabled on your SplitDuo account.</p>" +
-                   "<p>Your account security has been reduced. Consider re-enabling 2FA for better protection.</p>" +
-                   "<p>If you did not disable this feature, please contact support immediately and secure your account.</p>"
-        };
-
-        await notificationService.EnqueueAsync(notification);
+        await notificationService.EnqueueAsync(emailTemplateProvider.Render(new TwoFactorDisabledModel
+            { To = user.Email, FirstName = user.FirstName }));
 
         return Result.Success();
     }
@@ -178,17 +162,8 @@ public class TwoFactorService(
         unitOfWork.TwoFactorTokens.Add(twoFactorToken);
 
         // Send email with code
-        var notification = new Notification
-        {
-            To = user.Email,
-            Subject = "Your SplitDuo Verification Code",
-            Body = $"<p>Hello {user.FirstName},</p>" +
-                   $"<p>Your verification code is: <strong>{code}</strong></p>" +
-                   "<p>This code will expire in 10 minutes.</p>" +
-                   "<p>If you did not request this code, please ignore this email.</p>"
-        };
-
-        await notificationService.EnqueueAsync(notification);
+        await notificationService.EnqueueAsync(emailTemplateProvider.Render(new TwoFactorEmailCodeModel
+            { To = user.Email, FirstName = user.FirstName, Code = code }));
 
         return Result<string>.Success("Verification code sent to your email");
     }

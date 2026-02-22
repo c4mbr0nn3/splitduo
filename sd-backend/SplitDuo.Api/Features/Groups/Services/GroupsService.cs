@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using SplitDuo.Api.Features.Common.Dto;
 using SplitDuo.Api.Features.Groups.Dto;
 using SplitDuo.Core.Common;
+using SplitDuo.Core.Domain.Email;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Domain.Enums;
 using SplitDuo.Core.Dto.Imports;
@@ -33,7 +34,10 @@ public interface IGroupsService
     Task<Result<ImportStatusDto>> GetImportStatusAsync(Guid importId, Guid currentUserId);
 }
 
-public class GroupsService(IUnitOfWork unitOfWork, INotificationService notificationService) : IGroupsService
+public class GroupsService(
+    IUnitOfWork unitOfWork,
+    INotificationService notificationService,
+    IEmailTemplateProvider emailTemplateProvider) : IGroupsService
 {
     public async Task<Result<List<GroupDto>>> GetUserGroupsAsync(Guid currentUserId, int? limit = null)
     {
@@ -284,12 +288,12 @@ public class GroupsService(IUnitOfWork unitOfWork, INotificationService notifica
 
             if (member.UserId == user.Id) continue;
 
-            await notificationService.EnqueueAsync(new Notification
+            await notificationService.EnqueueAsync(emailTemplateProvider.Render(new GroupDeletedModel
             {
-                To = member.User.Email,
-                Subject = $"{group.Name} has been deleted",
-                Body = CreateGroupDeletedEmailBody(member.User, group, user)
-            });
+                To = member.User.Email, RecipientFirstName = member.User.FirstName,
+                DeletedByFirstName = user.FirstName, DeletedByLastName = user.LastName,
+                GroupName = group.Name
+            }));
         }
 
         return Result.Success();
@@ -478,12 +482,12 @@ public class GroupsService(IUnitOfWork unitOfWork, INotificationService notifica
         // Notify the removed user only if it's not a self-removal
         if (currentUser.Id != userToRemove.Id)
         {
-            await notificationService.EnqueueAsync(new Notification
+            await notificationService.EnqueueAsync(emailTemplateProvider.Render(new GroupMemberRemovedModel
             {
-                To = userToRemove.Email,
-                Subject = $"You've been removed from {group.Name}",
-                Body = CreateRemovedFromGroupEmailBody(userToRemove, group, currentUser)
-            });
+                To = userToRemove.Email, RecipientFirstName = userToRemove.FirstName,
+                RemovedByFirstName = currentUser.FirstName, RemovedByLastName = currentUser.LastName,
+                GroupName = group.Name
+            }));
         }
 
         return Result.Success();
@@ -572,25 +576,5 @@ public class GroupsService(IUnitOfWork unitOfWork, INotificationService notifica
 
         var result = new ImportStatusDto(import);
         return Result<ImportStatusDto>.Success(result);
-    }
-
-    private static string CreateGroupDeletedEmailBody(User recipient, Group group, User deletedBy)
-    {
-        return $"""
-                <p>Hello {recipient.FirstName},</p>
-                <p>{deletedBy.FirstName} {deletedBy.LastName} has deleted the group <strong>{group.Name}</strong>.</p>
-                <p>All expenses and history for this group are no longer accessible.</p>
-                <p>Best regards,<br>The SplitDuo Team</p>
-                """;
-    }
-
-    private static string CreateRemovedFromGroupEmailBody(User recipient, Group group, User removedBy)
-    {
-        return $"""
-                <p>Hello {recipient.FirstName},</p>
-                <p>{removedBy.FirstName} {removedBy.LastName} has removed you from the group <strong>{group.Name}</strong>.</p>
-                <p>You no longer have access to this group's expenses.</p>
-                <p>Best regards,<br>The SplitDuo Team</p>
-                """;
     }
 }

@@ -82,6 +82,7 @@ public static class ApiProgramExtensions
             builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
             builder.Services.AddScoped<ISmtpService, SmtpService>();
             builder.Services.AddScoped<INotificationService, EmailNotificationService>();
+            builder.Services.AddScoped<IEmailTemplateProvider, EmailTemplateProvider>();
 
             // hosted services
             builder.Services.AddHostedService<DataSeederService>();

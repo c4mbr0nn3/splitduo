@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using SplitDuo.Api.Features.Authentication.Dto;
 using SplitDuo.Api.Features.Users.Dto;
 using SplitDuo.Core.Common;
+using SplitDuo.Core.Domain.Email;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Options;
 using SplitDuo.Core.Persistence;
@@ -34,10 +35,9 @@ public class AuthenticationService(
     IOptions<JwtOptions> jwtOptions,
     ITwoFactorService twoFactorService,
     INotificationService notificationService,
-    IOptions<AppOptions> appOptions) : IAuthenticationService
+    IEmailTemplateProvider emailTemplateProvider) : IAuthenticationService
 {
     private readonly JwtOptions _jwtOptions = jwtOptions.Value;
-    private readonly AppOptions _appOptions = appOptions.Value;
 
     public async Task<Result<AuthResponseDto>> LoginAsync(LoginRequestDto request)
     {
@@ -360,14 +360,10 @@ public class AuthenticationService(
         unitOfWork.TwoFactorTokens.Add(resetTokenEntity);
 
         // Send password reset email
-        var notification = new Notification
+        await notificationService.EnqueueAsync(emailTemplateProvider.Render(new PasswordResetModel
         {
-            To = user.Email,
-            Subject = "SplitDuo - Password Reset Request",
-            Body = CreatePasswordResetEmailBody(user, resetToken)
-        };
-
-        await notificationService.EnqueueAsync(notification);
+            To = user.Email, FirstName = user.FirstName, LastName = user.LastName, ResetToken = resetToken
+        }));
 
         return Result.Success();
     }
@@ -446,49 +442,11 @@ public class AuthenticationService(
         await RevokeAllUserTokensAsync(user.Id, "Password reset");
 
         // Send password reset success email
-        var notification = new Notification
+        await notificationService.EnqueueAsync(emailTemplateProvider.Render(new PasswordResetSuccessModel
         {
-            To = user.Email,
-            Subject = "SplitDuo - Password Successfully Reset",
-            Body = CreatePasswordResetSuccessEmailBody(user)
-        };
-
-        await notificationService.EnqueueAsync(notification);
+            To = user.Email, FirstName = user.FirstName, LastName = user.LastName
+        }));
 
         return Result.Success();
-    }
-
-    private string CreatePasswordResetEmailBody(User user, string resetToken)
-    {
-        var resetUrl =
-            $"{_appOptions.BaseUrl}/reset-password?email={Uri.EscapeDataString(user.Email)}&token={Uri.EscapeDataString(resetToken)}";
-        return $"""
-                <p>Hello {user.FirstName} {user.LastName},</p>
-                <p>We received a request to reset your SplitDuo account password.</p>
-                <p>To reset your password, click the link below:</p>
-                <p><a href="{resetUrl}">Reset Password</a></p>
-                <p><strong>This link will expire in 1 hour.</strong></p>
-                <p><strong>Important:</strong> If you did not request this password reset, please ignore this email. Your password will remain unchanged.</p>
-                <p>For security reasons, this link can only be used once.</p>
-                <p>Best regards,<br>
-                The SplitDuo Team</p>
-                """;
-    }
-
-    private string CreatePasswordResetSuccessEmailBody(User user)
-    {
-        var timestamp = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd HH:mm:ss 'UTC'");
-        return $"""
-                <p>Hello {user.FirstName} {user.LastName},</p>
-                <p>Your SplitDuo account password has been successfully reset.</p>
-                <p><strong>Reset Details:</strong><br>
-                Email: {user.Email}<br>
-                Date & Time: {timestamp}</p>
-                <p><strong>Security Notice:</strong> For your security, all active sessions have been logged out. Please log in with your new password.</p>
-                <p><strong>Didn't make this change?</strong><br>
-                If you did not reset your password, please contact support immediately as your account may be compromised.</p>
-                <p>Best regards,<br>
-                The SplitDuo Team</p>
-                """;
     }
 }

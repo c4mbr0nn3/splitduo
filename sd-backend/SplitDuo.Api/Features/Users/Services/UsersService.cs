@@ -4,6 +4,7 @@ using SplitDuo.Api.Features.Authentication.Services;
 using SplitDuo.Api.Features.Common.Services;
 using SplitDuo.Api.Features.Users.Dto;
 using SplitDuo.Core.Common;
+using SplitDuo.Core.Domain.Email;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Dto.Imports;
 using SplitDuo.Core.Persistence;
@@ -29,8 +30,8 @@ public class UsersService(
     IUserContextService userContextService,
     IAuthenticationService authenticationService,
     INotificationService notificationService,
-    ILogger<UsersService> logger,
-    TimeProvider timeProvider) : IUsersService
+    IEmailTemplateProvider emailTemplateProvider,
+    ILogger<UsersService> logger) : IUsersService
 {
     public async Task<Result<List<UserDto>>> GetUsersAsync()
     {
@@ -169,14 +170,8 @@ public class UsersService(
         }
 
         // Send password change notification email
-        var notification = new Notification
-        {
-            To = user.Email,
-            Subject = "SplitDuo - Password Changed",
-            Body = CreatePasswordChangedEmailBody(user)
-        };
-
-        var emailResult = await notificationService.EnqueueAsync(notification);
+        var emailResult = await notificationService.EnqueueAsync(emailTemplateProvider.Render(new PasswordChangedModel
+            { To = user.Email, FirstName = user.FirstName, LastName = user.LastName }));
 
         if (emailResult.IsFailure)
         {
@@ -274,22 +269,5 @@ public class UsersService(
         user.DeletedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         return Result.Success();
-    }
-
-    private string CreatePasswordChangedEmailBody(User user)
-    {
-        var timestamp = timeProvider.GetUtcNow().ToString("yyyy-MM-dd HH:mm:ss 'UTC'");
-        return $"""
-                <p>Hello {user.FirstName} {user.LastName},</p>
-                <p>This is a security notification to inform you that your SplitDuo account password was successfully changed.</p>
-                <p><strong>Change Details:</strong><br>
-                Email: {user.Email}<br>
-                Date & Time: {timestamp}</p>
-                <p><strong>Security Notice:</strong> For your security, all active sessions have been logged out. You will need to log in again with your new password.</p>
-                <p><strong>Didn't make this change?</strong><br>
-                If you did not request this password change, please contact support immediately as your account may be compromised.</p>
-                <p>Best regards,<br>
-                The SplitDuo Team</p>
-                """;
     }
 }
