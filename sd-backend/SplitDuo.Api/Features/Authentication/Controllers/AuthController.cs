@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using SplitDuo.Api.Features.Authentication.Dto;
 using SplitDuo.Api.Features.Authentication.Services;
 using SplitDuo.Api.Features.Common.Controllers;
@@ -15,6 +16,7 @@ public class AuthController(
     IAuthenticationService authenticationService,
     IUnitOfWork unitOfWork) : BaseApiController
 {
+    [EnableRateLimiting("auth")]
     [HttpPost("login")]
     public async Task<ActionResult<ApiResponseDto<AuthResponseDto>>> Login([FromBody] LoginRequestDto request)
     {
@@ -55,6 +57,7 @@ public class AuthController(
         return HandleResult(result, "Token refreshed successfully");
     }
 
+    [EnableRateLimiting("auth")]
     [HttpPost("verify-2fa")]
     public async Task<ActionResult<ApiResponseDto<AuthResponseDto>>> VerifyTwoFactor(
         [FromBody] VerifyTwoFactorLoginDto request)

@@ -27,6 +27,7 @@ public class User : AuditableAndSoftDeletableEntity
     [Column("two_factor_enabled")] public bool TwoFactorEnabled { get; set; } = false;
     [Column("totp_secret")] public string? TotpSecret { get; set; }
     [Column("backup_codes")] public string? BackupCodes { get; set; } // JSON array of hashed backup codes
+    [Column("last_used_totp_time_step")] public long? LastUsedTotpTimeStep { get; set; }
 
     [NotMapped]
     public GlobalRole GlobalRole

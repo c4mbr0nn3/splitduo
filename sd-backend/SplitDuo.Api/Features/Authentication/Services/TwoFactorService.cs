@@ -2,9 +2,12 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using OtpNet;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Email;
 using SplitDuo.Core.Domain.Entities;
+using SplitDuo.Core.Options;
 using SplitDuo.Core.Persistence;
 using SplitDuo.Core.Services;
 using SplitDuo.Api.Features.Authentication.Dto;
@@ -26,8 +29,12 @@ public interface ITwoFactorService
 public class TwoFactorService(
     IUnitOfWork unitOfWork,
     INotificationService notificationService,
-    IEmailTemplateProvider emailTemplateProvider) : ITwoFactorService
+    IEmailTemplateProvider emailTemplateProvider,
+    IOptions<JwtOptions> jwtOptions) : ITwoFactorService
 {
+    private readonly byte[] _encryptionKey =
+        SHA256.HashData(Encoding.UTF8.GetBytes("totp:" + jwtOptions.Value.SecretKey));
+
     public async Task<Result<TwoFactorSetupDto>> InitiateSetupAsync(Guid userGuid)
     {
         var user = await unitOfWork.Users
@@ -43,8 +50,8 @@ public class TwoFactorService(
         var qrCodeUri = GenerateQrCodeUri(user.Email, secret);
         var backupCodes = GenerateBackupCodes();
 
-        // Store the secret temporarily (not enabled until verified)
-        user.TotpSecret = secret;
+        // Store the secret encrypted (not enabled until verified)
+        user.TotpSecret = EncryptTotpSecret(secret, _encryptionKey);
         user.BackupCodes = JsonSerializer.Serialize(backupCodes.Select(HashBackupCode));
 
         var setupDto = new TwoFactorSetupDto
@@ -71,8 +78,9 @@ public class TwoFactorService(
         if (string.IsNullOrEmpty(user.TotpSecret))
             return Result.BadRequest("Two-factor setup not initiated");
 
-        var isValidTotp = ValidateTotpCode(user.TotpSecret, request.Code);
-        if (!isValidTotp)
+        var plainSecret = DecryptTotpSecret(user.TotpSecret, _encryptionKey);
+        var totp = new Totp(Base32Encoding.ToBytes(plainSecret));
+        if (!totp.VerifyTotp(request.Code, out _, new VerificationWindow(1, 1)))
             return Result.BadRequest("Invalid verification code");
 
         // Enable 2FA
@@ -107,6 +115,7 @@ public class TwoFactorService(
         user.TwoFactorEnabled = false;
         user.TotpSecret = null;
         user.BackupCodes = null;
+        user.LastUsedTotpTimeStep = null;
 
         // Revoke all active 2FA tokens
         var activeTwoFactorTokens = await unitOfWork.TwoFactorTokens
@@ -176,29 +185,21 @@ public class TwoFactorService(
         if (user == null)
             return Result<bool>.NotFound("User not found");
 
-        var hashedCode = HashToken(code);
         var token = await unitOfWork.TwoFactorTokens
             .FirstOrDefaultAsync(t => t.UserId == user.Id &&
-                                      t.TokenHash == hashedCode &&
                                       t.Purpose == purpose &&
-                                      t.TokenType == "email_verification");
+                                      t.TokenType == "email_verification" &&
+                                      t.UsedAt == null);
 
-        if (token == null)
-        {
+        if (token == null || token.IsExpired || token.Attempts >= token.MaxAttempts)
             return Result<bool>.Success(false);
-        }
 
-        // Increment attempts
-        token.Attempts++;
+        token.Attempts++; // always count the attempt
 
-        if (!token.IsValid)
-        {
+        if (token.TokenHash != HashToken(code))
             return Result<bool>.Success(false);
-        }
 
-        // Mark as used
         token.UsedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-
         return Result<bool>.Success(true);
     }
 
@@ -213,8 +214,17 @@ public class TwoFactorService(
         if (!user.TwoFactorEnabled || string.IsNullOrEmpty(user.TotpSecret))
             return Result<bool>.BadRequest("Two-factor authentication is not enabled");
 
-        var isValid = ValidateTotpCode(user.TotpSecret, code);
-        return Result<bool>.Success(isValid);
+        var plainSecret = DecryptTotpSecret(user.TotpSecret, _encryptionKey);
+        var totp = new Totp(Base32Encoding.ToBytes(plainSecret));
+        var isValid = totp.VerifyTotp(code, out var usedTimeStep, new VerificationWindow(1, 1));
+
+        if (!isValid) return Result<bool>.Success(false);
+
+        if (user.LastUsedTotpTimeStep.HasValue && usedTimeStep <= user.LastUsedTotpTimeStep.Value)
+            return Result<bool>.Success(false); // replay rejected
+
+        user.LastUsedTotpTimeStep = usedTimeStep;
+        return Result<bool>.Success(true);
     }
 
     public async Task<Result<bool>> ValidateBackupCodeAsync(Guid userGuid, string code)
@@ -261,9 +271,8 @@ public class TwoFactorService(
     private static string GenerateTotpSecret()
     {
         var bytes = new byte[20];
-        using var rng = RandomNumberGenerator.Create();
-        rng.GetBytes(bytes);
-        return bytes.ToBase32String().Replace("=", "");
+        RandomNumberGenerator.Fill(bytes);
+        return Base32Encoding.ToString(bytes).TrimEnd('=');
     }
 
     private static string GenerateQrCodeUri(string email, string secret)
@@ -277,12 +286,10 @@ public class TwoFactorService(
     private static List<string> GenerateBackupCodes()
     {
         var codes = new List<string>();
-        using var rng = RandomNumberGenerator.Create();
-
         for (var i = 0; i < 10; i++)
         {
             var codeBytes = new byte[5];
-            rng.GetBytes(codeBytes);
+            RandomNumberGenerator.Fill(codeBytes);
             var code = Convert.ToHexString(codeBytes).ToLower();
             codes.Add($"{code[..4]}-{code[4..]}");
         }
@@ -292,12 +299,17 @@ public class TwoFactorService(
 
     private static string GenerateNumericCode(int length)
     {
-        using var rng = RandomNumberGenerator.Create();
+        var max = (uint)Math.Pow(10, length);
+        var limit = (uint.MaxValue / max) * max;
         var bytes = new byte[4];
-        rng.GetBytes(bytes);
-        var number = BitConverter.ToUInt32(bytes, 0);
-        var code = (number % (uint)Math.Pow(10, length)).ToString($"D{length}");
-        return code;
+        uint number;
+        do
+        {
+            RandomNumberGenerator.Fill(bytes);
+            number = BitConverter.ToUInt32(bytes, 0);
+        } while (number >= limit);
+
+        return (number % max).ToString($"D{length}");
     }
 
     private static string HashToken(string token)
@@ -312,103 +324,71 @@ public class TwoFactorService(
         return Convert.ToBase64String(hashedBytes);
     }
 
-    private static bool ValidateTotpCode(string secret, string code)
+    /// <summary>
+    /// Encrypts a TOTP secret using AES-256-GCM authenticated encryption.
+    ///
+    /// AES-GCM produces three outputs: ciphertext (the encrypted data), a nonce (random
+    /// value that must be unique per encryption), and an authentication tag (a checksum
+    /// that proves the ciphertext hasn't been tampered with). All three are needed to
+    /// decrypt, so they are concatenated and stored together as a single Base64 string:
+    ///
+    ///   [ nonce (12 bytes) | ciphertext (variable) | tag (16 bytes) ]
+    ///
+    /// The nonce does not need to be secret — it just must never be reused with the same
+    /// key. Generating it randomly is safe here because TOTP secrets are written once per
+    /// enrollment, so the collision probability is negligible.
+    /// </summary>
+    private static string EncryptTotpSecret(string secret, byte[] key)
     {
-        if (code.Length != 6 || !int.TryParse(code, out _))
-            return false;
+        // GCM requires a 96-bit (12-byte) nonce, unique per (key, message) pair.
+        var nonce = new byte[12];
+        RandomNumberGenerator.Fill(nonce);
 
-        var secretBytes = Base32Extensions.FromBase32String(secret);
-        var currentTimeStep = DateTimeOffset.UtcNow.ToUnixTimeSeconds() / 30;
+        var plaintext = Encoding.UTF8.GetBytes(secret);
 
-        // Check current time step and adjacent ones (to account for clock drift)
-        for (var i = currentTimeStep - 1; i <= currentTimeStep + 1; i++)
-        {
-            var expectedCode = GenerateTotpCode(secretBytes, i);
-            if (expectedCode == code)
-                return true;
-        }
+        // GCM is a stream cipher: ciphertext is always the same length as plaintext (no padding).
+        var ciphertext = new byte[plaintext.Length];
 
-        return false;
+        // The authentication tag proves integrity on decryption; 16 bytes is the maximum and recommended size.
+        var tag = new byte[16];
+
+        using var aes = new AesGcm(key, tag.Length);
+        aes.Encrypt(nonce, plaintext, ciphertext, tag);
+
+        // Pack all three pieces into one buffer so they can be stored as a single value.
+        var result = new byte[12 + ciphertext.Length + 16];
+        nonce.CopyTo(result, 0);
+        ciphertext.CopyTo(result, 12);
+        tag.CopyTo(result, 12 + ciphertext.Length);
+
+        // Base64 encodes the binary blob to a text string safe for database storage.
+        return Convert.ToBase64String(result);
     }
 
-    private static string GenerateTotpCode(byte[] secret, long timeStep)
+    /// <summary>
+    /// Decrypts a TOTP secret that was encrypted by <see cref="EncryptTotpSecret"/>.
+    ///
+    /// The stored blob is [ nonce (12 bytes) | ciphertext (variable) | tag (16 bytes) ].
+    /// Because nonce and tag are fixed sizes, their positions can be sliced out with
+    /// constants. AesGcm.Decrypt verifies the authentication tag before returning
+    /// plaintext — if the ciphertext or tag was altered it throws <see cref="CryptographicException"/>.
+    /// </summary>
+    private static string DecryptTotpSecret(string encrypted, byte[] key)
     {
-        var timeBytes = BitConverter.GetBytes(timeStep);
-        if (BitConverter.IsLittleEndian)
-            Array.Reverse(timeBytes);
+        // Decode the Base64 string back to the raw [ nonce | ciphertext | tag ] bytes.
+        var data = Convert.FromBase64String(encrypted);
 
-        using var hmac = new HMACSHA1(secret);
-        var hash = hmac.ComputeHash(timeBytes);
+        // Plaintext is everything except the 12-byte nonce and 16-byte tag (= 28 bytes overhead).
+        var plaintext = new byte[data.Length - 28];
 
-        var offset = hash[^1] & 0xf;
-        var binaryCode = ((hash[offset] & 0x7f) << 24) |
-                         ((hash[offset + 1] & 0xff) << 16) |
-                         ((hash[offset + 2] & 0xff) << 8) |
-                         (hash[offset + 3] & 0xff);
+        using var aes = new AesGcm(key, 16);
 
-        var code = binaryCode % 1000000;
-        return code.ToString("D6");
-    }
-}
+        // Slice the blob back into its three components using the known fixed offsets.
+        // data[..12]   = nonce       (first 12 bytes)
+        // data[12..^16] = ciphertext (middle, variable length)
+        // data[^16..]  = tag         (last 16 bytes)
+        aes.Decrypt(data[..12], data[12..^16], data[^16..], plaintext);
 
-// Helper extension for Base32 encoding (needed for TOTP)
-public static class Base32Extensions
-{
-    private const string Base32Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-
-    public static string ToBase32String(this byte[] bytes)
-    {
-        if (bytes.Length == 0) return string.Empty;
-
-        var result = new StringBuilder();
-        for (var i = 0; i < bytes.Length; i += 5)
-        {
-            var byteCount = Math.Min(5, bytes.Length - i);
-            ulong buffer = 0;
-            for (var j = 0; j < byteCount; j++)
-            {
-                buffer = (buffer << 8) | bytes[i + j];
-            }
-
-            var bitCount = byteCount * 8;
-            while (bitCount > 0)
-            {
-                var index = (int)((buffer >> (bitCount - 5)) & 31);
-                result.Append(Base32Alphabet[index]);
-                bitCount -= 5;
-                buffer &= (1UL << bitCount) - 1;
-            }
-        }
-
-        return result.ToString();
-    }
-
-    public static byte[] FromBase32String(string base32)
-    {
-        if (string.IsNullOrEmpty(base32)) return [];
-
-        base32 = base32.ToUpper().Replace("=", "");
-        var result = new List<byte>();
-
-        for (var i = 0; i < base32.Length; i += 8)
-        {
-            var blockLength = Math.Min(8, base32.Length - i);
-            ulong buffer = 0;
-
-            for (var j = 0; j < blockLength; j++)
-            {
-                var index = Base32Alphabet.IndexOf(base32[i + j]);
-                if (index < 0) throw new ArgumentException("Invalid Base32 character");
-                buffer = (buffer << 5) | (uint)index;
-            }
-
-            var byteCount = blockLength * 5 / 8;
-            for (var j = byteCount - 1; j >= 0; j--)
-            {
-                result.Add((byte)((buffer >> (j * 8)) & 0xff));
-            }
-        }
-
-        return result.ToArray();
+        return Encoding.UTF8.GetString(plaintext);
     }
 }

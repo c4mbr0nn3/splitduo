@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.RateLimiting;
 using Scalar.AspNetCore;
 using Serilog;
 using SplitDuo.Api.Features.Authentication.Services;
@@ -41,6 +42,17 @@ public static class ApiProgramExtensions
 
         // Register factories
         builder.Services.AddScoped<IImportServiceFactory, ImportServiceFactory>();
+
+        builder.Services.AddRateLimiter(opts =>
+        {
+            opts.AddFixedWindowLimiter("auth", o =>
+            {
+                o.PermitLimit = 10;
+                o.Window = TimeSpan.FromMinutes(1);
+                o.QueueLimit = 0;
+            });
+            opts.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+        });
     }
 
     public static void ConfigureServices(this WebApplication app)
@@ -60,6 +72,7 @@ public static class ApiProgramExtensions
         // Serve static files from wwwroot
         app.UseStaticFiles();
 
+        app.UseRateLimiter();
         app.UseAuthentication();
         app.UseAuthorization();
         app.MapControllers();
