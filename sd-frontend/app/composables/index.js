@@ -1,5 +1,6 @@
 export { default as useAuth } from '@/composables/auth/useAuth'
 export { default as useAuthToken } from '@/composables/auth/useAuthToken'
+export { default as use2FA } from '@/composables/auth/use2FA'
 export { default as useApi } from '@/composables/api/base'
 export { default as useBalances } from '@/composables/resources/useBalances'
 export { default as useCategories } from '@/composables/resources/useCategories'

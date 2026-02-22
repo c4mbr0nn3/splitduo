@@ -1,3 +1,5 @@
+const pendingChallengeToken = ref(null)
+
 export default function useAuth() {
   const api = useApi()
   const { setToken, removeToken, getToken, getRefreshToken } = useAuthToken()
@@ -31,10 +33,14 @@ export default function useAuth() {
       const response = await api.post('/auth/login', credentials)
 
       if (response.success && response.data) {
+        if (response.data.requiresTwoFactor) {
+          pendingChallengeToken.value = response.data.twoFactorChallengeToken
+          return { success: true, requiresTwoFactor: true }
+        }
         setToken(response.data.token, response.data.refreshToken)
         user.value = response.data.user
         userCookie.value = response.data.user
-        return { success: true }
+        return { success: true, requiresTwoFactor: false }
       }
 
       return { success: false, error: response.error?.message }
@@ -48,6 +54,14 @@ export default function useAuth() {
     finally {
       isLoading.value = false
     }
+  }
+
+  // Complete login after 2FA verification
+  const completeTwoFactorLogin = (authData) => {
+    setToken(authData.token, authData.refreshToken)
+    user.value = authData.user
+    userCookie.value = authData.user
+    pendingChallengeToken.value = null
   }
 
   // Logout
@@ -126,9 +140,11 @@ export default function useAuth() {
     isAuthenticated,
     isGlobalAdmin: readonly(isGlobalAdmin),
     isLoading: readonly(isLoading),
+    pendingChallengeToken: readonly(pendingChallengeToken),
     login,
     logout,
     refreshToken,
     initialize,
+    completeTwoFactorLogin,
   }
 }

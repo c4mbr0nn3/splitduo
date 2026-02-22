@@ -67,8 +67,13 @@ async function onSubmit(event) {
     })
 
     if (result.success) {
-      showSuccess('Login successful! Redirecting...')
-      await navigateTo('/dashboard')
+      if (result.requiresTwoFactor) {
+        await navigateTo('/auth/verify')
+      }
+      else {
+        showSuccess('Login successful! Redirecting...')
+        await navigateTo('/dashboard')
+      }
     }
     else {
       showError(result.error || 'Login failed')

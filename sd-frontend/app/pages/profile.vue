@@ -7,6 +7,14 @@
             title="Profile"
             subtitle="Manage your personal information"
           />
+          <UiButtonDropdown
+            v-if="user"
+            icon-only
+            color="neutral"
+            variant="ghost"
+            dropdown-icon="i-lucide-ellipsis-vertical"
+            :items="profileActions"
+          />
         </div>
       </template>
       <div
@@ -20,15 +28,24 @@
         v-else-if="user"
         class="space-y-6"
       >
-        <UButton
-          v-if="user"
-          icon="i-lucide-key"
-          color="primary"
-          block
-          @click="isPasswordModalOpen = true"
-        >
-          Change Password
-        </UButton>
+        <div class="flex items-center gap-2 p-3 rounded-lg border border-muted/30 bg-muted/10">
+          <UIcon
+            :name="user.twoFactorEnabled ? 'i-lucide-shield-check' : 'i-lucide-shield-off'"
+            :class="user.twoFactorEnabled ? 'text-success-500' : 'text-error'"
+            class="size-5 shrink-0"
+          />
+          <div class="flex-1 text-sm">
+            <span class="font-medium">Two-factor authentication</span>
+          </div>
+          <UBadge
+            :color="user.twoFactorEnabled ? 'success' : 'error'"
+            variant="subtle"
+            size="sm"
+          >
+            {{ user.twoFactorEnabled ? 'Active' : 'Off' }}
+          </UBadge>
+        </div>
+
         <div class="grid grid-cols-1 gap-6">
           <template
             v-for="field in userForm"
@@ -102,6 +119,21 @@ const { copy, copied } = useClipboard()
 
 // Password change modal state
 const isPasswordModalOpen = ref(false)
+
+const profileActions = computed(() => [
+  [
+    {
+      label: 'Change Password',
+      icon: 'i-lucide-key',
+      onSelect: () => { isPasswordModalOpen.value = true },
+    },
+    {
+      label: user.value?.twoFactorEnabled ? '2FA Settings' : 'Set up 2FA',
+      icon: user.value?.twoFactorEnabled ? 'i-lucide-shield-check' : 'i-lucide-shield',
+      to: '/settings/2fa/setup',
+    },
+  ],
+])
 
 const handlePasswordChangeSuccess = () => {
   // Modal will handle redirection to login
