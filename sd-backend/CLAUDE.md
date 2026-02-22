@@ -323,6 +323,20 @@ CSV and Cospend JSON formats. Uses CsvHelper. Owers encoded as `email:amount|ema
 
 MailKit for SMTP. Async queue pattern: `EnqueueAsync()` adds to `Notifications` table → Quartz job sends every 2 minutes with retry (max 3). Used for 2FA codes, password resets, and confirmations.
 
+### Email Template Rules (`EmailTemplateProvider.cs`)
+
+When editing or adding templates, follow these conventions:
+
+| Concern | Rule |
+|---|---|
+| **Subject** | No app-name prefix; action-oriented verbs; include dynamic content (group name, actor, code) where meaningful |
+| **Greeting** | `Hi {FirstName},` for named recipients; `Hi there,` for anonymous (GroupInvitation) |
+| **Sign-off** | `<p>— The SplitDuo Team</p>` on every email |
+| **Security footer** | `<p>Didn't do this? Contact support immediately — your account may be at risk.</p>` on all password and 2FA change notifications |
+| **CTAs** | First-person link text: "Reset my password", "Accept invitation", "View group" |
+| **Expense line** | `{Title} &mdash; {amount:F2} &middot; {date:MMMM d, yyyy}` |
+| **Body copy** | One purpose per paragraph; no verbose preambles ("This is a security notification to inform you that…") |
+
 ## Middleware Pipeline
 
 ```
