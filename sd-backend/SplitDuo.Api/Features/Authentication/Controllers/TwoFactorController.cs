@@ -90,30 +90,6 @@ public class TwoFactorController(
         return HandleResult(result, "Two-factor authentication has been disabled");
     }
 
-    [HttpPost("generate-email-code")]
-    public async Task<ActionResult<ApiResponseDto<string>>> GenerateEmailCode()
-    {
-        var currentUserId = GetCurrentUserId();
-        if (currentUserId == null)
-            return HandleResult(Result<string>.Unauthorized("User not authenticated"));
-
-        logger.LogInformation("Generating email 2FA code for user: {UserId}", currentUserId);
-
-        var result = await twoFactorService.GenerateEmailCodeAsync(currentUserId.Value, "2fa_login");
-
-        if (result.IsSuccess)
-        {
-            await unitOfWork.SaveChangesAsync();
-        }
-        else
-        {
-            logger.LogWarning("Failed to generate email 2FA code for user: {UserId}. Error: {Error}", currentUserId,
-                result.Error);
-        }
-
-        return HandleResult(result, "Verification code sent to your email");
-    }
-
     [HttpPost("backup-codes/generate")]
     public async Task<ActionResult<ApiResponseDto<List<string>>>> GenerateBackupCodes()
     {

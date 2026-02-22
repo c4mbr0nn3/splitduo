@@ -75,21 +75,6 @@ public record TwoFactorDisabledModel : ITemplateModel
     }
 }
 
-public record TwoFactorEmailCodeModel : ITemplateModel
-{
-    public EmailTemplate Template => EmailTemplate.TwoFactorEmailCode;
-    public required string To { get; init; }
-    public required string FirstName { get; init; }
-    public required string Code { get; init; }
-
-    public void Validate()
-    {
-        if (string.IsNullOrWhiteSpace(To)) throw new ArgumentException("To is required");
-        if (string.IsNullOrWhiteSpace(FirstName)) throw new ArgumentException("FirstName is required");
-        if (string.IsNullOrWhiteSpace(Code)) throw new ArgumentException("Code is required");
-    }
-}
-
 public record GroupInvitationModel : ITemplateModel
 {
     public EmailTemplate Template => EmailTemplate.GroupInvitation;

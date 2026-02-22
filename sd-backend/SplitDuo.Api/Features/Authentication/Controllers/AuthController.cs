@@ -62,18 +62,17 @@ public class AuthController(
     public async Task<ActionResult<ApiResponseDto<AuthResponseDto>>> VerifyTwoFactor(
         [FromBody] VerifyTwoFactorLoginDto request)
     {
-        logger.LogInformation("2FA verification attempt for email: {Email}", request.Email);
+        logger.LogInformation("2FA verification attempt");
 
         var result = await authenticationService.VerifyTwoFactorAndCompleteLoginAsync(request);
 
         if (result.IsFailure)
         {
-            logger.LogWarning("2FA verification failed for email: {Email}. Error: {Error}", request.Email,
-                result.Error);
+            logger.LogWarning("2FA verification failed. Error: {Error}", result.Error);
         }
         else
         {
-            logger.LogInformation("2FA verification successful for email: {Email}", request.Email);
+            logger.LogInformation("2FA verification successful");
             await unitOfWork.SaveChangesAsync();
         }
 

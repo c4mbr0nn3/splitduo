@@ -56,12 +56,10 @@ public class AuthenticationService(
         // Check if 2FA is enabled for this user
         if (user.TwoFactorEnabled)
         {
-            // Generate and send email code for 2FA
-            await twoFactorService.GenerateEmailCodeAsync(user.Guid, "2fa_login");
-
             return Result<AuthResponseDto>.Success(new AuthResponseDto
             {
                 RequiresTwoFactor = true,
+                TwoFactorChallengeToken = GenerateChallengeToken(user.Guid),
                 User = new UserDto(user)
             });
         }
@@ -71,8 +69,36 @@ public class AuthenticationService(
 
     public async Task<Result<AuthResponseDto>> VerifyTwoFactorAndCompleteLoginAsync(VerifyTwoFactorLoginDto request)
     {
+        // MapInboundClaims = false keeps JWT claim names as-is (e.g. "sub" stays "sub")
+        // instead of mapping them to WS-Federation URIs (e.g. ClaimTypes.NameIdentifier)
+        var tokenHandler = new JwtSecurityTokenHandler { MapInboundClaims = false };
+        var key = Encoding.ASCII.GetBytes(_jwtOptions.SecretKey ?? "");
+        ClaimsPrincipal principal;
+        try
+        {
+            principal = tokenHandler.ValidateToken(request.ChallengeToken, new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(key),
+                ValidateIssuer = true, ValidIssuer = _jwtOptions.Issuer,
+                ValidateAudience = true, ValidAudience = _jwtOptions.Audience,
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero
+            }, out _);
+        }
+        catch
+        {
+            return Result<AuthResponseDto>.Unauthorized("Invalid or expired challenge token");
+        }
+
+        if (principal.FindFirst("purpose")?.Value != "2fa_challenge")
+            return Result<AuthResponseDto>.Unauthorized("Invalid challenge token");
+
+        if (!Guid.TryParse(principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value, out var userGuid))
+            return Result<AuthResponseDto>.Unauthorized("Invalid challenge token");
+
         var user = await unitOfWork.Users
-            .FirstOrDefaultAsync(u => u.Email == request.Email && u.DeletedAt == null);
+            .FirstOrDefaultAsync(u => u.Guid == userGuid && u.DeletedAt == null);
 
         if (user == null)
             return Result<AuthResponseDto>.NotFound("User not found");
@@ -88,12 +114,6 @@ public class AuthenticationService(
                 var totpResult = await twoFactorService.ValidateTotpCodeAsync(user.Guid, request.Code);
                 if (totpResult.IsFailure) return totpResult.MapTo<AuthResponseDto>();
                 isValidCode = totpResult.Value;
-                break;
-
-            case "email":
-                var emailResult = await twoFactorService.ValidateEmailCodeAsync(user.Guid, request.Code, "2fa_login");
-                if (emailResult.IsFailure) return emailResult.MapTo<AuthResponseDto>();
-                isValidCode = emailResult.Value;
                 break;
 
             case "backup":
@@ -260,6 +280,28 @@ public class AuthenticationService(
 
         var token = tokenHandler.CreateToken(tokenDescriptor);
         return tokenHandler.WriteToken(token);
+    }
+
+    private string GenerateChallengeToken(Guid userGuid)
+    {
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var key = Encoding.ASCII.GetBytes(_jwtOptions.SecretKey ?? "");
+
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity([
+                new Claim(JwtRegisteredClaimNames.Sub, userGuid.ToString()),
+                new Claim("purpose", "2fa_challenge"),
+            ]),
+            Expires = DateTime.UtcNow.AddMinutes(5),
+            Issuer = _jwtOptions.Issuer,
+            Audience = _jwtOptions.Audience,
+            SigningCredentials = new SigningCredentials(
+                new SymmetricSecurityKey(key),
+                SecurityAlgorithms.HmacSha256Signature)
+        };
+
+        return tokenHandler.WriteToken(tokenHandler.CreateToken(tokenDescriptor));
     }
 
     private static string GenerateSecureRefreshToken()

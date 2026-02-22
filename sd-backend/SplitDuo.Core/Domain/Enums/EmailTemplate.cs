@@ -7,7 +7,6 @@ public enum EmailTemplate
     PasswordChanged,
     TwoFactorEnabled,
     TwoFactorDisabled,
-    TwoFactorEmailCode,
     GroupInvitation,
     GroupMemberAdded,
     GroupDeleted,

@@ -19,8 +19,6 @@ public interface ITwoFactorService
     Task<Result<TwoFactorSetupDto>> InitiateSetupAsync(Guid userGuid);
     Task<Result> VerifySetupAsync(Guid userGuid, VerifyTwoFactorSetupDto request);
     Task<Result> DisableAsync(Guid userGuid, DisableTwoFactorDto request);
-    Task<Result<string>> GenerateEmailCodeAsync(Guid userGuid, string purpose = "2fa_login");
-    Task<Result<bool>> ValidateEmailCodeAsync(Guid userGuid, string code, string purpose = "2fa_login");
     Task<Result<bool>> ValidateTotpCodeAsync(Guid userGuid, string code);
     Task<Result<bool>> ValidateBackupCodeAsync(Guid userGuid, string code);
     Task<Result<List<string>>> GenerateBackupCodesAsync(Guid userGuid);
@@ -134,75 +132,6 @@ public class TwoFactorService(
         return Result.Success();
     }
 
-    public async Task<Result<string>> GenerateEmailCodeAsync(Guid userGuid, string purpose = "2fa_login")
-    {
-        var user = await unitOfWork.Users
-            .FirstOrDefaultAsync(u => u.Guid == userGuid && u.DeletedAt == null);
-
-        if (user == null)
-            return Result<string>.NotFound("User not found");
-
-        // Generate 6-digit code
-        var code = GenerateNumericCode(6);
-        var hashedCode = HashToken(code);
-
-        // Clean up old tokens of the same purpose
-        var existingTokens = await unitOfWork.TwoFactorTokens
-            .Where(t => t.UserId == user.Id && t.Purpose == purpose && t.UsedAt == null)
-            .ToListAsync();
-
-        foreach (var token in existingTokens)
-        {
-            token.UsedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        }
-
-        // Create new token
-        var twoFactorToken = new TwoFactorToken
-        {
-            UserId = user.Id,
-            TokenHash = hashedCode,
-            TokenType = "email_verification",
-            Purpose = purpose,
-            ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(10).ToUnixTimeSeconds(), // 10 minutes
-            MaxAttempts = 3,
-            ClientInfo = "Email 2FA Code"
-        };
-
-        unitOfWork.TwoFactorTokens.Add(twoFactorToken);
-
-        // Send email with code
-        await notificationService.EnqueueAsync(emailTemplateProvider.Render(new TwoFactorEmailCodeModel
-            { To = user.Email, FirstName = user.FirstName, Code = code }));
-
-        return Result<string>.Success("Verification code sent to your email");
-    }
-
-    public async Task<Result<bool>> ValidateEmailCodeAsync(Guid userGuid, string code, string purpose = "2fa_login")
-    {
-        var user = await unitOfWork.Users
-            .FirstOrDefaultAsync(u => u.Guid == userGuid && u.DeletedAt == null);
-
-        if (user == null)
-            return Result<bool>.NotFound("User not found");
-
-        var token = await unitOfWork.TwoFactorTokens
-            .FirstOrDefaultAsync(t => t.UserId == user.Id &&
-                                      t.Purpose == purpose &&
-                                      t.TokenType == "email_verification" &&
-                                      t.UsedAt == null);
-
-        if (token == null || token.IsExpired || token.Attempts >= token.MaxAttempts)
-            return Result<bool>.Success(false);
-
-        token.Attempts++; // always count the attempt
-
-        if (token.TokenHash != HashToken(code))
-            return Result<bool>.Success(false);
-
-        token.UsedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        return Result<bool>.Success(true);
-    }
-
     public async Task<Result<bool>> ValidateTotpCodeAsync(Guid userGuid, string code)
     {
         var user = await unitOfWork.Users
@@ -295,27 +224,6 @@ public class TwoFactorService(
         }
 
         return codes;
-    }
-
-    private static string GenerateNumericCode(int length)
-    {
-        var max = (uint)Math.Pow(10, length);
-        var limit = (uint.MaxValue / max) * max;
-        var bytes = new byte[4];
-        uint number;
-        do
-        {
-            RandomNumberGenerator.Fill(bytes);
-            number = BitConverter.ToUInt32(bytes, 0);
-        } while (number >= limit);
-
-        return (number % max).ToString($"D{length}");
-    }
-
-    private static string HashToken(string token)
-    {
-        var hashedBytes = SHA256.HashData(Encoding.UTF8.GetBytes(token));
-        return Convert.ToBase64String(hashedBytes);
     }
 
     private static string HashBackupCode(string code)

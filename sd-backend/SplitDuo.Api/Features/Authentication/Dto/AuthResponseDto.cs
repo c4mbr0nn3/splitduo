@@ -8,5 +8,6 @@ public class AuthResponseDto
     public string RefreshToken { get; set; } = "";
     public long ExpiresAt { get; set; }
     public bool RequiresTwoFactor { get; set; } = false;
+    public string? TwoFactorChallengeToken { get; set; }
     public UserDto User { get; set; } = new();
 }

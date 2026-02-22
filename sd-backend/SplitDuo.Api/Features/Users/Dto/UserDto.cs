@@ -13,6 +13,7 @@ public class UserDto
     public long CreatedAt { get; set; }
     public long UpdatedAt { get; set; }
     public string FullName => $"{FirstName} {LastName ?? ""}";
+    public bool TwoFactorEnabled { get; set; }
 
     [JsonIgnore] public int OriginalId { get; set; }
 
@@ -30,5 +31,6 @@ public class UserDto
         GlobalRoleId = user.GlobalRoleId;
         CreatedAt = user.CreatedAt;
         UpdatedAt = user.UpdatedAt;
+        TwoFactorEnabled = user.TwoFactorEnabled;
     }
 }

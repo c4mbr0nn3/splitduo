@@ -25,7 +25,6 @@ public class EmailTemplateProvider(IOptions<AppOptions> appOptions, TimeProvider
             EmailTemplate.PasswordChanged => RenderPasswordChanged((PasswordChangedModel)model),
             EmailTemplate.TwoFactorEnabled => RenderTwoFactorEnabled((TwoFactorEnabledModel)model),
             EmailTemplate.TwoFactorDisabled => RenderTwoFactorDisabled((TwoFactorDisabledModel)model),
-            EmailTemplate.TwoFactorEmailCode => RenderTwoFactorEmailCode((TwoFactorEmailCodeModel)model),
             EmailTemplate.GroupInvitation => RenderGroupInvitation((GroupInvitationModel)model),
             EmailTemplate.GroupMemberAdded => RenderGroupMemberAdded((GroupMemberAddedModel)model),
             EmailTemplate.GroupDeleted => RenderGroupDeleted((GroupDeletedModel)model),
@@ -110,18 +109,6 @@ public class EmailTemplateProvider(IOptions<AppOptions> appOptions, TimeProvider
             Body = $"<p>Hi {m.FirstName},</p>" +
                    "<p>Two-factor authentication has been disabled on your account. Consider re-enabling it for better protection.</p>" +
                    "<p>Didn't do this? Contact support immediately — your account may be at risk.</p>" +
-                   "<p>— The SplitDuo Team</p>"
-        };
-
-    private static Notification RenderTwoFactorEmailCode(TwoFactorEmailCodeModel m) =>
-        new()
-        {
-            To = m.To,
-            Subject = $"Your SplitDuo login code: {m.Code}",
-            Body = $"<p>Hi {m.FirstName},</p>" +
-                   $"<p>Your verification code is: <strong>{m.Code}</strong></p>" +
-                   "<p>This code expires in 10 minutes. Do not share it with anyone.</p>" +
-                   "<p>If you didn't request this, you can safely ignore this email.</p>" +
                    "<p>— The SplitDuo Team</p>"
         };
 
