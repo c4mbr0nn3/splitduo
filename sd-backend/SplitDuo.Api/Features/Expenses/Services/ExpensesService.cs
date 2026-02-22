@@ -281,7 +281,7 @@ public class ExpensesService(
             .Where(gm => gm.User.DeletedAt == null)
             .ToListAsync();
 
-        foreach (var member in otherMembersForCreate)
+        /*foreach (var member in otherMembersForCreate)
         {
             await notificationService.EnqueueAsync(emailTemplateProvider.Render(new ExpenseAddedModel
             {
@@ -290,7 +290,7 @@ public class ExpensesService(
                 GroupName = group.Name, GroupGuid = group.Guid,
                 ExpenseTitle = expense.Title, ExpenseAmount = expense.Amount, ExpenseDate = expense.ExpenseDate
             }));
-        }
+        }*/
 
         // Map splits with users for the DTO
         var splitsWithUsers = expense.ExpenseSplits.Select((split, index) =>
@@ -567,7 +567,7 @@ public class ExpensesService(
             .Where(gm => gm.User.DeletedAt == null)
             .ToListAsync();
 
-        foreach (var member in otherMembersForDelete)
+        /*foreach (var member in otherMembersForDelete)
         {
             await notificationService.EnqueueAsync(emailTemplateProvider.Render(new ExpenseDeletedModel
             {
@@ -576,7 +576,7 @@ public class ExpensesService(
                 GroupName = group.Name, GroupGuid = group.Guid,
                 ExpenseTitle = expense.Title, ExpenseAmount = expense.Amount, ExpenseDate = expense.ExpenseDate
             }));
-        }
+        }*/
 
         return Result.Success();
     }
