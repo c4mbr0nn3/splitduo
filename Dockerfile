@@ -7,15 +7,17 @@ FROM node:22-alpine AS frontend-build
 ARG APP_VERSION
 ENV NUXT_PUBLIC_APP_VERSION=${APP_VERSION}
 
+RUN npm install -g pnpm@latest-10
+
 WORKDIR /app/frontend
 
 # Copy frontend package files
-COPY sd-frontend/package*.json ./
-RUN npm ci
+COPY sd-frontend/package.json sd-frontend/pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 
 # Copy frontend source code and build
 COPY sd-frontend/ ./
-RUN npm run generate
+RUN pnpm generate
 
 # Stage 2: Build backend (.NET 10)
 FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS backend-build
