@@ -171,7 +171,7 @@ public class UsersService(
 
         // Send password change notification email
         var emailResult = await notificationService.EnqueueAsync(emailTemplateProvider.Render(new PasswordChangedModel
-            { To = user.Email, FirstName = user.FirstName, LastName = user.LastName }));
+            { To = user.Email, FirstName = user.FirstName }));
 
         if (emailResult.IsFailure)
         {

@@ -362,7 +362,7 @@ public class AuthenticationService(
         // Send password reset email
         await notificationService.EnqueueAsync(emailTemplateProvider.Render(new PasswordResetModel
         {
-            To = user.Email, FirstName = user.FirstName, LastName = user.LastName, ResetToken = resetToken
+            To = user.Email, FirstName = user.FirstName, ResetToken = resetToken
         }));
 
         return Result.Success();
@@ -444,7 +444,7 @@ public class AuthenticationService(
         // Send password reset success email
         await notificationService.EnqueueAsync(emailTemplateProvider.Render(new PasswordResetSuccessModel
         {
-            To = user.Email, FirstName = user.FirstName, LastName = user.LastName
+            To = user.Email, FirstName = user.FirstName
         }));
 
         return Result.Success();

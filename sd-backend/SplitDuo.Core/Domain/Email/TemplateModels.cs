@@ -13,7 +13,6 @@ public record PasswordResetModel : ITemplateModel
     public EmailTemplate Template => EmailTemplate.PasswordReset;
     public required string To { get; init; }
     public required string FirstName { get; init; }
-    public required string LastName { get; init; }
     public required string ResetToken { get; init; }
 
     public void Validate()
@@ -29,7 +28,6 @@ public record PasswordResetSuccessModel : ITemplateModel
     public EmailTemplate Template => EmailTemplate.PasswordResetSuccess;
     public required string To { get; init; }
     public required string FirstName { get; init; }
-    public required string LastName { get; init; }
 
     public void Validate()
     {
@@ -43,7 +41,6 @@ public record PasswordChangedModel : ITemplateModel
     public EmailTemplate Template => EmailTemplate.PasswordChanged;
     public required string To { get; init; }
     public required string FirstName { get; init; }
-    public required string LastName { get; init; }
 
     public void Validate()
     {
@@ -88,6 +85,7 @@ public record TwoFactorEmailCodeModel : ITemplateModel
     public void Validate()
     {
         if (string.IsNullOrWhiteSpace(To)) throw new ArgumentException("To is required");
+        if (string.IsNullOrWhiteSpace(FirstName)) throw new ArgumentException("FirstName is required");
         if (string.IsNullOrWhiteSpace(Code)) throw new ArgumentException("Code is required");
     }
 }
