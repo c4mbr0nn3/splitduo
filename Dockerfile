@@ -12,7 +12,7 @@ RUN npm install -g pnpm@latest-10
 WORKDIR /app/frontend
 
 # Copy frontend package files
-COPY sd-frontend/package.json sd-frontend/pnpm-lock.yaml ./
+COPY sd-frontend/package.json sd-frontend/pnpm-lock.yaml sd-frontend/.npmrc ./
 RUN pnpm install --frozen-lockfile
 
 # Copy frontend source code and build
