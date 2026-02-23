@@ -7,6 +7,7 @@ TAG="test"
 FULL_IMAGE_NAME="${IMAGE_NAME}:${TAG}"
 FORCE_REBUILD=false
 NO_CACHE=false
+VERSION="dev"
 
 # Parse command line options
 while getopts "fn" opt; do
@@ -48,7 +49,7 @@ fi
 
 # Build the image
 echo "🔨 Building Docker image..."
-BUILD_ARGS="--tag ${FULL_IMAGE_NAME} --rm"
+BUILD_ARGS="--build-arg APP_VERSION=$VERSION --tag ${FULL_IMAGE_NAME} --rm"
 
 if [ "$NO_CACHE" = true ]; then
     BUILD_ARGS="${BUILD_ARGS} --no-cache"
