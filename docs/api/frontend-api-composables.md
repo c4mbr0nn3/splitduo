@@ -1,8 +1,10 @@
 # SplitDuo Frontend API Composables Structure
 
+> **Status**: Design reference document. The described structure has been implemented; see `sd-frontend/CLAUDE.md` for the authoritative reference and actual composable list. Composables added since this doc was written: `use2FA`, `useInvitations`, `useChartTheme`, `useModal`, `useDebounceSearch`. Note: `useSettlements` does not exist as a separate composable — settlements are handled via `useBalances` and direct API calls.
+
 ## Overview
 
-This document outlines the proposed Nuxt/Vue composables structure for organizing API calls in the SplitDuo frontend application. The structure follows Vue 3 Composition API and Nuxt 3 best practices, providing a clean, maintainable, and scalable approach to API integration.
+This document outlines the Nuxt/Vue composables structure for organizing API calls in the SplitDuo frontend application. The structure follows Vue 3 Composition API and Nuxt 4 best practices, providing a clean, maintainable, and scalable approach to API integration.
 
 ## Architecture Principles
 
@@ -45,58 +47,49 @@ composables/
 
 ```javascript
 export function useApi() {
-  const config = useRuntimeConfig()
-  const { getToken } = useAuthToken()
+  const config = useRuntimeConfig();
+  const { getToken } = useAuthToken();
 
   const apiConfig = {
-    baseURL: config.public.apiBaseUrl || 'http://localhost:5000/api/v1',
-  }
+    baseURL: config.public.apiBaseUrl || "http://localhost:5000/api/v1",
+  };
 
   // Create authenticated request headers
   const getAuthHeaders = () => {
-    const token = getToken()
-    return token
-      ? { Authorization: `Bearer ${token}` }
-      : {}
-  }
+    const token = getToken();
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
 
   // Base request function with error handling
   const request = async (endpoint, options = {}) => {
     try {
-      const response = await $fetch(
-        `${apiConfig.baseURL}${endpoint}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            ...getAuthHeaders(),
-            ...(options.headers || {})
-          },
-          ...options
-        }
-      )
-      return response
+      const response = await $fetch(`${apiConfig.baseURL}${endpoint}`, {
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+          ...(options.headers || {}),
+        },
+        ...options,
+      });
+      return response;
     } catch (error) {
       // Handle different error types
       throw createError({
         statusCode: error.status || 500,
-        statusMessage: error.message || 'API Error'
-      })
+        statusMessage: error.message || "API Error",
+      });
     }
-  }
+  };
 
   return {
-    get: (endpoint, params) =>
-      request(endpoint, { method: 'GET', params }),
+    get: (endpoint, params) => request(endpoint, { method: "GET", params }),
 
-    post: (endpoint, body) =>
-      request(endpoint, { method: 'POST', body }),
+    post: (endpoint, body) => request(endpoint, { method: "POST", body }),
 
-    put: (endpoint, body) =>
-      request(endpoint, { method: 'PUT', body }),
+    put: (endpoint, body) => request(endpoint, { method: "PUT", body }),
 
-    delete: (endpoint) =>
-      request(endpoint, { method: 'DELETE' }),
-  }
+    delete: (endpoint) => request(endpoint, { method: "DELETE" }),
+  };
 }
 ```
 
@@ -104,42 +97,42 @@ export function useApi() {
 
 ```javascript
 export function useAuthToken() {
-  const tokenCookie = useCookie('auth-token', {
+  const tokenCookie = useCookie("auth-token", {
     default: () => null,
     secure: true,
-    sameSite: 'strict'
-  })
+    sameSite: "strict",
+  });
 
-  const refreshTokenCookie = useCookie('refresh-token', {
+  const refreshTokenCookie = useCookie("refresh-token", {
     default: () => null,
     secure: true,
-    sameSite: 'strict'
-  })
+    sameSite: "strict",
+  });
 
   const setToken = (token, refreshToken) => {
-    tokenCookie.value = token
-    refreshTokenCookie.value = refreshToken
-  }
+    tokenCookie.value = token;
+    refreshTokenCookie.value = refreshToken;
+  };
 
   const getToken = () => {
-    return tokenCookie.value
-  }
+    return tokenCookie.value;
+  };
 
   const getRefreshToken = () => {
-    return refreshTokenCookie.value
-  }
+    return refreshTokenCookie.value;
+  };
 
   const removeToken = () => {
-    tokenCookie.value = null
-    refreshTokenCookie.value = null
-  }
+    tokenCookie.value = null;
+    refreshTokenCookie.value = null;
+  };
 
   return {
     setToken,
     getToken,
     getRefreshToken,
-    removeToken
-  }
+    removeToken,
+  };
 }
 ```
 
@@ -147,100 +140,100 @@ export function useAuthToken() {
 
 ```javascript
 export function useAuth() {
-  const api = useApi()
-  const { setToken, removeToken, getToken, getRefreshToken } = useAuthToken()
+  const api = useApi();
+  const { setToken, removeToken, getToken, getRefreshToken } = useAuthToken();
 
-  const user = ref(null)
-  const isAuthenticated = computed(() => !!user.value)
-  const isLoading = ref(false)
+  const user = ref(null);
+  const isAuthenticated = computed(() => !!user.value);
+  const isLoading = ref(false);
 
   // Login
   const login = async (credentials) => {
-    isLoading.value = true
+    isLoading.value = true;
     try {
-      const response = await api.post('/auth/login', credentials)
+      const response = await api.post("/auth/login", credentials);
 
       if (response.success && response.data) {
-        setToken(response.data.token, response.data.refreshToken)
-        user.value = response.data.user
-        await navigateTo('/dashboard')
-        return { success: true }
+        setToken(response.data.token, response.data.refreshToken);
+        user.value = response.data.user;
+        await navigateTo("/dashboard");
+        return { success: true };
       }
 
-      return { success: false, error: response.error?.message }
+      return { success: false, error: response.error?.message };
     } catch (error) {
       return {
         success: false,
-        error: error.message || 'Login failed'
-      }
+        error: error.message || "Login failed",
+      };
     } finally {
-      isLoading.value = false
+      isLoading.value = false;
     }
-  }
+  };
 
   // Logout
   const logout = async () => {
     try {
-      const refreshToken = getRefreshToken()
+      const refreshToken = getRefreshToken();
       if (refreshToken) {
-        await api.post('/auth/revoke', { refreshToken })
+        await api.post("/auth/revoke", { refreshToken });
       }
     } catch (error) {
-      console.warn('Logout API call failed:', error)
+      console.warn("Logout API call failed:", error);
     } finally {
-      removeToken()
-      user.value = null
-      await navigateTo('/login')
+      removeToken();
+      user.value = null;
+      await navigateTo("/login");
     }
-  }
+  };
 
   // Refresh token
   const refreshToken = async () => {
     try {
-      const currentToken = getToken()
-      const currentRefreshToken = getRefreshToken()
+      const currentToken = getToken();
+      const currentRefreshToken = getRefreshToken();
 
-      if (!currentRefreshToken) return false
+      if (!currentRefreshToken) return false;
 
-      const response = await api.post('/auth/refresh', {
+      const response = await api.post("/auth/refresh", {
         token: currentToken, // expired token
-        refreshToken: currentRefreshToken
-      })
+        refreshToken: currentRefreshToken,
+      });
 
       if (response.success && response.data) {
-        setToken(response.data.token, response.data.refreshToken)
-        user.value = response.data.user
-        return true
+        setToken(response.data.token, response.data.refreshToken);
+        user.value = response.data.user;
+        return true;
       }
 
-      return false
+      return false;
     } catch (error) {
-      console.error('Token refresh failed:', error)
-      await logout()
-      return false
+      console.error("Token refresh failed:", error);
+      await logout();
+      return false;
     }
-  }
+  };
 
   // Initialize auth state
   const initialize = async () => {
-    const token = getToken()
-    if (!token) return
+    const token = getToken();
+    if (!token) return;
 
     try {
-      const response = await api.get('/users/me')
+      const response = await api.get("/users/me");
       if (response.success && response.data) {
-        user.value = response.data
+        user.value = response.data;
       }
     } catch (error) {
       if (error.statusCode === 401) {
         // Try to refresh token
-        const refreshed = await refreshToken()
+        const refreshed = await refreshToken();
         if (refreshed) {
-          await initialize() // Retry with new token
+          await initialize(); // Retry with new token
         }
       }
     }
-  }
+  };
 
   return {
     user: readonly(user),
@@ -249,8 +242,8 @@ export function useAuth() {
     login,
     logout,
     refreshToken,
-    initialize
-  }
+    initialize,
+  };
 }
 ```
 
@@ -260,143 +253,143 @@ export function useAuth() {
 
 ```javascript
 export function useGroups() {
-  const api = useApi()
-  const { showError, showSuccess } = useNotifications()
+  const api = useApi();
+  const { showError, showSuccess } = useNotifications();
 
-  const groups = ref([])
-  const currentGroup = ref(null)
-  const isLoading = ref(false)
+  const groups = ref([]);
+  const currentGroup = ref(null);
+  const isLoading = ref(false);
 
   // Get user's groups
   const fetchGroups = async () => {
-    isLoading.value = true
+    isLoading.value = true;
     try {
-      const response = await api.get('/groups')
+      const response = await api.get("/groups");
       if (response.success && response.data) {
-        groups.value = response.data
+        groups.value = response.data;
       }
     } catch (error) {
-      showError('Failed to load groups')
-      throw error
+      showError("Failed to load groups");
+      throw error;
     } finally {
-      isLoading.value = false
+      isLoading.value = false;
     }
-  }
+  };
 
   // Create group
   const createGroup = async (groupData) => {
-    isLoading.value = true
+    isLoading.value = true;
     try {
-      const response = await api.post('/groups', groupData)
+      const response = await api.post("/groups", groupData);
       if (response.success && response.data) {
-        groups.value.push(response.data)
-        showSuccess('Group created successfully')
-        return response.data
+        groups.value.push(response.data);
+        showSuccess("Group created successfully");
+        return response.data;
       }
     } catch (error) {
-      showError('Failed to create group')
-      throw error
+      showError("Failed to create group");
+      throw error;
     } finally {
-      isLoading.value = false
+      isLoading.value = false;
     }
-  }
+  };
 
   // Get group details
   const fetchGroup = async (groupId) => {
-    isLoading.value = true
+    isLoading.value = true;
     try {
-      const response = await api.get(`/groups/${groupId}`)
+      const response = await api.get(`/groups/${groupId}`);
       if (response.success && response.data) {
-        currentGroup.value = response.data
-        return response.data
+        currentGroup.value = response.data;
+        return response.data;
       }
     } catch (error) {
-      showError('Failed to load group details')
-      throw error
+      showError("Failed to load group details");
+      throw error;
     } finally {
-      isLoading.value = false
+      isLoading.value = false;
     }
-  }
+  };
 
   // Update group
   const updateGroup = async (groupId, updates) => {
-    isLoading.value = true
+    isLoading.value = true;
     try {
-      const response = await api.put(`/groups/${groupId}`, updates)
+      const response = await api.put(`/groups/${groupId}`, updates);
       if (response.success && response.data) {
-        const index = groups.value.findIndex(g => g.id === groupId)
+        const index = groups.value.findIndex((g) => g.id === groupId);
         if (index !== -1) {
-          groups.value[index] = response.data
+          groups.value[index] = response.data;
         }
         if (currentGroup.value?.id === groupId) {
-          currentGroup.value = response.data
+          currentGroup.value = response.data;
         }
-        showSuccess('Group updated successfully')
-        return response.data
+        showSuccess("Group updated successfully");
+        return response.data;
       }
     } catch (error) {
-      showError('Failed to update group')
-      throw error
+      showError("Failed to update group");
+      throw error;
     } finally {
-      isLoading.value = false
+      isLoading.value = false;
     }
-  }
+  };
 
   // Delete group
   const deleteGroup = async (groupId) => {
-    isLoading.value = true
+    isLoading.value = true;
     try {
-      await api.delete(`/groups/${groupId}`)
-      groups.value = groups.value.filter(g => g.id !== groupId)
+      await api.delete(`/groups/${groupId}`);
+      groups.value = groups.value.filter((g) => g.id !== groupId);
       if (currentGroup.value?.id === groupId) {
-        currentGroup.value = null
+        currentGroup.value = null;
       }
-      showSuccess('Group deleted successfully')
+      showSuccess("Group deleted successfully");
     } catch (error) {
-      showError('Failed to delete group')
-      throw error
+      showError("Failed to delete group");
+      throw error;
     } finally {
-      isLoading.value = false
+      isLoading.value = false;
     }
-  }
+  };
 
   // Get group members
   const fetchGroupMembers = async (groupId) => {
     try {
-      const response = await api.get(`/groups/${groupId}/members`)
+      const response = await api.get(`/groups/${groupId}/members`);
       if (response.success && response.data) {
-        return response.data
+        return response.data;
       }
     } catch (error) {
-      showError('Failed to load group members')
-      throw error
+      showError("Failed to load group members");
+      throw error;
     }
-  }
+  };
 
   // Add group member
   const addGroupMember = async (groupId, memberData) => {
     try {
-      const response = await api.post(`/groups/${groupId}/members`, memberData)
+      const response = await api.post(`/groups/${groupId}/members`, memberData);
       if (response.success && response.data) {
-        showSuccess('Member added successfully')
-        return response.data
+        showSuccess("Member added successfully");
+        return response.data;
       }
     } catch (error) {
-      showError('Failed to add member')
-      throw error
+      showError("Failed to add member");
+      throw error;
     }
-  }
+  };
 
   // Remove group member
   const removeGroupMember = async (groupId, userId) => {
     try {
-      await api.delete(`/groups/${groupId}/members/${userId}`)
-      showSuccess('Member removed successfully')
+      await api.delete(`/groups/${groupId}/members/${userId}`);
+      showSuccess("Member removed successfully");
     } catch (error) {
-      showError('Failed to remove member')
-      throw error
+      showError("Failed to remove member");
+      throw error;
     }
-  }
+  };
 
   return {
     groups: readonly(groups),
@@ -409,8 +402,8 @@ export function useGroups() {
     deleteGroup,
     fetchGroupMembers,
     addGroupMember,
-    removeGroupMember
-  }
+    removeGroupMember,
+  };
 }
 ```
 
@@ -418,27 +411,27 @@ export function useGroups() {
 
 ```javascript
 export function useExpenses(groupId) {
-  const api = useApi()
-  const { showError, showSuccess } = useNotifications()
+  const api = useApi();
+  const { showError, showSuccess } = useNotifications();
 
-  const groupIdRef = toRef(groupId)
-  const expenses = ref([])
-  const currentExpense = ref(null)
+  const groupIdRef = toRef(groupId);
+  const expenses = ref([]);
+  const currentExpense = ref(null);
   const pagination = ref({
     page: 1,
     limit: 20,
     total: 0,
     totalPages: 0,
     hasNext: false,
-    hasPrev: false
-  })
-  const isLoading = ref(false)
+    hasPrev: false,
+  });
+  const isLoading = ref(false);
 
   // Fetch expenses with filtering and pagination
   const fetchExpenses = async (filters = {}) => {
-    if (!groupIdRef.value) return
+    if (!groupIdRef.value) return;
 
-    isLoading.value = true
+    isLoading.value = true;
     try {
       const params = {
         page: filters.page || 1,
@@ -446,112 +439,118 @@ export function useExpenses(groupId) {
         ...(filters.startDate && { startDate: filters.startDate }),
         ...(filters.endDate && { endDate: filters.endDate }),
         ...(filters.category && { category: filters.category }),
-        ...(filters.userId && { userId: filters.userId })
-      }
+        ...(filters.userId && { userId: filters.userId }),
+      };
 
       const response = await api.get(
         `/groups/${groupIdRef.value}/expenses`,
-        params
-      )
+        params,
+      );
 
       if (response.success && response.data) {
-        expenses.value = response.data
+        expenses.value = response.data;
         pagination.value = response.pagination || {
-          page: 1, limit: 20, total: 0, totalPages: 0,
-          hasNext: false, hasPrev: false
-        }
+          page: 1,
+          limit: 20,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false,
+        };
       }
     } catch (error) {
-      showError('Failed to load expenses')
-      throw error
+      showError("Failed to load expenses");
+      throw error;
     } finally {
-      isLoading.value = false
+      isLoading.value = false;
     }
-  }
+  };
 
   // Get single expense
   const fetchExpense = async (expenseId) => {
-    if (!groupIdRef.value) return
+    if (!groupIdRef.value) return;
 
-    isLoading.value = true
+    isLoading.value = true;
     try {
-      const response = await api.get(`/groups/${groupIdRef.value}/expenses/${expenseId}`)
+      const response = await api.get(
+        `/groups/${groupIdRef.value}/expenses/${expenseId}`,
+      );
       if (response.success && response.data) {
-        currentExpense.value = response.data
-        return response.data
+        currentExpense.value = response.data;
+        return response.data;
       }
     } catch (error) {
-      showError('Failed to load expense')
-      throw error
+      showError("Failed to load expense");
+      throw error;
     } finally {
-      isLoading.value = false
+      isLoading.value = false;
     }
-  }
+  };
 
   // Create expense
   const createExpense = async (expenseData) => {
-    if (!groupIdRef.value) return
+    if (!groupIdRef.value) return;
 
     try {
       const response = await api.post(
         `/groups/${groupIdRef.value}/expenses`,
-        expenseData
-      )
+        expenseData,
+      );
 
       if (response.success && response.data) {
-        expenses.value.unshift(response.data)
-        showSuccess('Expense created successfully')
-        return response.data
+        expenses.value.unshift(response.data);
+        showSuccess("Expense created successfully");
+        return response.data;
       }
     } catch (error) {
-      showError('Failed to create expense')
-      throw error
+      showError("Failed to create expense");
+      throw error;
     }
-  }
+  };
 
   // Update expense
   const updateExpense = async (expenseId, updates) => {
-    if (!groupIdRef.value) return
+    if (!groupIdRef.value) return;
 
     try {
       const response = await api.put(
         `/groups/${groupIdRef.value}/expenses/${expenseId}`,
-        updates
-      )
+        updates,
+      );
 
       if (response.success && response.data) {
-        const index = expenses.value.findIndex(e => e.id === expenseId)
+        const index = expenses.value.findIndex((e) => e.id === expenseId);
         if (index !== -1) {
-          expenses.value[index] = response.data
+          expenses.value[index] = response.data;
         }
         if (currentExpense.value?.id === expenseId) {
-          currentExpense.value = response.data
+          currentExpense.value = response.data;
         }
-        showSuccess('Expense updated successfully')
-        return response.data
+        showSuccess("Expense updated successfully");
+        return response.data;
       }
     } catch (error) {
-      showError('Failed to update expense')
-      throw error
+      showError("Failed to update expense");
+      throw error;
     }
-  }
+  };
 
   // Delete expense
   const deleteExpense = async (expenseId) => {
-    if (!groupIdRef.value) return
+    if (!groupIdRef.value) return;
 
     try {
-      await api.delete(`/groups/${groupIdRef.value}/expenses/${expenseId}`)
-      expenses.value = expenses.value.filter(e => e.id !== expenseId)
+      await api.delete(`/groups/${groupIdRef.value}/expenses/${expenseId}`);
+      expenses.value = expenses.value.filter((e) => e.id !== expenseId);
       if (currentExpense.value?.id === expenseId) {
-        currentExpense.value = null
+        currentExpense.value = null;
       }
-      showSuccess('Expense deleted successfully')
+      showSuccess("Expense deleted successfully");
     } catch (error) {
-      showError('Failed to delete expense')
-      throw error
+      showError("Failed to delete expense");
+      throw error;
     }
-  }
+  };
 
   return {
     expenses: readonly(expenses),
@@ -562,8 +561,8 @@ export function useExpenses(groupId) {
     fetchExpense,
     createExpense,
     updateExpense,
-    deleteExpense
-  }
+    deleteExpense,
+  };
 }
 ```
 
@@ -571,145 +570,153 @@ export function useExpenses(groupId) {
 
 ```javascript
 export function useSettlements(groupId) {
-  const api = useApi()
-  const { showError, showSuccess } = useNotifications()
+  const api = useApi();
+  const { showError, showSuccess } = useNotifications();
 
-  const groupIdRef = toRef(groupId)
-  const settlements = ref([])
-  const currentSettlement = ref(null)
+  const groupIdRef = toRef(groupId);
+  const settlements = ref([]);
+  const currentSettlement = ref(null);
   const pagination = ref({
     page: 1,
     limit: 20,
     total: 0,
     totalPages: 0,
     hasNext: false,
-    hasPrev: false
-  })
-  const isLoading = ref(false)
+    hasPrev: false,
+  });
+  const isLoading = ref(false);
 
   // Fetch settlements with filtering and pagination
   const fetchSettlements = async (filters = {}) => {
-    if (!groupIdRef.value) return
+    if (!groupIdRef.value) return;
 
-    isLoading.value = true
+    isLoading.value = true;
     try {
       const params = {
         page: filters.page || 1,
         limit: filters.limit || 20,
         ...(filters.startDate && { startDate: filters.startDate }),
-        ...(filters.endDate && { endDate: filters.endDate })
-      }
+        ...(filters.endDate && { endDate: filters.endDate }),
+      };
 
       const response = await api.get(
         `/groups/${groupIdRef.value}/settlements`,
-        params
-      )
+        params,
+      );
 
       if (response.success && response.data) {
-        settlements.value = response.data
+        settlements.value = response.data;
         pagination.value = response.pagination || {
-          page: 1, limit: 20, total: 0, totalPages: 0,
-          hasNext: false, hasPrev: false
-        }
+          page: 1,
+          limit: 20,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false,
+        };
       }
     } catch (error) {
-      showError('Failed to load settlements')
-      throw error
+      showError("Failed to load settlements");
+      throw error;
     } finally {
-      isLoading.value = false
+      isLoading.value = false;
     }
-  }
+  };
 
   // Create settlement
   const createSettlement = async (settlementData) => {
-    if (!groupIdRef.value) return
+    if (!groupIdRef.value) return;
 
     try {
       const response = await api.post(
         `/groups/${groupIdRef.value}/settlements`,
-        settlementData
-      )
+        settlementData,
+      );
 
       if (response.success && response.data) {
-        settlements.value.unshift(response.data)
-        showSuccess('Settlement created successfully')
-        return response.data
+        settlements.value.unshift(response.data);
+        showSuccess("Settlement created successfully");
+        return response.data;
       }
     } catch (error) {
-      showError('Failed to create settlement')
-      throw error
+      showError("Failed to create settlement");
+      throw error;
     }
-  }
+  };
 
   // Update settlement
   const updateSettlement = async (settlementId, updates) => {
-    if (!groupIdRef.value) return
+    if (!groupIdRef.value) return;
 
     try {
       const response = await api.put(
         `/groups/${groupIdRef.value}/settlements/${settlementId}`,
-        updates
-      )
+        updates,
+      );
 
       if (response.success && response.data) {
-        const index = settlements.value.findIndex(s => s.id === settlementId)
+        const index = settlements.value.findIndex((s) => s.id === settlementId);
         if (index !== -1) {
-          settlements.value[index] = response.data
+          settlements.value[index] = response.data;
         }
         if (currentSettlement.value?.id === settlementId) {
-          currentSettlement.value = response.data
+          currentSettlement.value = response.data;
         }
-        showSuccess('Settlement updated successfully')
-        return response.data
+        showSuccess("Settlement updated successfully");
+        return response.data;
       }
     } catch (error) {
-      showError('Failed to update settlement')
-      throw error
+      showError("Failed to update settlement");
+      throw error;
     }
-  }
+  };
 
   // Delete settlement
   const deleteSettlement = async (settlementId) => {
-    if (!groupIdRef.value) return
+    if (!groupIdRef.value) return;
 
     try {
-      await api.delete(`/groups/${groupIdRef.value}/settlements/${settlementId}`)
-      settlements.value = settlements.value.filter(s => s.id !== settlementId)
+      await api.delete(
+        `/groups/${groupIdRef.value}/settlements/${settlementId}`,
+      );
+      settlements.value = settlements.value.filter(
+        (s) => s.id !== settlementId,
+      );
       if (currentSettlement.value?.id === settlementId) {
-        currentSettlement.value = null
+        currentSettlement.value = null;
       }
-      showSuccess('Settlement deleted successfully')
+      showSuccess("Settlement deleted successfully");
     } catch (error) {
-      showError('Failed to delete settlement')
-      throw error
+      showError("Failed to delete settlement");
+      throw error;
     }
-  }
+  };
 
   // Confirm settlement
   const confirmSettlement = async (settlementId) => {
-    if (!groupIdRef.value) return
+    if (!groupIdRef.value) return;
 
     try {
       const response = await api.post(
-        `/groups/${groupIdRef.value}/settlements/${settlementId}/confirm`
-      )
+        `/groups/${groupIdRef.value}/settlements/${settlementId}/confirm`,
+      );
 
       if (response.success && response.data) {
-        const index = settlements.value.findIndex(s => s.id === settlementId)
+        const index = settlements.value.findIndex((s) => s.id === settlementId);
         if (index !== -1) {
-          settlements.value[index] = response.data
+          settlements.value[index] = response.data;
         }
         if (currentSettlement.value?.id === settlementId) {
-          currentSettlement.value = response.data
+          currentSettlement.value = response.data;
         }
-        showSuccess('Settlement confirmed successfully')
-        return response.data
+        showSuccess("Settlement confirmed successfully");
+        return response.data;
       }
     } catch (error) {
-      showError('Failed to confirm settlement')
-      throw error
+      showError("Failed to confirm settlement");
+      throw error;
     }
-  }
+  };
 
   return {
     settlements: readonly(settlements),
@@ -720,8 +727,8 @@ export function useSettlements(groupId) {
     createSettlement,
     updateSettlement,
     deleteSettlement,
-    confirmSettlement
-  }
+    confirmSettlement,
+  };
 }
 ```
 
@@ -729,57 +736,59 @@ export function useSettlements(groupId) {
 
 ```javascript
 export function useBalances(groupId) {
-  const api = useApi()
-  const { showError } = useNotifications()
+  const api = useApi();
+  const { showError } = useNotifications();
 
-  const groupIdRef = toRef(groupId)
-  const balances = ref([])
-  const balanceSummary = ref(null)
-  const isLoading = ref(false)
+  const groupIdRef = toRef(groupId);
+  const balances = ref([]);
+  const balanceSummary = ref(null);
+  const isLoading = ref(false);
 
   // Get current balances
   const fetchBalances = async () => {
-    if (!groupIdRef.value) return
+    if (!groupIdRef.value) return;
 
-    isLoading.value = true
+    isLoading.value = true;
     try {
-      const response = await api.get(`/groups/${groupIdRef.value}/balances`)
+      const response = await api.get(`/groups/${groupIdRef.value}/balances`);
       if (response.success && response.data) {
-        balances.value = response.data
+        balances.value = response.data;
       }
     } catch (error) {
-      showError('Failed to load balances')
-      throw error
+      showError("Failed to load balances");
+      throw error;
     } finally {
-      isLoading.value = false
+      isLoading.value = false;
     }
-  }
+  };
 
   // Get balance summary with suggestions
   const fetchBalanceSummary = async () => {
-    if (!groupIdRef.value) return
+    if (!groupIdRef.value) return;
 
-    isLoading.value = true
+    isLoading.value = true;
     try {
-      const response = await api.get(`/groups/${groupIdRef.value}/balances/summary`)
+      const response = await api.get(
+        `/groups/${groupIdRef.value}/balances/summary`,
+      );
       if (response.success && response.data) {
-        balanceSummary.value = response.data
+        balanceSummary.value = response.data;
       }
     } catch (error) {
-      showError('Failed to load balance summary')
-      throw error
+      showError("Failed to load balance summary");
+      throw error;
     } finally {
-      isLoading.value = false
+      isLoading.value = false;
     }
-  }
+  };
 
   return {
     balances: readonly(balances),
     balanceSummary: readonly(balanceSummary),
     isLoading: readonly(isLoading),
     fetchBalances,
-    fetchBalanceSummary
-  }
+    fetchBalanceSummary,
+  };
 }
 ```
 
@@ -787,129 +796,129 @@ export function useBalances(groupId) {
 
 ```javascript
 export function useUsers() {
-  const api = useApi()
-  const { showError, showSuccess } = useNotifications()
+  const api = useApi();
+  const { showError, showSuccess } = useNotifications();
 
-  const users = ref([])
-  const currentUser = ref(null)
-  const userImports = ref([])
-  const isLoading = ref(false)
+  const users = ref([]);
+  const currentUser = ref(null);
+  const userImports = ref([]);
+  const isLoading = ref(false);
 
   // Get all users (admin only)
   const fetchUsers = async () => {
-    isLoading.value = true
+    isLoading.value = true;
     try {
-      const response = await api.get('/users')
+      const response = await api.get("/users");
       if (response.success && response.data) {
-        users.value = response.data
+        users.value = response.data;
       }
     } catch (error) {
-      showError('Failed to load users')
-      throw error
+      showError("Failed to load users");
+      throw error;
     } finally {
-      isLoading.value = false
+      isLoading.value = false;
     }
-  }
+  };
 
   // Get current user profile
   const fetchCurrentUser = async () => {
-    isLoading.value = true
+    isLoading.value = true;
     try {
-      const response = await api.get('/users/me')
+      const response = await api.get("/users/me");
       if (response.success && response.data) {
-        currentUser.value = response.data
-        return response.data
+        currentUser.value = response.data;
+        return response.data;
       }
     } catch (error) {
-      showError('Failed to load user profile')
-      throw error
+      showError("Failed to load user profile");
+      throw error;
     } finally {
-      isLoading.value = false
+      isLoading.value = false;
     }
-  }
+  };
 
   // Update current user profile
   const updateCurrentUser = async (userData) => {
     try {
-      const response = await api.put('/users/me', userData)
+      const response = await api.put("/users/me", userData);
       if (response.success && response.data) {
-        currentUser.value = response.data
-        showSuccess('Profile updated successfully')
-        return response.data
+        currentUser.value = response.data;
+        showSuccess("Profile updated successfully");
+        return response.data;
       }
     } catch (error) {
-      showError('Failed to update profile')
-      throw error
+      showError("Failed to update profile");
+      throw error;
     }
-  }
+  };
 
   // Change password
   const changePassword = async (passwordData) => {
     try {
-      await api.put('/users/me/password', passwordData)
-      showSuccess('Password changed successfully')
+      await api.put("/users/me/password", passwordData);
+      showSuccess("Password changed successfully");
     } catch (error) {
-      showError('Failed to change password')
-      throw error
+      showError("Failed to change password");
+      throw error;
     }
-  }
+  };
 
   // Get user imports
   const fetchUserImports = async () => {
     try {
-      const response = await api.get('/users/me/imports')
+      const response = await api.get("/users/me/imports");
       if (response.success && response.data) {
-        userImports.value = response.data
-        return response.data
+        userImports.value = response.data;
+        return response.data;
       }
     } catch (error) {
-      showError('Failed to load imports')
-      throw error
+      showError("Failed to load imports");
+      throw error;
     }
-  }
+  };
 
   // Get user by ID
   const fetchUser = async (userId) => {
     try {
-      const response = await api.get(`/users/${userId}`)
+      const response = await api.get(`/users/${userId}`);
       if (response.success && response.data) {
-        return response.data
+        return response.data;
       }
     } catch (error) {
-      showError('Failed to load user')
-      throw error
+      showError("Failed to load user");
+      throw error;
     }
-  }
+  };
 
   // Update user (admin only)
   const updateUser = async (userId, userData) => {
     try {
-      const response = await api.put(`/users/${userId}`, userData)
+      const response = await api.put(`/users/${userId}`, userData);
       if (response.success && response.data) {
-        const index = users.value.findIndex(u => u.id === userId)
+        const index = users.value.findIndex((u) => u.id === userId);
         if (index !== -1) {
-          users.value[index] = response.data
+          users.value[index] = response.data;
         }
-        showSuccess('User updated successfully')
-        return response.data
+        showSuccess("User updated successfully");
+        return response.data;
       }
     } catch (error) {
-      showError('Failed to update user')
-      throw error
+      showError("Failed to update user");
+      throw error;
     }
-  }
+  };
 
   // Delete user (admin only)
   const deleteUser = async (userId) => {
     try {
-      await api.delete(`/users/${userId}`)
-      users.value = users.value.filter(u => u.id !== userId)
-      showSuccess('User deleted successfully')
+      await api.delete(`/users/${userId}`);
+      users.value = users.value.filter((u) => u.id !== userId);
+      showSuccess("User deleted successfully");
     } catch (error) {
-      showError('Failed to delete user')
-      throw error
+      showError("Failed to delete user");
+      throw error;
     }
-  }
+  };
 
   return {
     users: readonly(users),
@@ -923,8 +932,8 @@ export function useUsers() {
     fetchUserImports,
     fetchUser,
     updateUser,
-    deleteUser
-  }
+    deleteUser,
+  };
 }
 ```
 
@@ -932,33 +941,33 @@ export function useUsers() {
 
 ```javascript
 export function useCategories() {
-  const api = useApi()
-  const { showError } = useNotifications()
+  const api = useApi();
+  const { showError } = useNotifications();
 
-  const categories = ref([])
-  const isLoading = ref(false)
+  const categories = ref([]);
+  const isLoading = ref(false);
 
   // Get available categories
   const fetchCategories = async () => {
-    isLoading.value = true
+    isLoading.value = true;
     try {
-      const response = await api.get('/categories')
+      const response = await api.get("/categories");
       if (response.success && response.data) {
-        categories.value = response.data
+        categories.value = response.data;
       }
     } catch (error) {
-      showError('Failed to load categories')
-      throw error
+      showError("Failed to load categories");
+      throw error;
     } finally {
-      isLoading.value = false
+      isLoading.value = false;
     }
-  }
+  };
 
   return {
     categories: readonly(categories),
     isLoading: readonly(isLoading),
-    fetchCategories
-  }
+    fetchCategories,
+  };
 }
 ```
 
@@ -966,33 +975,33 @@ export function useCategories() {
 
 ```javascript
 export function usePaymentModes() {
-  const api = useApi()
-  const { showError } = useNotifications()
+  const api = useApi();
+  const { showError } = useNotifications();
 
-  const paymentModes = ref([])
-  const isLoading = ref(false)
+  const paymentModes = ref([]);
+  const isLoading = ref(false);
 
   // Get available payment modes
   const fetchPaymentModes = async () => {
-    isLoading.value = true
+    isLoading.value = true;
     try {
-      const response = await api.get('/payment-modes')
+      const response = await api.get("/payment-modes");
       if (response.success && response.data) {
-        paymentModes.value = response.data
+        paymentModes.value = response.data;
       }
     } catch (error) {
-      showError('Failed to load payment modes')
-      throw error
+      showError("Failed to load payment modes");
+      throw error;
     } finally {
-      isLoading.value = false
+      isLoading.value = false;
     }
-  }
+  };
 
   return {
     paymentModes: readonly(paymentModes),
     isLoading: readonly(isLoading),
-    fetchPaymentModes
-  }
+    fetchPaymentModes,
+  };
 }
 ```
 
@@ -1000,108 +1009,110 @@ export function usePaymentModes() {
 
 ```javascript
 export function useImportExport(groupId) {
-  const api = useApi()
-  const { showError, showSuccess } = useNotifications()
+  const api = useApi();
+  const { showError, showSuccess } = useNotifications();
 
-  const groupIdRef = toRef(groupId)
-  const isImporting = ref(false)
-  const isExporting = ref(false)
+  const groupIdRef = toRef(groupId);
+  const isImporting = ref(false);
+  const isExporting = ref(false);
 
   // Import data backup
   const importData = async (file, importTypeId = 1) => {
-    if (!groupIdRef.value) return
+    if (!groupIdRef.value) return;
 
-    isImporting.value = true
+    isImporting.value = true;
     try {
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('importTypeId', importTypeId)
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("importTypeId", importTypeId);
 
       const response = await api.post(
         `/groups/${groupIdRef.value}/imports`,
         formData,
         {
           headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        }
-      )
+            "Content-Type": "multipart/form-data",
+          },
+        },
+      );
 
       if (response.success && response.data) {
-        showSuccess('Data imported successfully')
-        return response.data
+        showSuccess("Data imported successfully");
+        return response.data;
       }
     } catch (error) {
-      showError('Failed to import data')
-      throw error
+      showError("Failed to import data");
+      throw error;
     } finally {
-      isImporting.value = false
+      isImporting.value = false;
     }
-  }
+  };
 
   // Export to CSV
   const exportToCsv = async () => {
-    if (!groupIdRef.value) return
+    if (!groupIdRef.value) return;
 
-    isExporting.value = true
+    isExporting.value = true;
     try {
-      const response = await api.get(`/groups/${groupIdRef.value}/export/csv`)
+      const response = await api.get(`/groups/${groupIdRef.value}/export/csv`);
 
       // Handle file download
-      const blob = new Blob([response], { type: 'text/csv' })
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `splitduo-export-${groupIdRef.value}.csv`
-      document.body.appendChild(a)
-      a.click()
-      window.URL.revokeObjectURL(url)
-      document.body.removeChild(a)
+      const blob = new Blob([response], { type: "text/csv" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `splitduo-export-${groupIdRef.value}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
 
-      showSuccess('Data exported successfully')
+      showSuccess("Data exported successfully");
     } catch (error) {
-      showError('Failed to export data')
-      throw error
+      showError("Failed to export data");
+      throw error;
     } finally {
-      isExporting.value = false
+      isExporting.value = false;
     }
-  }
+  };
 
   // Export to Cospend format
   const exportToCospend = async () => {
-    if (!groupIdRef.value) return
+    if (!groupIdRef.value) return;
 
-    isExporting.value = true
+    isExporting.value = true;
     try {
-      const response = await api.get(`/groups/${groupIdRef.value}/export/cospend`)
+      const response = await api.get(
+        `/groups/${groupIdRef.value}/export/cospend`,
+      );
 
       // Handle file download
-      const blob = new Blob([response], { type: 'application/json' })
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `cospend-export-${groupIdRef.value}.json`
-      document.body.appendChild(a)
-      a.click()
-      window.URL.revokeObjectURL(url)
-      document.body.removeChild(a)
+      const blob = new Blob([response], { type: "application/json" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `cospend-export-${groupIdRef.value}.json`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
 
-      showSuccess('Cospend export successful')
+      showSuccess("Cospend export successful");
     } catch (error) {
-      showError('Failed to export to Cospend format')
-      throw error
+      showError("Failed to export to Cospend format");
+      throw error;
     } finally {
-      isExporting.value = false
+      isExporting.value = false;
     }
-  }
+  };
 
   return {
     isImporting: readonly(isImporting),
     isExporting: readonly(isExporting),
     importData,
     exportToCsv,
-    exportToCospend
-  }
+    exportToCospend,
+  };
 }
 ```
 
@@ -1111,46 +1122,46 @@ export function useImportExport(groupId) {
 
 ```javascript
 export function useNotifications() {
-  const toast = useToast()
+  const toast = useToast();
 
-  const showSuccess = (message, title = 'Success') => {
+  const showSuccess = (message, title = "Success") => {
     toast.add({
       title,
       description: message,
-      color: 'green'
-    })
-  }
+      color: "green",
+    });
+  };
 
-  const showError = (message, title = 'Error') => {
+  const showError = (message, title = "Error") => {
     toast.add({
       title,
       description: message,
-      color: 'red'
-    })
-  }
+      color: "red",
+    });
+  };
 
-  const showWarning = (message, title = 'Warning') => {
+  const showWarning = (message, title = "Warning") => {
     toast.add({
       title,
       description: message,
-      color: 'yellow'
-    })
-  }
+      color: "yellow",
+    });
+  };
 
-  const showInfo = (message, title = 'Info') => {
+  const showInfo = (message, title = "Info") => {
     toast.add({
       title,
       description: message,
-      color: 'blue'
-    })
-  }
+      color: "blue",
+    });
+  };
 
   return {
     showSuccess,
     showError,
     showWarning,
-    showInfo
-  }
+    showInfo,
+  };
 }
 ```
 
@@ -1158,40 +1169,39 @@ export function useNotifications() {
 
 ```javascript
 export function useErrorHandling() {
-  const { showError } = useNotifications()
+  const { showError } = useNotifications();
 
-  const handleApiError = (error, defaultMessage = 'An error occurred') => {
-    const message = error?.data?.error?.message ||
-                   error?.message ||
-                   defaultMessage
+  const handleApiError = (error, defaultMessage = "An error occurred") => {
+    const message =
+      error?.data?.error?.message || error?.message || defaultMessage;
 
-    showError(message)
-  }
+    showError(message);
+  };
 
   const handleValidationErrors = (errors) => {
     if (Array.isArray(errors)) {
-      errors.forEach(error => {
-        showError(`${error.field}: ${error.message}`)
-      })
+      errors.forEach((error) => {
+        showError(`${error.field}: ${error.message}`);
+      });
     }
-  }
+  };
 
   const handleAuthError = (error) => {
     if (error.statusCode === 401) {
-      showError('Authentication required. Please log in.')
-      navigateTo('/login')
+      showError("Authentication required. Please log in.");
+      navigateTo("/login");
     } else if (error.statusCode === 403) {
-      showError('Access denied. You do not have permission.')
+      showError("Access denied. You do not have permission.");
     } else {
-      handleApiError(error)
+      handleApiError(error);
     }
-  }
+  };
 
   return {
     handleApiError,
     handleValidationErrors,
-    handleAuthError
-  }
+    handleAuthError,
+  };
 }
 ```
 
@@ -1200,46 +1210,46 @@ export function useErrorHandling() {
 ```javascript
 export function usePagination() {
   const createPaginatedList = (initialData = []) => {
-    const items = ref(initialData)
+    const items = ref(initialData);
     const pagination = ref({
       page: 1,
       limit: 20,
       total: 0,
       totalPages: 0,
       hasNext: false,
-      hasPrev: false
-    })
-    const isLoading = ref(false)
+      hasPrev: false,
+    });
+    const isLoading = ref(false);
 
     const nextPage = () => {
       if (pagination.value.hasNext) {
-        pagination.value.page++
+        pagination.value.page++;
       }
-    }
+    };
 
     const prevPage = () => {
       if (pagination.value.hasPrev) {
-        pagination.value.page--
+        pagination.value.page--;
       }
-    }
+    };
 
     const goToPage = (page) => {
       if (page >= 1 && page <= pagination.value.totalPages) {
-        pagination.value.page = page
+        pagination.value.page = page;
       }
-    }
+    };
 
     const setLimit = (limit) => {
-      pagination.value.limit = limit
-      pagination.value.page = 1 // Reset to first page when changing limit
-    }
+      pagination.value.limit = limit;
+      pagination.value.page = 1; // Reset to first page when changing limit
+    };
 
     // Computed properties for easy access
-    const currentPageItems = computed(() => items.value)
-    const hasItems = computed(() => items.value.length > 0)
-    const isEmpty = computed(() => !hasItems.value && !isLoading.value)
-    const totalPages = computed(() => pagination.value.totalPages)
-    const currentPage = computed(() => pagination.value.page)
+    const currentPageItems = computed(() => items.value);
+    const hasItems = computed(() => items.value.length > 0);
+    const isEmpty = computed(() => !hasItems.value && !isLoading.value);
+    const totalPages = computed(() => pagination.value.totalPages);
+    const currentPage = computed(() => pagination.value.page);
 
     return {
       items,
@@ -1253,13 +1263,13 @@ export function usePagination() {
       nextPage,
       prevPage,
       goToPage,
-      setLimit
-    }
-  }
+      setLimit,
+    };
+  };
 
   return {
-    createPaginatedList
-  }
+    createPaginatedList,
+  };
 }
 ```
 
@@ -1270,20 +1280,20 @@ export function usePagination() {
 ```vue
 <script setup>
 // Groups page
-const { groups, fetchGroups, createGroup, isLoading } = useGroups()
+const { groups, fetchGroups, createGroup, isLoading } = useGroups();
 
 // Fetch groups on mount
-await fetchGroups()
+await fetchGroups();
 
 // Create new group
 const handleCreateGroup = async (groupData) => {
   try {
-    await createGroup(groupData)
+    await createGroup(groupData);
     // Group automatically added to reactive groups array
   } catch (error) {
     // Error automatically shown via composable
   }
-}
+};
 </script>
 
 <template>
@@ -1308,39 +1318,34 @@ const handleCreateGroup = async (groupData) => {
 ```vue
 <script setup>
 // Expenses page with filtering
-const route = useRoute()
-const groupId = route.params.groupId
+const route = useRoute();
+const groupId = route.params.groupId;
 
-const {
-  expenses,
-  fetchExpenses,
-  createExpense,
-  pagination,
-  isLoading
-} = useExpenses(groupId)
+const { expenses, fetchExpenses, createExpense, pagination, isLoading } =
+  useExpenses(groupId);
 
 // Reactive filters
 const filters = ref({
-  startDate: '',
-  endDate: '',
-  category: '',
-  page: 1
-})
+  startDate: "",
+  endDate: "",
+  category: "",
+  page: 1,
+});
 
 // Watch filters and refetch
 watchEffect(() => {
-  fetchExpenses(filters.value)
-})
+  fetchExpenses(filters.value);
+});
 
 // Handle pagination
 const handlePageChange = (page) => {
-  filters.value.page = page
-}
+  filters.value.page = page;
+};
 
 // Handle filter changes
 const handleFilterChange = () => {
-  filters.value.page = 1 // Reset to first page when filters change
-}
+  filters.value.page = 1; // Reset to first page when filters change
+};
 </script>
 
 <template>
@@ -1369,16 +1374,17 @@ const handleFilterChange = () => {
     <!-- Expenses list -->
     <div v-if="isLoading">Loading...</div>
 
-    <div v-else-if="expenses.length === 0">
-      No expenses found
-    </div>
+    <div v-else-if="expenses.length === 0">No expenses found</div>
 
     <div v-else>
       <div v-for="expense in expenses" :key="expense.id" class="expense-item">
         <h3>{{ expense.title }}</h3>
         <p>${{ expense.amount }}</p>
         <p>{{ expense.expenseDate }}</p>
-        <p>Paid by: {{ expense.paidByUser.firstName }} {{ expense.paidByUser.lastName }}</p>
+        <p>
+          Paid by: {{ expense.paidByUser.firstName }}
+          {{ expense.paidByUser.lastName }}
+        </p>
       </div>
 
       <!-- Pagination -->
@@ -1400,11 +1406,11 @@ const handleFilterChange = () => {
 ```javascript
 // plugins/auth.client.js
 export default defineNuxtPlugin(async () => {
-  const { initialize } = useAuth()
+  const { initialize } = useAuth();
 
   // Initialize auth state on app start
-  await initialize()
-})
+  await initialize();
+});
 ```
 
 ### Middleware for Protected Routes
@@ -1412,12 +1418,12 @@ export default defineNuxtPlugin(async () => {
 ```javascript
 // middleware/auth.js
 export default defineNuxtRouteMiddleware((to) => {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated } = useAuth();
 
   if (!isAuthenticated.value) {
-    return navigateTo('/login')
+    return navigateTo("/login");
   }
-})
+});
 ```
 
 ### Group-specific Middleware
@@ -1425,26 +1431,26 @@ export default defineNuxtRouteMiddleware((to) => {
 ```javascript
 // middleware/group-member.js
 export default defineNuxtRouteMiddleware(async (to) => {
-  const { isAuthenticated } = useAuth()
-  const { fetchGroup } = useGroups()
+  const { isAuthenticated } = useAuth();
+  const { fetchGroup } = useGroups();
 
   if (!isAuthenticated.value) {
-    return navigateTo('/login')
+    return navigateTo("/login");
   }
 
   try {
-    const groupId = to.params.groupId
-    await fetchGroup(groupId)
+    const groupId = to.params.groupId;
+    await fetchGroup(groupId);
   } catch (error) {
     if (error.statusCode === 403) {
       throw createError({
         statusCode: 403,
-        statusMessage: 'You are not a member of this group'
-      })
+        statusMessage: "You are not a member of this group",
+      });
     }
-    throw error
+    throw error;
   }
-})
+});
 ```
 
 ## Configuration Setup
@@ -1455,21 +1461,18 @@ export default defineNuxtRouteMiddleware(async (to) => {
 export default defineNuxtConfig({
   runtimeConfig: {
     public: {
-      apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api/v1'
-    }
+      apiBaseUrl:
+        process.env.NUXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api/v1",
+    },
   },
 
-  modules: [
-    '@nuxt/ui'
-  ],
+  modules: ["@nuxt/ui"],
 
   // Auto-import composables
   imports: {
-    dirs: [
-      'composables/**'
-    ]
-  }
-})
+    dirs: ["composables/**"],
+  },
+});
 ```
 
 ### Environment Variables

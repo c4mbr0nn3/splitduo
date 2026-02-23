@@ -155,10 +155,11 @@ Base URL: `http://localhost:3000/api/v1`
 ## Documentation
 
 - [Project Specification](docs/project-spec.md)
+- [System Architecture](docs/architecture/system-architecture.md)
 - [Backend Architecture](docs/architecture/backend-architecture.md)
+- [Frontend Architecture](docs/architecture/frontend-architecture.md)
 - [Database Schema](docs/database/database-schema.dbml)
-- [REST API Structure](docs/api/rest-api-structure.md)
-- [API DTO Definitions](docs/api/api-dto-definitions.md)
+- [OpenAPI Spec](docs/api/splitduoapi-v1.yaml)
 
 ## License
 

@@ -79,7 +79,7 @@ graph TB
     subgraph Backend["⚙️ Backend Layer (sd-backend)"]
         direction TB
 
-        subgraph APIProject["📁 SplitDuo.Api (.NET 9)"]
+        subgraph APIProject["📁 SplitDuo.Api (.NET 10)"]
             direction TB
             Controllers[🎮 Controllers<br/>BaseApiController]
 
@@ -231,7 +231,7 @@ graph TB
 ### Technology Stack
 
 - **Frontend**: Nuxt 4, Vue 3, Nuxt UI, Tailwind CSS
-- **Backend**: .NET 9, Entity Framework Core, ASP.NET Core Web API
+- **Backend**: .NET 10, Entity Framework Core, ASP.NET Core Web API
 - **Database**: PostgreSQL with comprehensive indexing
 - **Authentication**: JWT Bearer tokens with refresh token rotation
 - **Background Jobs**: Quartz.NET for email processing and cleanup
@@ -246,8 +246,10 @@ graph TB
 ✅ **Expense Tracking** - Complete CRUD with automatic split calculations
 ✅ **Balance Calculations** - Real-time debt calculation with settlement optimization
 ✅ **Settlement Management** - Payment recording between group members
-✅ **Authentication System** - JWT with secure refresh token rotation and 2FA support
+✅ **Authentication System** - JWT with secure refresh token rotation and TOTP 2FA
 ✅ **Email Notifications** - Background email processing with retry logic
+✅ **Data Import/Export** - Cospend, Splitwise, and SplitDuo CSV formats
+✅ **Demo Data Seeding** - Optional demo group/expenses for new installs
 ✅ **Data Persistence** - PostgreSQL with comprehensive entity relationships
 
 ### Security Features

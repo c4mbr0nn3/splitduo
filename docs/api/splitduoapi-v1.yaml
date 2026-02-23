@@ -484,6 +484,15 @@ paths:
     get:
       tags:
         - Groups
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+            format: int32
       responses:
         "200":
           description: OK
@@ -1205,23 +1214,6 @@ paths:
             text/json:
               schema:
                 $ref: "#/components/schemas/ApiResponseDtoOfObject"
-  /api/v1/2fa/generate-email-code:
-    post:
-      tags:
-        - TwoFactor
-      responses:
-        "200":
-          description: OK
-          content:
-            text/plain:
-              schema:
-                $ref: "#/components/schemas/ApiResponseDtoOfstring"
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponseDtoOfstring"
-            text/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponseDtoOfstring"
   /api/v1/2fa/backup-codes/generate:
     post:
       tags:
@@ -1656,23 +1648,6 @@ components:
           oneOf:
             - type: "null"
             - $ref: "#/components/schemas/ApiErrorDto"
-    ApiResponseDtoOfstring:
-      type: object
-      properties:
-        success:
-          type: boolean
-        data:
-          type:
-            - "null"
-            - string
-        message:
-          type:
-            - "null"
-            - string
-        error:
-          oneOf:
-            - type: "null"
-            - $ref: "#/components/schemas/ApiErrorDto"
     ApiResponseDtoOfTwoFactorSetupDto:
       type: object
       properties:
@@ -1756,6 +1731,10 @@ components:
           format: int64
         requiresTwoFactor:
           type: boolean
+        twoFactorChallengeToken:
+          type:
+            - "null"
+            - string
         user:
           $ref: "#/components/schemas/UserDto"
     BalanceDto:
@@ -2049,6 +2028,12 @@ components:
             - integer
             - string
           format: int64
+        netBalance:
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+          format: double
     GroupMemberDto:
       type: object
       properties:
@@ -2570,6 +2555,8 @@ components:
           type:
             - "null"
             - string
+        twoFactorEnabled:
+          type: boolean
     UserInfoDto:
       type: object
       properties:
@@ -2619,11 +2606,11 @@ components:
           format: int64
     VerifyTwoFactorLoginDto:
       required:
-        - email
+        - challengeToken
         - code
       type: object
       properties:
-        email:
+        challengeToken:
           type: string
         code:
           type: string

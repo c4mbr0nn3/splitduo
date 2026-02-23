@@ -525,7 +525,6 @@ The following services are needed to implement the core features outlined in the
 #### Core Business Services
 
 1. **AuthenticationService** _(implemented)_
-
    - **Secure Authentication**: User login with credential validation
    - **JWT Token Management**: Short-lived access tokens (15 min) with JTI claims
    - **Refresh Token System**: Cryptographically secure refresh tokens with rotation
@@ -537,7 +536,6 @@ The following services are needed to implement the core features outlined in the
    - **Features**: Enhanced Result pattern with HTTP status codes, Unit of Work data access, ASP.NET Core Identity password hashing, 2FA login flow integration
 
 2. **UsersService** _(implemented)_
-
    - **User Management**: User listing, profile operations, and admin CRUD
    - **Profile Operations**: Update user profiles (current user and admin operations)
    - **Password Management**: Change password with current password verification
@@ -547,7 +545,6 @@ The following services are needed to implement the core features outlined in the
    - **Password Generation**: Cryptographically secure passwords (uppercase, lowercase, digits, special chars) with Fisher-Yates shuffle
 
 3. **GroupsService** _(implemented)_
-
    - **Group Management**: Create, read, update, and delete groups with comprehensive authorization
    - **Member Management**: Add/remove group members with email-based invitation and role assignment
    - **Access Control**: Group membership validation, admin-only operations, self-removal permissions
@@ -557,7 +554,6 @@ The following services are needed to implement the core features outlined in the
    - **Features**: Enhanced Result pattern with HTTP status codes, Unit of Work data access, comprehensive DTO mapping
 
 4. **ExpensesService** _(implemented)_
-
    - **Expense Management**: Complete CRUD operations with comprehensive validation and business rule enforcement
    - **Paginated Retrieval**: Advanced filtering by date range, category, and user with efficient pagination
    - **Split Calculation**: Automatic expense split creation with amount-based and percentage-based distribution
@@ -568,7 +564,6 @@ The following services are needed to implement the core features outlined in the
    - **Features**: Enhanced Result pattern with HTTP status codes, comprehensive DTO mapping, transaction safety
 
 5. **BalancesService** _(implemented)_
-
    - **Balance Calculations**: Calculate who owes what to whom across all group members
    - **Settlement Optimization**: Generate optimal settlement suggestions using greedy algorithm to minimize transactions
    - **Balance Summaries**: Provide comprehensive balance overviews with settlement recommendations
@@ -579,7 +574,6 @@ The following services are needed to implement the core features outlined in the
    - **API Methods**: 2 distinct service methods for balance retrieval and summary generation with settlement suggestions
 
 6. **SettlementsService** _(implemented)_
-
    - **Settlement Management**: Complete CRUD operations for recording payments between group members
    - **Paginated Retrieval**: Advanced filtering by date range with efficient pagination support
    - **Authorization**: Multi-layered group membership validation and user permission enforcement
@@ -590,7 +584,6 @@ The following services are needed to implement the core features outlined in the
    - **API Methods**: 5 distinct service methods covering settlement lifecycle with balance calculation support
 
 7. **TwoFactorService** _(implemented)_
-
    - **2FA Management**: Complete two-factor authentication lifecycle management
    - **TOTP Support**: RFC 6238 compliant Time-based One-Time Password implementation compatible with Google Authenticator, Authy
    - **Email Verification**: Time-limited email verification codes with rate limiting and attempt tracking
@@ -604,7 +597,6 @@ The following services are needed to implement the core features outlined in the
 #### Data Management Services
 
 1. **ImportService**
-
    - Import Cospend backup files
    - Data validation and transformation
    - Batch import operations with status tracking
@@ -617,7 +609,6 @@ The following services are needed to implement the core features outlined in the
 #### Infrastructure Services
 
 1. **UserContextService** _(implemented)_
-
    - **Current User Access**: Get authenticated user ID and entity from HTTP context
    - **Authentication Check**: Verify if current request is authenticated
    - **JWT Claims Integration**: Extract user information from JWT token claims
@@ -626,7 +617,6 @@ The following services are needed to implement the core features outlined in the
    - **Features**: Centralized user context access, simplified authentication checks
 
 2. **NotificationService** _(implemented)_
-
    - **Outbox Pattern Implementation**: Queue email notifications with database persistence
    - **Retry Logic**: Maximum 3 attempts with error tracking and logging
    - **Queue Management**: Get unsent notifications, send emails, enqueue new notifications
@@ -646,7 +636,7 @@ The following services are needed to implement the core features outlined in the
 
 #### Other Services
 
-- **DataSeederService** - Initial user creation from configuration _(implemented)_
+- **DataSeederService** - Initial user creation and optional demo data seeding from configuration _(implemented)_
 
 #### Background Jobs
 

@@ -18,10 +18,11 @@ The 2FA implementation follows the existing SplitDuo architecture patterns:
 ### Key Features Implemented
 
 1. **TOTP Support** - Compatible with authenticator apps (Google Authenticator, Authy, etc.)
-2. **Email-based 2FA** - Fallback authentication via email codes
-3. **Backup Codes** - Emergency access codes for account recovery
-4. **Secure Setup Process** - Multi-step verification before enabling 2FA
-5. **Graceful Degradation** - Existing authentication continues to work seamlessly
+2. **Backup Codes** - Emergency access codes for account recovery
+3. **Secure Setup Process** - Multi-step verification before enabling 2FA
+4. **Graceful Degradation** - Existing authentication continues to work seamlessly
+
+> **Note (v0.1.20)**: Email-based 2FA at login was removed. TOTP is now the sole 2FA method for the login challenge. Email codes are still used for the 2FA setup confirmation flow.
 
 ## Database Schema Changes
 
@@ -137,12 +138,13 @@ POST /api/v1/2fa/backup-codes/generate    - Generate new backup codes
 ```
 1. POST /auth/login {email, password}
 2. Validate credentials
-3. Generate email code
-4. Return {RequiresTwoFactor: true}
-5. POST /auth/verify-2fa {email, code, codeType}
-6. Validate 2FA code
-7. Return JWT + refresh token
+3. Return {RequiresTwoFactor: true}
+4. POST /auth/verify-2fa {email, code, codeType: "totp" | "backup"}
+5. Validate TOTP or backup code
+6. Return JWT + refresh token
 ```
+
+> Email codes are no longer sent during login (removed in v0.1.20). Users must use their authenticator app or a backup code.
 
 ### 2FA Setup Flow
 
@@ -220,14 +222,12 @@ All 2FA operations use the Enhanced Result Pattern:
 ### Unit Testing Areas
 
 1. **TwoFactorService Methods**
-
    - TOTP generation and validation
    - Email code generation and verification
    - Backup code management
    - Setup and disable workflows
 
 2. **AuthenticationService Integration**
-
    - Login flow with 2FA enabled/disabled
    - 2FA verification completions
    - Error handling scenarios

@@ -106,12 +106,12 @@
 - [x] Implement Splitwise data import (CSV parsing and data mapping)
 - [x] Implement CSV export with proprietary format
 - [x] Implement CSV import with proprietary format
-- [ ] Implement 2FA (Two-Factor Authentication) on frontend
+- [x] Implement 2FA (Two-Factor Authentication) on frontend (TOTP-only, v0.1.20)
 
 ### Phase 3: Polish
 
-- [ ] Implement settlements management (payment recording between users)
-- [ ] Implement settlement optimization (minimize transaction suggestions)
+- [x] Implement settlements management (payment recording between users)
+- [x] Implement settlement optimization (minimize transaction suggestions)
 - [ ] Improve mobile UI/UX and responsive design
 - [ ] Improve desktop UI/UX
 - [ ] Implement unit and integration tests
@@ -119,7 +119,7 @@
 ### Phase 4: Future Expansion
 
 - [ ] Advanced features (recurring expenses, payment tracking)
-- [ ] Implement data visualization (charts, reports)
+- [x] Implement data visualization (charts, reports) (v0.1.14)
 
 ## Technical Considerations
 

@@ -2,6 +2,66 @@
 
 All notable changes to SplitDuo will be documented in this file.
 
+## [0.1.21] - 2026-02-24
+
+### Bug Fixes
+
+- add APP_VERSION build argument to Docker image build script
+
+### Build System
+
+- fix dockerfile by adding npmrc file copy
+
+## [0.1.20] - 2026-02-24
+
+### Features
+
+- add autofocus to TOTP input and simplify auto-submit condition
+- 2fa flow in frontend
+- totp 2fa challenge and remove email 2fa
+- db migrations
+
+### Code Refactoring
+
+- switch to otp.net library
+- remove LastName from email notification templates
+
+### Documentation
+
+- update claude md with email template rules
+
+### Build System
+
+- switch to pnpm 10
+
+## [0.1.19] - 2026-02-24
+
+### Code Refactoring
+
+- update email notification templates for improved clarity and tone
+
+## [0.1.18] - 2026-02-24
+
+### Features
+
+- email template provider
+
+### Documentation
+
+- add screenshots to readme
+
+## [0.1.17] - 2026-02-24
+
+### Features
+
+- implement net balance calculation for user groups and update UI accordingly
+- add option to seed demo data and implement demo data seeding logic
+
+### Documentation
+
+- update api yaml
+- update changelog and roadmap
+
 ## [0.1.16] - 2026-02-21
 
 ### Styling

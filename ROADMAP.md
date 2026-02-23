@@ -6,7 +6,7 @@
 
 SplitDuo is a lightweight, self-hosted expense splitting application designed for couples and small groups. This roadmap outlines the planned improvements and features to grow SplitDuo into a polished, feature-complete solution for managing shared expenses while maintaining its core principle of simplicity and self-hosted control.
 
-## Current Status (v0.1.16)
+## Current Status (v0.1.21)
 
 The core application is fully functional and self-hostable.
 
@@ -34,6 +34,8 @@ The core application is fully functional and self-hostable.
 - ✅ CSV import (Cospend, SplitDuo, and Splitwise formats)
 - ✅ CSV export (SplitDuo proprietary format)
 - ✅ Email notifications with outbox pattern
+- ✅ Improved email notification templates (clarity and tone)
+- ✅ Demo data seeding (optional, via environment flag)
 
 ### Infrastructure & UI
 
@@ -154,11 +156,11 @@ The core application is fully functional and self-hostable.
 
 ### Goals
 
-- [ ] **Frontend 2FA Integration**
-  - Complete 2FA setup UI (backend already implemented)
+- ✅ **Frontend 2FA Integration**
+  - TOTP-based 2FA challenge flow (email 2FA removed in favour of TOTP-only)
   - TOTP QR code generation and display
   - Backup codes display and regeneration
-  - 2FA enforcement options for admins
+  - [ ] 2FA enforcement options for admins
 
 - [ ] **Backend Testing**
   - Unit tests for critical services (auth, expenses, settlements)
@@ -248,5 +250,5 @@ Phases are sequential but may overlap. Features within a phase can be implemente
 
 ---
 
-- **Last Updated:** 2026-02-21
-- **Current Version:** v0.1.16
+- **Last Updated:** 2026-02-23
+- **Current Version:** v0.1.21

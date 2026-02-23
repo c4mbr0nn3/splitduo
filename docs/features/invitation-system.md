@@ -63,6 +63,7 @@ Authorization: Bearer {token} (group admin)
 ```
 
 **Request:**
+
 ```json
 {
   "email": "jane@example.com"
@@ -70,12 +71,14 @@ Authorization: Bearer {token} (group admin)
 ```
 
 **Behavior:**
+
 - If email belongs to an existing user already in the group → `409 Conflict`.
 - If email belongs to an existing user not in the group → add as Member, send notification email, return `200` with member data.
 - If email has a pending invitation for this group → `409 Conflict` (duplicate invitation).
 - If email is unknown → create `InvitationToken`, send invitation email, return `201` with pending invitation data.
 
 **Response (existing user added):**
+
 ```json
 {
   "success": true,
@@ -87,12 +90,18 @@ Authorization: Bearer {token} (group admin)
 ```
 
 **Response (invitation sent):**
+
 ```json
 {
   "success": true,
   "data": {
     "type": "invitation_sent",
-    "invitation": { "id": "...", "email": "jane@example.com", "invitedAt": "...", "expiresAt": "..." }
+    "invitation": {
+      "id": "...",
+      "email": "jane@example.com",
+      "invitedAt": "...",
+      "expiresAt": "..."
+    }
   }
 }
 ```
@@ -107,6 +116,7 @@ Authorization: Bearer {token} (group admin)
 Returns all non-revoked, non-accepted, non-expired invitations for the group.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -148,6 +158,7 @@ No authentication required.
 ```
 
 **Response (valid):**
+
 ```json
 {
   "success": true,
@@ -160,10 +171,14 @@ No authentication required.
 ```
 
 **Response (invalid/expired/revoked):**
+
 ```json
 {
   "success": false,
-  "error": { "code": "INVALID_TOKEN", "message": "This invitation link is invalid or has expired." }
+  "error": {
+    "code": "INVALID_TOKEN",
+    "message": "This invitation link is invalid or has expired."
+  }
 }
 ```
 
@@ -175,6 +190,7 @@ No authentication required.
 ```
 
 **Request:**
+
 ```json
 {
   "token": "raw-token-string",
@@ -186,6 +202,7 @@ No authentication required.
 ```
 
 **Behavior:**
+
 1. Validate token (not expired, not revoked, not already accepted).
 2. Validate password complexity (existing rules: min 8 chars, uppercase, lowercase, digit, special char).
 3. Validate `password === confirmPassword`.
@@ -196,6 +213,7 @@ No authentication required.
 8. Return success. User can now log in.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -209,20 +227,21 @@ No authentication required.
 
 ### InvitationToken (new table: `invitation_tokens`)
 
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| `Id` | `int` | PK, auto-increment | Internal |
-| `Guid` | `uuid` | Unique, not null | API-facing ID |
-| `Email` | `varchar(255)` | Not null | Invitee email (lowercased) |
-| `GroupId` | `int` | FK → `groups.Id`, not null | Target group |
-| `InvitedByUserId` | `int` | FK → `users.Id`, not null | Admin who sent invite |
-| `TokenHash` | `varchar(255)` | Unique, not null | SHA256 hash of raw token |
-| `ExpiresAt` | `timestamp` | Not null | Created + 48 hours |
-| `AcceptedAt` | `timestamp` | Nullable | Set when user registers |
-| `RevokedAt` | `timestamp` | Nullable | Set when admin revokes |
-| `CreatedAt` | `timestamp` | Not null, default now | |
+| Column            | Type           | Constraints                | Notes                      |
+| ----------------- | -------------- | -------------------------- | -------------------------- |
+| `Id`              | `int`          | PK, auto-increment         | Internal                   |
+| `Guid`            | `uuid`         | Unique, not null           | API-facing ID              |
+| `Email`           | `varchar(255)` | Not null                   | Invitee email (lowercased) |
+| `GroupId`         | `int`          | FK → `groups.Id`, not null | Target group               |
+| `InvitedByUserId` | `int`          | FK → `users.Id`, not null  | Admin who sent invite      |
+| `TokenHash`       | `varchar(255)` | Unique, not null           | SHA256 hash of raw token   |
+| `ExpiresAt`       | `timestamp`    | Not null                   | Created + 48 hours         |
+| `AcceptedAt`      | `timestamp`    | Nullable                   | Set when user registers    |
+| `RevokedAt`       | `timestamp`    | Nullable                   | Set when admin revokes     |
+| `CreatedAt`       | `timestamp`    | Not null, default now      |                            |
 
 **Indexes:**
+
 - `TokenHash` (unique) — token lookup on accept/validate.
 - `Email, GroupId` (filtered: `AcceptedAt IS NULL AND RevokedAt IS NULL`) — duplicate detection.
 - `Email` (filtered: `AcceptedAt IS NULL AND RevokedAt IS NULL`) — batch resolve on registration.
@@ -252,6 +271,7 @@ Authorization: Bearer {token} (SystemAdmin)
 Returns all unique emails with at least one non-revoked, non-accepted, non-expired invitation across the system, with the groups they've been invited to.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -259,7 +279,12 @@ Returns all unique emails with at least one non-revoked, non-accepted, non-expir
     {
       "email": "jane@example.com",
       "groups": [
-        { "id": "...", "name": "Household", "invitedAt": "...", "expiresAt": "..." }
+        {
+          "id": "...",
+          "name": "Household",
+          "invitedAt": "...",
+          "expiresAt": "..."
+        }
       ]
     }
   ]
@@ -300,6 +325,7 @@ Returns all unique emails with at least one non-revoked, non-accepted, non-expir
 ### Password Rules Display
 
 Show password requirements inline on the form (checklist that updates as user types):
+
 - At least 8 characters
 - At least 1 uppercase letter
 - At least 1 lowercase letter
@@ -313,6 +339,7 @@ Show password requirements inline on the form (checklist that updates as user ty
 **Subject:** You've been invited to join {groupName} on SplitDuo
 
 **Body:**
+
 ```
 Hello,
 
@@ -332,6 +359,7 @@ If you did not expect this invitation, you can safely ignore this email.
 **Subject:** You've been added to {groupName} on SplitDuo
 
 **Body:**
+
 ```
 Hello {firstName},
 
@@ -345,14 +373,14 @@ You can view the group here:
 
 ## Edge Cases
 
-| Scenario | Behavior |
-|---|---|
-| Admin invites same email to same group twice (pending) | `409 Conflict` — "An invitation for this email is already pending" |
-| Admin invites existing group member | `409 Conflict` — "User is already a member of this group" |
-| Token used after expiry | Validate/accept returns error: "This invitation link has expired" |
-| Token used after revocation | Validate/accept returns error: "This invitation link is no longer valid" |
-| User invited to 3 groups, clicks one link | Registration creates user + adds to all 3 groups (resolves all pending tokens for that email) |
-| Invited email has mixed case | Lowercase email before storing and comparing |
+| Scenario                                               | Behavior                                                                                      |
+| ------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| Admin invites same email to same group twice (pending) | `409 Conflict` — "An invitation for this email is already pending"                            |
+| Admin invites existing group member                    | `409 Conflict` — "User is already a member of this group"                                     |
+| Token used after expiry                                | Validate/accept returns error: "This invitation link has expired"                             |
+| Token used after revocation                            | Validate/accept returns error: "This invitation link is no longer valid"                      |
+| User invited to 3 groups, clicks one link              | Registration creates user + adds to all 3 groups (resolves all pending tokens for that email) |
+| Invited email has mixed case                           | Lowercase email before storing and comparing                                                  |
 
 ## Configuration
 
