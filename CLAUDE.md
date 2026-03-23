@@ -13,7 +13,7 @@ See `sd-backend/CLAUDE.md` and `sd-frontend/CLAUDE.md` for detailed codebase doc
 cd sd-backend && dotnet restore && dotnet run --project SplitDuo.Api
 
 # Frontend — http://localhost:3000 (proxies API to backend on :8080)
-cd sd-frontend && npm install && npm run dev
+cd sd-frontend && pnpm install && pnpm dev
 
 # Docker (production) — http://localhost:3000
 docker compose up -d

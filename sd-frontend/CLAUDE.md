@@ -7,11 +7,14 @@ Nuxt 4 SPA (SSR disabled) with Vue 3 Composition API. Uses Nuxt UI v4 as the com
 ## Commands
 
 ```bash
-npm run dev         # Dev server on http://localhost:3000
-npm run generate    # Static build → .output/public/ (deployed into backend's wwwroot)
-npm run lint        # ESLint check
-npm run lint:fix    # ESLint autofix
+pnpm dev            # Dev server on http://localhost:3000
+pnpm generate       # Static build → .output/public/ (deployed into backend's wwwroot)
+pnpm lint           # ESLint check
+pnpm lint:fix       # ESLint autofix
+pnpm install        # Install dependencies
 ```
+
+> **After every frontend implementation**, run `pnpm lint:fix` to auto-fix style issues before considering the task done.
 
 ## Tech Stack
 
