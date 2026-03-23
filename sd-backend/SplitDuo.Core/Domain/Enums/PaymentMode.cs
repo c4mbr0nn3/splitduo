@@ -6,7 +6,8 @@ public enum PaymentMode
     Card = 2,
     Cash = 3,
     Transfer = 4,
-    OnlineService = 5
+    OnlineService = 5,
+    TicketRestaurant = 6
 }
 
 public static class PaymentModeExtensions
@@ -18,6 +19,7 @@ public static class PaymentModeExtensions
         PaymentMode.Cash => "Cash",
         PaymentMode.Transfer => "Transfer",
         PaymentMode.OnlineService => "Online Services",
+        PaymentMode.TicketRestaurant => "Ticket Restaurant",
         _ => paymentMode.ToString()
     };
 }
