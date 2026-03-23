@@ -12,16 +12,16 @@
     "lint:fix": "eslint --fix ."
   },
   "dependencies": {
-    "@iconify-json/lucide": "^1.2.92",
-    "@iconify-json/simple-icons": "^1.2.71",
-    "@nuxt/ui": "^4.4.0",
-    "apexcharts": "^5.6.0",
-    "nuxt": "^4.3.1",
+    "@iconify-json/lucide": "^1.2.98",
+    "@iconify-json/simple-icons": "^1.2.75",
+    "@nuxt/ui": "^4.6.0",
+    "apexcharts": "^5.10.4",
+    "nuxt": "^4.4.2",
     "uqr": "^0.1.2",
-    "vue3-apexcharts": "^1.10.0"
+    "vue3-apexcharts": "^1.11.1"
   },
   "devDependencies": {
-    "@nuxt/eslint": "^1.15.1",
-    "eslint": "^9.39.3"
+    "@nuxt/eslint": "^1.15.2",
+    "eslint": "^9.39.4"
   }
 }
