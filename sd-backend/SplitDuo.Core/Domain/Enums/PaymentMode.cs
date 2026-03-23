@@ -8,3 +8,16 @@ public enum PaymentMode
     Transfer = 4,
     OnlineService = 5
 }
+
+public static class PaymentModeExtensions
+{
+    public static string ToDisplayName(this PaymentMode paymentMode) => paymentMode switch
+    {
+        PaymentMode.Other => "Other",
+        PaymentMode.Card => "Card",
+        PaymentMode.Cash => "Cash",
+        PaymentMode.Transfer => "Transfer",
+        PaymentMode.OnlineService => "Online Services",
+        _ => paymentMode.ToString()
+    };
+}

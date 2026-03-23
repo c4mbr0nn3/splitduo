@@ -14,6 +14,6 @@ public class PaymentModeDto
     public PaymentModeDto(PaymentMode paymentMode)
     {
         Id = (int)paymentMode;
-        Name = paymentMode.ToString();
+        Name = paymentMode.ToDisplayName();
     }
 }
