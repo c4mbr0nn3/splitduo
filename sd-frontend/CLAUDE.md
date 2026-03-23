@@ -188,10 +188,10 @@ No Pinia. State is managed through:
 
 ## Documentation Resources
 
-To get up-to-date docs on Nuxt and Nuxt UI, fetch these LLMs.txt files — they list all available markdown doc URLs:
+MCP servers are available for up-to-date Nuxt and Nuxt UI docs:
 
-- **Nuxt**: https://nuxt.com/llms.txt
-- **Nuxt UI**: https://ui.nuxt.com/llms.txt
+- **Nuxt**: `mcp__nuxt-remote__*` tools (list pages, get docs, modules, etc.)
+- **Nuxt UI**: `mcp__nuxt-ui-remote__*` tools (list/get components, composables, examples, etc.)
 
 ## Rules When Modifying This Code
 
