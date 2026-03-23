@@ -166,6 +166,7 @@ Global `ref()` declared **outside** the composable function — shared across al
 - **Custom font**: Public Sans (set in `main.css` via `@theme`)
 - **Dark mode**: Built-in via Nuxt UI color mode, toggled with `<UColorModeButton />`
 - **No scoped styles, no CSS modules** — pure utility classes
+- **Mobile first**: Design for small screens first — use Tailwind's responsive prefixes (`sm:`, `md:`, `lg:`) to progressively enhance for larger viewports. Never design desktop-first and patch for mobile.
 
 ## State Management
 
