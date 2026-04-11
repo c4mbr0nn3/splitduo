@@ -9,8 +9,8 @@
 ```bash
 dotnet restore                                                  # Restore packages
 dotnet run --project SplitDuo.Api                               # Dev server on http://localhost:5000
-dotnet ef migrations add <Name> --project SplitDuo.Api          # Create migration
-dotnet ef database update --project SplitDuo.Api                # Apply migrations
+dotnet ef migrations add <Name> --project SplitDuo.Core --startup-project SplitDuo.Api   # Create migration
+dotnet ef database update --project SplitDuo.Core --startup-project SplitDuo.Api        # Apply migrations
 ```
 
 Migrations auto-apply on startup (`Database.MigrateAsync()` in Program.cs).
@@ -353,7 +353,7 @@ Console always. PostgreSQL sink in production (batched every 30s, table: `loggin
 
 ## Database Seeding
 
-`DataSeederService` (IHostedService) runs on startup. If no users exist, creates initial SystemAdmin user from `AppOptions` (email, password from env vars). Default: `admin@localhost` / `changeme`.
+`DataSeederService` (IHostedService) runs on startup. If no users exist, creates initial SystemAdmin user from `AppOptions` (email, password from env vars). Code defaults (no env vars): `admin@localhost` / `changeme`. docker-compose.yml overrides to `admin@splitduo.local` / `changeme123`.
 
 ## Rules When Modifying This Code
 
