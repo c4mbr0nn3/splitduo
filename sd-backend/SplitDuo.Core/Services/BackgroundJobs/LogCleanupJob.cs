@@ -1,25 +1,19 @@
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Npgsql;
 using Quartz;
+using SplitDuo.Core.Options;
 
 namespace SplitDuo.Core.Services.BackgroundJobs;
 
 [DisallowConcurrentExecution]
-public class LogCleanupJob(ILogger<LogCleanupJob> logger, IConfiguration configuration) : IJob
+public class LogCleanupJob(ILogger<LogCleanupJob> logger, IOptions<DatabaseOptions> dbOptions) : IJob
 {
     public async Task Execute(IJobExecutionContext context)
     {
         try
         {
-            var connectionString = configuration.GetConnectionString("DefaultConnection");
-            if (string.IsNullOrEmpty(connectionString))
-            {
-                logger.LogWarning("Database connection string not found, skipping log cleanup");
-                return;
-            }
-
-            await using var connection = new NpgsqlConnection(connectionString);
+            await using var connection = new NpgsqlConnection(dbOptions.Value.ConnectionString);
             await connection.OpenAsync(context.CancellationToken);
 
             await using var command = new NpgsqlCommand(
