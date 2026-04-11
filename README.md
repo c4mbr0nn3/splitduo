@@ -23,6 +23,7 @@ A lightweight, open-source expense splitting application designed for couples an
 - **Invitation System**: Invite users via email with secure token-based registration
 - **Secure Authentication**: JWT-based authentication with refresh token rotation
 - **Data Migration**: Import from Cospend, export to CSV
+- **PWA Support**: Install on home screen for native-like experience
 - **Self-Hosted**: Complete control over your data and privacy
 
 ## Tech Stack
@@ -74,6 +75,7 @@ Edit `docker-compose.yml` or set environment variables:
 
 ```yaml
 SD_JWT_SECRET_KEY: your-super-secret-jwt-key-change-this-in-production
+SD_INITIAL_USER_EMAIL: admin@splitduo.local
 SD_INITIAL_USER_PASSWORD: changeme123
 ```
 
@@ -127,16 +129,27 @@ dotnet run --project SplitDuo.Api
 
 ```bash
 cd sd-frontend
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
+
+### Dev Services (PostgreSQL + Mailpit)
+
+```bash
+./scripts/dev.sh           # Start both PostgreSQL and Mailpit
+./scripts/dev.sh postgres  # PostgreSQL only
+./scripts/dev.sh mailpit   # Mailpit only
+./scripts/dev.sh -d        # Drop and recreate volumes before starting
+```
+
+Mailpit UI (email testing): http://localhost:8025
 
 ### Database Migrations
 
 ```bash
 cd sd-backend
-dotnet ef migrations add <MigrationName> --project SplitDuo.Api
-dotnet ef database update --project SplitDuo.Api
+dotnet ef migrations add <MigrationName> --project SplitDuo.Core --startup-project SplitDuo.Api
+dotnet ef database update --project SplitDuo.Core --startup-project SplitDuo.Api
 ```
 
 ## API
