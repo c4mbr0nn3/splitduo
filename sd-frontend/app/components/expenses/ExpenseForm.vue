@@ -85,11 +85,9 @@
           name="expenseDate"
           required
         >
-          <UInput
+          <UiDatePicker
             v-model="model.expenseDate"
-            type="date"
             size="lg"
-            class="w-full"
           />
         </UFormField>
         <UFormField
