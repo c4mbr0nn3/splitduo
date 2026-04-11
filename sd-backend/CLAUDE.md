@@ -95,7 +95,7 @@ sd-backend/
     │       └── SoftDeleteSaveChangesInterceptor.cs  # Convert Delete → set DeletedAt
     └── Services/
         ├── BackgroundJobs/                 # Quartz jobs (email, cleanup, import)
-        ├── Exports/                        # CSV/Cospend export
+        ├── Exports/                        # CSV export
         ├── Imports/                        # Abstract base + Cospend/SplitDuo importers
         ├── DataSeederService.cs            # Seeds initial admin user
         ├── EmailNotificationService.cs     # Email queue (enqueue → background send)
@@ -317,7 +317,7 @@ Factory pattern resolves importer by `ImportType`. Abstract base class (`Abstrac
 
 ### Export
 
-CSV and Cospend JSON formats. Uses CsvHelper. Owers encoded as `email:amount|email:amount`.
+CSV format only. Uses CsvHelper. Owers encoded as `email:amount|email:amount`.
 
 ## Email
 
