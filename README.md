@@ -22,7 +22,7 @@ A lightweight, open-source expense splitting application designed for couples an
 - **Balance Management**: Real-time balance tracking with settlement optimization
 - **Invitation System**: Invite users via email with secure token-based registration
 - **Secure Authentication**: JWT-based authentication with refresh token rotation
-- **Data Migration**: Import from Cospend, export to CSV
+- **Data Migration**: Import from Cospend or SplitDuo CSV; export to CSV
 - **PWA Support**: Install on home screen for native-like experience
 - **Self-Hosted**: Complete control over your data and privacy
 
@@ -60,8 +60,8 @@ docker compose up -d
 
 ### Default Login
 
-- **Email**: `admin@localhost`
-- **Password**: `changeme`
+- **Email**: `admin@splitduo.local`
+- **Password**: `changeme123`
 
 **⚠️ Important**: Change the JWT secret key and admin password in production!
 
@@ -142,7 +142,7 @@ pnpm dev
 ./scripts/dev.sh -d        # Drop and recreate volumes before starting
 ```
 
-Mailpit UI (email testing): http://localhost:8025
+Mailpit UI (email testing): <http://localhost:8025>
 
 ### Database Migrations
 
