@@ -158,12 +158,18 @@ Base URL: `http://localhost:3000/api/v1`
 
 **Core Endpoints**:
 
-- `/auth` - Authentication (login, refresh, revoke)
+- `/auth` - Authentication (login, refresh, revoke, password reset)
+- `/2fa` - Two-factor authentication setup and management
 - `/users` - User management
+- `/categories` - Expense categories (enum list)
+- `/payment-modes` - Payment modes (enum list)
 - `/groups` - Group and membership management
-- `/expenses` - Expense tracking with split calculations
-- `/settlements` - Payment recording between users
-- `/balances` - Balance calculations and settlement suggestions
+- `/groups/{groupId}/expenses` - Expense tracking with split calculations
+- `/groups/{groupId}/balances` - Balance calculations and settlement suggestions
+- `/groups/{groupId}/invitations` - Invitation management (group admin)
+- `/invitations` - Validate and accept invitations (anonymous)
+- `/groups/{groupId}/imports` - CSV import (analyze + process)
+- `/groups/{groupId}/export/csv` - CSV export
 
 ## Documentation
 
