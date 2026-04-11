@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.StaticFiles;
 using Scalar.AspNetCore;
 using Serilog;
 using SplitDuo.Api.Features.Authentication.Services;
@@ -69,8 +70,10 @@ public static class ApiProgramExtensions
         app.UseHttpsRedirection();
         app.UseSerilogRequestLogging();
 
-        // Serve static files from wwwroot
-        app.UseStaticFiles();
+        // Serve static files from wwwroot (.webmanifest needs explicit MIME type)
+        var contentTypeProvider = new FileExtensionContentTypeProvider();
+        contentTypeProvider.Mappings[".webmanifest"] = "application/manifest+json";
+        app.UseStaticFiles(new StaticFileOptions { ContentTypeProvider = contentTypeProvider });
 
         app.UseRateLimiter();
         app.UseAuthentication();

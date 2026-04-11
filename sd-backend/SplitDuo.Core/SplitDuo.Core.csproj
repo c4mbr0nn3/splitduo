@@ -16,8 +16,8 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1"/>
-        <PackageReference Include="Quartz" Version="3.16.1"/>
-        <PackageReference Include="Quartz.Extensions.Hosting" Version="3.16.1"/>
+        <PackageReference Include="Quartz" Version="3.18.0"/>
+        <PackageReference Include="Quartz.Extensions.Hosting" Version="3.18.0"/>
         <PackageReference Include="Serilog.AspNetCore" Version="10.0.0"/>
         <PackageReference Include="Serilog.Sinks.Postgresql.Alternative" Version="4.2.0"/>
     </ItemGroup>
