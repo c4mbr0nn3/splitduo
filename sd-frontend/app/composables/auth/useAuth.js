@@ -115,7 +115,15 @@ export default function useAuth() {
   // Initialize auth state
   const initialize = async () => {
     const token = getToken()
-    if (!token) return
+
+    if (!token) {
+      // Access token gone (expired cookie or first cold start after long background)
+      // Try refresh token before giving up
+      if (getRefreshToken()) {
+        await refreshToken()
+      }
+      return
+    }
 
     try {
       const response = await api.get('/users/me')
@@ -126,10 +134,10 @@ export default function useAuth() {
     }
     catch (error) {
       if (error.statusCode === 401) {
-        // Try to refresh token
+        // Access token expired mid-session — try refresh
         const refreshed = await refreshToken()
         if (refreshed) {
-          await initialize() // Retry with new token
+          await initialize()
         }
       }
     }
