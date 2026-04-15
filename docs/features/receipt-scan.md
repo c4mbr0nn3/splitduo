@@ -42,7 +42,7 @@ public class AiSettings
 
 #### `GET /api/v1/ai/status`
 
-Returns whether the AI module is enabled. Called by the frontend on startup to conditionally render scan buttons.
+Returns whether the AI module is enabled. Called by the frontend on startup to conditionally render scan buttons. Requires authentication.
 
 **Response:**
 ```json
@@ -51,8 +51,6 @@ Returns whether the AI module is enabled. Called by the frontend on startup to c
   "data": { "enabled": true }
 }
 ```
-
-No auth required — this is a feature flag, not sensitive data.
 
 #### `POST /api/v1/receipts/parse`
 
@@ -73,11 +71,13 @@ Accepts a receipt image, sends it to the configured vision model, returns struct
     "amount": 34.80,
     "description": "Grocery shopping",
     "expenseDate": "2024-01-15",
-    "suggestedCategoryName": "Groceries",
-    "suggestedPaymentMethodName": "Credit Card"
+    "categoryId": 2,
+    "paymentModeId": 2
   }
 }
 ```
+
+`categoryId` maps to `ExpenseCategory` enum int values. `paymentModeId` maps to `PaymentMode` enum int values. Both nullable — `null` if the AI could not determine a match.
 
 **Response (AI module disabled):**
 ```json
@@ -103,19 +103,26 @@ You are a receipt parser. Extract the following fields from the receipt image an
   "amount": 0.00,
   "description": "brief summary of items or purchase type, or null",
   "expenseDate": "YYYY-MM-DD",
-  "suggestedCategoryName": "one of: Groceries, Restaurant, Transport, Entertainment, Health, Shopping, Utilities, Travel, Other",
-  "suggestedPaymentMethodName": "one of: Cash, Credit Card, Debit Card, or null if not visible"
+  "categoryId": null,
+  "paymentModeId": null
 }
+
+Category values (use the integer):
+1 = Other, 2 = Groceries, 3 = Transportation, 4 = Utilities, 5 = Entertainment,
+6 = Health, 7 = Education, 8 = Travel, 9 = Shopping, 10 = Housing, 11 = Dining
+
+Payment mode values (use the integer):
+1 = Other, 2 = Card, 3 = Cash, 4 = Transfer, 5 = Online Service, 6 = Ticket Restaurant
 
 Rules:
 - amount is the total amount paid, as a number (no currency symbol)
 - expenseDate must be in YYYY-MM-DD format; use today if not visible
-- suggestedCategoryName must be one of the listed values; pick the closest match
-- suggestedPaymentMethodName must be one of the listed values or null
+- categoryId must be one of the listed integers; pick the closest match
+- paymentModeId must be one of the listed integers, or null if not visible on the receipt
 - Return null for fields you cannot determine
 ```
 
-Backend parses the response by extracting the first `{...}` block from the model output (models may prepend/append text despite instructions). If JSON parsing fails, return 502.
+Backend parses the response by extracting the first `{...}` block from the model output (models may prepend/append text despite instructions). Validates that `categoryId` and `paymentModeId` are valid enum values if present; sets to `null` if out of range. If JSON parsing fails entirely, returns 502.
 
 ### ReceiptParserService
 
@@ -157,9 +164,8 @@ Client-side before upload, using Canvas API:
 4. Loading overlay shown ("Scanning receipt...")
 5. `POST /api/v1/receipts/parse` called with compressed image
 6. **On success**: navigate to `/expenses/add` with parsed data pre-filled in the form
-   - `title`, `amount`, `description`, `expenseDate` populated directly
-   - `categoryId`: frontend iterates loaded categories, picks first case-insensitive name match on `suggestedCategoryName`; leaves blank if no match
-   - `paymentModeId`: same fuzzy match on `suggestedPaymentMethodName`; leaves blank if no match
+   - `title`, `amount`, `description`, `expenseDate`, `categoryId`, `paymentModeId` populated directly from response
+   - `categoryId` and `paymentModeId` may be `null` — those fields left blank for user to fill
 7. **On error**: show toast error, stay on current page (no navigation)
 
 ### Scan Button Placement
@@ -179,13 +185,13 @@ Parsed data passed as route query on navigation to `/expenses/add`:
 router.push({
   path: '/expenses/add',
   query: {
-    groupId: currentGroupId,   // pre-select group from context
+    groupId: currentGroupId,        // pre-select group from context
     title: parsed.title,
     amount: parsed.amount,
     description: parsed.description,
     expenseDate: parsed.expenseDate,
-    suggestedCategoryName: parsed.suggestedCategoryName,
-    suggestedPaymentMethodName: parsed.suggestedPaymentMethodName,
+    categoryId: parsed.categoryId,   // nullable int — omitted if null
+    paymentModeId: parsed.paymentModeId, // nullable int — omitted if null
   }
 })
 ```
