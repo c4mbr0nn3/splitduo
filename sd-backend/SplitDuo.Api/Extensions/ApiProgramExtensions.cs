@@ -1,5 +1,10 @@
+using System.Net.Mime;
+using System.Text.Json;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Options;
 using Scalar.AspNetCore;
 using Serilog;
 using SplitDuo.Api.Features.Authentication.Services;
@@ -11,6 +16,7 @@ using SplitDuo.Core.Domain.Enums;
 using SplitDuo.Api.Features.Users.Services;
 using SplitDuo.Core.Extensions;
 using SplitDuo.Core.Factories;
+using SplitDuo.Core.Options;
 using SplitDuo.Core.Services.Exports;
 using SplitDuo.Core.Services.Imports;
 
@@ -44,6 +50,13 @@ public static class ApiProgramExtensions
         // Register factories
         builder.Services.AddScoped<IImportServiceFactory, ImportServiceFactory>();
 
+        builder.Services.AddHealthChecks()
+            .AddNpgSql(
+                connectionStringFactory: sp =>
+                    sp.GetRequiredService<IOptions<DatabaseOptions>>().Value.ConnectionString,
+                name: "database",
+                tags: ["db", "postgresql"]);
+
         builder.Services.AddRateLimiter(opts =>
         {
             opts.AddFixedWindowLimiter("auth", o =>
@@ -75,6 +88,11 @@ public static class ApiProgramExtensions
         contentTypeProvider.Mappings[".webmanifest"] = "application/manifest+json";
         app.UseStaticFiles(new StaticFileOptions { ContentTypeProvider = contentTypeProvider });
 
+        app.MapHealthChecks("/health", new HealthCheckOptions
+        {
+            ResponseWriter = WriteHealthCheckResponse
+        });
+
         app.UseRateLimiter();
         app.UseAuthentication();
         app.UseAuthorization();
@@ -82,5 +100,19 @@ public static class ApiProgramExtensions
 
         // Fallback to serve the SPA for client-side routing
         app.MapFallbackToFile("index.html");
+    }
+
+    private static Task WriteHealthCheckResponse(HttpContext context, HealthReport report)
+    {
+        context.Response.ContentType = MediaTypeNames.Application.Json;
+        var result = JsonSerializer.Serialize(new
+        {
+            status = report.Status.ToString(),
+            checks = report.Entries.ToDictionary(
+                e => e.Key,
+                e => new { status = e.Value.Status.ToString(), description = e.Value.Description }),
+            timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+        });
+        return context.Response.WriteAsync(result);
     }
 }
