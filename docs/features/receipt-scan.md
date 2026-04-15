@@ -140,11 +140,13 @@ New service in `SplitDuo.Core`:
 
 ### AI Status
 
-New composable `useAiStatus` (singleton, fetches once on first use):
+New composable `useAiStatus` (singleton pattern, same as `useCategories`):
 
 ```javascript
-const { isAiEnabled } = useAiStatus()
+const { isAiEnabled, fetchAiStatus } = useAiStatus()
 ```
+
+`fetchAiStatus()` called once in `default.vue` layout setup — all authenticated pages use this layout, so fetch is guaranteed to run after auth is established. Singleton guards duplicate calls; subsequent callers just read `isAiEnabled`.
 
 Used to conditionally render scan buttons across the app.
 
