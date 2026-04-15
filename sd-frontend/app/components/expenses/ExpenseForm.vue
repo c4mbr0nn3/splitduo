@@ -85,7 +85,7 @@
           name="expenseDate"
           required
         >
-          <UiDatePicker
+          <UiInputDate
             v-model="model.expenseDate"
             size="lg"
           />
