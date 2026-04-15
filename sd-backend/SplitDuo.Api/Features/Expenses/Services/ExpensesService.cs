@@ -5,7 +5,6 @@ using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Domain.Enums;
 using SplitDuo.Core.Persistence;
-using SplitDuo.Core.Services;
 
 namespace SplitDuo.Api.Features.Expenses.Services;
 
@@ -23,10 +22,7 @@ public interface IExpensesService
     Task<Result> DeleteExpenseAsync(string groupId, string expenseId, Guid currentUserId);
 }
 
-public class ExpensesService(
-    IUnitOfWork unitOfWork,
-    INotificationService notificationService,
-    IEmailTemplateProvider emailTemplateProvider) : IExpensesService
+public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
 {
     public async Task<Result<PaginatedResponseDto<ExpenseDto>>> GetGroupExpensesAsync(
         string groupId, Guid currentUserId, int page, int limit, ExpenseFilterOptions filters)
