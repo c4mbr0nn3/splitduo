@@ -101,7 +101,7 @@ You are a receipt parser. Extract the following fields from the receipt image an
 {
   "title": "merchant name or store name",
   "amount": 0.00,
-  "description": "brief summary of items or purchase type, or null",
+  "description": "brief summary of items or purchase type, max 255 characters, or null",
   "expenseDate": "YYYY-MM-DD",
   "categoryId": null,
   "paymentModeId": null
@@ -119,6 +119,7 @@ Rules:
 - expenseDate must be in YYYY-MM-DD format; use today if not visible
 - categoryId must be one of the listed integers; pick the closest match
 - paymentModeId must be one of the listed integers, or null if not visible on the receipt
+- description must not exceed 255 characters
 - Return null for fields you cannot determine
 ```
 
