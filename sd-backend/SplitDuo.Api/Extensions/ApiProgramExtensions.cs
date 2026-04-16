@@ -7,7 +7,11 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using Scalar.AspNetCore;
 using Serilog;
+using System.ClientModel;
+using OpenAI.Chat;
+using SplitDuo.Api.Features.Ai.Filters;
 using SplitDuo.Api.Features.Authentication.Services;
+using SplitDuo.Api.Features.Receipts.Services;
 using SplitDuo.Api.Features.Common.Services;
 using SplitDuo.Api.Features.Expenses.Services;
 using SplitDuo.Api.Features.Groups.Services;
@@ -49,6 +53,19 @@ public static class ApiProgramExtensions
 
         // Register factories
         builder.Services.AddScoped<IImportServiceFactory, ImportServiceFactory>();
+
+        // AI / receipt parsing
+        builder.Services.AddScoped<RequiresAiFilter>();
+        builder.Services.AddSingleton(sp =>
+        {
+            var options = sp.GetRequiredService<IOptions<AiOptions>>().Value;
+            if (!options.IsEnabled) return null!;
+            var credential = new ApiKeyCredential(
+                string.IsNullOrWhiteSpace(options.ApiKey) ? "no-key" : options.ApiKey);
+            var clientOptions = new OpenAI.OpenAIClientOptions { Endpoint = new Uri(options.BaseUrl!) };
+            return new ChatClient(options.Model!, credential, clientOptions);
+        });
+        builder.Services.AddScoped<IReceiptParserService, ReceiptParserService>();
 
         builder.Services.AddHealthChecks()
             .AddNpgSql(

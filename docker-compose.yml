@@ -43,6 +43,11 @@ services:
       # JWT Configuration
       SD_JWT_SECRET_KEY: your-super-secret-jwt-key-change-this-in-production
 
+      # AI Configuration (Optional - for receipt scanning)
+      # SD_AI_BASE_URL: ""
+      # SD_AI_API_KEY: ""
+      # SD_AI_MODEL: ""
+
       # Email Configuration (Optional - for notifications)
       SD_EMAIL_SENDER_NAME: SplitDuo
       SD_EMAIL_SENDER_ADDRESS: noreply@splitduo.local

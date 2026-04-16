@@ -48,6 +48,9 @@ VERSION              # Read by CI for Docker tags
 | `SD_INITIAL_USER_PASSWORD` | Yes (prod) | Initial admin password |
 | `SD_DB_HOST/PORT/NAME/USERNAME/PASSWORD` | Yes | PostgreSQL connection |
 | `SD_SMTP_*` | No | Email notifications (SMTP) |
+| `SD_AI_BASE_URL` | No | AI provider base URL (enables receipt scanning) |
+| `SD_AI_API_KEY` | No | AI provider API key |
+| `SD_AI_MODEL` | No | AI model name (e.g. `gpt-4o`) |
 | `NUXT_PUBLIC_APP_VERSION` | No | Version shown in frontend UI |
 
 ## Common Gotchas

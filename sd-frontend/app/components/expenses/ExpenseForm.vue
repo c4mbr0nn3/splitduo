@@ -2,7 +2,17 @@
   <div class="flex flex-col items-center justify-center p-4">
     <UCard class="w-full max-w-2xl">
       <template #header>
-        <UiCardHeader :title="title" />
+        <div class="flex items-center justify-between">
+          <UiCardHeader :title="title" />
+          <UButton
+            v-if="receiptImageUrl"
+            icon="i-lucide-image"
+            label="View Receipt"
+            size="sm"
+            variant="ghost"
+            @click="isReceiptPreviewOpen = true"
+          />
+        </div>
       </template>
       <UForm
         :state="model"
@@ -245,6 +255,10 @@
         </div>
       </UForm>
     </UCard>
+    <UiReceiptPreviewModal
+      v-model="isReceiptPreviewOpen"
+      :image-url="receiptImageUrl"
+    />
   </div>
 </template>
 
@@ -278,6 +292,9 @@ const model = defineModel({
 })
 
 const emit = defineEmits(['submit', 'addMore', 'cancel'])
+
+const { receiptImageUrl } = useReceiptScan()
+const isReceiptPreviewOpen = ref(false)
 
 const { user } = useAuth()
 const { groups, fetchGroups, fetchGroupMembers, isLoading: isLoadingGroups } = useGroups()

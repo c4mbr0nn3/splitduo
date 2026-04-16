@@ -8,7 +8,10 @@
       "applicationUrl": "http://localhost:8080",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "SD_SEED_DEMO_DATA": "false"
+        "SD_SEED_DEMO_DATA": "false",
+        "SD_AI_BASE_URL": "https://api.tokenfactory.nebius.com/v1/",
+        "SD_AI_API_KEY": "v1.CmMKHHN0YXRpY2tleS1lMDBhMjh4NGtnNmh6NjRzM3kSIXNlcnZpY2VhY2NvdW50LWUwMGVkcnZqYTE2MDllMzFyNjILCKyig88GENzt1nw6DAirpZuaBxCAwcTnAkACWgNlMDA.AAAAAAAAAAF3nbsKUshOWYVj-gwCRc7DhLHiqbcyqynVuXhnbPKq7RcAPCha84eBlHe-MUbmGu3Kx2TbRV6mLRHIuT8EhscM",
+        "SD_AI_MODEL": "google/gemma-3-27b-it"
       }
     },
     "https": {

@@ -22,6 +22,7 @@ A lightweight, open-source expense splitting application designed for couples an
 - **Balance Management**: Real-time balance tracking with settlement optimization
 - **Invitation System**: Invite users via email with secure token-based registration
 - **Secure Authentication**: JWT-based authentication with refresh token rotation
+- **Receipt Scanning**: AI-powered receipt scanning to prefill expense details (optional)
 - **Data Migration**: Import from Cospend or SplitDuo CSV; export to CSV
 - **PWA Support**: Install on home screen for native-like experience
 - **Self-Hosted**: Complete control over your data and privacy
@@ -93,6 +94,14 @@ SD_DB_PASSWORD: splitduo
 ```yaml
 SD_BASE_URL: http://localhost:3000
 SD_ENVIRONMENT: Production
+```
+
+**AI / Receipt Scanning (Optional)**:
+
+```yaml
+SD_AI_BASE_URL: https://api.openai.com  # Any OpenAI-compatible endpoint
+SD_AI_API_KEY: your-api-key
+SD_AI_MODEL: gpt-4o
 ```
 
 **Email (Optional)**:
