@@ -36,6 +36,9 @@
             variant="outline"
             @click="mobileFiltersOpen = !mobileFiltersOpen"
           />
+          <template v-if="isAiEnabled">
+            <UiScanReceiptButton :group-id="groupId" />
+          </template>
           <UButton
             label="Add Expense"
             icon="i-lucide-plus"
@@ -110,6 +113,7 @@ const { user } = useAuth()
 const { expenses, fetchExpenses, pagination: expensePagination } = useExpenses(props.groupId)
 const { balanceSummary, fetchBalanceSummary } = useBalances(props.groupId)
 const { categories } = useCategories()
+const { isAiEnabled } = useAiStatus()
 
 const currentPage = ref(Number(route.query.page) || 1)
 const showSkeleton = ref(true)

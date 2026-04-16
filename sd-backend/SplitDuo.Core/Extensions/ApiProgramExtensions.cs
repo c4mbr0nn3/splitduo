@@ -67,6 +67,7 @@ public static class ApiProgramExtensions
             builder.Services.ConfigureOptions<JwtOptionsSetup>();
             builder.Services.ConfigureOptions<JwtBearerOptionsSetup>();
             builder.Services.ConfigureOptions<SmtpOptionsSetup>();
+            builder.Services.ConfigureOptions<AiOptionsSetup>();
         }
 
         private void ConfigureServices()

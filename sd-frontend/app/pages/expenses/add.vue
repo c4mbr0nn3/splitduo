@@ -15,19 +15,22 @@
 <script setup>
 const route = useRoute()
 const router = useRouter()
+const { clearReceiptImage } = useReceiptScan()
+
+onUnmounted(() => clearReceiptImage())
 
 // Check if groupId is passed as query parameter (from group page) or route parameter
 const preSelectedGroupId = computed(() => route.query.groupId || route.params.groupId)
 
 const getInitialFormData = () => ({
-  groupId: preSelectedGroupId.value || null,
-  title: '',
-  description: '',
-  amount: null,
+  groupId: route.query.groupId || preSelectedGroupId.value || null,
+  title: route.query.title || '',
+  description: route.query.description || '',
+  amount: route.query.amount ? Number(route.query.amount) : null,
   paidByUserId: null,
-  expenseDate: new Date().toISOString().split('T')[0],
-  categoryId: null,
-  paymentModeId: null,
+  expenseDate: route.query.expenseDate || new Date().toISOString().split('T')[0],
+  categoryId: route.query.categoryId ? Number(route.query.categoryId) : null,
+  paymentModeId: route.query.paymentModeId ? Number(route.query.paymentModeId) : null,
   splits: [],
 })
 
@@ -45,6 +48,7 @@ const onSubmit = async ({ groupId, expenseData }) => {
     const createdExpense = await createExpense(expenseData)
 
     if (createdExpense) {
+      clearReceiptImage()
       await navigateTo(`/groups/${groupId}`)
     }
   }
@@ -63,6 +67,7 @@ const onAddMore = async ({ groupId, expenseData }) => {
     const createdExpense = await createExpense(expenseData)
 
     if (createdExpense) {
+      clearReceiptImage()
       const resetData = getInitialFormData()
       resetData.groupId = groupId
       expenseFormData.value = resetData
