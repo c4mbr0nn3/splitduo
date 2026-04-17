@@ -46,8 +46,8 @@ const props = defineProps({
 const net = computed(() => props.group.netBalance ?? 0)
 const badgeColor = computed(() => net.value > 0 ? 'success' : net.value < 0 ? 'error' : 'neutral')
 const badgeLabel = computed(() => {
-  if (net.value > 0) return `owed €${net.value.toFixed(2)}`
-  if (net.value < 0) return `owes €${Math.abs(net.value).toFixed(2)}`
+  if (net.value > 0) return `owed €${formatAmount(net.value)}`
+  if (net.value < 0) return `owes €${formatAmount(Math.abs(net.value))}`
   return 'settled'
 })
 </script>

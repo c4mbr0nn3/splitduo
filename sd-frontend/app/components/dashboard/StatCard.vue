@@ -59,7 +59,7 @@ const statsType = computed(() => {
 const statsValue = computed(() => {
   const value = props.stats.value || 0
   if (statsType.value === 'currency') {
-    return `${value.toFixed(2)} €`
+    return `${formatAmount(value)} €`
   }
   return value
 })

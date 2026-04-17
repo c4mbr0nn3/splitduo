@@ -21,7 +21,7 @@
             class="font-bold whitespace-nowrap"
             :class="expense.paidByUserId === currentUser?.id ? 'text-green-600' : 'text-red-600'"
           >
-            {{ expense.amount.toFixed(2) }}€
+            {{ formatAmount(expense.amount) }}€
           </div>
         </div>
       </div>
@@ -57,7 +57,7 @@
           v-if="userSplit"
           variant="soft"
           color="neutral"
-          :label="`Your share: ${userSplit.splitAmount.toFixed(2)}€`"
+          :label="`Your share: ${formatAmount(userSplit.splitAmount)}€`"
         />
       </div>
       <div class="flex justify-between items-center">

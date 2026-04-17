@@ -206,18 +206,18 @@
               <span class="font-medium">{{ formatCurrency(splitTotal) }}</span>
             </div>
             <div
-              v-if="model.amount && Math.abs(remainingAmount) > 0.001"
+              v-if="model.amount && remainingMillis !== 0"
               class="flex justify-between items-center font-semibold"
               :class="{
-                'text-red-500': remainingAmount < 0,
-                'text-orange-500': remainingAmount > 0,
+                'text-red-500': remainingMillis < 0,
+                'text-orange-500': remainingMillis > 0,
               }"
             >
-              <span>{{ remainingAmount > 0 ? 'Remaining:' : 'Over by:' }}</span>
+              <span>{{ remainingMillis > 0 ? 'Remaining:' : 'Over by:' }}</span>
               <span>{{ formatCurrency(Math.abs(remainingAmount)) }}</span>
             </div>
             <div
-              v-if="model.amount && Math.abs(remainingAmount) <= 0.001"
+              v-if="model.amount && remainingMillis === 0"
               class="flex justify-between items-center text-green-600 font-semibold"
             >
               <span>✓ Splits balanced</span>
@@ -300,17 +300,35 @@ const { user } = useAuth()
 const { groups, fetchGroups, fetchGroupMembers, isLoading: isLoadingGroups } = useGroups()
 const { categories, isLoading: isLoadingCategories } = useCategories()
 const { paymentModes, isLoading: isLoadingPaymentModes } = usePaymentModes()
+const { showError } = useNotifications()
 
-// Loading states
 const isLoadingMembers = ref(false)
-
-// Group members
 const groupMembers = ref([])
 
-// Track last modified user for distribute remaining
+// Tracks the last user to manually edit a split, so "Distribute Remaining"
+// can avoid re-adjusting the value they just set.
 const lastModifiedUserId = ref(null)
 
-// Computed options for selects
+// Assigns per-user shares (in millis) back onto the split records.
+const assignShares = (splits, sharesMillis) => {
+  splits.forEach((s, i) => {
+    s.splitAmount = fromMillis(sharesMillis[i] ?? 0)
+  })
+}
+
+// Rescale to target, but re-equalize if the current values were a fair-remainder
+// equal split (differ by ≤1 millicent) — otherwise proportional scaling would
+// turn [23.334, 23.333] into [35.001, 34.999] instead of [35, 35].
+const redistributeMillis = (currentMillis, targetMillis) => {
+  if (currentMillis.length === 0) return []
+  const spread = Math.max(...currentMillis) - Math.min(...currentMillis)
+  return spread <= 1
+    ? splitMillis(targetMillis, currentMillis.length)
+    : rescaleMillis(currentMillis, targetMillis)
+}
+
+// Select options ---------------------------------------------------------------
+
 const groupOptions = computed(() => {
   return groups.value.map(g => ({
     value: g.id,
@@ -339,40 +357,40 @@ const paymentModeOptions = computed(() => {
   }))
 })
 
-// Split calculations
-const splitTotal = computed(() => {
-  return model.value.splits
-    ? model.value.splits
-        .filter(s => s.included)
-        .reduce((total, s) => total + (parseFloat(s.splitAmount) || 0), 0)
-    : 0
-})
+// Split calculations -----------------------------------------------------------
 
-const remainingAmount = computed(() => {
-  const amount = parseFloat(model.value.amount) || 0
-  return amount - splitTotal.value
-})
+// Totals in integer millicents — the source of truth for balance comparisons.
+// Summing per-split millis (not millis-of-sum) avoids FP drift entirely.
+const amountMillis = computed(() => toMillis(model.value.amount))
+
+const splitTotalMillis = computed(() =>
+  (model.value.splits ?? [])
+    .filter(s => s.included)
+    .reduce((t, s) => t + toMillis(s.splitAmount), 0),
+)
+
+const remainingMillis = computed(() => amountMillis.value - splitTotalMillis.value)
+
+// Float projections kept for user-facing formatting only — never for comparisons.
+const splitTotal = computed(() => fromMillis(splitTotalMillis.value))
+const remainingAmount = computed(() => fromMillis(remainingMillis.value))
 
 const showDistributeButton = computed(() => {
   if (!model.value.amount) return false
-  const remaining = Math.abs(remainingAmount.value)
-  return remaining > 0.001
+  return remainingMillis.value !== 0
 })
 
 const areSplitsEqual = computed(() => {
   if (!model.value.amount || !model.value.splits) return true
-
-  const amount = parseFloat(model.value.amount)
   const includedSplits = model.value.splits.filter(s => s.included)
-
   if (includedSplits.length === 0) return true
 
-  const equalAmount = amount / includedSplits.length
-  const tolerance = 0.01 // Tolerance for rounding differences
-
-  return includedSplits.every(s =>
-    Math.abs(s.splitAmount - equalAmount) < tolerance,
-  )
+  const expected = splitMillis(amountMillis.value, includedSplits.length)
+  const current = includedSplits.map(s => toMillis(s.splitAmount))
+  // Sort both so we compare multisets — fair split positions are interchangeable.
+  expected.sort((a, b) => a - b)
+  current.sort((a, b) => a - b)
+  return current.every((m, i) => m === expected[i])
 })
 
 const adjustSplitsMenuItems = computed(() => {
@@ -392,30 +410,30 @@ const adjustSplitsMenuItems = computed(() => {
   ]
 })
 
+// Returns a LIVE reference into model.value.splits, creating the entry if
+// missing so v-model mutations in the template are never silently lost.
 const splitByUser = (userId) => {
-  return model.value.splits.find(s => s.userId === userId) || { userId: userId, included: false, splitAmount: 0 }
-}
-
-const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'EUR',
-  }).format(amount)
+  if (!model.value.splits) model.value.splits = []
+  let s = model.value.splits.find(x => x.userId === userId)
+  if (!s) {
+    s = { userId, included: false, splitAmount: 0 }
+    model.value.splits.push(s)
+  }
+  return s
 }
 
 const getSplitPercentage = (userId) => {
   const split = splitByUser(userId)
   const amount = parseFloat(model.value.amount) || 0
   if (amount === 0 || !split.splitAmount) return 0
-  return Math.round((split.splitAmount / amount) * 100)
+  const pct = (split.splitAmount / amount) * 100
+  return parseFloat(pct.toFixed(1))
 }
 
-// Track when a user manually changes their split amount
 const trackUser = (userId) => {
   lastModifiedUserId.value = userId
 }
 
-// Real-time validation for individual splits
 const getSplitValidationState = (userId) => {
   const split = splitByUser(userId)
   if (!split.included) return null
@@ -423,91 +441,87 @@ const getSplitValidationState = (userId) => {
   const amount = parseFloat(model.value.amount) || 0
   if (amount === 0) return null
 
-  if (!split.splitAmount || split.splitAmount <= 0) {
+  if (split.splitAmount <= 0) {
     return { state: 'error', message: 'Amount must be greater than zero' }
   }
-
   if (split.splitAmount > amount) {
     return { state: 'error', message: 'Amount exceeds total expense' }
   }
-
   return null
 }
 
-// Handle split inclusion toggle
+// Split actions ----------------------------------------------------------------
+
+// Toggle-off: rescale remaining included to keep the total (preserves ratios).
+// Toggle-on:  give the new member an equal share, rescale others to fit.
 const handleSplitToggle = (userId, included) => {
   const split = splitByUser(userId)
   split.included = included
-
   if (!model.value.amount) return
 
-  const amount = parseFloat(model.value.amount)
-  const includedSplits = model.value.splits.filter(s => s.included)
+  if (!included) split.splitAmount = 0
 
+  const includedSplits = model.value.splits.filter(s => s.included)
   if (includedSplits.length === 0) return
 
-  // Redistribute amount equally among included splits
-  const equalSplit = amount / includedSplits.length
-  const roundedSplit = Math.floor(equalSplit * 100) / 100
-  const remainder = amount - (roundedSplit * includedSplits.length)
-
-  includedSplits.forEach((s, index) => {
-    s.splitAmount = index === 0 ? roundedSplit + remainder : roundedSplit
-  })
-
-  // Reset excluded splits to 0
-  model.value.splits.filter(s => !s.included).forEach((s) => {
-    s.splitAmount = 0
-  })
+  if (included) {
+    const perPerson = Math.floor(amountMillis.value / includedSplits.length)
+    split.splitAmount = fromMillis(perPerson)
+    const others = includedSplits.filter(s => s.userId !== userId)
+    if (others.length > 0) {
+      const otherCurrent = others.map(s => toMillis(s.splitAmount))
+      const rescaled = redistributeMillis(otherCurrent, amountMillis.value - perPerson)
+      assignShares(others, rescaled)
+    }
+  }
+  else {
+    const currentMillis = includedSplits.map(s => toMillis(s.splitAmount))
+    const rescaled = redistributeMillis(currentMillis, amountMillis.value)
+    assignShares(includedSplits, rescaled)
+  }
 }
 
-// Split equally among all included members
 const splitEqually = () => {
   if (!model.value.amount || !model.value.splits) return
-
-  const amount = parseFloat(model.value.amount)
   const includedSplits = model.value.splits.filter(s => s.included)
-
   if (includedSplits.length === 0) return
 
-  const equalSplit = amount / includedSplits.length
-  const roundedSplit = Math.floor(equalSplit * 100) / 100
-  const remainder = amount - (roundedSplit * includedSplits.length)
-
-  includedSplits.forEach((s, index) => {
-    s.splitAmount = index === 0 ? roundedSplit + remainder : roundedSplit
-  })
+  const shares = splitMillis(amountMillis.value, includedSplits.length)
+  assignShares(includedSplits, shares)
 }
 
-// Distribute remaining amount equally among included members (excluding last modified user)
+// Distributes the delta fairly among included members (minus last-modified).
+// Aborts if any recipient would go negative, instead of silently clamping.
 const distributeRemaining = () => {
   if (!model.value.amount || !model.value.splits) return
 
-  const remaining = remainingAmount.value
+  const deltaMillis = remainingMillis.value
+  if (deltaMillis === 0) return
 
-  // Filter out the last modified user from distribution
-  const includedSplits = model.value.splits.filter(s =>
+  const targets = model.value.splits.filter(s =>
     s.included && s.userId !== lastModifiedUserId.value,
   )
+  if (targets.length === 0) return
 
-  if (includedSplits.length === 0 || Math.abs(remaining) <= 0.001) return
+  const sign = deltaMillis >= 0 ? 1 : -1
+  const adjustments = splitMillis(Math.abs(deltaMillis), targets.length)
 
-  // Distribute remaining amount equally among other users
-  const adjustmentPerPerson = remaining / includedSplits.length
-  const roundedAdjustment = Math.floor(adjustmentPerPerson * 100) / 100
-  const finalRemainder = remaining - (roundedAdjustment * includedSplits.length)
+  const wouldGoNegative = targets.some((s, i) =>
+    toMillis(s.splitAmount) + sign * adjustments[i] < 0,
+  )
+  if (wouldGoNegative) {
+    showError('Cannot distribute: some splits would go negative')
+    return
+  }
 
-  includedSplits.forEach((s, index) => {
-    // Add adjustment to current split amount
-    const adjustment = index === 0 ? roundedAdjustment + finalRemainder : roundedAdjustment
-    s.splitAmount = Math.max(0, (s.splitAmount || 0) + adjustment)
+  targets.forEach((s, i) => {
+    s.splitAmount = fromMillis(toMillis(s.splitAmount) + sign * adjustments[i])
   })
-
-  // Reset tracking after distribution
   lastModifiedUserId.value = null
 }
 
-// Load group members when group changes
+// Group members ---------------------------------------------------------------
+
 const loadGroupMembers = async (groupId) => {
   if (!groupId) {
     groupMembers.value = []
@@ -519,7 +533,6 @@ const loadGroupMembers = async (groupId) => {
     const members = await fetchGroupMembers(groupId)
     groupMembers.value = members || []
 
-    // Auto-select current user if they're in the group and no one is selected yet
     if (!model.value.paidByUserId) {
       const currentUserMember = members?.find(m => m.userId === user.value?.id)
       if (currentUserMember) {
@@ -538,18 +551,23 @@ const loadGroupMembers = async (groupId) => {
   }
 }
 
-// Watch for group changes
 watch(
   () => model.value.groupId,
   (newGroupId) => {
-    if (newGroupId) {
-      loadGroupMembers(newGroupId)
-    }
+    if (newGroupId) loadGroupMembers(newGroupId)
   },
   { immediate: true },
 )
 
-// Form validation
+// Re-sync splits with the current member list whenever it changes —
+// preserves existing per-user splits, drops ones for removed members,
+// adds zero-entries for newcomers.
+watch(groupMembers, (members) => {
+  if (members && members.length > 0) updateSplits()
+})
+
+// Validation ------------------------------------------------------------------
+
 const validate = () => {
   const errors = []
   if (!props.preSelectedGroupId && !model.value.groupId) {
@@ -571,75 +589,54 @@ const validate = () => {
     errors.push({ name: 'paymentModeId', message: 'Payment Mode is required' })
   }
 
-  // Validate splits
   if (!model.value.splits || model.value.splits.filter(s => s.included).length === 0) {
     errors.push({ name: 'splits', message: 'At least one person must be included in the split' })
   }
-  else if (model.value.amount) {
-    const difference = Math.abs(splitTotal.value - parseFloat(model.value.amount))
-    if (difference > 0.001) {
-      errors.push({
-        name: 'splits',
-        message: `Split total (${formatCurrency(splitTotal.value)}) must equal expense amount (${formatCurrency(parseFloat(model.value.amount))})`,
-      })
-    }
+  else if (model.value.amount && remainingMillis.value !== 0) {
+    errors.push({
+      name: 'splits',
+      message: `Split total (${formatCurrency(splitTotal.value)}) must equal expense amount (${formatCurrency(parseFloat(model.value.amount))})`,
+    })
   }
 
   return errors
 }
 
+// Merge existing splits with the current member list (keyed by userId),
+// then either initialize to an equal split (when stuck at zero) or rescale
+// proportionally (when the amount changed).
 const updateSplits = () => {
   const members = groupMembers.value || []
-  const amount = parseFloat(model.value.amount) || 0
 
-  // Initialize splits if empty or member count changed
-  if (!model.value.splits || model.value.splits.length === 0 || model.value.splits.length !== members.length) {
-    if (amount > 0 && members.length > 0) {
-      const equalSplit = amount / members.length
-      const roundedSplit = Math.floor(equalSplit * 100) / 100
-      const remainder = amount - (roundedSplit * members.length)
+  const byId = new Map((model.value.splits || []).map(s => [s.userId, s]))
+  model.value.splits = members.map(m =>
+    byId.get(m.userId) ?? { userId: m.userId, included: true, splitAmount: 0 },
+  )
 
-      model.value.splits = members.map((m, index) => {
-        return {
-          userId: m.userId,
-          included: true,
-          splitAmount: index === 0 ? roundedSplit + remainder : roundedSplit,
-        }
-      })
-    }
-    else {
-      model.value.splits = members.map((m) => {
-        return {
-          userId: m.userId,
-          included: true,
-          splitAmount: 0,
-        }
-      })
-    }
+  const includedSplits = model.value.splits.filter(s => s.included)
+  if (amountMillis.value === 0 || includedSplits.length === 0) return
+
+  const currentTotalMillis = includedSplits.reduce(
+    (s, x) => s + toMillis(x.splitAmount),
+    0,
+  )
+
+  if (currentTotalMillis === 0) {
+    assignShares(includedSplits, splitMillis(amountMillis.value, includedSplits.length))
+    return
   }
-  else {
-    // Smart adjustment: redistribute amount proportionally when it changes
-    const currentTotal = splitTotal.value
-    if (currentTotal > 0 && amount > 0 && Math.abs(currentTotal - amount) > 0.001) {
-      const ratio = amount / currentTotal
-      const includedSplits = model.value.splits.filter(s => s.included)
 
-      if (includedSplits.length > 0) {
-        let newTotal = 0
-        includedSplits.forEach((split, index) => {
-          if (index < includedSplits.length - 1) {
-            split.splitAmount = Math.floor(split.splitAmount * ratio * 100) / 100
-            newTotal += split.splitAmount
-          }
-        })
-        // Assign remainder to last split to ensure exact total
-        includedSplits[includedSplits.length - 1].splitAmount = amount - newTotal
-      }
-    }
+  if (currentTotalMillis !== amountMillis.value) {
+    const rescaled = redistributeMillis(
+      includedSplits.map(s => toMillis(s.splitAmount)),
+      amountMillis.value,
+    )
+    assignShares(includedSplits, rescaled)
   }
 }
 
-// Form submission
+// Submit ----------------------------------------------------------------------
+
 const onSubmit = async () => {
   emit('submit', buildExpensePayload())
 }
@@ -683,7 +680,6 @@ const goBack = () => {
   emit('cancel')
 }
 
-// Initialize data on mount
 onMounted(async () => {
   try {
     await fetchGroups()

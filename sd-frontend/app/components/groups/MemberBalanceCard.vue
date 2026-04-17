@@ -15,7 +15,7 @@
         class="font-bold text-lg"
         :class="balance.balance >= 0 ? 'text-green-600' : 'text-red-600'"
       >
-        {{ balance.balance >= 0 ? '+' : '' }}{{ balance.balance.toFixed(2) }} €
+        {{ balance.balance >= 0 ? '+' : '' }}{{ formatAmount(balance.balance) }} €
       </span>
     </div>
     <USeparator class="my-3" />
@@ -25,7 +25,7 @@
           Paid
         </p>
         <p class="font-semibold text-teal-600">
-          {{ balance.totalPaid.toFixed(2) }} €
+          {{ formatAmount(balance.totalPaid) }} €
         </p>
       </div>
       <div>
@@ -33,7 +33,7 @@
           Owes
         </p>
         <p class="font-semibold text-orange-600">
-          {{ balance.totalOwed.toFixed(2) }} €
+          {{ formatAmount(balance.totalOwed) }} €
         </p>
       </div>
     </div>

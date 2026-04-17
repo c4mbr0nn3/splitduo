@@ -32,7 +32,7 @@
             Group Total
           </p>
           <p class="font-bold text-lg text-green-600">
-            {{ groupTotal.toFixed(2) }}€
+            {{ formatAmount(groupTotal) }}€
           </p>
         </div>
       </div>
