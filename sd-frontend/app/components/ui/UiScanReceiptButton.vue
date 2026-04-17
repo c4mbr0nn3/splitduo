@@ -8,13 +8,14 @@
     @change="onFileSelected"
   >
   <UButton
-    label="Scan Receipt"
     icon="i-lucide-scan"
     size="sm"
     variant="outline"
     :loading="isScanning"
     @click="fileInput.click()"
-  />
+  >
+    <span class="hidden sm:inline">Scan Receipt</span>
+  </UButton>
 </template>
 
 <script setup>

@@ -40,11 +40,12 @@
             <UiScanReceiptButton :group-id="groupId" />
           </template>
           <UButton
-            label="Add Expense"
             icon="i-lucide-plus"
             size="sm"
             @click="addExpense"
-          />
+          >
+            <span class="hidden sm:inline">Add Expense</span>
+          </UButton>
         </div>
       </div>
       <div class="md:grid md:grid-cols-3 md:gap-4">
