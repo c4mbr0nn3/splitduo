@@ -143,6 +143,9 @@ public class ReceiptParserService(
             if (dto.PaymentModeId.HasValue && !Enum.IsDefined(typeof(PaymentMode), dto.PaymentModeId.Value))
                 dto.PaymentModeId = null;
 
+            if (dto.Amount is <= 0 or > 1_000_000)
+                dto.Amount = 0;
+
             if (dto.Description?.Length > 255)
                 dto.Description = dto.Description[..255];
 

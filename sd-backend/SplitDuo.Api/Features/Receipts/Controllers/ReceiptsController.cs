@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using SplitDuo.Api.Features.Ai.Filters;
 using SplitDuo.Api.Features.Common.Controllers;
 using SplitDuo.Api.Features.Common.Dto;
@@ -18,6 +19,7 @@ public class ReceiptsController(IReceiptParserService receiptParserService) : Ba
     [HttpPost("parse")]
     [Consumes("multipart/form-data")]
     [ServiceFilter<RequiresAiFilter>]
+    [EnableRateLimiting("receipt-scan")]
     public async Task<ActionResult<ApiResponseDto<ParsedReceiptDto>>> ParseReceipt(IFormFile image)
     {
         if (image is null)
@@ -30,7 +32,14 @@ public class ReceiptsController(IReceiptParserService receiptParserService) : Ba
             return BadRequest(ApiResponseDto<ParsedReceiptDto>.ErrorResponse(
                 "INVALID_FILE_TYPE", "Only JPEG images are accepted."));
 
-        var result = await receiptParserService.ParseReceiptAsync(image.OpenReadStream());
+        await using var stream = image.OpenReadStream();
+        var header = new byte[3];
+        if (await stream.ReadAsync(header) != 3 || header[0] != 0xFF || header[1] != 0xD8 || header[2] != 0xFF)
+            return BadRequest(ApiResponseDto<ParsedReceiptDto>.ErrorResponse(
+                "INVALID_FILE_TYPE", "Only JPEG images are accepted."));
+        stream.Position = 0;
+
+        var result = await receiptParserService.ParseReceiptAsync(stream);
 
         if (result.IsFailure)
             return StatusCode(StatusCodes.Status502BadGateway, ApiResponseDto<ParsedReceiptDto>.ErrorResponse(

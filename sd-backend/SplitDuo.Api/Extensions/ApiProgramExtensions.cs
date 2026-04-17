@@ -1,5 +1,6 @@
 using System.Net.Mime;
 using System.Text.Json;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.StaticFiles;
@@ -81,6 +82,18 @@ public static class ApiProgramExtensions
                 o.PermitLimit = 10;
                 o.Window = TimeSpan.FromMinutes(1);
                 o.QueueLimit = 0;
+            });
+            opts.AddPolicy("receipt-scan", httpContext =>
+            {
+                var partitionKey = httpContext.User.FindFirst("userId")?.Value
+                                   ?? httpContext.Connection.RemoteIpAddress?.ToString()
+                                   ?? "anon";
+                return RateLimitPartition.GetFixedWindowLimiter(partitionKey, _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = 10,
+                    Window = TimeSpan.FromMinutes(1),
+                    QueueLimit = 0
+                });
             });
             opts.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
         });
