@@ -206,6 +206,32 @@ paths:
       responses:
         "200":
           description: OK
+  /api/v1/receipts/parse:
+    post:
+      tags:
+        - Receipts
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  $ref: "#/components/schemas/IFormFile"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfParsedReceiptDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfParsedReceiptDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfParsedReceiptDto"
   /api/v1/payment-modes:
     get:
       tags:
@@ -1231,6 +1257,23 @@ paths:
             text/json:
               schema:
                 $ref: "#/components/schemas/ApiResponseDtoOfListOfstring"
+  /api/v1/ai/status:
+    get:
+      tags:
+        - Ai
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfAiStatusDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfAiStatusDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfAiStatusDto"
 components:
   schemas:
     AcceptInvitationRequestDto:
@@ -1263,6 +1306,11 @@ components:
           type: string
         role:
           type: string
+    AiStatusDto:
+      type: object
+      properties:
+        enabled:
+          type: boolean
     ApiErrorDto:
       type: object
       properties:
@@ -1276,6 +1324,23 @@ components:
             - array
           items:
             type: string
+    ApiResponseDtoOfAiStatusDto:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/AiStatusDto"
+        message:
+          type:
+            - "null"
+            - string
+        error:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/ApiErrorDto"
     ApiResponseDtoOfAuthResponseDto:
       type: object
       properties:
@@ -1623,6 +1688,23 @@ components:
         success:
           type: boolean
         data: {}
+        message:
+          type:
+            - "null"
+            - string
+        error:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/ApiErrorDto"
+    ApiResponseDtoOfParsedReceiptDto:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/ParsedReceiptDto"
         message:
           type:
             - "null"
@@ -2312,6 +2394,37 @@ components:
           type: boolean
         hasPrev:
           type: boolean
+    ParsedReceiptDto:
+      type: object
+      properties:
+        title:
+          type: string
+        amount:
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+          format: double
+        description:
+          type:
+            - "null"
+            - string
+        expenseDate:
+          type: string
+        categoryId:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int32
+        paymentModeId:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int32
     PaymentModeDto:
       type: object
       properties:
@@ -2627,6 +2740,7 @@ components:
           type: string
 tags:
   - name: Users
+  - name: Receipts
   - name: PaymentModes
   - name: Invitations
   - name: Imports
@@ -2637,3 +2751,4 @@ tags:
   - name: Categories
   - name: Auth
   - name: TwoFactor
+  - name: Ai
