@@ -31,11 +31,11 @@
       </div>
       <div>
         <label class="block text-sm font-medium mb-1">From</label>
-        <UiDatePicker v-model="filters.startDate" />
+        <UiInputDate v-model="filters.startDate" />
       </div>
       <div>
         <label class="block text-sm font-medium mb-1">To</label>
-        <UiDatePicker v-model="filters.endDate" />
+        <UiInputDate v-model="filters.endDate" />
       </div>
       <div>
         <label class="block text-sm font-medium mb-1">Category</label>
