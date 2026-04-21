@@ -2,14 +2,14 @@ export default function useAuthToken() {
   const tokenCookie = useCookie('auth-token', {
     default: () => null,
     secure: true,
-    sameSite: 'strict',
+    sameSite: 'lax',
     maxAge: 60 * 60 * 24 * 7, // 7 days (JWT expiry enforced by backend)
   })
 
   const refreshTokenCookie = useCookie('refresh-token', {
     default: () => null,
     secure: true,
-    sameSite: 'strict',
+    sameSite: 'lax',
     maxAge: 60 * 60 * 24 * 7, // 7 days (matches backend refresh token expiry)
   })
 

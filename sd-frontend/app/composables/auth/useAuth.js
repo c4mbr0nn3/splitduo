@@ -7,7 +7,7 @@ export default function useAuth() {
   const userCookie = useCookie('auth-user', {
     default: () => null,
     secure: true,
-    sameSite: 'strict',
+    sameSite: 'lax',
     serializer: {
       read: (value) => {
         try {
