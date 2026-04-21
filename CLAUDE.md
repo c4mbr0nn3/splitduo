@@ -2,7 +2,7 @@
 
 ## Project: SplitDuo
 
-Expense splitting app for couples. .NET 10 backend + Nuxt 4 frontend, PostgreSQL, deployed as single Docker container.
+Expense splitting app for small groups — couples, housemates, travel companions, or anyone sharing costs. .NET 10 backend + Nuxt 4 frontend, PostgreSQL, deployed as single Docker container.
 
 See `sd-backend/CLAUDE.md` and `sd-frontend/CLAUDE.md` for detailed codebase docs.
 

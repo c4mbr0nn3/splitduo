@@ -56,7 +56,7 @@ export default defineNuxtConfig({
     manifest: {
       name: "SplitDuo",
       short_name: "Split",
-      description: "Expense splitting app for couples",
+      description: "Expense splitting app for small groups — couples, housemates, travel companions, or anyone sharing costs.",
       theme_color: "#14b8a6", // teal-500 — matches NuxtUI primary
       background_color: "#ffffff",
       display: "standalone",
