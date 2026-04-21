@@ -29,6 +29,12 @@ useHead({
 
 definePageMeta({
   layout: 'auth',
+  middleware: defineNuxtRouteMiddleware(() => {
+    const { user } = useAuth()
+    if (user.value) {
+      return navigateTo('/dashboard')
+    }
+  }),
 })
 
 const fields = [

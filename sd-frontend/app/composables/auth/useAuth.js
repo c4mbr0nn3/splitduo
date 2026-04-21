@@ -8,6 +8,7 @@ export default function useAuth() {
     default: () => null,
     secure: true,
     sameSite: 'lax',
+    maxAge: 60 * 60 * 24 * 7,
     serializer: {
       read: (value) => {
         try {
