@@ -8,159 +8,57 @@ See `sd-backend/CLAUDE.md` and `sd-frontend/CLAUDE.md` for detailed codebase doc
 
 ## Quick Start
 
-```bash
-# Backend — http://localhost:5000
-cd sd-backend && dotnet restore && dotnet run --project SplitDuo.Api
-
-# Frontend — http://localhost:3000 (proxies API to backend on :8080)
-cd sd-frontend && pnpm install && pnpm dev
-
-# Docker (production) — http://localhost:3000
-docker compose up -d
-```
-
-Default login: `admin@splitduo.local` / `changeme123`
+- **Backend**: `cd sd-backend && dotnet run --project SplitDuo.Api` → http://localhost:8080
+- **Frontend**: `cd sd-frontend && pnpm install && pnpm dev` → http://localhost:3000 (proxies API to :8080)
+- **Docker**: `docker compose up -d` → http://localhost:3000
+- Default login: `admin@splitduo.local` / `changeme123` (docker-compose); `admin@localhost` / `changeme` (bare dotnet run)
 
 ## Repo Layout
 
-```
-sd-backend/          # .NET 10 — SplitDuo.Api + SplitDuo.Core
-sd-frontend/         # Nuxt 4 SPA — Vue 3, Nuxt UI v4, TailwindCSS v4
-docs/                # Architecture, API, database, feature, and migration docs
-docker-compose.yml   # App + PostgreSQL
-Dockerfile           # Multi-stage: frontend build → backend build → runtime
-VERSION              # Read by CI for Docker tags
-```
+- `sd-backend/` — .NET 10: `SplitDuo.Api` (controllers/DTOs) + `SplitDuo.Core` (entities/data/services) + test projects
+- `sd-frontend/` — Nuxt 4 SPA: Vue 3, Nuxt UI v4, TailwindCSS v4, plain JS (no TypeScript)
+- `Dockerfile` — multi-stage: frontend `pnpm generate` → static files into backend `wwwroot` → single container on :8080
+- `docker-compose.yml` — app + PostgreSQL 17
 
-## Deployment
+## Required Env Vars (production)
 
-- Multi-stage Docker build: frontend `npm run generate` → static files copied to backend `wwwroot` → single .NET container
-- Container runs on port 8080, host maps to 3000
-- .NET serves both API (`/api/v1/`) and frontend static files (fallback to `index.html`)
-- Auto-migrates database on startup
-- Seeds initial admin user if DB is empty
+`SD_DB_HOST/PORT/NAME/USERNAME/PASSWORD`, `SD_JWT_SECRET_KEY`, `SD_INITIAL_USER_EMAIL/PASSWORD`.
+All others optional — see `sd-backend/SplitDuo.Core/Options/Setup/` for full list.
 
-## Environment Variables
+## Gotchas
 
-| Variable | Required | Purpose |
-|---|---|---|
-| `SD_JWT_SECRET_KEY` | Yes (prod) | JWT signing key |
-| `SD_JWT_ISSUER` | No | JWT issuer |
-| `SD_JWT_AUDIENCE` | No | JWT audience |
-| `SD_JWT_EXPIRES` | No | JWT access token expiry |
-| `SD_INITIAL_USER_EMAIL` | Yes (prod) | Initial admin email |
-| `SD_INITIAL_USER_PASSWORD` | Yes (prod) | Initial admin password |
-| `SD_INITIAL_USER_FIRSTNAME` | No | Initial admin first name |
-| `SD_INITIAL_USER_LASTNAME` | No | Initial admin last name |
-| `SD_SEED_DEMO_DATA` | No | Seed demo data on startup |
-| `SD_BASE_URL` | No | App base URL (for emails/links) |
-| `SD_DB_HOST/PORT/NAME/USERNAME/PASSWORD` | Yes | PostgreSQL connection |
-| `SD_EMAIL_SMTP_HOST/PORT/USERNAME/PASSWORD` | No | Email notifications (SMTP) |
-| `SD_EMAIL_SSL` | No | Use SSL for SMTP |
-| `SD_EMAIL_SENDER_NAME` | No | Email sender display name |
-| `SD_EMAIL_SENDER_ADDRESS` | No | Email sender address |
-| `SD_AI_BASE_URL` | No | AI provider base URL (enables receipt scanning) |
-| `SD_AI_API_KEY` | No | AI provider API key |
-| `SD_AI_MODEL` | No | AI model name (e.g. `gpt-4o`) |
-| `NUXT_PUBLIC_APP_VERSION` | No | Version shown in frontend UI |
-
-## Common Gotchas
-
-- **Frontend → backend in dev**: Frontend dev server hits `http://localhost:8080/api/v1`, not 5000
-- **EF migrations**: Always run from `SplitDuo.Api` project, not Core
-- **No tests**: No test projects exist yet
-- **DB hostname in Docker**: .NET connects to `postgres` (Docker network), not localhost
-
-## Docs
-
-```
-docs/
-├── architecture/    # System, backend, frontend architecture
-├── api/             # OpenAPI spec, frontend API composables reference
-├── features/        # 2FA, CSV import, invitations, receipt scan, PWA, expense split precision
-├── screenshots/     # App screenshots for README
-└── project-spec.md  # Full project specification
-```
+- Frontend dev proxies to `:8080`, not `:5000` — backend runs on 8080 (see `launchSettings.json`)
+- EF migrations: run from `SplitDuo.Api` project (`--startup-project SplitDuo.Api`)
+- Test projects exist (`SplitDuo.Tests.Unit`, `SplitDuo.Tests.Integration`) but have no tests yet
+- DB hostname in Docker: `postgres` (Docker network), not localhost
 
 ---
 
-## 1. Think Before Coding
+## Rules
 
-**Don't assume. Don't hide confusion. Surface tradeoffs.**
-
-Before implementing:
-
-- State your assumptions explicitly. If uncertain, ask.
-- If multiple interpretations exist, present them - don't pick silently.
+### 1. Think Before Coding
+- State assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them — don't pick silently.
 - If a simpler approach exists, say so. Push back when warranted.
 - If something is unclear, stop. Name what's confusing. Ask.
 
-## 2. Simplicity First
+### 2. Simplicity First
+- No features beyond what was asked. No abstractions for single-use code.
+- No speculative flexibility/configurability. No error handling for impossible scenarios.
+- If 200 lines could be 50, rewrite it.
 
-**Minimum code that solves the problem. Nothing speculative.**
-
-- No features beyond what was asked.
-- No abstractions for single-use code.
-- No "flexibility" or "configurability" that wasn't requested.
-- No error handling for impossible scenarios.
-- If you write 200 lines and it could be 50, rewrite it.
-
-Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
-
-## 3. Surgical Changes
-
-**Touch only what you must. Clean up only your own mess.**
-
-When editing existing code:
-
+### 3. Surgical Changes
 - Don't "improve" adjacent code, comments, or formatting.
-- Don't refactor things that aren't broken.
-- Match existing style, even if you'd do it differently.
-- If you notice unrelated dead code, mention it - don't delete it.
+- Don't refactor things that aren't broken. Match existing style.
+- If you notice unrelated dead code, mention it — don't delete it.
+- Remove imports/variables/functions that YOUR changes made unused. Don't remove pre-existing dead code.
+- Every changed line should trace directly to the user's request.
 
-When your changes create orphans:
+### 4. Goal-Driven Execution
+- Transform tasks into verifiable goals: "Add validation" → "Write tests for invalid inputs, then make them pass."
+- For multi-step tasks, state a plan: `1. [Step] → verify: [check]`
 
-- Remove imports/variables/functions that YOUR changes made unused.
-- Don't remove pre-existing dead code unless asked.
-
-The test: Every changed line should trace directly to the user's request.
-
-## 4. Goal-Driven Execution
-
-**Define success criteria. Loop until verified.**
-
-Transform tasks into verifiable goals:
-
-- "Add validation" → "Write tests for invalid inputs, then make them pass"
-- "Fix the bug" → "Write a test that reproduces it, then make it pass"
-- "Refactor X" → "Ensure tests pass before and after"
-
-For multi-step tasks, state a brief plan:
-
-```
-1. [Step] → verify: [check]
-2. [Step] → verify: [check]
-3. [Step] → verify: [check]
-```
-
-Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
-
-## 5. Commit Guidelines
-
-**Conventional Commits, subject only. No body. Always ask before committing or pushing.**
-
-Format: `type(scope): message`
-
-- Subject line ≤ 72 chars, no trailing period
+### 5. Commit Guidelines
+- Conventional Commits, subject only: `type(scope): message` (≤72 chars, no trailing period)
 - Types: `feat`, `fix`, `refactor`, `docs`, `chore`, `style`, `perf`, `test`, `ci`, `build`
-- Scope is optional but encouraged (e.g. `api`, `ui`, `auth`, `db`)
-- No body, no footer — if the change needs explaining, the code or PR description should do it
-- **Never commit or push without explicit user approval**
-
-Examples:
-
-```
-feat(auth): add JWT refresh token rotation
-fix(ui): correct expense split total rounding
-chore: bump pnpm to 11.11
-```
+- No body, no footer. **Never commit or push without explicit user approval.**
