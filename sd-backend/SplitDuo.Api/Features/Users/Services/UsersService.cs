@@ -162,7 +162,7 @@ public class UsersService(
 
         // Revoke all refresh tokens for security (force logout on all devices)
         logger.LogInformation("Revoking all refresh tokens for user {UserId} after password change", user.Guid);
-        var revokeResult = await authenticationService.RevokeAllUserTokensAsync(user.Guid.ToString());
+        var revokeResult = await authenticationService.RevokeAllUserTokensAsync(user.Id, "Password changed");
 
         if (revokeResult.IsFailure)
         {

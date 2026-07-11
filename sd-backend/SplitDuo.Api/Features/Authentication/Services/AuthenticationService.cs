@@ -1,6 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -9,11 +8,9 @@ using Microsoft.IdentityModel.Tokens;
 using SplitDuo.Api.Features.Authentication.Dto;
 using SplitDuo.Api.Features.Users.Dto;
 using SplitDuo.Core.Common;
-using SplitDuo.Core.Domain.Email;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Options;
 using SplitDuo.Core.Persistence;
-using SplitDuo.Core.Services;
 
 namespace SplitDuo.Api.Features.Authentication.Services;
 
@@ -23,10 +20,7 @@ public interface IAuthenticationService
     Task<Result<AuthResponseDto>> VerifyTwoFactorAndCompleteLoginAsync(VerifyTwoFactorLoginDto request);
     Task<Result<AuthResponseDto>> RefreshTokenAsync(RefreshTokenRequestDto request);
     Task<Result> RevokeRefreshTokenAsync(string refreshToken, Guid userGuid);
-    Task<Result> RevokeAllUserTokensAsync(string userGuid);
-    Task<Result> InitiatePasswordResetAsync(string email);
-    Task<Result<bool>> ValidateResetTokenAsync(string email, string token);
-    Task<Result> ResetPasswordAsync(ResetPasswordRequestDto request);
+    Task<Result> RevokeAllUserTokensAsync(int userId, string reason);
 }
 
 public class AuthenticationService(
@@ -34,8 +28,8 @@ public class AuthenticationService(
     IPasswordHasher<User> passwordHasher,
     IOptions<JwtOptions> jwtOptions,
     ITwoFactorService twoFactorService,
-    INotificationService notificationService,
-    IEmailTemplateProvider emailTemplateProvider) : IAuthenticationService
+    ILogger<AuthenticationService> logger,
+    ITokenGenerator tokenGenerator) : IAuthenticationService
 {
     private readonly JwtOptions _jwtOptions = jwtOptions.Value;
 
@@ -47,11 +41,24 @@ public class AuthenticationService(
         if (user == null)
             return Result<AuthResponseDto>.Unauthorized("Invalid email or password");
 
+        // Check account lockout
+        if (user.LockoutEnd.HasValue && user.LockoutEnd.Value > DateTimeOffset.UtcNow.ToUnixTimeSeconds())
+            return Result<AuthResponseDto>.Unauthorized("Account temporarily locked. Try again later.");
+
         var verificationResult = passwordHasher.VerifyHashedPassword(
             user, user.PasswordHash, request.Password);
 
         if (verificationResult == PasswordVerificationResult.Failed)
+        {
+            user.FailedLoginAttempts++;
+            if (user.FailedLoginAttempts >= 5)
+                user.LockoutEnd = DateTimeOffset.UtcNow.AddMinutes(15).ToUnixTimeSeconds();
             return Result<AuthResponseDto>.Unauthorized("Invalid email or password");
+        }
+
+        // Reset lockout on successful login
+        user.FailedLoginAttempts = 0;
+        user.LockoutEnd = null;
 
         // Check if 2FA is enabled for this user
         if (user.TwoFactorEnabled)
@@ -59,7 +66,7 @@ public class AuthenticationService(
             return Result<AuthResponseDto>.Success(new AuthResponseDto
             {
                 RequiresTwoFactor = true,
-                TwoFactorChallengeToken = GenerateChallengeToken(user.Guid),
+                TwoFactorChallengeToken = tokenGenerator.GenerateChallengeToken(user.Guid),
                 User = new UserDto(user)
             });
         }
@@ -134,20 +141,27 @@ public class AuthenticationService(
 
     private async Task<Result<AuthResponseDto>> CompleteLoginAsync(User user)
     {
-        var jwtId = Guid.CreateVersion7().ToString();
-        var token = GenerateJwtToken(user, jwtId);
-        var refreshTokenValue = GenerateSecureRefreshToken();
-        var expiresAt = DateTimeOffset.UtcNow.AddMinutes(_jwtOptions.Expires).ToUnixTimeSeconds();
+        // Reset lockout on successful login (covers 2FA path)
+        user.FailedLoginAttempts = 0;
+        user.LockoutEnd = null;
 
-        // Revoke all existing refresh tokens for this user (single session security)
-        await RevokeAllUserTokensAsync(user.Id, "New login - previous sessions invalidated");
+        // Backfill security stamp for pre-migration users (migration default was empty string)
+        if (string.IsNullOrEmpty(user.SecurityStamp))
+            user.SecurityStamp = Guid.CreateVersion7().ToString();
+
+        var jwtId = Guid.CreateVersion7().ToString();
+        var token = tokenGenerator.GenerateJwtToken(user, jwtId);
+        var refreshTokenValue = tokenGenerator.GenerateSecureRandomToken();
+        var familyId = Guid.CreateVersion7().ToString();
+        var expiresAt = DateTimeOffset.UtcNow.AddMinutes(_jwtOptions.Expires).ToUnixTimeSeconds();
 
         // Store new refresh token in database
         var refreshToken = new RefreshToken
         {
             UserId = user.Id,
-            TokenHash = HashToken(refreshTokenValue),
+            TokenHash = HashUtils.Sha256Base64(refreshTokenValue),
             JwtId = jwtId,
+            FamilyId = familyId,
             ExpiresAt = DateTimeOffset.UtcNow.AddDays(7).ToUnixTimeSeconds(), // 7 days for refresh token
             ClientInfo = "API Client" // Could be enhanced to include actual client info
         };
@@ -171,7 +185,7 @@ public class AuthenticationService(
         try
         {
             // 1. Validate the expired JWT to extract claims
-            var tokenHandler = new JwtSecurityTokenHandler();
+            var tokenHandler = new JwtSecurityTokenHandler { MapInboundClaims = false };
             var key = Encoding.ASCII.GetBytes(_jwtOptions.SecretKey ?? "");
 
             var validationParameters = new TokenValidationParameters
@@ -195,7 +209,7 @@ public class AuthenticationService(
                 return Result<AuthResponseDto>.Unauthorized("Invalid token");
 
             // 2. Validate the refresh token exists and is active
-            var refreshTokenHash = HashToken(request.RefreshToken);
+            var refreshTokenHash = HashUtils.Sha256Base64(request.RefreshToken);
             var storedRefreshToken = await unitOfWork.RefreshTokens
                 .FirstOrDefaultAsync(rt => rt.TokenHash == refreshTokenHash && rt.JwtId == jwtIdClaim);
 
@@ -203,15 +217,32 @@ public class AuthenticationService(
                 return Result<AuthResponseDto>.Unauthorized("Invalid refresh token");
 
             // 3. Get user details first
-            var user = await unitOfWork.Users.FirstOrDefaultAsync(u => u.Guid == userId);
+            var user = await unitOfWork.Users.FirstOrDefaultAsync(u => u.Guid == userId && u.DeletedAt == null);
             if (user == null)
                 return Result<AuthResponseDto>.NotFound("User not found");
 
+            // Verify security stamp
+            var tokenSecurityStamp = principal.FindFirst("security_stamp")?.Value;
+            if (string.IsNullOrEmpty(tokenSecurityStamp) || tokenSecurityStamp != user.SecurityStamp)
+            {
+                await RevokeTokenChainAsync(user.Id, storedRefreshToken.FamilyId, "Security stamp mismatch");
+                return Result<AuthResponseDto>.Unauthorized("Token is no longer valid");
+            }
+
             if (!storedRefreshToken.IsActive)
             {
-                // If token is revoked or expired, revoke all tokens for this user (security measure)
-                await RevokeAllUserTokensAsync(user.Id, "Refresh token reuse detected");
-                return Result<AuthResponseDto>.Unauthorized("Refresh token is no longer valid");
+                var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                var withinGraceWindow = storedRefreshToken.RevokedAt.HasValue
+                    && storedRefreshToken.RevokedReason == "Used for refresh"
+                    && now - storedRefreshToken.RevokedAt.Value <= 30;
+
+                if (!withinGraceWindow)
+                {
+                    // If token is revoked or expired outside grace window, revoke the chain (security measure)
+                    await RevokeTokenChainAsync(user.Id, storedRefreshToken.FamilyId, "Refresh token reuse detected");
+                    return Result<AuthResponseDto>.Unauthorized("Refresh token is no longer valid");
+                }
+                // Grace window: treat consumed token as valid, continue to issue new tokens
             }
 
             // 4. Revoke the used refresh token (token rotation)
@@ -220,22 +251,23 @@ public class AuthenticationService(
 
             // 5. Generate new tokens
             var newJwtId = Guid.CreateVersion7().ToString();
-            var newAccessToken = GenerateJwtToken(user, newJwtId);
-            var newRefreshTokenValue = GenerateSecureRefreshToken();
+            var newAccessToken = tokenGenerator.GenerateJwtToken(user, newJwtId);
+            var newRefreshTokenValue = tokenGenerator.GenerateSecureRandomToken();
             var expiresAt = DateTimeOffset.UtcNow.AddMinutes(_jwtOptions.Expires).ToUnixTimeSeconds();
 
             // 6. Store new refresh token
             var newRefreshToken = new RefreshToken
             {
                 UserId = user.Id,
-                TokenHash = HashToken(newRefreshTokenValue),
+                TokenHash = HashUtils.Sha256Base64(newRefreshTokenValue),
                 JwtId = newJwtId,
+                FamilyId = storedRefreshToken.FamilyId,
                 ExpiresAt = DateTimeOffset.UtcNow.AddDays(7).ToUnixTimeSeconds(),
                 ClientInfo = storedRefreshToken.ClientInfo
             };
 
             // Link the old token to the new one for audit trail
-            storedRefreshToken.ReplacedByToken = HashToken(newRefreshTokenValue);
+            storedRefreshToken.ReplacedByToken = HashUtils.Sha256Base64(newRefreshTokenValue);
 
             unitOfWork.RefreshTokens.Add(newRefreshToken);
 
@@ -249,73 +281,11 @@ public class AuthenticationService(
 
             return Result<AuthResponseDto>.Success(authResponse);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            logger.LogError(ex, "Unexpected error during token refresh");
             return Result<AuthResponseDto>.Unauthorized("Invalid token");
         }
-    }
-
-    private string GenerateJwtToken(User user, string jwtId)
-    {
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes(_jwtOptions.SecretKey ?? "");
-
-        var tokenDescriptor = new SecurityTokenDescriptor
-        {
-            Subject = new ClaimsIdentity([
-                new Claim(JwtRegisteredClaimNames.Jti, jwtId),
-                new Claim(JwtRegisteredClaimNames.Sub, user.Guid.ToString()),
-                new Claim("userId", user.Guid.ToString()),
-                new Claim("email", user.Email),
-                new Claim("firstName", user.FirstName),
-                new Claim("lastName", user.LastName),
-                new Claim(ClaimTypes.Role, user.GlobalRoleId.ToString())
-            ]),
-            Expires = DateTime.UtcNow.AddMinutes(_jwtOptions.Expires),
-            Issuer = _jwtOptions.Issuer,
-            Audience = _jwtOptions.Audience,
-            SigningCredentials =
-                new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-        };
-
-        var token = tokenHandler.CreateToken(tokenDescriptor);
-        return tokenHandler.WriteToken(token);
-    }
-
-    private string GenerateChallengeToken(Guid userGuid)
-    {
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes(_jwtOptions.SecretKey ?? "");
-
-        var tokenDescriptor = new SecurityTokenDescriptor
-        {
-            Subject = new ClaimsIdentity([
-                new Claim(JwtRegisteredClaimNames.Sub, userGuid.ToString()),
-                new Claim("purpose", "2fa_challenge"),
-            ]),
-            Expires = DateTime.UtcNow.AddMinutes(5),
-            Issuer = _jwtOptions.Issuer,
-            Audience = _jwtOptions.Audience,
-            SigningCredentials = new SigningCredentials(
-                new SymmetricSecurityKey(key),
-                SecurityAlgorithms.HmacSha256Signature)
-        };
-
-        return tokenHandler.WriteToken(tokenHandler.CreateToken(tokenDescriptor));
-    }
-
-    private static string GenerateSecureRefreshToken()
-    {
-        var randomBytes = new byte[64];
-        using var rng = RandomNumberGenerator.Create();
-        rng.GetBytes(randomBytes);
-        return Convert.ToBase64String(randomBytes);
-    }
-
-    private static string HashToken(string token)
-    {
-        var hashedBytes = SHA256.HashData(Encoding.UTF8.GetBytes(token));
-        return Convert.ToBase64String(hashedBytes);
     }
 
     public async Task<Result> RevokeRefreshTokenAsync(string refreshToken, Guid userGuid)
@@ -323,7 +293,7 @@ public class AuthenticationService(
         var user = await unitOfWork.Users.FirstOrDefaultAsync(u => u.Guid == userGuid && u.DeletedAt == null);
         if (user == null) return Result.NotFound("User not found");
 
-        var refreshTokenHash = HashToken(refreshToken);
+        var refreshTokenHash = HashUtils.Sha256Base64(refreshToken);
         var storedRefreshToken = await unitOfWork.RefreshTokens
             .FirstOrDefaultAsync(rt => rt.TokenHash == refreshTokenHash && rt.UserId == user.Id);
 
@@ -339,18 +309,7 @@ public class AuthenticationService(
         return Result.Success();
     }
 
-    public async Task<Result> RevokeAllUserTokensAsync(string userGuid)
-    {
-        if (!Guid.TryParse(userGuid, out var userId)) return Result.BadRequest("Invalid user guid");
-
-        var user = await unitOfWork.Users.FirstOrDefaultAsync(u => u.Guid == userId && u.DeletedAt == null);
-        if (user == null) return Result.NotFound("User not found");
-
-        await RevokeAllUserTokensAsync(user.Id, "All tokens revoked by system administrator");
-        return Result.Success();
-    }
-
-    private async Task RevokeAllUserTokensAsync(int userId, string reason)
+    public async Task<Result> RevokeAllUserTokensAsync(int userId, string reason)
     {
         var activeTokens = await unitOfWork.RefreshTokens
             .Where(rt => rt.UserId == userId && rt.RevokedAt == null)
@@ -362,133 +321,20 @@ public class AuthenticationService(
             token.RevokedAt = currentTimestamp;
             token.RevokedReason = reason;
         }
+
+        return Result.Success();
     }
 
-    public async Task<Result> InitiatePasswordResetAsync(string email)
+    private async Task RevokeTokenChainAsync(int userId, string familyId, string reason)
     {
-        var user = await unitOfWork.Users
-            .FirstOrDefaultAsync(u => u.Email == email && u.DeletedAt == null);
-
-        // Always return success to prevent email enumeration
-        if (user == null)
-            return Result.Success();
-
-        // Generate secure random token
-        var resetToken = GenerateSecureRefreshToken();
-        var hashedToken = HashToken(resetToken);
-
-        // Invalidate any existing password reset tokens for this user
-        var existingTokens = await unitOfWork.TwoFactorTokens
-            .Where(t => t.UserId == user.Id && t.Purpose == "password_reset" && t.UsedAt == null)
+        var chainTokens = await unitOfWork.RefreshTokens
+            .Where(rt => rt.UserId == userId && rt.FamilyId == familyId && rt.RevokedAt == null)
             .ToListAsync();
-
-        foreach (var token in existingTokens)
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        foreach (var token in chainTokens)
         {
-            token.UsedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            token.RevokedAt = now;
+            token.RevokedReason = reason;
         }
-
-        // Create new password reset token
-        var resetTokenEntity = new TwoFactorToken
-        {
-            UserId = user.Id,
-            TokenHash = hashedToken,
-            TokenType = "password_reset",
-            Purpose = "password_reset",
-            ExpiresAt = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds(), // 1 hour expiration
-            MaxAttempts = 3,
-            ClientInfo = "Password Reset"
-        };
-
-        unitOfWork.TwoFactorTokens.Add(resetTokenEntity);
-
-        // Send password reset email
-        await notificationService.EnqueueAsync(emailTemplateProvider.Render(new PasswordResetModel
-        {
-            To = user.Email, FirstName = user.FirstName, ResetToken = resetToken
-        }));
-
-        return Result.Success();
-    }
-
-    public async Task<Result<bool>> ValidateResetTokenAsync(string email, string token)
-    {
-        var user = await unitOfWork.Users
-            .FirstOrDefaultAsync(u => u.Email == email && u.DeletedAt == null);
-
-        if (user == null)
-            return Result<bool>.BadRequest("Invalid email or token");
-
-        var hashedToken = HashToken(token);
-        var resetToken = await unitOfWork.TwoFactorTokens
-            .FirstOrDefaultAsync(t =>
-                t.UserId == user.Id &&
-                t.TokenHash == hashedToken &&
-                t.Purpose == "password_reset" &&
-                t.UsedAt == null);
-
-        if (resetToken == null)
-            return Result<bool>.BadRequest("Invalid or expired reset token");
-
-        var currentTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-
-        // Check if token is expired
-        if (resetToken.ExpiresAt < currentTimestamp)
-            return Result<bool>.BadRequest("Reset token has expired");
-
-        // Check if max attempts reached
-        if (resetToken.Attempts >= resetToken.MaxAttempts)
-            return Result<bool>.BadRequest("Maximum validation attempts exceeded");
-
-        // Increment attempts
-        resetToken.Attempts++;
-
-        return Result<bool>.Success(true);
-    }
-
-    public async Task<Result> ResetPasswordAsync(ResetPasswordRequestDto request)
-    {
-        var user = await unitOfWork.Users
-            .FirstOrDefaultAsync(u => u.Email == request.Email && u.DeletedAt == null);
-
-        if (user == null)
-            return Result.BadRequest("Invalid email or token");
-
-        var hashedToken = HashToken(request.Token);
-        var resetToken = await unitOfWork.TwoFactorTokens
-            .FirstOrDefaultAsync(t =>
-                t.UserId == user.Id &&
-                t.TokenHash == hashedToken &&
-                t.Purpose == "password_reset" &&
-                t.UsedAt == null);
-
-        if (resetToken == null)
-            return Result.BadRequest("Invalid or expired reset token");
-
-        var currentTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-
-        // Check if token is expired
-        if (resetToken.ExpiresAt < currentTimestamp)
-            return Result.BadRequest("Reset token has expired");
-
-        // Check if max attempts reached
-        if (resetToken.Attempts >= resetToken.MaxAttempts)
-            return Result.BadRequest("Maximum validation attempts exceeded");
-
-        // Mark token as used
-        resetToken.UsedAt = currentTimestamp;
-
-        // Update user password
-        user.PasswordHash = passwordHasher.HashPassword(user, request.NewPassword);
-
-        // Revoke all refresh tokens (force logout on all devices)
-        await RevokeAllUserTokensAsync(user.Id, "Password reset");
-
-        // Send password reset success email
-        await notificationService.EnqueueAsync(emailTemplateProvider.Render(new PasswordResetSuccessModel
-        {
-            To = user.Email, FirstName = user.FirstName
-        }));
-
-        return Result.Success();
     }
 }
