@@ -134,3 +134,23 @@ For multi-step tasks, state a brief plan:
 ```
 
 Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
+
+## 5. Commit Guidelines
+
+**Conventional Commits, subject only. No body. Always ask before committing or pushing.**
+
+Format: `type(scope): message`
+
+- Subject line ≤ 72 chars, no trailing period
+- Types: `feat`, `fix`, `refactor`, `docs`, `chore`, `style`, `perf`, `test`, `ci`, `build`
+- Scope is optional but encouraged (e.g. `api`, `ui`, `auth`, `db`)
+- No body, no footer — if the change needs explaining, the code or PR description should do it
+- **Never commit or push without explicit user approval**
+
+Examples:
+
+```
+feat(auth): add JWT refresh token rotation
+fix(ui): correct expense split total rounding
+chore: bump pnpm to 11.11
+```
