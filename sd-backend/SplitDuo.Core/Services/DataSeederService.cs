@@ -11,7 +11,7 @@ using SplitDuo.Core.Persistence;
 
 namespace SplitDuo.Core.Services;
 
-public class DataSeederService(IServiceProvider serviceProvider, ILogger<DataSeederService> logger)
+public class DataSeederService(IServiceProvider serviceProvider, ILogger<DataSeederService> logger, TimeProvider timeProvider)
     : IHostedService
 {
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -80,7 +80,7 @@ public class DataSeederService(IServiceProvider serviceProvider, ILogger<DataSee
         );
         await context.SaveChangesAsync();
 
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var today = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime);
 
         var group1Expenses =
             new (string Title, decimal Amount, bool PaidByAlice, ExpenseCategory Category, PaymentMode PaymentMode)[]

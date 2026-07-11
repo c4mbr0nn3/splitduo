@@ -30,9 +30,7 @@ public class RefreshToken : AuditableEntity
     [Column("client_info"), MaxLength(255)]
     public string ClientInfo { get; set; } = "";
 
-    [NotMapped] public bool IsExpired => DateTimeOffset.UtcNow.ToUnixTimeSeconds() >= ExpiresAt;
     [NotMapped] public bool IsRevoked => RevokedAt.HasValue;
-    [NotMapped] public bool IsActive => !IsRevoked && !IsExpired;
 
     // Navigation properties
     [ForeignKey(nameof(UserId))] public virtual User User { get; set; } = null!;

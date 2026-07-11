@@ -7,13 +7,13 @@ using SplitDuo.Core.Persistence;
 namespace SplitDuo.Core.Services.BackgroundJobs;
 
 [DisallowConcurrentExecution]
-public class TempFileCleanupJob(ILogger<TempFileCleanupJob> logger, IUnitOfWork unitOfWork) : IJob
+public class TempFileCleanupJob(ILogger<TempFileCleanupJob> logger, IUnitOfWork unitOfWork, TimeProvider timeProvider) : IJob
 {
     public async Task Execute(IJobExecutionContext context)
     {
         try
         {
-            var completedFailedCutoff = DateTimeOffset.UtcNow.AddDays(-1).ToUnixTimeSeconds();
+            var completedFailedCutoff = timeProvider.GetUtcNow().AddDays(-1).ToUnixTimeSeconds();
             var counter = 0;
             var completedFailed = await unitOfWork.Imports
                 .Where(i => (i.StatusId == (int)ImportStatus.Completed || i.StatusId == (int)ImportStatus.Failed)
@@ -28,7 +28,7 @@ public class TempFileCleanupJob(ILogger<TempFileCleanupJob> logger, IUnitOfWork 
             await unitOfWork.SaveChangesAsync();
             counter += completedFailed.Count;
 
-            var pendingProcessingCutoff = DateTimeOffset.UtcNow.AddDays(-7).ToUnixTimeSeconds();
+            var pendingProcessingCutoff = timeProvider.GetUtcNow().AddDays(-7).ToUnixTimeSeconds();
             var pendingProcessing = await unitOfWork.Imports
                 .Where(i => (i.StatusId == (int)ImportStatus.Pending || i.StatusId == (int)ImportStatus.Processing)
                             && i.UpdatedAt < pendingProcessingCutoff

@@ -34,7 +34,5 @@ public class TwoFactorToken : AuditableEntity
     [ForeignKey(nameof(UserId))] public virtual User User { get; set; } = null!;
 
     // Computed properties
-    [NotMapped] public bool IsExpired => DateTimeOffset.UtcNow.ToUnixTimeSeconds() >= ExpiresAt;
     [NotMapped] public bool IsUsed => UsedAt.HasValue;
-    [NotMapped] public bool IsValid => !IsExpired && !IsUsed && Attempts < MaxAttempts;
 }

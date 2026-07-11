@@ -16,7 +16,8 @@ public abstract class AbstractImportService<T>(
     IUnitOfWork unitOfWork,
     IImportValidatorService validatorService,
     ISchedulerFactory schedulerFactory,
-    ILogger<T> logger) : IImportsService
+    ILogger<T> logger,
+    TimeProvider timeProvider) : IImportsService
 {
     private ImportType ImportType { get; } = importType;
     protected readonly IUnitOfWork UnitOfWork = unitOfWork;
@@ -39,7 +40,7 @@ public abstract class AbstractImportService<T>(
                 UserId = userId,
                 FileName = file.FileName,
                 FileHash = analysisDto.FileHash,
-                ImportDate = DateOnly.FromDateTime(DateTime.UtcNow),
+                ImportDate = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime),
                 ImportType = ImportType,
                 Status = ImportStatus.Pending,
                 TempFile = byteFile

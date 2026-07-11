@@ -30,7 +30,8 @@ public class TwoFactorService(
     INotificationService notificationService,
     IEmailTemplateProvider emailTemplateProvider,
     IOptions<JwtOptions> jwtOptions,
-    IPasswordHasher<User> passwordHasher) : ITwoFactorService
+    IPasswordHasher<User> passwordHasher,
+    TimeProvider timeProvider) : ITwoFactorService
 {
     private readonly byte[] _encryptionKey =
         SHA256.HashData(Encoding.UTF8.GetBytes("totp:" + jwtOptions.Value.SecretKey));
@@ -123,7 +124,7 @@ public class TwoFactorService(
 
         foreach (var token in activeTwoFactorTokens)
         {
-            token.UsedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            token.UsedAt = timeProvider.GetUtcNow().ToUnixTimeSeconds();
         }
 
         // Send notification

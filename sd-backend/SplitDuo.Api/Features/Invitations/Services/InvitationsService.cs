@@ -36,7 +36,8 @@ public class InvitationsService(
     IUnitOfWork unitOfWork,
     INotificationService notificationService,
     IEmailTemplateProvider emailTemplateProvider,
-    IPasswordHasher<User> passwordHasher) : IInvitationsService
+    IPasswordHasher<User> passwordHasher,
+    TimeProvider timeProvider) : IInvitationsService
 {
     private const int TokenExpirationHours = 48;
 
@@ -122,7 +123,7 @@ public class InvitationsService(
         }
 
         // Check for existing pending invitation
-        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var now = timeProvider.GetUtcNow().ToUnixTimeSeconds();
         var existingInvitation = await unitOfWork.InvitationTokens
             .FirstOrDefaultAsync(it =>
                 it.Email == email &&
@@ -142,7 +143,7 @@ public class InvitationsService(
             GroupId = group.Id,
             InvitedByUserId = currentUser.Id,
             TokenHash = HashToken(rawToken),
-            ExpiresAt = DateTimeOffset.UtcNow.AddHours(TokenExpirationHours).ToUnixTimeSeconds()
+            ExpiresAt = timeProvider.GetUtcNow().AddHours(TokenExpirationHours).ToUnixTimeSeconds()
         };
 
         unitOfWork.InvitationTokens.Add(invitationToken);
@@ -202,7 +203,7 @@ public class InvitationsService(
         if (currentUserMembership.Role != GroupRole.Admin)
             return Result<List<InvitationDto>>.Forbidden("Only group administrators can view invitations");
 
-        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var now = timeProvider.GetUtcNow().ToUnixTimeSeconds();
         var invitations = await unitOfWork.InvitationTokens
             .Include(it => it.InvitedByUser)
             .Where(it =>
@@ -273,7 +274,7 @@ public class InvitationsService(
             return Result<InvitationDto>.NotFound("Invitation not found");
 
         // Revoke old token
-        oldInvitation.RevokedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        oldInvitation.RevokedAt = timeProvider.GetUtcNow().ToUnixTimeSeconds();
 
         // Create new token
         var rawToken = GenerateToken();
@@ -283,7 +284,7 @@ public class InvitationsService(
             GroupId = group.Id,
             InvitedByUserId = currentUser.Id,
             TokenHash = HashToken(rawToken),
-            ExpiresAt = DateTimeOffset.UtcNow.AddHours(TokenExpirationHours).ToUnixTimeSeconds()
+            ExpiresAt = timeProvider.GetUtcNow().AddHours(TokenExpirationHours).ToUnixTimeSeconds()
         };
 
         unitOfWork.InvitationTokens.Add(newInvitation);
@@ -352,7 +353,7 @@ public class InvitationsService(
         if (invitation == null)
             return Result.NotFound("Invitation not found");
 
-        invitation.RevokedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        invitation.RevokedAt = timeProvider.GetUtcNow().ToUnixTimeSeconds();
 
         return Result.Success();
     }
@@ -360,7 +361,7 @@ public class InvitationsService(
     public async Task<Result<ValidateInvitationResponseDto>> ValidateInvitationTokenAsync(string token)
     {
         var hashedToken = HashToken(token);
-        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var now = timeProvider.GetUtcNow().ToUnixTimeSeconds();
 
         var invitation = await unitOfWork.InvitationTokens
             .Include(it => it.Group)
@@ -393,7 +394,7 @@ public class InvitationsService(
     public async Task<Result> AcceptInvitationAsync(AcceptInvitationRequestDto request)
     {
         var hashedToken = HashToken(request.Token);
-        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var now = timeProvider.GetUtcNow().ToUnixTimeSeconds();
 
         var invitation = await unitOfWork.InvitationTokens
             .FirstOrDefaultAsync(it => it.TokenHash == hashedToken);
@@ -471,7 +472,7 @@ public class InvitationsService(
 
     public async Task<Result<List<PendingUserDto>>> GetPendingInvitationsAsync()
     {
-        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var now = timeProvider.GetUtcNow().ToUnixTimeSeconds();
 
         var pendingInvitations = await unitOfWork.InvitationTokens
             .Include(it => it.Group)

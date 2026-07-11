@@ -31,7 +31,8 @@ public class UsersService(
     IAuthenticationService authenticationService,
     INotificationService notificationService,
     IEmailTemplateProvider emailTemplateProvider,
-    ILogger<UsersService> logger) : IUsersService
+    ILogger<UsersService> logger,
+    TimeProvider timeProvider) : IUsersService
 {
     public async Task<Result<List<UserDto>>> GetUsersAsync()
     {
@@ -266,7 +267,7 @@ public class UsersService(
         if (user == null)
             return Result.NotFound("User not found");
 
-        user.DeletedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        user.DeletedAt = timeProvider.GetUtcNow().ToUnixTimeSeconds();
 
         return Result.Success();
     }

@@ -72,6 +72,7 @@ public static class ApiProgramExtensions
 
         private void ConfigureServices()
         {
+            builder.Services.AddSingleton(TimeProvider.System);
             builder.Services.AddHttpContextAccessor();
 
             builder.Services.AddExceptionHandler<GlobalExceptionHandler>();

@@ -8,13 +8,14 @@ namespace SplitDuo.Core.Services.BackgroundJobs;
 [DisallowConcurrentExecution]
 public class RefreshTokenCleanupJob(
     ILogger<RefreshTokenCleanupJob> logger,
-    IUnitOfWork unitOfWork) : IJob
+    IUnitOfWork unitOfWork,
+    TimeProvider timeProvider) : IJob
 {
     public async Task Execute(IJobExecutionContext context)
     {
         try
         {
-            var cutoff = DateTimeOffset.UtcNow.AddDays(-7).ToUnixTimeSeconds();
+            var cutoff = timeProvider.GetUtcNow().AddDays(-7).ToUnixTimeSeconds();
             var deletedCount = await unitOfWork.RefreshTokens
                 .Where(rt => rt.ExpiresAt < cutoff)
                 .ExecuteDeleteAsync(context.CancellationToken);
