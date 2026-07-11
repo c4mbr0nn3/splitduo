@@ -15,13 +15,15 @@ public class SplitwiseImportsService(
     ILogger<SplitwiseImportsService> logger,
     IUnitOfWork unitOfWork,
     ISchedulerFactory schedulerFactory,
-    IImportValidatorService validatorService
+    IImportValidatorService validatorService,
+    TimeProvider timeProvider
 ) : AbstractImportService<SplitwiseImportsService>(
     ImportType.Splitwise,
     unitOfWork,
     validatorService,
     schedulerFactory,
-    logger)
+    logger,
+    timeProvider)
 {
     public override async Task<Result<ImportAnalysisDto>> AnalyzeFileAsync(IFormFile file)
     {

@@ -18,7 +18,8 @@ public interface INotificationService
 public class EmailNotificationService(
     ILogger<EmailNotificationService> logger,
     ISmtpService smtpService,
-    IUnitOfWork unitOfWork) : INotificationService
+    IUnitOfWork unitOfWork,
+    TimeProvider timeProvider) : INotificationService
 {
     private const int MaxRetryCount = 3;
     private const int PruneThresholdDays = 30;
@@ -33,7 +34,7 @@ public class EmailNotificationService(
 
     public async Task<Result<List<Notification>>> GetPrunableNotifications()
     {
-        var threshold = DateTimeOffset.UtcNow.AddDays(-PruneThresholdDays).ToUnixTimeSeconds();
+        var threshold = timeProvider.GetUtcNow().AddDays(-PruneThresholdDays).ToUnixTimeSeconds();
         var notifications = await unitOfWork.Notifications
             .Where(x => x.SentAt.HasValue || x.RetryCount == MaxRetryCount)
             .Where(x => x.SentAt < threshold)
@@ -68,7 +69,7 @@ public class EmailNotificationService(
                 return result;
             }
 
-            notification.SentAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            notification.SentAt = timeProvider.GetUtcNow().ToUnixTimeSeconds();
             notification.ErrorMessage = null;
 
             logger.LogInformation("Successfully sent email to {Email}", notification.To);

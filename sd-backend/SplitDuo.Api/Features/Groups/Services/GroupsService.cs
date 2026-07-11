@@ -37,7 +37,8 @@ public interface IGroupsService
 public class GroupsService(
     IUnitOfWork unitOfWork,
     INotificationService notificationService,
-    IEmailTemplateProvider emailTemplateProvider) : IGroupsService
+    IEmailTemplateProvider emailTemplateProvider,
+    TimeProvider timeProvider) : IGroupsService
 {
     public async Task<Result<List<GroupDto>>> GetUserGroupsAsync(Guid currentUserId, int? limit = null)
     {
@@ -274,7 +275,7 @@ public class GroupsService(
             return Result.Forbidden("Only group administrators can delete the group");
 
         // Soft delete the group
-        group.DeletedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        group.DeletedAt = timeProvider.GetUtcNow().ToUnixTimeSeconds();
 
         // Soft delete all group members and notify non-deleters
         var members = await unitOfWork.GroupMembers
@@ -284,7 +285,7 @@ public class GroupsService(
 
         foreach (var member in members)
         {
-            member.DeletedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            member.DeletedAt = timeProvider.GetUtcNow().ToUnixTimeSeconds();
 
             if (member.UserId == user.Id) continue;
 
@@ -477,7 +478,7 @@ public class GroupsService(
         }
 
         // Soft delete the membership
-        membershipToRemove.DeletedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        membershipToRemove.DeletedAt = timeProvider.GetUtcNow().ToUnixTimeSeconds();
 
         // Notify the removed user only if it's not a self-removal
         if (currentUser.Id != userToRemove.Id)

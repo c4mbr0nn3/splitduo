@@ -15,13 +15,15 @@ public class SplitDuoImportsService(
     ILogger<SplitDuoImportsService> logger,
     IUnitOfWork unitOfWork,
     ISchedulerFactory schedulerFactory,
-    IImportValidatorService validatorService
+    IImportValidatorService validatorService,
+    TimeProvider timeProvider
 ) : AbstractImportService<SplitDuoImportsService>(
     ImportType.SplitDuo,
     unitOfWork,
     validatorService,
     schedulerFactory,
-    logger)
+    logger,
+    timeProvider)
 {
     public override async Task<Result<ImportAnalysisDto>> AnalyzeFileAsync(IFormFile file)
     {

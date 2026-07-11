@@ -143,6 +143,9 @@ public static class ApiProgramExtensions
             checks = report.Entries.ToDictionary(
                 e => e.Key,
                 e => new { status = e.Value.Status.ToString(), description = e.Value.Description }),
+            // Intentionally uses DateTimeOffset.UtcNow directly (not TimeProvider): cosmetic
+            // health-check response timestamp with no test value. This is a static method with
+            // no DI-injected dependencies; injecting TimeProvider here would be over-engineering.
             timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
         });
         return context.Response.WriteAsync(result);

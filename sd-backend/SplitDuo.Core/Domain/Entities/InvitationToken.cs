@@ -25,8 +25,6 @@ public class InvitationToken : AuditableEntity
     [ForeignKey(nameof(GroupId))] public virtual Group Group { get; set; } = null!;
     [ForeignKey(nameof(InvitedByUserId))] public virtual User InvitedByUser { get; set; } = null!;
 
-    [NotMapped] public bool IsExpired => DateTimeOffset.UtcNow.ToUnixTimeSeconds() >= ExpiresAt;
     [NotMapped] public bool IsAccepted => AcceptedAt.HasValue;
     [NotMapped] public bool IsRevoked => RevokedAt.HasValue;
-    [NotMapped] public bool IsPending => !IsExpired && !IsAccepted && !IsRevoked;
 }

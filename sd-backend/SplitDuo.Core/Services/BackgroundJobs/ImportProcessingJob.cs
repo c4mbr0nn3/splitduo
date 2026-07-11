@@ -12,7 +12,8 @@ namespace SplitDuo.Core.Services.BackgroundJobs;
 public class ImportProcessingJob(
     ILogger<ImportProcessingJob> logger,
     IUnitOfWork unitOfWork,
-    IImportServiceFactory importServiceFactory) : IJob
+    IImportServiceFactory importServiceFactory,
+    TimeProvider timeProvider) : IJob
 {
     public async Task Execute(IJobExecutionContext context)
     {
@@ -71,7 +72,7 @@ public class ImportProcessingJob(
 
         try
         {
-            var currentTime = DateTimeOffset.UtcNow;
+            var currentTime = timeProvider.GetUtcNow();
             import.Status = ImportStatus.Failed;
             import.TempFile = null;
             import.CompletedAt = currentTime.ToUnixTimeSeconds();
@@ -91,7 +92,7 @@ public class ImportProcessingJob(
 
     private async Task ProcessImportAsync(Import import, ImportType importType)
     {
-        var startTime = DateTimeOffset.UtcNow;
+        var startTime = timeProvider.GetUtcNow();
         import.StartedAt = startTime.ToUnixTimeSeconds();
         import.Status = ImportStatus.Processing;
 
@@ -105,7 +106,7 @@ public class ImportProcessingJob(
             // Process import using the service - this now handles transactions internally
             var result = await importService.ProcessImportAsync(import.TempFile, import.GroupId, import.Id);
 
-            var completedTime = DateTimeOffset.UtcNow;
+            var completedTime = timeProvider.GetUtcNow();
             import.CompletedAt = completedTime.ToUnixTimeSeconds();
             import.Duration = (completedTime - startTime).Milliseconds;
 
@@ -129,7 +130,7 @@ public class ImportProcessingJob(
         }
         catch (Exception ex)
         {
-            var completedTime = DateTimeOffset.UtcNow;
+            var completedTime = timeProvider.GetUtcNow();
             import.CompletedAt = completedTime.ToUnixTimeSeconds();
             import.Duration = (completedTime - startTime).Milliseconds;
             import.Status = ImportStatus.Failed;

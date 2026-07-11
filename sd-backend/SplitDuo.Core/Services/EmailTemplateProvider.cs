@@ -54,9 +54,9 @@ public class EmailTemplateProvider(IOptions<AppOptions> appOptions, TimeProvider
         };
     }
 
-    private static Notification RenderPasswordResetSuccess(PasswordResetSuccessModel m)
+    private Notification RenderPasswordResetSuccess(PasswordResetSuccessModel m)
     {
-        var timestamp = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd HH:mm:ss 'UTC'");
+        var timestamp = timeProvider.GetUtcNow().ToString("yyyy-MM-dd HH:mm:ss 'UTC'");
         return new Notification
         {
             To = m.To,

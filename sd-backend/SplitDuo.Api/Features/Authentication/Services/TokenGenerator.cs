@@ -16,7 +16,7 @@ public interface ITokenGenerator
     string GenerateSecureRandomToken();
 }
 
-public class TokenGenerator(IOptions<JwtOptions> jwtOptions) : ITokenGenerator
+public class TokenGenerator(IOptions<JwtOptions> jwtOptions, TimeProvider timeProvider) : ITokenGenerator
 {
     private readonly JwtOptions _jwtOptions = jwtOptions.Value;
 
@@ -37,7 +37,7 @@ public class TokenGenerator(IOptions<JwtOptions> jwtOptions) : ITokenGenerator
                 new Claim(ClaimTypes.Role, user.GlobalRoleId.ToString()),
                 new Claim("security_stamp", user.SecurityStamp)
             ]),
-            Expires = DateTime.UtcNow.AddMinutes(_jwtOptions.Expires),
+            Expires = timeProvider.GetUtcNow().DateTime.AddMinutes(_jwtOptions.Expires),
             Issuer = _jwtOptions.Issuer,
             Audience = _jwtOptions.Audience,
             SigningCredentials =
@@ -59,7 +59,7 @@ public class TokenGenerator(IOptions<JwtOptions> jwtOptions) : ITokenGenerator
                 new Claim(JwtRegisteredClaimNames.Sub, userGuid.ToString()),
                 new Claim("purpose", "2fa_challenge"),
             ]),
-            Expires = DateTime.UtcNow.AddMinutes(5),
+            Expires = timeProvider.GetUtcNow().DateTime.AddMinutes(5),
             Issuer = _jwtOptions.Issuer,
             Audience = _jwtOptions.Audience,
             SigningCredentials = new SigningCredentials(

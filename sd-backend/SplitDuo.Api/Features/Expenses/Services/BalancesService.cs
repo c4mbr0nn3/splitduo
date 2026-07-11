@@ -15,7 +15,9 @@ public interface IBalancesService
     Task<Result<GroupStatsDto>> GetGroupStatsAsync(string groupId, Guid currentUserId);
 }
 
-public class BalancesService(IUnitOfWork unitOfWork) : IBalancesService
+public class BalancesService(
+    IUnitOfWork unitOfWork,
+    TimeProvider timeProvider) : IBalancesService
 {
     public async Task<Result<List<BalanceDto>>> GetBalancesAsync(string groupId, Guid currentUserId)
     {
@@ -93,7 +95,8 @@ public class BalancesService(IUnitOfWork unitOfWork) : IBalancesService
                 Count = x.Count
             }).ToList();
 
-        var firstDayOfWindow = new DateOnly(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1).AddMonths(-11);
+        var utcNow = timeProvider.GetUtcNow().DateTime;
+        var firstDayOfWindow = new DateOnly(utcNow.Year, utcNow.Month, 1).AddMonths(-11);
 
         var monthlyData = await unitOfWork.Expenses
             .Where(e => e.GroupId == group.Id && e.DeletedAt == null)

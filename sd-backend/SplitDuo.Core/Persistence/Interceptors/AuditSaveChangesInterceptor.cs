@@ -5,7 +5,9 @@ using SplitDuo.Core.Domain.Interfaces;
 
 namespace SplitDuo.Core.Persistence.Interceptors;
 
-public class AuditSaveChangesInterceptor(ILogger<AuditSaveChangesInterceptor> logger) : SaveChangesInterceptor
+public class AuditSaveChangesInterceptor(
+    ILogger<AuditSaveChangesInterceptor> logger,
+    TimeProvider timeProvider) : SaveChangesInterceptor
 {
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
@@ -35,7 +37,7 @@ public class AuditSaveChangesInterceptor(ILogger<AuditSaveChangesInterceptor> lo
 
         foreach (var entry in entries)
         {
-            var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            var now = timeProvider.GetUtcNow().ToUnixTimeSeconds();
             var entityType = entry.Entity.GetType().Name;
 
             if (entry.State == EntityState.Added)

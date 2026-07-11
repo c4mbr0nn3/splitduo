@@ -30,7 +30,8 @@ public class ReceiptParserService(
     ChatClient chatClient,
     IOptions<AiOptions> aiOptions,
     IUnitOfWork unitOfWork,
-    IUserContextService userContextService) : IReceiptParserService
+    IUserContextService userContextService,
+    TimeProvider timeProvider) : IReceiptParserService
 {
     private const string PromptText = """
                                       You are a receipt parser. Extract the following fields from the receipt image and return a JSON object. Return ONLY the JSON object, no explanation, no markdown.
@@ -66,7 +67,7 @@ public class ReceiptParserService(
 
     public async Task<Result<ParsedReceiptDto>> ParseReceiptAsync(Stream imageStream)
     {
-        var requestedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var requestedAt = timeProvider.GetUtcNow().ToUnixTimeSeconds();
         var user = await userContextService.GetCurrentUserAsync();
         if (user is null)
             return Result<ParsedReceiptDto>.Unauthorized("Unauthorized.");
@@ -84,7 +85,7 @@ public class ReceiptParserService(
 
             var completionOptions = new ChatCompletionOptions { MaxOutputTokenCount = 500 };
             var response = await chatClient.CompleteChatAsync(messages, completionOptions);
-            var respondedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            var respondedAt = timeProvider.GetUtcNow().ToUnixTimeSeconds();
             var usage = response.Value.Usage;
             var modelOutput = response.Value.Content[0].Text;
             var parsed = ExtractAndParseDto(modelOutput);
@@ -113,7 +114,7 @@ public class ReceiptParserService(
             {
                 UserId = user.Id,
                 RequestedAt = requestedAt,
-                RespondedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                RespondedAt = timeProvider.GetUtcNow().ToUnixTimeSeconds(),
                 Model = _model,
                 Success = false,
                 ErrorMessage = ex.Message

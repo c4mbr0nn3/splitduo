@@ -36,6 +36,9 @@ public class ExportsController(IExportsService exportsService, IGroupsService gr
             return HandleResult(exportResult.ToResult());
         }
 
+        // Intentionally uses DateTime.UtcNow directly (not TimeProvider): cosmetic filename
+        // uniquifier with no test value — injecting TimeProvider into a controller for a filename
+        // would be over-engineering.
         var timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
         var fileName = $"splitduo-export-{groupId}-{timestamp}.csv";
 

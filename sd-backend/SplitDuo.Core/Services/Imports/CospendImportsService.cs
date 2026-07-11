@@ -15,13 +15,15 @@ public class CospendImportsService(
     ILogger<CospendImportsService> logger,
     IUnitOfWork unitOfWork,
     ISchedulerFactory schedulerFactory,
-    IImportValidatorService validatorService
+    IImportValidatorService validatorService,
+    TimeProvider timeProvider
 ) : AbstractImportService<CospendImportsService>(
     ImportType.Cospend,
     unitOfWork,
     validatorService,
     schedulerFactory,
-    logger)
+    logger,
+    timeProvider)
 {
     public override async Task<Result<ImportAnalysisDto>> AnalyzeFileAsync(IFormFile file)
     {

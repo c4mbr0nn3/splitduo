@@ -4,7 +4,7 @@ using SplitDuo.Core.Domain.Interfaces;
 
 namespace SplitDuo.Core.Persistence.Interceptors;
 
-public class SoftDeleteSaveChangesInterceptor : SaveChangesInterceptor
+public class SoftDeleteSaveChangesInterceptor(TimeProvider timeProvider) : SaveChangesInterceptor
 {
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
@@ -19,11 +19,11 @@ public class SoftDeleteSaveChangesInterceptor : SaveChangesInterceptor
         return base.SavingChangesAsync(eventData, result, cancellationToken);
     }
 
-    private static void HandleSoftDelete(DbContext? context)
+    private void HandleSoftDelete(DbContext? context)
     {
         if (context == null) return;
 
-        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var now = timeProvider.GetUtcNow().ToUnixTimeSeconds();
 
         var entries = context.ChangeTracker.Entries<ISoftDeletableEntity>()
             .Where(e => e.State is EntityState.Deleted);

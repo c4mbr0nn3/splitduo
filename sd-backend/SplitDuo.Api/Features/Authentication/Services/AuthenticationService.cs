@@ -29,7 +29,8 @@ public class AuthenticationService(
     IOptions<JwtOptions> jwtOptions,
     ITwoFactorService twoFactorService,
     ILogger<AuthenticationService> logger,
-    ITokenGenerator tokenGenerator) : IAuthenticationService
+    ITokenGenerator tokenGenerator,
+    TimeProvider timeProvider) : IAuthenticationService
 {
     private readonly JwtOptions _jwtOptions = jwtOptions.Value;
 
@@ -42,7 +43,7 @@ public class AuthenticationService(
             return Result<AuthResponseDto>.Unauthorized("Invalid email or password");
 
         // Check account lockout
-        if (user.LockoutEnd.HasValue && user.LockoutEnd.Value > DateTimeOffset.UtcNow.ToUnixTimeSeconds())
+        if (user.LockoutEnd.HasValue && user.LockoutEnd.Value > timeProvider.GetUtcNow().ToUnixTimeSeconds())
             return Result<AuthResponseDto>.Unauthorized("Account temporarily locked. Try again later.");
 
         var verificationResult = passwordHasher.VerifyHashedPassword(
@@ -52,7 +53,7 @@ public class AuthenticationService(
         {
             user.FailedLoginAttempts++;
             if (user.FailedLoginAttempts >= 5)
-                user.LockoutEnd = DateTimeOffset.UtcNow.AddMinutes(15).ToUnixTimeSeconds();
+                user.LockoutEnd = timeProvider.GetUtcNow().AddMinutes(15).ToUnixTimeSeconds();
             return Result<AuthResponseDto>.Unauthorized("Invalid email or password");
         }
 
@@ -153,7 +154,7 @@ public class AuthenticationService(
         var token = tokenGenerator.GenerateJwtToken(user, jwtId);
         var refreshTokenValue = tokenGenerator.GenerateSecureRandomToken();
         var familyId = Guid.CreateVersion7().ToString();
-        var expiresAt = DateTimeOffset.UtcNow.AddMinutes(_jwtOptions.Expires).ToUnixTimeSeconds();
+        var expiresAt = timeProvider.GetUtcNow().AddMinutes(_jwtOptions.Expires).ToUnixTimeSeconds();
 
         // Store new refresh token in database
         var refreshToken = new RefreshToken
@@ -162,7 +163,7 @@ public class AuthenticationService(
             TokenHash = HashUtils.Sha256Base64(refreshTokenValue),
             JwtId = jwtId,
             FamilyId = familyId,
-            ExpiresAt = DateTimeOffset.UtcNow.AddDays(7).ToUnixTimeSeconds(), // 7 days for refresh token
+            ExpiresAt = timeProvider.GetUtcNow().AddDays(7).ToUnixTimeSeconds(), // 7 days for refresh token
             ClientInfo = "API Client" // Could be enhanced to include actual client info
         };
 
@@ -229,9 +230,10 @@ public class AuthenticationService(
                 return Result<AuthResponseDto>.Unauthorized("Token is no longer valid");
             }
 
-            if (!storedRefreshToken.IsActive)
+            var now = timeProvider.GetUtcNow().ToUnixTimeSeconds();
+            var isActive = storedRefreshToken.RevokedAt == null && storedRefreshToken.ExpiresAt > now;
+            if (!isActive)
             {
-                var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
                 var withinGraceWindow = storedRefreshToken.RevokedAt.HasValue
                     && storedRefreshToken.RevokedReason == "Used for refresh"
                     && now - storedRefreshToken.RevokedAt.Value <= 30;
@@ -246,14 +248,14 @@ public class AuthenticationService(
             }
 
             // 4. Revoke the used refresh token (token rotation)
-            storedRefreshToken.RevokedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            storedRefreshToken.RevokedAt = timeProvider.GetUtcNow().ToUnixTimeSeconds();
             storedRefreshToken.RevokedReason = "Used for refresh";
 
             // 5. Generate new tokens
             var newJwtId = Guid.CreateVersion7().ToString();
             var newAccessToken = tokenGenerator.GenerateJwtToken(user, newJwtId);
             var newRefreshTokenValue = tokenGenerator.GenerateSecureRandomToken();
-            var expiresAt = DateTimeOffset.UtcNow.AddMinutes(_jwtOptions.Expires).ToUnixTimeSeconds();
+            var expiresAt = timeProvider.GetUtcNow().AddMinutes(_jwtOptions.Expires).ToUnixTimeSeconds();
 
             // 6. Store new refresh token
             var newRefreshToken = new RefreshToken
@@ -262,7 +264,7 @@ public class AuthenticationService(
                 TokenHash = HashUtils.Sha256Base64(newRefreshTokenValue),
                 JwtId = newJwtId,
                 FamilyId = storedRefreshToken.FamilyId,
-                ExpiresAt = DateTimeOffset.UtcNow.AddDays(7).ToUnixTimeSeconds(),
+                ExpiresAt = timeProvider.GetUtcNow().AddDays(7).ToUnixTimeSeconds(),
                 ClientInfo = storedRefreshToken.ClientInfo
             };
 
@@ -303,7 +305,7 @@ public class AuthenticationService(
         if (storedRefreshToken.IsRevoked)
             return Result.BadRequest("Refresh token already revoked");
 
-        storedRefreshToken.RevokedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        storedRefreshToken.RevokedAt = timeProvider.GetUtcNow().ToUnixTimeSeconds();
         storedRefreshToken.RevokedReason = "User logout";
 
         return Result.Success();
@@ -315,7 +317,7 @@ public class AuthenticationService(
             .Where(rt => rt.UserId == userId && rt.RevokedAt == null)
             .ToListAsync();
 
-        var currentTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var currentTimestamp = timeProvider.GetUtcNow().ToUnixTimeSeconds();
         foreach (var token in activeTokens)
         {
             token.RevokedAt = currentTimestamp;
@@ -330,7 +332,7 @@ public class AuthenticationService(
         var chainTokens = await unitOfWork.RefreshTokens
             .Where(rt => rt.UserId == userId && rt.FamilyId == familyId && rt.RevokedAt == null)
             .ToListAsync();
-        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var now = timeProvider.GetUtcNow().ToUnixTimeSeconds();
         foreach (var token in chainTokens)
         {
             token.RevokedAt = now;

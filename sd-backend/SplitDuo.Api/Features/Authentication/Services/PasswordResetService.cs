@@ -22,7 +22,8 @@ public class PasswordResetService(
     ITokenGenerator tokenGenerator,
     IAuthenticationService authenticationService,
     INotificationService notificationService,
-    IEmailTemplateProvider emailTemplateProvider) : IPasswordResetService
+    IEmailTemplateProvider emailTemplateProvider,
+    TimeProvider timeProvider) : IPasswordResetService
 {
     public async Task<Result> InitiatePasswordResetAsync(string email)
     {
@@ -44,7 +45,7 @@ public class PasswordResetService(
 
         foreach (var token in existingTokens)
         {
-            token.UsedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            token.UsedAt = timeProvider.GetUtcNow().ToUnixTimeSeconds();
         }
 
         // Create new password reset token
@@ -54,7 +55,7 @@ public class PasswordResetService(
             TokenHash = hashedToken,
             TokenType = "password_reset",
             Purpose = "password_reset",
-            ExpiresAt = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds(), // 1 hour expiration
+            ExpiresAt = timeProvider.GetUtcNow().AddHours(1).ToUnixTimeSeconds(), // 1 hour expiration
             MaxAttempts = 3,
             ClientInfo = "Password Reset"
         };
@@ -89,7 +90,7 @@ public class PasswordResetService(
         if (resetToken == null)
             return Result<bool>.BadRequest("Invalid or expired reset token");
 
-        var currentTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var currentTimestamp = timeProvider.GetUtcNow().ToUnixTimeSeconds();
 
         // Check if token is expired
         if (resetToken.ExpiresAt < currentTimestamp)
@@ -124,7 +125,7 @@ public class PasswordResetService(
         if (resetToken == null)
             return Result.BadRequest("Invalid or expired reset token");
 
-        var currentTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var currentTimestamp = timeProvider.GetUtcNow().ToUnixTimeSeconds();
 
         // Check if token is expired
         if (resetToken.ExpiresAt < currentTimestamp)

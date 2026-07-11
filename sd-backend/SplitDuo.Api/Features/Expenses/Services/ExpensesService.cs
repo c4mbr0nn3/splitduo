@@ -22,7 +22,9 @@ public interface IExpensesService
     Task<Result> DeleteExpenseAsync(string groupId, string expenseId, Guid currentUserId);
 }
 
-public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
+public class ExpensesService(
+    IUnitOfWork unitOfWork,
+    TimeProvider timeProvider) : IExpensesService
 {
     public async Task<Result<PaginatedResponseDto<ExpenseDto>>> GetGroupExpensesAsync(
         string groupId, Guid currentUserId, int page, int limit, ExpenseFilterOptions filters)
@@ -553,7 +555,7 @@ public class ExpensesService(IUnitOfWork unitOfWork) : IExpensesService
             return Result.NotFound("Expense not found");
 
         // Soft delete the expense
-        expense.DeletedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        expense.DeletedAt = timeProvider.GetUtcNow().ToUnixTimeSeconds();
 
         // Notify other group members
         var otherMembersForDelete = await unitOfWork.GroupMembers
