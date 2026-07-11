@@ -108,13 +108,15 @@ export default function useAuth() {
     }
     catch (error) {
       console.error('Token refresh failed:', error)
-      await logout()
+      removeToken()
+      user.value = null
+      userCookie.value = null
       return false
     }
   }
 
   // Initialize auth state
-  const initialize = async () => {
+  const initialize = async (isRetry = false) => {
     const token = getToken()
 
     if (!token) {
@@ -134,12 +136,15 @@ export default function useAuth() {
       }
     }
     catch (error) {
-      if (error.statusCode === 401) {
-        // Access token expired mid-session — try refresh
+      if (error.statusCode === 401 && !isRetry) {
+        // Access token expired mid-session — try refresh once
         const refreshed = await refreshToken()
         if (refreshed) {
-          await initialize()
+          await initialize(true)
         }
+      }
+      else if (error.statusCode !== 401) {
+        console.error('Failed to initialize auth state:', error)
       }
     }
   }

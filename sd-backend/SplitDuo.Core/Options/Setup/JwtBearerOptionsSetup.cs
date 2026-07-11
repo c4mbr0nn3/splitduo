@@ -18,15 +18,17 @@ public class JwtBearerOptionsSetup(IOptions<JwtOptions> jwtOptions)
         if (string.IsNullOrWhiteSpace(_jwtOptions.SecretKey))
             throw new InvalidOperationException("JWT SecretKey is not configured.");
 
+        options.MapInboundClaims = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer = false,
-            ValidateAudience = false,
+            ValidateIssuer = true,
+            ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             ValidIssuer = _jwtOptions.Issuer,
             ValidAudience = _jwtOptions.Audience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_jwtOptions.SecretKey))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_jwtOptions.SecretKey)),
+            ClockSkew = TimeSpan.Zero
         };
     }
 }

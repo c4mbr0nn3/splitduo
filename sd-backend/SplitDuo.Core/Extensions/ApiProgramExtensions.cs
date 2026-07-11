@@ -127,6 +127,13 @@ public static class ApiProgramExtensions
                     .ForJob(emailNotificationPruneJobKey)
                     .WithIdentity("EmailNotificationPruneTrigger")
                     .WithCronSchedule("0 0 1 * * ?")); // every day at 01:00
+
+                var refreshTokenCleanupJobKey = new JobKey("RefreshTokenCleanupJob");
+                q.AddJob<RefreshTokenCleanupJob>(opts => opts.WithIdentity(refreshTokenCleanupJobKey));
+                q.AddTrigger(opts => opts
+                    .ForJob(refreshTokenCleanupJobKey)
+                    .WithIdentity("RefreshTokenCleanupTrigger")
+                    .WithCronSchedule("0 0 3 * * ?")); // every day at 03:00
             });
 
             builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);

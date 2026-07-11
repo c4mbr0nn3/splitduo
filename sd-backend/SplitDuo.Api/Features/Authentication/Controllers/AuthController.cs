@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
 using SplitDuo.Api.Features.Authentication.Dto;
 using SplitDuo.Api.Features.Authentication.Services;
 using SplitDuo.Api.Features.Common.Controllers;
@@ -14,6 +15,7 @@ namespace SplitDuo.Api.Features.Authentication.Controllers;
 public class AuthController(
     ILogger<AuthController> logger,
     IAuthenticationService authenticationService,
+    IPasswordResetService passwordResetService,
     IUnitOfWork unitOfWork) : BaseApiController
 {
     [EnableRateLimiting("auth")]
@@ -111,7 +113,16 @@ public class AuthController(
     {
         logger.LogInformation("Token revoke attempt for user {UserGuid}", userGuid);
 
-        var result = await authenticationService.RevokeAllUserTokensAsync(userGuid);
+        if (!Guid.TryParse(userGuid, out var userId))
+            return HandleResult(Result.BadRequest("Invalid user guid"));
+
+        var user = await unitOfWork.Users
+            .FirstOrDefaultAsync(u => u.Guid == userId && u.DeletedAt == null);
+
+        if (user == null)
+            return HandleResult(Result.NotFound("User not found"));
+
+        var result = await authenticationService.RevokeAllUserTokensAsync(user.Id, "All tokens revoked by system administrator");
 
         if (!result.IsSuccess)
         {
@@ -131,7 +142,7 @@ public class AuthController(
     {
         logger.LogInformation("Password reset request for email: {Email}", request.Email);
 
-        var result = await authenticationService.InitiatePasswordResetAsync(request.Email);
+        var result = await passwordResetService.InitiatePasswordResetAsync(request.Email);
 
         if (result.IsSuccess)
         {
@@ -151,7 +162,7 @@ public class AuthController(
     {
         logger.LogInformation("Reset token validation attempt for email: {Email}", email);
 
-        var result = await authenticationService.ValidateResetTokenAsync(email, token);
+        var result = await passwordResetService.ValidateResetTokenAsync(email, token);
 
         if (result.IsSuccess)
         {
@@ -172,7 +183,7 @@ public class AuthController(
     {
         logger.LogInformation("Password reset attempt for email: {Email}", request.Email);
 
-        var result = await authenticationService.ResetPasswordAsync(request);
+        var result = await passwordResetService.ResetPasswordAsync(request);
 
         if (result.IsSuccess)
         {
@@ -186,9 +197,4 @@ public class AuthController(
 
         return HandleResult(result, "Password reset successful. You can now log in with your new password.");
     }
-}
-
-public class RevokeTokenRequestDto
-{
-    public required string RefreshToken { get; set; }
 }

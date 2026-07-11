@@ -37,6 +37,8 @@ public static class ApiProgramExtensions
 
         // Register API layer services
         builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+        builder.Services.AddScoped<ITokenGenerator, TokenGenerator>();
+        builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
         builder.Services.AddScoped<ITwoFactorService, TwoFactorService>();
         builder.Services.AddScoped<IUserContextService, UserContextService>();
         builder.Services.AddScoped<IUsersService, UsersService>();

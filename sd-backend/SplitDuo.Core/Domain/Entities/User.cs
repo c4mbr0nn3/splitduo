@@ -29,6 +29,13 @@ public class User : AuditableAndSoftDeletableEntity
     [Column("backup_codes")] public string? BackupCodes { get; set; } // JSON array of hashed backup codes
     [Column("last_used_totp_time_step")] public long? LastUsedTotpTimeStep { get; set; }
 
+    // Account Lockout
+    [Column("failed_login_attempts")] public int FailedLoginAttempts { get; set; } = 0;
+    [Column("lockout_end")] public long? LockoutEnd { get; set; }
+
+    // Security Stamp
+    [Column("security_stamp"), MaxLength(64)] public string SecurityStamp { get; set; } = Guid.CreateVersion7().ToString();
+
     [NotMapped]
     public GlobalRole GlobalRole
     {

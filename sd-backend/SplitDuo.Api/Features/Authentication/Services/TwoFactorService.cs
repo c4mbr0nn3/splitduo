@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using OtpNet;
@@ -28,7 +29,8 @@ public class TwoFactorService(
     IUnitOfWork unitOfWork,
     INotificationService notificationService,
     IEmailTemplateProvider emailTemplateProvider,
-    IOptions<JwtOptions> jwtOptions) : ITwoFactorService
+    IOptions<JwtOptions> jwtOptions,
+    IPasswordHasher<User> passwordHasher) : ITwoFactorService
 {
     private readonly byte[] _encryptionKey =
         SHA256.HashData(Encoding.UTF8.GetBytes("totp:" + jwtOptions.Value.SecretKey));
@@ -50,7 +52,7 @@ public class TwoFactorService(
 
         // Store the secret encrypted (not enabled until verified)
         user.TotpSecret = EncryptTotpSecret(secret, _encryptionKey);
-        user.BackupCodes = JsonSerializer.Serialize(backupCodes.Select(HashBackupCode));
+        user.BackupCodes = JsonSerializer.Serialize(backupCodes.Select(c => HashUtils.Sha256Base64(c.ToLower())));
 
         var setupDto = new TwoFactorSetupDto
         {
@@ -103,10 +105,9 @@ public class TwoFactorService(
             return Result.BadRequest("Two-factor authentication is not enabled");
 
         // Validate current password for security
-        var passwordHasher = new Microsoft.AspNetCore.Identity.PasswordHasher<User>();
         var verificationResult = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
 
-        if (verificationResult == Microsoft.AspNetCore.Identity.PasswordVerificationResult.Failed)
+        if (verificationResult == PasswordVerificationResult.Failed)
             return Result.Unauthorized("Invalid password");
 
         // Disable 2FA
@@ -168,7 +169,7 @@ public class TwoFactorService(
             return Result<bool>.BadRequest("Two-factor authentication is not enabled");
 
         var backupCodesJson = JsonSerializer.Deserialize<string[]>(user.BackupCodes) ?? [];
-        var hashedCode = HashBackupCode(code);
+        var hashedCode = HashUtils.Sha256Base64(code.ToLower());
 
         if (!backupCodesJson.Contains(hashedCode))
             return Result<bool>.Success(false);
@@ -192,7 +193,7 @@ public class TwoFactorService(
             return Result<List<string>>.BadRequest("Two-factor authentication is not enabled");
 
         var backupCodes = GenerateBackupCodes();
-        user.BackupCodes = JsonSerializer.Serialize(backupCodes.Select(HashBackupCode));
+        user.BackupCodes = JsonSerializer.Serialize(backupCodes.Select(c => HashUtils.Sha256Base64(c.ToLower())));
 
         return Result<List<string>>.Success(backupCodes);
     }
@@ -224,12 +225,6 @@ public class TwoFactorService(
         }
 
         return codes;
-    }
-
-    private static string HashBackupCode(string code)
-    {
-        var hashedBytes = SHA256.HashData(Encoding.UTF8.GetBytes(code.ToLower()));
-        return Convert.ToBase64String(hashedBytes);
     }
 
     /// <summary>

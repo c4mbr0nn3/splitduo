@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SplitDuo.Core.Persistence;
@@ -11,9 +12,11 @@ using SplitDuo.Core.Persistence;
 namespace SplitDuo.Core.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260711124922_AddAccountLockout")]
+    partial class AddAccountLockout
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -540,12 +543,6 @@ namespace SplitDuo.Core.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("expires_at");
 
-                    b.Property<string>("FamilyId")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
-                        .HasColumnName("family_id");
-
                     b.Property<string>("JwtId")
                         .IsRequired()
                         .HasMaxLength(255)
@@ -583,8 +580,6 @@ namespace SplitDuo.Core.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ExpiresAt");
-
-                    b.HasIndex("FamilyId");
 
                     b.HasIndex("JwtId");
 
@@ -735,12 +730,6 @@ namespace SplitDuo.Core.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
                         .HasColumnName("password_hash");
-
-                    b.Property<string>("SecurityStamp")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
-                        .HasColumnName("security_stamp");
 
                     b.Property<string>("TotpSecret")
                         .HasColumnType("text")
