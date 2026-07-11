@@ -18,10 +18,13 @@ pnpm install        # Install dependencies
 
 ## Tech Stack
 
-- **Nuxt 4** (`^4.3.1`) — SPA mode (`ssr: false`)
-- **Nuxt UI v4** (`^4.4.0`) — TailwindCSS v4, component library, color mode, overlays
+- **Nuxt 4** (`^4.4.8`) — SPA mode (`ssr: false`)
+- **Nuxt UI v4** (`^4.9.0`) — TailwindCSS v4, component library, color mode, overlays
 - **Icons** — Lucide (`@iconify-json/lucide`) + Simple Icons (`@iconify-json/simple-icons`)
 - **ESLint** — `@nuxt/eslint` with stylistic rules enabled
+- **ApexCharts** (`apexcharts` + `vue3-apexcharts`) — charting for group statistics
+- **PWA** (`@vite-pwa/nuxt`) — installable app, offline support, auto-update
+- **uqr** — QR code generation for 2FA
 
 No Pinia. No custom CSS framework. No TypeScript in `.vue`/`.js` files.
 
@@ -33,20 +36,28 @@ app/
 ├── app.config.ts              # Nuxt UI theme (primary: violet, neutral: zinc)
 ├── assets/css/main.css        # Tailwind imports, custom font & color tokens
 ├── components/
-│   ├── admin/                 # UserCard, UserForm
+│   ├── ChangePasswordModal.vue
+│   ├── ImportAnalysisResults.vue
+│   ├── ImportMappingForm.vue
+│   ├── PwaUpdate.vue
+│   ├── admin/                 # UserCard, UserCardSkeleton, UserForm
 │   ├── button/                # ColorMode toggle
-│   ├── dashboard/             # GroupCard, StatCard
+│   ├── dashboard/             # GroupCard, GroupCardSkeleton, StatCard, StatCardSkeleton
 │   ├── expenses/              # ExpenseForm
-│   ├── groups/                # ExpenseCard, GroupForm, StatsCards, UserBalanceCard, etc.
+│   ├── groups/                # ActionsDropdown, ExpenseCard, ExpenseCardSkeleton, ExpenseFilterCard,
+│   │                          # ExpensesTab, GroupCardSkeleton, GroupForm, InviteUsersForm,
+│   │                          # MemberBalanceCard, SectionHeader, StatsCards, StatsCategoryChart,
+│   │                          # StatsMemberPaidChart, StatsMonthlyChart, StatsTab, TabsNav, UserBalanceCard
 │   │   └── members/           # Card, List
 │   ├── layout/                # AppHeader, LogoutButton
-│   └── ui/                    # EmptyState, LoadingSpinner, GenericModal, CardHeader, ButtonDropdown
+│   └── ui/                    # ButtonDropdown, CardHeader, DatePicker, EmptyState, GenericModal,
+│                              # InputDate, LoadingSpinner, ReceiptPreviewModal, ScanReceiptButton
 ├── composables/
 │   ├── api/base.js            # Base API client (useApi)
-│   ├── auth/                  # useAuth, useAuthToken
-│   ├── resources/             # useGroups, useExpenses, useCategories, usePaymentModes,
-│   │                          # useBalances, useSettlements, useUsers, useImportExport
-│   ├── ui/useModal.js         # Programmatic modals via useOverlay()
+│   ├── auth/                  # use2FA, useAuth, useAuthToken
+│   ├── resources/             # useAiStatus, useBalances, useCategories, useExpenses, useGroups,
+│   │                          # useImportExport, useInvitations, usePaymentModes, useReceiptScan, useUsers
+│   ├── ui/                    # useChartTheme, useModal
 │   ├── utils/                 # useNotifications, useErrorHandling, usePagination, useDebounceSearch
 │   └── index.js               # Barrel export for all composables
 ├── layouts/
@@ -57,11 +68,14 @@ app/
 │   └── admin.js               # Redirect to /dashboard if not admin (globalRoleId !== 2)
 ├── pages/                     # File-based routing (see Routes below)
 ├── plugins/
+│   ├── apexcharts.client.js   # Client-only: registers ApexCharts Vue component globally
 │   └── auth.client.js         # Client-only: initializes auth state on app start
 └── utils/
+    ├── currency.js            # Currency formatting
     ├── date.js                # Date formatting
     ├── enumUtils.js           # Generic enum factory
-    └── userRoles.js           # User role enums
+    ├── userRoles.js            # User role enums
+    └── withMinDuration.js      # Async duration helper
 ```
 
 ## Routes
@@ -71,8 +85,11 @@ app/
 | `/` | `index.vue` | auth | — | Login |
 | `/forgot-password` | | auth | — | Request password reset |
 | `/reset-password` | | auth | — | Reset password form |
+| `/auth/verify` | | auth | — | 2FA verification |
+| `/invite/accept` | | auth | — | Accept group invitation |
 | `/dashboard` | | default | auth | Main dashboard |
 | `/profile` | | default | auth | User profile |
+| `/settings/2fa/setup` | | default | auth | 2FA setup |
 | `/groups` | | default | auth | List groups |
 | `/groups/add` | | default | auth | Create group |
 | `/groups/[id]` | | default | auth | Group detail + expenses |
@@ -136,6 +153,8 @@ Key rules:
 - Errors caught internally, shown via `useNotifications().showError()`
 - `useExpenses(groupId)` accepts reactive params via `toRef()`
 
+Resource composables: `useGroups`, `useExpenses`, `useCategories`, `usePaymentModes`, `useBalances`, `useUsers`, `useImportExport`, `useInvitations` (invitation management), `useAiStatus` (AI service availability check), `useReceiptScan` (receipt scanning via AI).
+
 ### Singleton composables (`useCategories`, `usePaymentModes`)
 
 Global `ref()` declared **outside** the composable function — shared across all callers. Auto-fetches on first use, caches result.
@@ -144,6 +163,7 @@ Global `ref()` declared **outside** the composable function — shared across al
 
 - **`useAuthToken`** — Token CRUD in cookies (`auth-token`, `refresh-token`)
 - **`useAuth`** — Login/logout/refresh/initialize. User stored in cookie + `useState('user')`. Exposes `isAuthenticated`, `isGlobalAdmin` computed.
+- **`use2FA`** — 2FA login flow, backup codes, TOTP setup/verify
 
 ### Utility composables
 
@@ -152,6 +172,7 @@ Global `ref()` declared **outside** the composable function — shared across al
 - **`usePagination`** — Factory: `createPaginatedList(data)` → items, pagination state, nav methods
 - **`useDebounceSearch`** — Debounced search query ref (uses `@vueuse/core`)
 - **`useModal`** — Programmatic modals via Nuxt UI `useOverlay()`. Returns `Promise<boolean>`
+- **`useChartTheme`** — ApexCharts theme integration with Nuxt UI color mode
 
 ## Component Conventions
 
@@ -189,6 +210,12 @@ No Pinia. State is managed through:
 **Expense splitting**: `ExpenseForm` handles real-time proportional split calculations, "Distribute Remaining" and "Split Equally" actions, per-user validation.
 
 **File exports**: Create `Blob` from API response, trigger browser download. Supports CSV and Cospend JSON formats.
+
+**2FA**: TOTP-based, with backup codes and email verification codes. Setup at `/settings/2fa/setup`, verification at `/auth/verify`.
+
+**Invitations**: Email-based group invitations with time-limited secure links. Accept at `/invite/accept`.
+
+**PWA**: `@vite-pwa/nuxt` module configured in `nuxt.config.ts` with manifest, workbox runtime caching, and auto-update behavior. `PwaUpdate.vue` component prompts users on new deployments.
 
 ## Documentation Resources
 

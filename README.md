@@ -58,7 +58,7 @@ Single Docker container. Your server, your database, your rules.
 Requires Docker and Docker Compose.
 
 ```bash
-git clone https://github.com/yourusername/splitduo.git
+git clone https://gitlab.com/j1mm0/splitduo.git
 cd splitduo
 docker compose up -d
 ```
@@ -94,7 +94,7 @@ SD_DB_PASSWORD: splitduo
 
 ```yaml
 SD_BASE_URL: http://localhost:3000
-SD_ENVIRONMENT: Production
+ASPNETCORE_ENVIRONMENT: Production
 ```
 
 ### AI / Receipt Scanning (optional)
@@ -189,7 +189,13 @@ Full spec: [OpenAPI YAML](docs/api/splitduoapi-v1.yaml)
 - [System Architecture](docs/architecture/system-architecture.md)
 - [Backend Architecture](docs/architecture/backend-architecture.md)
 - [Frontend Architecture](docs/architecture/frontend-architecture.md)
-- [Database Schema](docs/database/database-schema.dbml)
+- [OpenAPI Spec](docs/api/splitduoapi-v1.yaml)
+- [Frontend API Composables](docs/api/frontend-api-composables.md)
+- [2FA Implementation](docs/features/2fa-implementation.md)
+- [CSV Import](docs/features/csv-import.md)
+- [Invitation System](docs/features/invitation-system.md)
+- [Receipt Scanning](docs/features/receipt-scan/receipt-scan.md)
+- [PWA](docs/features/pwa.md)
 
 ---
 

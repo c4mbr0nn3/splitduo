@@ -275,10 +275,10 @@ All config uses `IConfigureOptions<T>` — env vars override appsettings.json:
 
 | Options Class | Key Env Vars |
 |---|---|
-| `AppOptions` | `SD_BASE_URL`, `SD_INITIAL_USER_EMAIL`, `SD_INITIAL_USER_PASSWORD` |
+| `AppOptions` | `SD_BASE_URL`, `SD_INITIAL_USER_EMAIL`, `SD_INITIAL_USER_FIRSTNAME`, `SD_INITIAL_USER_LASTNAME`, `SD_INITIAL_USER_PASSWORD`, `SD_SEED_DEMO_DATA` |
 | `DatabaseOptions` | `SD_DB_HOST`, `SD_DB_PORT`, `SD_DB_NAME`, `SD_DB_USERNAME`, `SD_DB_PASSWORD` |
-| `JwtOptions` | `SD_JWT_SECRET_KEY`, `SD_JWT_EXPIRES` |
-| `SmtpOptions` | `SD_SMTP_SERVER`, `SD_SMTP_PORT`, `SD_SMTP_USERNAME`, `SD_SMTP_PASSWORD` |
+| `JwtOptions` | `SD_JWT_SECRET_KEY`, `SD_JWT_ISSUER`, `SD_JWT_AUDIENCE`, `SD_JWT_EXPIRES` |
+| `SmtpOptions` | `SD_EMAIL_SMTP_HOST`, `SD_EMAIL_SMTP_PORT`, `SD_EMAIL_SMTP_USERNAME`, `SD_EMAIL_SMTP_PASSWORD`, `SD_EMAIL_SSL`, `SD_EMAIL_SENDER_NAME`, `SD_EMAIL_SENDER_ADDRESS` |
 
 ## Dependency Injection
 

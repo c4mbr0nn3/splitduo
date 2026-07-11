@@ -45,9 +45,20 @@ VERSION              # Read by CI for Docker tags
 | Variable | Required | Purpose |
 |---|---|---|
 | `SD_JWT_SECRET_KEY` | Yes (prod) | JWT signing key |
+| `SD_JWT_ISSUER` | No | JWT issuer |
+| `SD_JWT_AUDIENCE` | No | JWT audience |
+| `SD_JWT_EXPIRES` | No | JWT access token expiry |
+| `SD_INITIAL_USER_EMAIL` | Yes (prod) | Initial admin email |
 | `SD_INITIAL_USER_PASSWORD` | Yes (prod) | Initial admin password |
+| `SD_INITIAL_USER_FIRSTNAME` | No | Initial admin first name |
+| `SD_INITIAL_USER_LASTNAME` | No | Initial admin last name |
+| `SD_SEED_DEMO_DATA` | No | Seed demo data on startup |
+| `SD_BASE_URL` | No | App base URL (for emails/links) |
 | `SD_DB_HOST/PORT/NAME/USERNAME/PASSWORD` | Yes | PostgreSQL connection |
-| `SD_SMTP_*` | No | Email notifications (SMTP) |
+| `SD_EMAIL_SMTP_HOST/PORT/USERNAME/PASSWORD` | No | Email notifications (SMTP) |
+| `SD_EMAIL_SSL` | No | Use SSL for SMTP |
+| `SD_EMAIL_SENDER_NAME` | No | Email sender display name |
+| `SD_EMAIL_SENDER_ADDRESS` | No | Email sender address |
 | `SD_AI_BASE_URL` | No | AI provider base URL (enables receipt scanning) |
 | `SD_AI_API_KEY` | No | AI provider API key |
 | `SD_AI_MODEL` | No | AI model name (e.g. `gpt-4o`) |
@@ -65,10 +76,9 @@ VERSION              # Read by CI for Docker tags
 ```
 docs/
 ├── architecture/    # System, backend, frontend architecture
-├── api/             # REST endpoints, DTOs, OpenAPI spec, composables
-├── database/        # Schema (DBML), index suggestions
-├── features/        # 2FA, CSV import implementation docs
-├── migration/       # Cospend mapping
+├── api/             # OpenAPI spec, frontend API composables reference
+├── features/        # 2FA, CSV import, invitations, receipt scan, PWA, expense split precision
+├── screenshots/     # App screenshots for README
 └── project-spec.md  # Full project specification
 ```
 
