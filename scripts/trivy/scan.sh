@@ -26,12 +26,12 @@ echo "Running Trivy filesystem scan..."
 
 if [ -n "$OUTPUT" ]; then
   "$DOCKER_CMD" run --rm \
-    -v "${REPO_ROOT}:/repo:ro" \
+    -v "${REPO_ROOT}:/repo:ro,z" \
     -v "$(dirname "$(realpath "$OUTPUT")"):/output" \
     "${IMAGE_NAME}" "${TRIVY_ARGS[@]}"
   echo "Report written to ${OUTPUT}"
 else
   "$DOCKER_CMD" run --rm \
-    -v "${REPO_ROOT}:/repo:ro" \
+    -v "${REPO_ROOT}:/repo:ro,z" \
     "${IMAGE_NAME}" "${TRIVY_ARGS[@]}"
 fi

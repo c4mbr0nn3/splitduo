@@ -25,11 +25,11 @@ echo "Running TruffleHog secrets scan..."
 
 if [ -n "$OUTPUT" ]; then
   "$DOCKER_CMD" run --rm \
-    -v "${REPO_ROOT}:/repo:ro" \
+    -v "${REPO_ROOT}:/repo:ro,z" \
     "${IMAGE_NAME}" "${TRUFFLEHOG_ARGS[@]}" > "$OUTPUT"
   echo "Report written to ${OUTPUT}"
 else
   "$DOCKER_CMD" run --rm \
-    -v "${REPO_ROOT}:/repo:ro" \
+    -v "${REPO_ROOT}:/repo:ro,z" \
     "${IMAGE_NAME}" "${TRUFFLEHOG_ARGS[@]}"
 fi
