@@ -28,8 +28,8 @@ COPY sd-backend/sd-backend.sln ./
 COPY sd-backend/SplitDuo.Api/SplitDuo.Api.csproj ./SplitDuo.Api/
 COPY sd-backend/SplitDuo.Core/SplitDuo.Core.csproj ./SplitDuo.Core/
 
-# Restore dependencies
-RUN dotnet restore
+# Restore dependencies (Api project only — test projects aren't published)
+RUN dotnet restore SplitDuo.Api/SplitDuo.Api.csproj
 
 # Copy source code and build
 COPY sd-backend/ ./
