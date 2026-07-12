@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Domain.Enums;
@@ -45,7 +44,7 @@ public class UserContextService(
     public GlobalRole? GetCurrentUserGlobalRole()
     {
         var roleClaim = httpContextAccessor.HttpContext?.User
-            .FindFirst(ClaimTypes.Role)?.Value;
+            .FindFirst("role")?.Value;
         return Enum.TryParse<GlobalRole>(roleClaim, true, out var role) ? role : null;
     }
 

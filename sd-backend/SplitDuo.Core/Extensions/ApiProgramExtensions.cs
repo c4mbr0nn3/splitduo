@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
@@ -153,7 +152,7 @@ public static class ApiProgramExtensions
                 .AddPolicy("SystemAdmin", policy =>
                     policy.RequireAssertion(context =>
                         context.User.HasClaim(c =>
-                            c.Type == ClaimTypes.Role && c.Value == ((int)GlobalRole.SystemAdmin).ToString())));
+                            c.Type == "role" && c.Value == ((int)GlobalRole.SystemAdmin).ToString())));
         }
     }
 }
