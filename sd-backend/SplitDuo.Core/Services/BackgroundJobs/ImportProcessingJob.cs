@@ -104,7 +104,10 @@ public class ImportProcessingJob(
             var importService = importServiceFactory.GetImportService(importType);
 
             // Process import using the service - this now handles transactions internally
-            var result = await importService.ProcessImportAsync(import.TempFile, import.GroupId, import.Id);
+            // TempFile null/empty is checked at the start of Execute(); capture to local so the
+            // compiler keeps the non-null guarantee across the SaveChangesAsync above.
+            var file = import.TempFile!;
+            var result = await importService.ProcessImportAsync(file, import.GroupId, import.Id);
 
             var completedTime = timeProvider.GetUtcNow();
             import.CompletedAt = completedTime.ToUnixTimeSeconds();

@@ -28,8 +28,8 @@ public class Expense : AuditableAndSoftDeletableEntity
     [Column("payment_mode_id")] public int PaymentModeId { get; set; }
     [Column("import_id")] public int? ImportId { get; set; }
 
-    [ForeignKey(nameof(GroupId))] public virtual Group Group { get; set; }
-    [ForeignKey(nameof(PaidBy))] public virtual User PaidByUser { get; set; }
+    [ForeignKey(nameof(GroupId))] public virtual Group Group { get; set; } = null!;
+    [ForeignKey(nameof(PaidBy))] public virtual User PaidByUser { get; set; } = null!;
     [ForeignKey(nameof(ImportId))] public virtual Import? Import { get; set; }
     public virtual ICollection<ExpenseSplit> ExpenseSplits { get; set; } = new List<ExpenseSplit>();
 

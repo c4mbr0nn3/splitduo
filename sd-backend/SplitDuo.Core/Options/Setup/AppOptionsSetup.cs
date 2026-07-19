@@ -1,9 +1,8 @@
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 
 namespace SplitDuo.Core.Options.Setup;
 
-public class AppOptionsSetup(IConfiguration configuration) : IConfigureOptions<AppOptions>
+public class AppOptionsSetup : IConfigureOptions<AppOptions>
 {
     public void Configure(AppOptions options)
     {

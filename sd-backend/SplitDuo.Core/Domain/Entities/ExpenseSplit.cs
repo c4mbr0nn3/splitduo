@@ -15,6 +15,6 @@ public class ExpenseSplit : AuditableEntity
     [Column("user_id")] public int UserId { get; set; }
     [Column("split_amount")] public decimal SplitAmount { get; set; }
 
-    [ForeignKey(nameof(ExpenseId))] public virtual Expense Expense { get; set; }
-    [ForeignKey(nameof(UserId))] public virtual User User { get; set; }
+    [ForeignKey(nameof(ExpenseId))] public virtual Expense Expense { get; set; } = null!;
+    [ForeignKey(nameof(UserId))] public virtual User User { get; set; } = null!;
 }

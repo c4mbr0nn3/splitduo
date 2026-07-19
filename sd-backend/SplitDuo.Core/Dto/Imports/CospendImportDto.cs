@@ -62,7 +62,7 @@ public class CospendPaymentModeDto
 
 public class KeyValueDto
 {
-    [JsonPropertyName("key")] public string Key { get; set; }
+    [JsonPropertyName("key")] public string Key { get; set; } = "";
     [JsonPropertyName("value")] public string Value { get; set; } = "";
 }
 
