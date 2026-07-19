@@ -163,7 +163,8 @@ if [[ "$DRY_RUN" == true ]]; then
     echo "  1. Update VERSION file: $CURRENT_VERSION → $NEW_VERSION"
     echo "  2. Create commit: 'chore: bump version to $NEW_VERSION'"
     echo "  3. Create tag: $TAG_NAME"
-    echo "  4. Push to remote: origin/$(git rev-parse --abbrev-ref HEAD)"
+    echo "  4. Generate changelog entry for $TAG_NAME (git-cliff) and amend commit"
+    echo "  5. Push to remote: origin/$(git rev-parse --abbrev-ref HEAD)"
     echo ""
     echo -e "${GREEN}✓${NC} Dry-run completed (no changes made)"
     exit 0
@@ -179,7 +180,8 @@ confirm_action() {
     echo "  1. Update VERSION file: $CURRENT_VERSION → $NEW_VERSION"
     echo "  2. Create commit: 'chore: bump version to $NEW_VERSION'"
     echo "  3. Create tag: $TAG_NAME"
-    echo "  4. Push to remote: origin/$(git rev-parse --abbrev-ref HEAD)"
+    echo "  4. Generate changelog entry for $TAG_NAME (git-cliff) and amend commit"
+    echo "  5. Push to remote: origin/$(git rev-parse --abbrev-ref HEAD)"
     echo ""
     read -p "Continue? [y/N] " -n 1 -r
     echo ""
@@ -239,6 +241,24 @@ echo -e "${GREEN}✓${NC} Committed VERSION file"
 git tag -a "$TAG_NAME" -m "Release version $NEW_VERSION"
 TAG_CREATED=true
 echo -e "${GREEN}✓${NC} Created git tag $TAG_NAME"
+
+# Generate changelog entry for this release and fold it into the bump commit.
+# git-cliff reads the new tag from the working tree and emits only the entry for
+# it via --tag. The entry is prepended to CHANGELOG.md, then the bump commit is
+# amended to include the changelog update.
+if command -v git-cliff >/dev/null 2>&1 || [ -x "./node_modules/.bin/git-cliff" ]; then
+    echo -e "${YELLOW}Generating changelog entry for $TAG_NAME...${NC}"
+    if npx --no-install git-cliff --tag "$TAG_NAME" --prepend CHANGELOG.md -u; then
+        git add CHANGELOG.md
+        git commit --amend --no-edit
+        echo -e "${GREEN}✓${NC} Updated CHANGELOG.md and amended bump commit"
+    else
+        echo -e "${YELLOW}Warning: git-cliff failed; continuing without changelog update${NC}"
+    fi
+else
+    echo -e "${YELLOW}Warning: git-cliff not found; skipping changelog update${NC}"
+    echo "         Install with: pnpm install (at repo root)"
+fi
 
 # Push commit to remote
 echo -e "${YELLOW}Pushing commit to remote...${NC}"

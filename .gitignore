@@ -2,3 +2,6 @@
 **/trash
 **/.serena
 .agents/
+
+# Dev tooling (git-cliff changelog generator)
+node_modules/
