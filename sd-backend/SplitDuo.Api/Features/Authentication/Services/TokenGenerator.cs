@@ -37,7 +37,7 @@ public class TokenGenerator(IOptions<JwtOptions> jwtOptions, TimeProvider timePr
                 new Claim("role", user.GlobalRoleId.ToString()),
                 new Claim("security_stamp", user.SecurityStamp)
             ]),
-            Expires = timeProvider.GetUtcNow().DateTime.AddMinutes(_jwtOptions.Expires),
+            Expires = timeProvider.GetUtcNow().UtcDateTime.AddMinutes(_jwtOptions.Expires),
             Issuer = _jwtOptions.Issuer,
             Audience = _jwtOptions.Audience,
             SigningCredentials =
@@ -59,7 +59,7 @@ public class TokenGenerator(IOptions<JwtOptions> jwtOptions, TimeProvider timePr
                 new Claim(JwtRegisteredClaimNames.Sub, userGuid.ToString()),
                 new Claim("purpose", "2fa_challenge"),
             ]),
-            Expires = timeProvider.GetUtcNow().DateTime.AddMinutes(5),
+            Expires = timeProvider.GetUtcNow().UtcDateTime.AddMinutes(5),
             Issuer = _jwtOptions.Issuer,
             Audience = _jwtOptions.Audience,
             SigningCredentials = new SigningCredentials(
