@@ -4,6 +4,15 @@ All notable changes to SplitDuo will be documented in this file.
 
 Generated with [git-cliff](https://git-cliff.org) from Conventional Commits.
 
+## [1.2.0] - 2026-07-19
+
+### Bug Fixes
+
+- *(release)* Bump package.json alongside VERSION in cat-v config
+
+### Features
+
+- *(frontend)* Add PWA install prompt, offline banner, and iOS meta tags
 ## [1.1.0] - 2026-07-19
 
 ### Build System
