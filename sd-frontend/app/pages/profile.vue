@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col items-center py-6">
+  <div class="flex flex-col items-center py-6 sm:py-8">
     <UCard class="w-full max-w-2xl">
       <template #header>
         <div class="flex items-center justify-between">
@@ -46,12 +46,15 @@
           </UBadge>
         </div>
 
-        <div class="grid grid-cols-1 gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <template
             v-for="field in userForm"
             :key="field.label"
           >
-            <UFormField :label="field.label">
+            <UFormField
+              :label="field.label"
+              :class="field.copyable ? 'sm:col-span-2' : ''"
+            >
               <UInput
                 v-if="!field.copyable"
                 :value="field.value.value"

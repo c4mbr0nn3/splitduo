@@ -12,28 +12,34 @@
         :total-expenses="groupStats.totalExpenses"
         :group-total="groupStats.totalAmount"
       />
-      <GroupsStatsCategoryChart
-        v-if="groupStats.categoryBreakdown?.length"
-        :category-breakdown="groupStats.categoryBreakdown"
-      />
-      <GroupsStatsMonthlyChart
-        v-if="groupStats.monthlyBreakdown?.length"
-        :monthly-breakdown="groupStats.monthlyBreakdown"
-      />
-      <GroupsStatsMemberPaidChart
-        v-if="groupStats.balances?.length"
-        :balances="groupStats.balances"
-      />
-      <div>
-        <h3 class="text-lg font-semibold text-primary mb-3">
-          Member Balances
-        </h3>
-        <div class="space-y-3">
-          <GroupsMemberBalanceCard
-            v-for="balance in groupStats.balances"
-            :key="balance.userId"
-            :balance="balance"
-          />
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <GroupsStatsCategoryChart
+          v-if="groupStats.categoryBreakdown?.length"
+          :category-breakdown="groupStats.categoryBreakdown"
+        />
+        <GroupsStatsMonthlyChart
+          v-if="groupStats.monthlyBreakdown?.length"
+          :monthly-breakdown="groupStats.monthlyBreakdown"
+        />
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <GroupsStatsMemberPaidChart
+          v-if="groupStats.balances?.length"
+          :balances="groupStats.balances"
+        />
+        <div>
+          <h3 class="text-lg font-semibold text-primary mb-3">
+            Member Balances
+          </h3>
+          <div class="space-y-3">
+            <GroupsMemberBalanceCard
+              v-for="balance in groupStats.balances"
+              :key="balance.userId"
+              :balance="balance"
+            />
+          </div>
         </div>
       </div>
     </div>

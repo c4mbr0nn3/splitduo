@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col items-center justify-center py-4">
+  <div class="flex flex-col items-center justify-center py-6 sm:py-8">
     <UCard class="w-full max-w-2xl">
       <template #header>
         <UiCardHeader :title="title" />
@@ -9,30 +9,32 @@
         class="space-y-4"
         @submit="onSubmit"
       >
-        <UFormField
-          label="Group Name"
-          name="name"
-          required
-        >
-          <UInput
-            v-model="form.name"
-            placeholder="Enter group name"
+        <div class="grid grid-cols-1 gap-4">
+          <UFormField
+            label="Group Name"
+            name="name"
             required
-            size="lg"
-            class="w-full"
-          />
-        </UFormField>
-        <UFormField
-          label="Description"
-          name="description"
-        >
-          <UInput
-            v-model="form.description"
-            placeholder="Enter description (optional)"
-            size="lg"
-            class="w-full"
-          />
-        </UFormField>
+          >
+            <UInput
+              v-model="form.name"
+              placeholder="Enter group name"
+              required
+              size="lg"
+              class="w-full"
+            />
+          </UFormField>
+          <UFormField
+            label="Description"
+            name="description"
+          >
+            <UInput
+              v-model="form.description"
+              placeholder="Enter description (optional)"
+              size="lg"
+              class="w-full"
+            />
+          </UFormField>
+        </div>
         <div class="flex justify-between items-center pt-4">
           <UButton
             type="button"

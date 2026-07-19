@@ -6,23 +6,24 @@
     <div class="space-y-4">
       <!-- User Header -->
       <div class="flex items-start justify-between">
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3 min-w-0">
           <UAvatar
             :alt="user.fullName || `${user.firstName} ${user.lastName || ''}`.trim()"
             icon="i-lucide-user"
             size="lg"
+            class="shrink-0"
           />
 
-          <div>
-            <h3 class="font-semibold text-primary text-lg">
+          <div class="min-w-0">
+            <h3 class="font-semibold text-primary text-lg truncate">
               {{ user.fullName || `${user.firstName} ${user.lastName || ''}`.trim() }}
             </h3>
-            <p class="text-sm text-muted">
+            <p class="text-sm text-muted truncate">
               {{ user.email }}
             </p>
           </div>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 shrink-0">
           <UiButtonDropdown
             icon-only
             dropdown-icon="i-lucide-ellipsis-vertical"
@@ -36,7 +37,7 @@
       </div>
 
       <!-- User Role Badge -->
-      <div class="flex items-center justify-between">
+      <div class="flex flex-wrap items-center justify-between gap-2">
         <UBadge
           :color="user.globalRoleId == 2 ? 'primary' : 'secondary'"
           variant="soft"
@@ -48,7 +49,7 @@
 
       <!-- User Metadata -->
       <USeparator />
-      <div class="flex items-center justify-between text-xs text-muted">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs text-muted">
         <span>Created {{ formatDate(user.createdAt) }}</span>
         <span>Updated {{ formatDate(user.updatedAt) }}</span>
       </div>

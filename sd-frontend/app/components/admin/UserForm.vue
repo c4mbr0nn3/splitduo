@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col items-center justify-center p-4">
+  <div class="flex flex-col items-center justify-center py-6 sm:py-8 px-4">
     <UCard class="w-full max-w-2xl">
       <template #header>
         <UiCardHeader :title="title" />
@@ -9,58 +9,60 @@
         class="space-y-4"
         @submit="onSubmit"
       >
-        <UFormField
-          label="First Name"
-          name="firstName"
-          required
-        >
-          <UInput
-            v-model="form.firstName"
-            placeholder="Enter first name"
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <UFormField
+            label="First Name"
+            name="firstName"
             required
-            size="lg"
-            class="w-full"
-          />
-        </UFormField>
-        <UFormField
-          label="Last Name"
-          name="lastName"
-        >
-          <UInput
-            v-model="form.lastName"
-            placeholder="Enter last name (optional)"
-            size="lg"
-            class="w-full"
-          />
-        </UFormField>
-        <UFormField
-          label="Email"
-          name="email"
-          required
-        >
-          <UInput
-            v-model="form.email"
-            type="email"
-            placeholder="Enter email address"
+          >
+            <UInput
+              v-model="form.firstName"
+              placeholder="Enter first name"
+              required
+              size="lg"
+              class="w-full"
+            />
+          </UFormField>
+          <UFormField
+            label="Last Name"
+            name="lastName"
+          >
+            <UInput
+              v-model="form.lastName"
+              placeholder="Enter last name (optional)"
+              size="lg"
+              class="w-full"
+            />
+          </UFormField>
+          <UFormField
+            label="Email"
+            name="email"
             required
-            size="lg"
-            class="w-full"
-          />
-        </UFormField>
+          >
+            <UInput
+              v-model="form.email"
+              type="email"
+              placeholder="Enter email address"
+              required
+              size="lg"
+              class="w-full"
+            />
+          </UFormField>
 
-        <UFormField
-          label="Role"
-          name="globalRoleId"
-          required
-        >
-          <USelect
-            v-model="form.globalRoleId"
-            :items="roleOptions"
-            placeholder="Select role"
-            size="lg"
-            class="w-full"
-          />
-        </UFormField>
+          <UFormField
+            label="Role"
+            name="globalRoleId"
+            required
+          >
+            <USelect
+              v-model="form.globalRoleId"
+              :items="roleOptions"
+              placeholder="Select role"
+              size="lg"
+              class="w-full"
+            />
+          </UFormField>
+        </div>
         <div class="flex justify-between items-center pt-2">
           <UButton
             label="Back"

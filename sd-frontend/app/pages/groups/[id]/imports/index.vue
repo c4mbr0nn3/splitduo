@@ -1,5 +1,5 @@
 <template>
-  <div class="py-8">
+  <div class="py-6 sm:py-8">
     <UCard>
       <template #header>
         <UiCardHeader
@@ -155,7 +155,7 @@ const getStatusLabel = (statusId) => {
 }
 
 const getStatusColor = (statusId) => {
-  return importStatusMap[statusId]?.color || 'bg-gray-500'
+  return importStatusMap[statusId]?.color || 'neutral'
 }
 
 const getStatusVariant = (statusId) => {

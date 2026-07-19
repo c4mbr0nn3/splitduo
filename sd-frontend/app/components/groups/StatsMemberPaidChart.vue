@@ -9,7 +9,7 @@
       type="bar"
       :options="chartOptions"
       :series="series"
-      height="250"
+      height="320"
     />
   </UCard>
 </template>

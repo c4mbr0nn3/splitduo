@@ -1,18 +1,18 @@
 <template>
   <UCard
-    class="cursor-pointer"
+    class="cursor-pointer hover:border-primary/50 transition-colors"
     variant="subtle"
   >
     <div class="flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="border border-primary text-primary rounded-full flex items-center justify-center w-10 h-10">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="border border-primary text-primary rounded-full flex items-center justify-center w-10 h-10 shrink-0">
           <UIcon
             name="i-lucide-users"
             class="size-6"
           />
         </div>
-        <div>
-          <h3 class="font-medium text-primary">
+        <div class="min-w-0">
+          <h3 class="font-medium text-primary truncate">
             {{ group.name }}
           </h3>
           <p class="text-xs text-muted">
@@ -20,7 +20,7 @@
           </p>
         </div>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 shrink-0">
         <UBadge
           :color="badgeColor"
           variant="subtle"

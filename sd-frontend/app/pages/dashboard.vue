@@ -1,5 +1,5 @@
 <template>
-  <div class="py-8">
+  <div class="py-6 sm:py-8">
     <UiCardHeader
       size="lg"
       title="Dashboard"
@@ -40,8 +40,8 @@
         />
       </template>
     </div>
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <UCard>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <UCard class="lg:col-span-2">
         <template #header>
           <div class="flex items-center justify-between">
             <h2 class="text-lg font-semibold">
@@ -96,7 +96,7 @@
           </template>
         </div>
       </UCard>
-      <UCard>
+      <UCard class="h-fit">
         <template #header>
           <h2 class="text-lg font-semibold">
             Quick Actions

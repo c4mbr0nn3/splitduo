@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col items-center justify-center p-4">
+  <div class="flex flex-col items-center justify-center py-6 sm:py-8 px-4">
     <UCard class="w-full max-w-2xl">
       <template #header>
         <div class="flex items-center justify-between">
@@ -20,114 +20,118 @@
         class="space-y-4"
         @submit="onSubmit"
       >
-        <UFormField
-          v-if="!preSelectedGroupId"
-          label="Group"
-          name="groupId"
-          required
-        >
-          <USelect
-            v-model="model.groupId"
-            :items="groupOptions"
-            placeholder="Select a group"
-            size="lg"
-            :loading="isLoadingGroups"
-            class="w-full"
-          />
-        </UFormField>
-        <UFormField
-          label="Expense Title"
-          name="title"
-          required
-        >
-          <UInput
-            v-model="model.title"
-            placeholder="Enter expense title"
-            size="lg"
-            class="w-full"
-            maxlength="255"
-          />
-        </UFormField>
-        <UFormField
-          label="Amount"
-          name="amount"
-          required
-        >
-          <UInputNumber
-            v-model="model.amount"
-            :step="0.01"
-            :min="0.01"
-            orientation="horizontal"
-            placeholder="Enter the amount"
-            size="lg"
-            class="w-full"
-            @update:model-value="updateSplits"
-          />
-        </UFormField>
-        <UFormField
-          label="Description"
-          name="description"
-        >
-          <UTextarea
-            v-model="model.description"
-            placeholder="Enter description (optional)"
-            size="lg"
-            class="w-full"
-          />
-        </UFormField>
-        <UFormField
-          label="Who Paid?"
-          name="paidByUserId"
-          required
-        >
-          <USelect
-            v-model="model.paidByUserId"
-            :items="memberOptions"
-            placeholder="Select who paid"
-            size="lg"
-            :disabled="!model.groupId"
-            :loading="isLoadingMembers"
-            class="w-full"
-          />
-        </UFormField>
-        <UFormField
-          label="Date"
-          name="expenseDate"
-          required
-        >
-          <UiInputDate
-            v-model="model.expenseDate"
-            size="lg"
-          />
-        </UFormField>
-        <UFormField
-          label="Category"
-          name="categoryId"
-          required
-        >
-          <USelect
-            v-model="model.categoryId"
-            :items="categoryOptions"
-            placeholder="Select category"
-            size="lg"
-            :loading="isLoadingCategories"
-            class="w-full"
-          />
-        </UFormField>
-        <UFormField
-          label="Payment Method"
-          name="paymentModeId"
-          required
-        >
-          <USelect
-            v-model="model.paymentModeId"
-            :items="paymentModeOptions"
-            placeholder="Select payment method"
-            size="lg"
-            :loading="isLoadingPaymentModes"
-            class="w-full"
-          />
-        </UFormField>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <UFormField
+            v-if="!preSelectedGroupId"
+            class="sm:col-span-2"
+            label="Group"
+            name="groupId"
+            required
+          >
+            <USelect
+              v-model="model.groupId"
+              :items="groupOptions"
+              placeholder="Select a group"
+              size="lg"
+              :loading="isLoadingGroups"
+              class="w-full"
+            />
+          </UFormField>
+          <UFormField
+            label="Expense Title"
+            name="title"
+            required
+          >
+            <UInput
+              v-model="model.title"
+              placeholder="Enter expense title"
+              size="lg"
+              class="w-full"
+              maxlength="255"
+            />
+          </UFormField>
+          <UFormField
+            label="Amount"
+            name="amount"
+            required
+          >
+            <UInputNumber
+              v-model="model.amount"
+              :step="0.01"
+              :min="0.01"
+              orientation="horizontal"
+              placeholder="Enter the amount"
+              size="lg"
+              class="w-full"
+              @update:model-value="updateSplits"
+            />
+          </UFormField>
+          <UFormField
+            class="sm:col-span-2"
+            label="Description"
+            name="description"
+          >
+            <UTextarea
+              v-model="model.description"
+              placeholder="Enter description (optional)"
+              size="lg"
+              class="w-full"
+            />
+          </UFormField>
+          <UFormField
+            label="Who Paid?"
+            name="paidByUserId"
+            required
+          >
+            <USelect
+              v-model="model.paidByUserId"
+              :items="memberOptions"
+              placeholder="Select who paid"
+              size="lg"
+              :disabled="!model.groupId"
+              :loading="isLoadingMembers"
+              class="w-full"
+            />
+          </UFormField>
+          <UFormField
+            label="Date"
+            name="expenseDate"
+            required
+          >
+            <UiInputDate
+              v-model="model.expenseDate"
+              size="lg"
+            />
+          </UFormField>
+          <UFormField
+            label="Category"
+            name="categoryId"
+            required
+          >
+            <USelect
+              v-model="model.categoryId"
+              :items="categoryOptions"
+              placeholder="Select category"
+              size="lg"
+              :loading="isLoadingCategories"
+              class="w-full"
+            />
+          </UFormField>
+          <UFormField
+            label="Payment Method"
+            name="paymentModeId"
+            required
+          >
+            <USelect
+              v-model="model.paymentModeId"
+              :items="paymentModeOptions"
+              placeholder="Select payment method"
+              size="lg"
+              :loading="isLoadingPaymentModes"
+              class="w-full"
+            />
+          </UFormField>
+        </div>
 
         <!-- Split Section -->
         <div class="space-y-2">
@@ -182,7 +186,7 @@
                   />
                   <span
                     v-if="getSplitValidationState(member.userId)?.state === 'error'"
-                    class="text-xs text-red-500"
+                    class="text-xs text-error"
                   >
                     {{ getSplitValidationState(member.userId)?.message }}
                   </span>
@@ -209,8 +213,8 @@
               v-if="model.amount && remainingMillis !== 0"
               class="flex justify-between items-center font-semibold"
               :class="{
-                'text-red-500': remainingMillis < 0,
-                'text-orange-500': remainingMillis > 0,
+                'text-error': remainingMillis < 0,
+                'text-warning': remainingMillis > 0,
               }"
             >
               <span>{{ remainingMillis > 0 ? 'Remaining:' : 'Over by:' }}</span>
@@ -218,7 +222,7 @@
             </div>
             <div
               v-if="model.amount && remainingMillis === 0"
-              class="flex justify-between items-center text-green-600 font-semibold"
+              class="flex justify-between items-center text-success font-semibold"
             >
               <span>✓ Splits balanced</span>
             </div>

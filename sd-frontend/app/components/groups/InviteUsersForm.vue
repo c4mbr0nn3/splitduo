@@ -6,7 +6,7 @@
           v-model="email"
           type="email"
           placeholder="user@example.com"
-          class="flex-1"
+          class="w-full"
           @keydown.enter.prevent="onInvite"
         />
         <UButton

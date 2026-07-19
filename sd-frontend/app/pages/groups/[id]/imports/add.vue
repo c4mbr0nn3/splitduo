@@ -1,5 +1,5 @@
 <template>
-  <div class="py-8">
+  <div class="py-6 sm:py-8">
     <!-- Step Indicator -->
     <div class="overflow-x-auto pb-2 mb-4">
       <div class="flex items-center gap-2">

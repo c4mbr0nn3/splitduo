@@ -1,5 +1,5 @@
 <template>
-  <div class="py-8">
+  <div class="py-6 sm:py-8">
     <UiCardHeader
       size="lg"
       title="Users"

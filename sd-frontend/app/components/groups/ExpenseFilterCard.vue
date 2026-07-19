@@ -9,7 +9,7 @@
             label="Clear"
             size="xs"
             variant="ghost"
-            :color="activeFilterCount === 0 ? 'gray' : 'error'"
+            :color="activeFilterCount === 0 ? 'neutral' : 'error'"
             :disabled="activeFilterCount === 0"
             @click="$emit('clear')"
           />

@@ -1,5 +1,5 @@
 <template>
-  <div class="py-8">
+  <div class="py-6 sm:py-8">
     <UiLoadingSpinner
       v-if="isLoading"
       text="Loading group..."
@@ -25,6 +25,7 @@
     <UCard
       v-else
       variant="soft"
+      class="lg:shadow-sm"
     >
       <template #header>
         <GroupsSectionHeader

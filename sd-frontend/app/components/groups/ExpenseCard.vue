@@ -35,8 +35,21 @@
       </div>
     </div>
 
-    <div class="flex flex-col gap-1">
-      <div class="flex items-center gap-2">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+      <div class="flex flex-wrap items-center gap-2">
+        <UBadge
+          variant="soft"
+          :color="categoryColor"
+          :label="categoryName"
+          class="capitalize"
+        >
+          <template #leading>
+            <UIcon
+              :name="categoryIcon"
+              mode="svg"
+            />
+          </template>
+        </UBadge>
         <div class="flex items-center gap-1 text-xs text-dimmed">
           <UIcon
             name="i-lucide-credit-card"
@@ -51,8 +64,6 @@
           />
           <span>{{ expense.splits.length }} people</span>
         </div>
-      </div>
-      <div>
         <UBadge
           v-if="userSplit"
           variant="soft"
@@ -60,31 +71,16 @@
           :label="`Your share: ${formatAmount(userSplit.splitAmount)}€`"
         />
       </div>
-      <div class="flex justify-between items-center">
-        <UBadge
-          variant="soft"
-          :color="categoryColor"
-          :label="categoryName"
-          class="capitalize"
-        >
-          <template #leading>
-            <UIcon
-              :name="categoryIcon"
-              mode="svg"
-            />
-          </template>
-        </UBadge>
-        <div class="flex items-center gap-2">
-          <UiButtonDropdown
-            icon-only
-            dropdown-icon="i-lucide-ellipsis-vertical"
-            size="sm"
-            variant="ghost"
-            color="neutral"
-            :items="dropdownItems"
-            :disabled="isDeletingExpense"
-          />
-        </div>
+      <div class="flex items-center justify-end">
+        <UiButtonDropdown
+          icon-only
+          dropdown-icon="i-lucide-ellipsis-vertical"
+          size="sm"
+          variant="ghost"
+          color="neutral"
+          :items="dropdownItems"
+          :disabled="isDeletingExpense"
+        />
       </div>
     </div>
   </UCard>
