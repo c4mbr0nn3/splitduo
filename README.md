@@ -173,6 +173,22 @@ dotnet ef migrations add <MigrationName> --project SplitDuo.Core --startup-proje
 dotnet ef database update --project SplitDuo.Core --startup-project SplitDuo.Api
 ```
 
+### Releasing
+
+Releases follow semantic versioning and are driven by `scripts/bump-version.sh`, which bumps `VERSION`, commits, tags `vX.Y.Z`, generates the changelog entry via [git-cliff](https://git-cliff.org), and pushes to trigger the GitLab CI pipeline.
+
+```bash
+./scripts/bump-version.sh patch   # or minor / major
+./scripts/bump-version.sh patch -d # dry-run preview
+```
+
+The changelog is generated from Conventional Commits — `feat`, `fix`, `refactor`, `style`, `build`, etc. `chore` and `docs` commits are excluded. To regenerate the full `CHANGELOG.md` from all past tags:
+
+```bash
+pnpm install   # one-time, installs git-cliff at repo root
+pnpm changelog
+```
+
 ---
 
 ## API
