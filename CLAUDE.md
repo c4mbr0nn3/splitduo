@@ -69,3 +69,8 @@ All others optional — see `sd-backend/SplitDuo.Core/Options/Setup/` for full l
 - Conventional Commits, subject only: `type(scope): message` (≤72 chars, no trailing period)
 - Types: `feat`, `fix`, `refactor`, `docs`, `chore`, `style`, `perf`, `test`, `ci`, `build`
 - No body, no footer. **Never commit or push without explicit user approval.**
+
+### 6. Keep CLAUDE.md in Sync
+- After implementing new conventions, patterns, composables, helpers, or reusable project guidelines, check `CLAUDE.md` (root + `sd-backend/` + `sd-frontend/`) and add a rule/hint if the change should be repeated by future work.
+- Only add a rule when the change establishes a reusable guideline — not for one-off feature code.
+- Keep entries brief: one line per rule, matching the existing style of the relevant section.
