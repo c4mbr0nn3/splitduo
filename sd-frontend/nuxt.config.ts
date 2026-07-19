@@ -12,12 +12,20 @@ export default defineNuxtConfig({
       titleTemplate: '%s | SplitDuo',
       link: [
         { rel: 'manifest', href: '/manifest.webmanifest' },
+        { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         {
           rel: 'stylesheet',
           href: 'https://fonts.googleapis.com/css2?family=Geist:wght@300..700&display=swap',
         },
+      ],
+      meta: [
+        { name: 'theme-color', content: '#14b8a6' },
+        { name: 'apple-mobile-web-app-capable', content: 'yes' },
+        { name: 'mobile-web-app-capable', content: 'yes' },
+        { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
+        { name: 'apple-mobile-web-app-title', content: 'SplitDuo' },
       ],
     },
   },
@@ -52,12 +60,17 @@ export default defineNuxtConfig({
       suppressWarnings: true,
     },
     manifest: {
+      id: '/',
       name: 'SplitDuo',
       short_name: 'SplitDuo',
       description: 'Expense splitting app for small groups — couples, housemates, travel companions, or anyone sharing costs.',
+      lang: 'en',
+      dir: 'ltr',
+      categories: ['finance', 'productivity'],
       theme_color: '#14b8a6',
       background_color: '#ffffff',
       display: 'standalone',
+      display_override: ['standalone', 'minimal-ui'],
       icons: [
         {
           src: 'android-chrome-192x192.png',
