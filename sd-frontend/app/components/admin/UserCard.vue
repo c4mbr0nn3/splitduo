@@ -22,31 +22,15 @@
             </p>
           </div>
         </div>
-        <div class="flex items-center gap-1">
-          <UButton
-            variant="ghost"
-            color="info"
+        <div class="flex items-center gap-2">
+          <UiButtonDropdown
+            icon-only
+            dropdown-icon="i-lucide-ellipsis-vertical"
             size="sm"
-            icon="i-lucide-edit-2"
-            @click="onEdit"
-          />
-          <UButton
             variant="ghost"
-            :color="isSameUser ? '' : 'warning'"
-            size="sm"
-            icon="i-lucide-rotate-ccw-key"
-            :disabled="isSameUser"
-            :loading="isRevokingTokens"
-            @click="confirmRevokeTokens"
-          />
-          <UButton
-            variant="ghost"
-            :color="isSameUser ? '' : 'error'"
-            size="sm"
-            icon="i-lucide-trash-2"
-            :disabled="isSameUser"
-            :loading="isDeleting"
-            @click.stop="confirmDeleteUser"
+            color="neutral"
+            :items="dropdownItems"
+            :disabled="isSameUser || isDeleting || isRevokingTokens"
           />
         </div>
       </div>
@@ -132,4 +116,28 @@ const confirmRevokeTokens = async () => {
 const onEdit = () => {
   navigateTo(`/admin/users/${props.user.id}/edit`)
 }
+
+const dropdownItems = computed(() => [
+  {
+    label: 'Edit',
+    icon: 'i-lucide-edit-2',
+    color: 'info',
+    onSelect: onEdit,
+  },
+  {
+    label: 'Revoke Tokens',
+    icon: 'i-lucide-rotate-ccw-key',
+    color: 'warning',
+    onSelect: confirmRevokeTokens,
+  },
+  {
+    type: 'separator',
+  },
+  {
+    label: 'Delete',
+    icon: 'i-lucide-trash-2',
+    color: 'error',
+    onSelect: confirmDeleteUser,
+  },
+])
 </script>

@@ -15,15 +15,9 @@
         <GroupsActionsDropdown
           :group="group"
           :is-exporting="isExporting"
+          :is-deleting="isDeletingGroup"
           @export="onExport"
-        />
-        <UButton
-          icon="i-lucide-trash-2"
-          color="error"
-          variant="soft"
-          size="sm"
-          :loading="isDeletingGroup"
-          @click="confirmDeleteGroup"
+          @delete="confirmDeleteGroup"
         />
       </div>
     </div>

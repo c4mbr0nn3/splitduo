@@ -91,23 +91,15 @@
                 </p>
               </div>
             </div>
-            <div class="flex items-center gap-3">
-              <UButton
-                variant="ghost"
-                color="info"
+            <div class="flex items-center gap-2">
+              <UiButtonDropdown
+                icon-only
+                dropdown-icon="i-lucide-ellipsis-vertical"
                 size="sm"
-                square
-                icon="i-lucide-edit-2"
-                @click="navigateToEdit(group.id)"
-              />
-              <UButton
                 variant="ghost"
-                color="error"
-                size="sm"
-                square
-                icon="i-lucide-trash-2"
-                :loading="isDeletingGroup"
-                @click.stop="confirmDeleteGroup(group)"
+                color="neutral"
+                :items="dropdownItems(group)"
+                :disabled="isDeletingGroup"
               />
             </div>
           </div>
@@ -135,8 +127,6 @@
       </UCard>
     </div>
   </div>
-
-  <!-- Delete Confirmation Dialog -->
 </template>
 
 <script setup>
@@ -195,6 +185,26 @@ const createNewGroup = () => {
 
 const navigateToEdit = (groupId) => {
   navigateTo(`/groups/${groupId}/edit/`)
+}
+
+const dropdownItems = (group) => {
+  return [
+    {
+      label: 'Edit',
+      icon: 'i-lucide-edit-2',
+      color: 'info',
+      onSelect: () => navigateToEdit(group.id),
+    },
+    {
+      type: 'separator',
+    },
+    {
+      label: 'Delete',
+      icon: 'i-lucide-trash-2',
+      color: 'error',
+      onSelect: () => confirmDeleteGroup(group),
+    },
+  ]
 }
 
 // Delete group handlers

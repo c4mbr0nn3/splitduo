@@ -152,7 +152,19 @@ const onResend = async (invitation) => {
   }
 }
 
+const modal = useModal()
+
 const onRevoke = async (invitation) => {
+  const confirmed = await modal.warning({
+    title: 'Revoke invitation',
+    subtitle: 'This cannot be undone.',
+    content: `Revoke the invitation for '${invitation.email}'?`,
+    confirmText: 'Revoke',
+    cancelText: 'Cancel',
+  })
+
+  if (!confirmed) return
+
   try {
     await revokeInvitation(groupId, invitation.id)
     pendingInvitations.value = pendingInvitations.value.filter(i => i.id !== invitation.id)

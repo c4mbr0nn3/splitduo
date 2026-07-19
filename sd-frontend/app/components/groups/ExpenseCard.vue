@@ -75,22 +75,14 @@
           </template>
         </UBadge>
         <div class="flex items-center gap-2">
-          <UButton
-            variant="ghost"
-            color="error"
+          <UiButtonDropdown
+            icon-only
+            dropdown-icon="i-lucide-ellipsis-vertical"
             size="sm"
-            square
-            icon="i-lucide-trash-2"
-            :loading="isDeletingExpense"
-            @click.stop="confirmDeleteExpense"
-          />
-          <UButton
             variant="ghost"
-            color="info"
-            size="sm"
-            square
-            icon="i-lucide-edit-2"
-            @click="navigateToEdit"
+            color="neutral"
+            :items="dropdownItems"
+            :disabled="isDeletingExpense"
           />
         </div>
       </div>
@@ -203,4 +195,22 @@ const navigateToEdit = () => {
   if (!props.expense.id) return
   navigateTo(`/groups/${props.expense.groupId}/expenses/${props.expense.id}/edit`)
 }
+
+const dropdownItems = computed(() => [
+  {
+    label: 'Edit',
+    icon: 'i-lucide-edit-2',
+    color: 'info',
+    onSelect: navigateToEdit,
+  },
+  {
+    type: 'separator',
+  },
+  {
+    label: 'Delete',
+    icon: 'i-lucide-trash-2',
+    color: 'error',
+    onSelect: confirmDeleteExpense,
+  },
+])
 </script>

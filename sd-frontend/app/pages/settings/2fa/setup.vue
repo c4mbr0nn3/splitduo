@@ -264,7 +264,19 @@ const confirmSetup = async () => {
   }
 }
 
+const modal = useModal()
+
 const confirmDisable = async () => {
+  const confirmed = await modal.error({
+    title: 'Disable two-factor authentication',
+    subtitle: 'This weakens your account security.',
+    content: 'Two-factor authentication will be disabled for your account. You will no longer be prompted for a 2FA code during login. Are you sure you want to continue?',
+    confirmText: 'Disable',
+    cancelText: 'Cancel',
+  })
+
+  if (!confirmed) return
+
   try {
     await disable(disablePassword.value)
     await initialize()

@@ -19,9 +19,13 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  isDeleting: {
+    type: Boolean,
+    default: false,
+  },
 })
 
-const emit = defineEmits(['export'])
+const emit = defineEmits(['export', 'delete'])
 
 const navigateToEdit = () => {
   if (!props.group?.id) return
@@ -40,6 +44,10 @@ const navigateToInvite = () => {
 
 const handleExport = () => {
   emit('export')
+}
+
+const handleDelete = () => {
+  emit('delete')
 }
 
 const dropdownItems = computed(() => [
@@ -67,6 +75,16 @@ const dropdownItems = computed(() => [
     icon: 'i-lucide-edit-2',
     color: 'info',
     onSelect: navigateToEdit,
+  },
+  {
+    type: 'separator',
+  },
+  {
+    label: 'Delete Group',
+    icon: 'i-lucide-trash-2',
+    color: 'error',
+    disabled: props.isDeleting,
+    onSelect: handleDelete,
   },
 ])
 </script>
