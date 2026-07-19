@@ -4,6 +4,27 @@ All notable changes to SplitDuo will be documented in this file.
 
 Generated with [git-cliff](https://git-cliff.org) from Conventional Commits.
 
+## [1.0.0] - 2026-07-19
+
+### Bug Fixes
+
+- *(scripts)* Add selinux z mount label for container scans
+- *(backend)* Resolve all nullable warnings
+- *(auth)* Use UTC DateTime for JWT expiry
+- *(scripts)* Tag bump commit after changelog amend
+
+### Code Refactoring
+
+- *(ui)* Gate destructive actions behind overflow menu and confirmation
+
+### Features
+
+- *(scripts)* Add trivy and trufflehog security scan scripts
+
+### Styling
+
+- *(frontend)* Apply UI consistency fixes across all pages
+- *(frontend)* Polish desktop and tablet UI layout
 ## [0.1.38] - 2026-07-12
 
 ### Bug Fixes
