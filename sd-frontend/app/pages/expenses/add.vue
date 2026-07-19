@@ -14,7 +14,6 @@
 
 <script setup>
 const route = useRoute()
-const router = useRouter()
 const { clearReceiptImage } = useReceiptScan()
 
 onUnmounted(() => clearReceiptImage())
@@ -81,9 +80,7 @@ const onAddMore = async ({ groupId, expenseData }) => {
   }
 }
 
-const goBack = () => {
-  router.back()
-}
+const { goBack } = useSmartBack(`/groups/${route.query.groupId}`)
 
 useHead({
   title: 'Add Expense',

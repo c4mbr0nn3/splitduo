@@ -42,7 +42,7 @@ Backend response shape: `{ success, data, error, pagination }` — see backend C
 
 **Auth**: `useAuthToken` (cookie token CRUD), `useAuth` (login/logout/refresh, user in cookie + `useState('user')`, exposes `isAuthenticated`/`isGlobalAdmin`), `use2FA` (TOTP/backup/email flow).
 
-**Utility**: `useNotifications` (toast wrapper), `useErrorHandling`, `usePagination` (factory), `useDebounceSearch` (@vueuse/core), `useModal` (Nuxt UI useOverlay, returns Promise<boolean>), `useChartTheme`.
+**Utility**: `useNotifications` (toast wrapper), `useErrorHandling`, `usePagination` (factory), `useDebounceSearch` (@vueuse/core), `useModal` (Nuxt UI useOverlay, returns Promise<boolean>), `useChartTheme`, `useSmartBack(parentRoute)` (smart back nav — `router.back()` if in-app history exists, else `navigateTo(parentRoute, { replace: true })`; powers `UiCardHeader`'s `backTo` prop and page-level cancel handlers).
 
 ## Component Conventions
 

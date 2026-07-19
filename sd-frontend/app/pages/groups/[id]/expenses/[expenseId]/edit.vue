@@ -12,7 +12,6 @@
 
 <script setup>
 const route = useRoute()
-const router = useRouter()
 const groupId = route.params.id
 const expenseId = route.params.expenseId
 
@@ -76,9 +75,7 @@ const onSubmit = async ({ expenseData }) => {
   }
 }
 
-const goBack = () => {
-  router.back()
-}
+const { goBack } = useSmartBack(`/groups/${groupId}`)
 
 onMounted(async () => {
   if (groupId && expenseId) {

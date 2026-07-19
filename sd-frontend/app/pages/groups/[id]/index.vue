@@ -22,29 +22,36 @@
       </template>
     </UiEmptyState>
 
-    <UCard
-      v-else
-      variant="soft"
-      class="lg:shadow-sm"
-    >
-      <template #header>
-        <GroupsSectionHeader
-          :group="group"
-          :is-exporting="isExporting"
-          @export="handleExport"
-        />
-      </template>
+    <template v-else>
+      <UiCardHeader
+        title="Group Details"
+        back-to="/groups"
+        class="mb-6"
+      />
 
-      <GroupsTabsNav :group-id="groupId" />
-      <GroupsExpensesTab
-        v-if="activeTab === 'expenses'"
-        :group-id="groupId"
-      />
-      <GroupsStatsTab
-        v-else-if="activeTab === 'stats'"
-        :group-id="groupId"
-      />
-    </UCard>
+      <UCard
+        variant="soft"
+        class="lg:shadow-sm"
+      >
+        <template #header>
+          <GroupsSectionHeader
+            :group="group"
+            :is-exporting="isExporting"
+            @export="handleExport"
+          />
+        </template>
+
+        <GroupsTabsNav :group-id="groupId" />
+        <GroupsExpensesTab
+          v-if="activeTab === 'expenses'"
+          :group-id="groupId"
+        />
+        <GroupsStatsTab
+          v-else-if="activeTab === 'stats'"
+          :group-id="groupId"
+        />
+      </UCard>
+    </template>
   </div>
 </template>
 

@@ -5,6 +5,7 @@
         <UiCardHeader
           title="Two-Factor Authentication"
           subtitle="Add an extra layer of security to your account"
+          back-to="/profile"
         />
       </template>
 

@@ -6,12 +6,13 @@
     :loading="isLoading"
     :is-edit="true"
     @submit="onSubmit"
-    @cancel="navigateTo('/admin/users')"
+    @cancel="goBack"
   />
 </template>
 
 <script setup>
 const route = useRoute()
+const { goBack } = useSmartBack('/admin/users')
 const userId = route.params.id
 
 const { fetchUser, updateUser, isLoading } = useUsers()

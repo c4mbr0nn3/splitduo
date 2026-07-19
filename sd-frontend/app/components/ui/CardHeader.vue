@@ -68,10 +68,12 @@ const getDefaultTitleClass = computed(() => {
   return 'text-xl font-semibold'
 })
 
+const { goBack } = useSmartBack(props.backTo)
+
 const handleBack = () => {
   if (props.backTo) {
-    navigateTo(props.backTo)
     emit('back')
+    goBack()
   }
 }
 </script>

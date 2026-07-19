@@ -32,8 +32,10 @@ async function onSubmit(formData) {
   }
 }
 
+const { goBack } = useSmartBack(`/groups/${groupId}`)
+
 function onCancel() {
-  navigateTo(`/groups/${groupId}`)
+  goBack()
 }
 
 onMounted(async () => {

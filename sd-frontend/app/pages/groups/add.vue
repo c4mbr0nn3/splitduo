@@ -23,8 +23,10 @@ async function onSubmit(formData) {
   }
 }
 
+const { goBack } = useSmartBack('/groups')
+
 function onCancel() {
-  navigateTo('/groups')
+  goBack()
 }
 
 useHead({
