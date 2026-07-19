@@ -4,6 +4,15 @@ All notable changes to SplitDuo will be documented in this file.
 
 Generated with [git-cliff](https://git-cliff.org) from Conventional Commits.
 
+## [1.1.0] - 2026-07-19
+
+### Build System
+
+- *(release)* Use commit-and-tag-version for version bumps
+
+### Features
+
+- *(frontend)* Unify back navigation with useSmartBack composable
 ## [1.0.0] - 2026-07-19
 
 ### Bug Fixes
