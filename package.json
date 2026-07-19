@@ -1,12 +1,15 @@
 {
   "name": "splitduo",
+  "version": "1.0.0",
   "private": true,
   "description": "Dev tooling for the SplitDuo monorepo (changelog generation, etc.). Frontend and backend have their own package manifests.",
   "devDependencies": {
+    "commit-and-tag-version": "^13.0.0",
     "git-cliff": "^2.13.1"
   },
   "packageManager": "pnpm@11.11.0+sha512.4463f65fd80ed80d69bc1d4bf163ee94f605c7380fc318bb5b2ebe15f8cd12d49c51a4d59e951b401e764d3b6ca751cbf51bc50ed7001a6bcb4935e684c34882",
   "scripts": {
+    "release": "bash scripts/bump-version.sh",
     "changelog": "git-cliff v0.1.1..$(git describe --tags --abbrev=0) -o CHANGELOG.md",
     "changelog:latest": "git-cliff --latest",
     "changelog:unreleased": "git-cliff --unreleased"

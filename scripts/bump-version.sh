@@ -1,8 +1,16 @@
 #!/bin/bash
 
-# Bump version script following semantic versioning
-# Usage: ./bump-version.sh [major|minor|patch] [-d|--dry-run] [-y|--yes] [-h|--help]
-# Default: patch
+# Bump version script following semantic versioning.
+#
+# Orchestrates commit-and-tag-version (version bump of package.json + VERSION)
+# and git-cliff (changelog generation from Conventional Commits).
+#
+# Usage: ./bump-version.sh [major|minor|patch|--auto] [-d|--dry-run] [-y|--yes] [-h|--help]
+# Default: --auto (derive bump from Conventional Commits since last tag)
+#
+# The explicit bump type overrides commit-and-tag-version's auto-detection
+# from Conventional Commits. Pass `--auto` (or no argument) to let cat-v
+# derive the bump from commit history.
 
 set -e  # Exit on error
 
@@ -22,12 +30,15 @@ ROLLBACK_ACTIVE=false
 # Print usage information
 print_usage() {
     cat << EOF
-Usage: $0 [major|minor|patch] [OPTIONS]
+Usage: $0 [major|minor|patch|--auto] [OPTIONS]
 
 Bump version following semantic versioning.
 
 Arguments:
-  major|minor|patch    Version component to bump (default: patch)
+  major|minor|patch    Version component to bump (overrides auto-detection)
+  --auto               Derive bump type from Conventional Commits since last tag
+                       (delegates to commit-and-tag-version auto-detection)
+                       DEFAULT when no bump type is given
 
 Options:
   -d, --dry-run       Preview changes without making modifications
@@ -35,8 +46,10 @@ Options:
   -h, --help          Display this help message
 
 Examples:
-  $0 patch            # Bump patch version (interactive)
-  $0 minor -y         # Bump minor version (auto-confirm)
+  $0                  # Auto-derive bump from Conventional Commits (default)
+  $0 --auto           # Same as above, explicit
+  $0 patch            # Force patch bump (overrides auto-detection)
+  $0 minor -y         # Force minor bump, auto-confirm
   $0 major -d         # Preview major version bump
 EOF
     exit 0
@@ -57,6 +70,14 @@ while [[ $# -gt 0 ]]; do
         -h|--help)
             print_usage
             ;;
+        --auto)
+            if [[ -n "$BUMP_TYPE" ]]; then
+                echo -e "${RED}Error: Multiple bump types specified${NC}"
+                exit 1
+            fi
+            BUMP_TYPE="auto"
+            shift
+            ;;
         major|minor|patch)
             if [[ -n "$BUMP_TYPE" ]]; then
                 echo -e "${RED}Error: Multiple bump types specified${NC}"
@@ -73,15 +94,8 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Default to patch if not specified
-BUMP_TYPE="${BUMP_TYPE:-patch}"
-
-# Validate bump type
-if [[ ! "$BUMP_TYPE" =~ ^(major|minor|patch)$ ]]; then
-    echo -e "${RED}Error: Invalid bump type '$BUMP_TYPE'${NC}"
-    echo "Usage: $0 [major|minor|patch]"
-    exit 1
-fi
+# Default to auto (derive bump from Conventional Commits) if not specified
+BUMP_TYPE="${BUMP_TYPE:-auto}"
 
 # Check if VERSION file exists
 VERSION_FILE="VERSION"
@@ -90,7 +104,13 @@ if [[ ! -f "$VERSION_FILE" ]]; then
     exit 1
 fi
 
-# Read current version
+# Check if package.json exists (commit-and-tag-version reads version from it)
+if [[ ! -f "package.json" ]]; then
+    echo -e "${RED}Error: package.json not found${NC}"
+    exit 1
+fi
+
+# Read current version (VERSION file is the source of truth on disk)
 CURRENT_VERSION=$(cat "$VERSION_FILE" | tr -d '[:space:]')
 
 # Validate version format
@@ -100,29 +120,34 @@ if [[ ! "$CURRENT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     exit 1
 fi
 
-# Parse version components
-IFS='.' read -r -a version_parts <<< "$CURRENT_VERSION"
-MAJOR="${version_parts[0]}"
-MINOR="${version_parts[1]}"
-PATCH="${version_parts[2]}"
+# Build commit-and-tag-version release-as flag
+CATV_RELEASE_ARG=""
+if [[ "$BUMP_TYPE" == "auto" ]]; then
+    # Let cat-v derive the bump from Conventional Commits since last tag
+    CATV_RELEASE_ARG=""
+else
+    CATV_RELEASE_ARG="--release-as $BUMP_TYPE"
+fi
 
-# Calculate new version
-case "$BUMP_TYPE" in
-    major)
-        MAJOR=$((MAJOR + 1))
-        MINOR=0
-        PATCH=0
-        ;;
-    minor)
-        MINOR=$((MINOR + 1))
-        PATCH=0
-        ;;
-    patch)
-        PATCH=$((PATCH + 1))
-        ;;
-esac
+# Compute the prospective new version for display and tag collision checks.
+# We run cat-v in dry-run to get the bumped version without touching files.
+# cat-v dry-run prints lines like:
+#   "✔ bumping version in VERSION from 1.0.0\n to 1.0.1"
+# We extract the version after "to ".
+NEW_VERSION=$(pnpm exec commit-and-tag-version \
+    $CATV_RELEASE_ARG \
+    --skip.changelog --skip.commit --skip.tag \
+    --dry-run 2>/dev/null \
+    | tr -d '\n' \
+    | grep -oE 'to [0-9]+\.[0-9]+\.[0-9]+' \
+    | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' \
+    | tail -1)
 
-NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+if [[ -z "$NEW_VERSION" ]]; then
+    echo -e "${RED}Error: Could not determine new version from commit-and-tag-version dry-run${NC}"
+    exit 1
+fi
+
 TAG_NAME="v$NEW_VERSION"
 
 # Check for uncommitted changes
@@ -152,7 +177,11 @@ check_remote_tag
 echo -e "${YELLOW}Bumping version:${NC}"
 echo "  Current: $CURRENT_VERSION"
 echo "  New:     $NEW_VERSION"
-echo "  Bump:    $BUMP_TYPE"
+if [[ "$BUMP_TYPE" == "auto" ]]; then
+    echo "  Bump:    auto (derived from Conventional Commits)"
+else
+    echo "  Bump:    $BUMP_TYPE"
+fi
 echo ""
 
 # Dry-run mode: show preview and exit
@@ -160,7 +189,7 @@ if [[ "$DRY_RUN" == true ]]; then
     echo -e "${YELLOW}[DRY-RUN MODE]${NC}"
     echo ""
     echo "The following changes would be made:"
-    echo "  1. Update VERSION file: $CURRENT_VERSION → $NEW_VERSION"
+    echo "  1. commit-and-tag-version bumps package.json + VERSION: $CURRENT_VERSION → $NEW_VERSION"
     echo "  2. Create commit: 'chore: bump version to $NEW_VERSION'"
     echo "  3. Create tag: $TAG_NAME"
     echo "  4. Generate changelog entry for $TAG_NAME (git-cliff) and amend commit"
@@ -177,7 +206,7 @@ confirm_action() {
     fi
 
     echo "Ready to:"
-    echo "  1. Update VERSION file: $CURRENT_VERSION → $NEW_VERSION"
+    echo "  1. commit-and-tag-version bumps package.json + VERSION: $CURRENT_VERSION → $NEW_VERSION"
     echo "  2. Create commit: 'chore: bump version to $NEW_VERSION'"
     echo "  3. Create tag: $TAG_NAME"
     echo "  4. Generate changelog entry for $TAG_NAME (git-cliff) and amend commit"
@@ -210,15 +239,11 @@ rollback() {
         echo -e "${YELLOW}✓${NC} Removed tag $TAG_NAME"
     fi
 
-    # Reset commit if created
+    # Reset commit if created (restores package.json + VERSION + CHANGELOG.md)
     if [[ "$COMMIT_CREATED" == true ]]; then
         git reset --hard HEAD~1 >/dev/null 2>&1 || true
         echo -e "${YELLOW}✓${NC} Reverted commit"
     fi
-
-    # Restore VERSION file
-    echo "$CURRENT_VERSION" > "$VERSION_FILE"
-    echo -e "${YELLOW}✓${NC} Restored VERSION file to $CURRENT_VERSION"
 
     echo -e "${RED}Rollback completed${NC}"
     exit 1
@@ -227,23 +252,28 @@ rollback() {
 # Set trap for rollback on error
 trap rollback EXIT
 
-# Update VERSION file
-echo "$NEW_VERSION" > "$VERSION_FILE"
-echo -e "${GREEN}✓${NC} Updated VERSION file"
+# 1. Run commit-and-tag-version to bump package.json + VERSION on disk.
+#    Changelog/commit/tag are skipped — we handle those ourselves below
+#    so we can fold the git-cliff changelog into the bump commit.
+echo -e "${YELLOW}Running commit-and-tag-version...${NC}"
+pnpm exec commit-and-tag-version \
+    $CATV_RELEASE_ARG \
+    --skip.changelog --skip.commit --skip.tag
+echo -e "${GREEN}✓${NC} Bumped package.json + VERSION"
 
-# Commit the change
-git add "$VERSION_FILE"
+# 2. Stage and commit the version bump.
+git add package.json "$VERSION_FILE"
 git commit -m "chore: bump version to $NEW_VERSION"
 COMMIT_CREATED=true
-echo -e "${GREEN}✓${NC} Committed VERSION file"
+echo -e "${GREEN}✓${NC} Committed version bump"
 
-# Generate changelog entry for this release and fold it into the bump commit.
-# Done BEFORE tagging so the tag points at the amended commit (with changelog).
-# git-cliff emits only the entry for the target tag via --tag, prepended to
-# CHANGELOG.md. The bump commit is then amended to include the changelog update.
+# 3. Generate changelog entry for this release and fold it into the bump commit.
+#    Done BEFORE tagging so the tag points at the amended commit (with changelog).
+#    git-cliff emits only the entry for the target tag via --tag, prepended to
+#    CHANGELOG.md. The bump commit is then amended to include the changelog update.
 if command -v git-cliff >/dev/null 2>&1 || [ -x "./node_modules/.bin/git-cliff" ]; then
     echo -e "${YELLOW}Generating changelog entry for $TAG_NAME...${NC}"
-    if npx --no-install git-cliff --tag "$TAG_NAME" --prepend CHANGELOG.md -u; then
+    if pnpm exec git-cliff --tag "$TAG_NAME" --prepend CHANGELOG.md -u; then
         git add CHANGELOG.md
         git commit --amend --no-edit
         echo -e "${GREEN}✓${NC} Updated CHANGELOG.md and amended bump commit"
@@ -255,17 +285,17 @@ else
     echo "         Install with: pnpm install (at repo root)"
 fi
 
-# Create annotated tag (after amend, so it points at the commit with the changelog)
+# 4. Create annotated tag (after amend, so it points at the commit with the changelog)
 git tag -a "$TAG_NAME" -m "Release version $NEW_VERSION"
 TAG_CREATED=true
 echo -e "${GREEN}✓${NC} Created git tag $TAG_NAME"
 
-# Push commit to remote
+# 5. Push commit to remote
 echo -e "${YELLOW}Pushing commit to remote...${NC}"
 git push
 echo -e "${GREEN}✓${NC} Pushed commit to remote"
 
-# Push tag to remote
+# 6. Push tag to remote
 echo -e "${YELLOW}Pushing tag to remote...${NC}"
 git push origin "$TAG_NAME"
 echo -e "${GREEN}✓${NC} Pushed tag $TAG_NAME to remote"
