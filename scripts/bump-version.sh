@@ -237,15 +237,10 @@ git commit -m "chore: bump version to $NEW_VERSION"
 COMMIT_CREATED=true
 echo -e "${GREEN}✓${NC} Committed VERSION file"
 
-# Create annotated tag
-git tag -a "$TAG_NAME" -m "Release version $NEW_VERSION"
-TAG_CREATED=true
-echo -e "${GREEN}✓${NC} Created git tag $TAG_NAME"
-
 # Generate changelog entry for this release and fold it into the bump commit.
-# git-cliff reads the new tag from the working tree and emits only the entry for
-# it via --tag. The entry is prepended to CHANGELOG.md, then the bump commit is
-# amended to include the changelog update.
+# Done BEFORE tagging so the tag points at the amended commit (with changelog).
+# git-cliff emits only the entry for the target tag via --tag, prepended to
+# CHANGELOG.md. The bump commit is then amended to include the changelog update.
 if command -v git-cliff >/dev/null 2>&1 || [ -x "./node_modules/.bin/git-cliff" ]; then
     echo -e "${YELLOW}Generating changelog entry for $TAG_NAME...${NC}"
     if npx --no-install git-cliff --tag "$TAG_NAME" --prepend CHANGELOG.md -u; then
@@ -259,6 +254,11 @@ else
     echo -e "${YELLOW}Warning: git-cliff not found; skipping changelog update${NC}"
     echo "         Install with: pnpm install (at repo root)"
 fi
+
+# Create annotated tag (after amend, so it points at the commit with the changelog)
+git tag -a "$TAG_NAME" -m "Release version $NEW_VERSION"
+TAG_CREATED=true
+echo -e "${GREEN}✓${NC} Created git tag $TAG_NAME"
 
 # Push commit to remote
 echo -e "${YELLOW}Pushing commit to remote...${NC}"
