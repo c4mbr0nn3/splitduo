@@ -31,7 +31,7 @@
         <div class="flex items-center gap-2 p-3 rounded-lg border border-muted/30 bg-muted/10">
           <UIcon
             :name="user.twoFactorEnabled ? 'i-lucide-shield-check' : 'i-lucide-shield-off'"
-            :class="user.twoFactorEnabled ? 'text-success-500' : 'text-error'"
+            :class="user.twoFactorEnabled ? 'text-success' : 'text-error'"
             class="size-5 shrink-0"
           />
           <div class="flex-1 text-sm">
@@ -97,7 +97,7 @@
           Unable to load profile information
         </p>
         <UButton
-          class="mt-4"
+          class="mt-4 w-full sm:w-auto"
           @click="refreshProfile"
         >
           Retry

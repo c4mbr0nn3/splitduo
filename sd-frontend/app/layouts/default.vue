@@ -1,7 +1,7 @@
 <template>
   <div>
     <LayoutAppHeader />
-    <UMain>
+    <UMain class="pb-[env(safe-area-inset-bottom)]">
       <UContainer>
         <slot />
       </UContainer>

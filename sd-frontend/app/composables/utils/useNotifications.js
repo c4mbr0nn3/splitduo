@@ -6,6 +6,8 @@ export default function useNotifications() {
       title,
       description: message,
       color: 'success',
+      duration: 4000,
+      position: 'top-center',
     })
   }
 
@@ -14,6 +16,8 @@ export default function useNotifications() {
       title,
       description: message,
       color: 'error',
+      duration: 4000,
+      position: 'top-center',
     })
   }
 
@@ -22,6 +26,8 @@ export default function useNotifications() {
       title,
       description: message,
       color: 'warning',
+      duration: 4000,
+      position: 'top-center',
     })
   }
 
@@ -30,6 +36,8 @@ export default function useNotifications() {
       title,
       description: message,
       color: 'info',
+      duration: 4000,
+      position: 'top-center',
     })
   }
 

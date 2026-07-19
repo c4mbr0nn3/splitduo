@@ -1,5 +1,11 @@
 <template>
   <div class="py-8">
+    <UiCardHeader
+      size="lg"
+      title="Dashboard"
+      class="mb-6"
+    />
+
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <template v-if="showSkeleton">
@@ -17,13 +23,13 @@
         <DashboardStatCard
           :stats="{ label: 'You Owe', value: userStats?.youOwe, color: 'red' }"
           type="currency"
-          icon="i-lucide-frown"
+          icon="i-lucide-trending-down"
           color="red"
         />
         <DashboardStatCard
           :stats="{ label: `You're Owed`, value: userStats?.youreOwed, color: 'green' }"
           type="currency"
-          icon="i-lucide-smile"
+          icon="i-lucide-trending-up"
           color="green"
         />
         <DashboardStatCard
@@ -43,7 +49,8 @@
             </h2>
             <UButton
               size="sm"
-              variant="subtle"
+              variant="outline"
+              color="neutral"
               label="View All"
               @click="viewAllGroups"
             />
@@ -101,7 +108,7 @@
             v-for="action in quickActions"
             :key="action.id"
             block
-            size="lg"
+            size="sm"
             :variant="action.variant"
             class="justify-start"
             :label="action.label"

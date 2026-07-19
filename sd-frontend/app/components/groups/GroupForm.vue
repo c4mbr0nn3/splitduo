@@ -38,13 +38,13 @@
             type="button"
             label="Back"
             variant="outline"
+            color="neutral"
             size="lg"
             @click="emit('cancel')"
           />
           <UButton
             type="submit"
             :label="submitLabel"
-            variant="subtle"
             size="lg"
             :loading="loading"
           />

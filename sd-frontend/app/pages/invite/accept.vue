@@ -123,7 +123,7 @@ definePageMeta({
 </script>
 
 <template>
-  <div class="flex min-h-[80vh] items-center justify-center">
+  <div class="min-h-dvh flex items-center justify-center p-4">
     <UCard class="w-full max-w-md">
       <template #header>
         <UiCardHeader

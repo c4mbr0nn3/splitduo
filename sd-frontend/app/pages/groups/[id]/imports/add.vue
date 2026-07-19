@@ -1,8 +1,43 @@
 <template>
   <div class="py-8">
-    <UCard
-      variant="soft"
-    >
+    <!-- Step Indicator -->
+    <div class="overflow-x-auto pb-2 mb-4">
+      <div class="flex items-center gap-2">
+        <UBadge
+          :label="'1. Upload'"
+          :color="currentStep === 'upload' ? 'primary' : (analysisResults ? 'success' : 'neutral')"
+          :variant="currentStep === 'upload' ? 'solid' : 'soft'"
+        />
+        <UIcon
+          name="i-lucide-chevron-right"
+          class="text-muted shrink-0"
+          size="16"
+        />
+        <UBadge
+          :label="'2. Configure'"
+          :color="currentStep === 'configure' ? 'primary' : 'neutral'"
+          :variant="currentStep === 'configure' ? 'solid' : 'soft'"
+        />
+        <UIcon
+          name="i-lucide-chevron-right"
+          class="text-muted shrink-0"
+          size="16"
+        />
+        <UBadge
+          :label="'3. Import'"
+          :color="currentStep === 'importing' ? 'primary' : 'neutral'"
+          :variant="currentStep === 'importing' ? 'solid' : 'soft'"
+        />
+      </div>
+    </div>
+
+    <!-- Step 2: Analysis Results (no extra card — it provides its own) -->
+    <div v-if="currentStep === 'analysis'">
+      <ImportAnalysisResults :analysis-results="analysisResults" />
+    </div>
+
+    <!-- Other steps: wrapped in card -->
+    <UCard v-else>
       <template #header>
         <div class="flex flex-col">
           <h2 class="text-xl font-semibold text-primary">
@@ -11,35 +46,6 @@
           <p class="text-sm text-muted">
             {{ getPageDescription() }}
           </p>
-
-          <!-- Step Indicator -->
-          <div class="flex items-center gap-2 mt-4">
-            <UBadge
-              :label="'1. Upload'"
-              :color="currentStep === 'upload' ? 'primary' : (analysisResults ? 'success' : 'neutral')"
-              :variant="currentStep === 'upload' ? 'solid' : 'soft'"
-            />
-            <UIcon
-              name="i-lucide-chevron-right"
-              class="text-muted"
-              size="16"
-            />
-            <UBadge
-              :label="'2. Configure'"
-              :color="currentStep === 'configure' ? 'primary' : 'neutral'"
-              :variant="currentStep === 'configure' ? 'solid' : 'soft'"
-            />
-            <UIcon
-              name="i-lucide-chevron-right"
-              class="text-muted"
-              size="16"
-            />
-            <UBadge
-              :label="'3. Import'"
-              :color="currentStep === 'importing' ? 'primary' : 'neutral'"
-              :variant="currentStep === 'importing' ? 'solid' : 'soft'"
-            />
-          </div>
         </div>
       </template>
 
@@ -64,14 +70,6 @@
           :description="fileFormatDescription"
           layout="list"
         />
-      </div>
-
-      <!-- Step 2: Analysis Results -->
-      <div
-        v-else-if="currentStep === 'analysis'"
-        class="space-y-6"
-      >
-        <ImportAnalysisResults :analysis-results="analysisResults" />
       </div>
 
       <!-- Step 3: Mapping Configuration -->

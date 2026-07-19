@@ -13,7 +13,7 @@
       </div>
       <span
         class="font-bold text-lg"
-        :class="balance.balance >= 0 ? 'text-green-600' : 'text-red-600'"
+        :class="balance.balance >= 0 ? 'text-success' : 'text-error'"
       >
         {{ balance.balance >= 0 ? '+' : '' }}{{ formatAmount(balance.balance) }} €
       </span>
@@ -24,7 +24,7 @@
         <p class="text-xs text-dimmed mb-1">
           Paid
         </p>
-        <p class="font-semibold text-teal-600">
+        <p class="font-semibold text-success">
           {{ formatAmount(balance.totalPaid) }} €
         </p>
       </div>
@@ -32,7 +32,7 @@
         <p class="text-xs text-dimmed mb-1">
           Owes
         </p>
-        <p class="font-semibold text-orange-600">
+        <p class="font-semibold text-warning">
           {{ formatAmount(balance.totalOwed) }} €
         </p>
       </div>

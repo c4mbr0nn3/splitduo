@@ -67,36 +67,36 @@ const statsValue = computed(() => {
 const statsColor = computed(() => {
   switch (props.stats.color) {
     case 'teal':
-      return 'text-teal-600'
+      return 'text-primary'
     case 'green':
-      return 'text-green-600'
+      return 'text-success'
     case 'red':
-      return 'text-red-600'
+      return 'text-error'
     case 'yellow':
-      return 'text-yellow-600'
+      return 'text-warning'
     case 'purple':
-      return 'text-purple-600'
+      return 'text-secondary'
     case 'rose':
-      return 'text-rose-600'
+      return 'text-secondary'
     case 'pink':
-      return 'text-pink-600'
+      return 'text-primary'
     case 'amber':
-      return 'text-amber-600'
+      return 'text-warning'
     default:
-      return 'text-white'
+      return 'text-primary'
   }
 })
 
 const cardBorder = computed(() => {
   const borders = {
-    teal: 'border-l-4 border-l-teal-400 dark:border-l-teal-500',
-    green: 'border-l-4 border-l-green-400 dark:border-l-green-500',
-    red: 'border-l-4 border-l-red-400 dark:border-l-red-500',
-    yellow: 'border-l-4 border-l-yellow-400 dark:border-l-yellow-500',
-    purple: 'border-l-4 border-l-purple-400 dark:border-l-purple-500',
-    rose: 'border-l-4 border-l-rose-400 dark:border-l-rose-500',
-    pink: 'border-l-4 border-l-pink-400 dark:border-l-pink-500',
-    amber: 'border-l-4 border-l-amber-400 dark:border-l-amber-500',
+    teal: 'border-l-4 border-l-primary',
+    green: 'border-l-4 border-l-success',
+    red: 'border-l-4 border-l-error',
+    yellow: 'border-l-4 border-l-warning',
+    purple: 'border-l-4 border-l-secondary',
+    rose: 'border-l-4 border-l-secondary',
+    pink: 'border-l-4 border-l-primary',
+    amber: 'border-l-4 border-l-warning',
   }
   return borders[props.color] || ''
 })
@@ -104,23 +104,23 @@ const cardBorder = computed(() => {
 const iconColor = computed(() => {
   switch (props.color) {
     case 'teal':
-      return { bg: 'bg-teal-100', text: 'text-teal-600', border: 'border-teal-600' }
+      return { bg: 'bg-primary/10', text: 'text-primary', border: 'border-primary' }
     case 'green':
-      return { bg: 'bg-green-100', text: 'text-green-600', border: 'border-green-600' }
+      return { bg: 'bg-success/10', text: 'text-success', border: 'border-success' }
     case 'red':
-      return { bg: 'bg-red-100', text: 'text-red-600', border: 'border-red-600' }
+      return { bg: 'bg-error/10', text: 'text-error', border: 'border-error' }
     case 'yellow':
-      return { bg: 'bg-yellow-100', text: 'text-yellow-600', border: 'border-yellow-600' }
+      return { bg: 'bg-warning/10', text: 'text-warning', border: 'border-warning' }
     case 'purple':
-      return { bg: 'bg-purple-100', text: 'text-purple-600', border: 'border-purple-600' }
+      return { bg: 'bg-secondary/10', text: 'text-secondary', border: 'border-secondary' }
     case 'rose':
-      return { bg: 'bg-rose-100', text: 'text-rose-600', border: 'border-rose-600' }
+      return { bg: 'bg-secondary/10', text: 'text-secondary', border: 'border-secondary' }
     case 'pink':
-      return { bg: 'bg-pink-100', text: 'text-pink-600', border: 'border-pink-600' }
+      return { bg: 'bg-primary/10', text: 'text-primary', border: 'border-primary' }
     case 'amber':
-      return { bg: 'bg-amber-100', text: 'text-amber-600', border: 'border-amber-600' }
+      return { bg: 'bg-warning/10', text: 'text-warning', border: 'border-warning' }
     default:
-      return { bg: 'bg-gray-100', text: 'text-toned', border: 'border-gray-600' }
+      return { bg: 'bg-muted/10', text: 'text-muted', border: 'border-muted' }
   }
 })
 </script>

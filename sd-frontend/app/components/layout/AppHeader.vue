@@ -11,7 +11,10 @@
     />
     <template #right>
       <div class="flex items-center gap-2">
-        <UColorModeButton />
+        <UColorModeButton
+          variant="ghost"
+          color="neutral"
+        />
         <LayoutLogoutButton class="hidden md:inline-flex" />
       </div>
     </template>

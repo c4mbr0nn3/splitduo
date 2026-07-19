@@ -19,9 +19,9 @@
         <div class="flex flex-col items-end flex-shrink-0">
           <div
             class="font-bold whitespace-nowrap"
-            :class="expense.paidByUserId === currentUser?.id ? 'text-green-600' : 'text-red-600'"
+            :class="expense.paidByUserId === currentUser?.id ? 'text-success' : 'text-error'"
           >
-            {{ formatAmount(expense.amount) }}€
+            {{ formatCurrency(expense.amount) }}
           </div>
         </div>
       </div>
@@ -74,11 +74,12 @@
             />
           </template>
         </UBadge>
-        <div class="flex items-center gap-1">
+        <div class="flex items-center gap-2">
           <UButton
             variant="ghost"
             color="error"
             size="sm"
+            square
             icon="i-lucide-trash-2"
             :loading="isDeletingExpense"
             @click.stop="confirmDeleteExpense"
@@ -87,6 +88,7 @@
             variant="ghost"
             color="info"
             size="sm"
+            square
             icon="i-lucide-edit-2"
             @click="navigateToEdit"
           />

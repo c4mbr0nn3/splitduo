@@ -246,7 +246,7 @@
             >
               <UButton
                 type="button"
-                variant="outline"
+                variant="subtle"
                 icon="i-lucide-chevron-down"
                 :loading="loading"
               />
@@ -397,13 +397,13 @@ const adjustSplitsMenuItems = computed(() => {
   return [
     {
       label: 'Distribute Remaining',
-      icon: 'i-heroicons-arrows-right-left',
+      icon: 'i-lucide-arrow-left-right',
       onSelect: distributeRemaining,
       visible: showDistributeButton.value,
     },
     {
       label: 'Split Equally',
-      icon: 'i-heroicons-equals',
+      icon: 'i-lucide-equal',
       onSelect: splitEqually,
       visible: !areSplitsEqual.value,
     },

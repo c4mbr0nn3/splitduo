@@ -1,13 +1,11 @@
 <template>
   <div class="py-8">
-    <div class="mb-8">
-      <h1 class="text-2xl font-bold text-primary">
-        Groups
-      </h1>
-      <p class="text-sm text-muted mt-1">
-        Manage your expense sharing groups
-      </p>
-    </div>
+    <UiCardHeader
+      size="lg"
+      title="Groups"
+      subtitle="Manage your expense sharing groups"
+      class="mb-6"
+    />
 
     <!-- Search Controls -->
     <div class="flex justify-between items-center mb-6 w-full">
@@ -15,7 +13,7 @@
         v-model="searchInput"
         icon="i-lucide-search"
         placeholder="Search groups..."
-        class="w-64"
+        class="w-full sm:w-64 md:w-80"
       />
       <div class="flex gap-2">
         <UButton
@@ -26,11 +24,10 @@
         />
         <UButton
           icon="i-lucide-plus"
-          variant="outline"
-          color="success"
-          square
           @click="createNewGroup"
-        />
+        >
+          <span class="hidden sm:inline">Create</span>
+        </UButton>
       </div>
     </div>
 
@@ -94,11 +91,12 @@
                 </p>
               </div>
             </div>
-            <div class="flex items-center gap-1">
+            <div class="flex items-center gap-3">
               <UButton
                 variant="ghost"
                 color="info"
                 size="sm"
+                square
                 icon="i-lucide-edit-2"
                 @click="navigateToEdit(group.id)"
               />
@@ -106,6 +104,7 @@
                 variant="ghost"
                 color="error"
                 size="sm"
+                square
                 icon="i-lucide-trash-2"
                 :loading="isDeletingGroup"
                 @click.stop="confirmDeleteGroup(group)"
@@ -128,8 +127,9 @@
             <UBadge
               :color="group.netBalance > 0 ? 'success' : group.netBalance < 0 ? 'error' : 'neutral'"
               variant="subtle"
-              :label="group.netBalance > 0 ? `owed €${group.netBalance.toFixed(2)}` : group.netBalance < 0 ? `owes €${Math.abs(group.netBalance).toFixed(2)}` : 'settled'"
-            />
+            >
+              {{ group.netBalance > 0 ? `owed ${formatCurrency(group.netBalance)}` : group.netBalance < 0 ? `owes ${formatCurrency(Math.abs(group.netBalance))}` : 'settled' }}
+            </UBadge>
           </div>
         </div>
       </UCard>

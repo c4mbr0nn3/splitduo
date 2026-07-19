@@ -1,6 +1,28 @@
 <template>
   <div class="py-8">
-    <UCard>
+    <UiLoadingSpinner
+      v-if="pageLoading"
+      text="Loading members..."
+    />
+
+    <UiEmptyState
+      v-else-if="loadError"
+      icon="i-lucide-users"
+      title="Unable to load members"
+    >
+      <template #action>
+        <UButton
+          color="primary"
+          variant="outline"
+          size="sm"
+          @click="retryLoad"
+        >
+          Retry
+        </UButton>
+      </template>
+    </UiEmptyState>
+
+    <UCard v-else>
       <template #header>
         <div class="flex items-center justify-between">
           <UiCardHeader
@@ -46,7 +68,7 @@
                   Invited {{ formatDate(invitation.invitedAt) }}
                 </p>
               </div>
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-3">
                 <UBadge
                   variant="soft"
                   color="warning"
@@ -56,7 +78,8 @@
                 <UButton
                   icon="i-lucide-refresh-cw"
                   variant="ghost"
-                  size="xs"
+                  size="sm"
+                  square
                   :loading="invitationLoading"
                   @click="onResend(invitation)"
                 />
@@ -64,7 +87,8 @@
                   icon="i-lucide-x"
                   variant="ghost"
                   color="error"
-                  size="xs"
+                  size="sm"
+                  square
                   :loading="invitationLoading"
                   @click="onRevoke(invitation)"
                 />
@@ -82,6 +106,7 @@
           <UButton
             icon="i-lucide-user-plus"
             label="Invite User"
+            class="w-full sm:w-auto"
             @click="navigateToInvite"
           />
         </div>
@@ -103,6 +128,8 @@ const { fetchGroupInvitations, resendInvitation, revokeInvitation, isLoading: in
 const group = computed(() => currentGroup.value)
 const members = ref([])
 const pendingInvitations = ref([])
+const pageLoading = ref(true)
+const loadError = ref(false)
 
 const isGroupAdmin = computed(() => {
   return members.value.some(m => m.id === user.value?.id && m.role === 'admin')
@@ -161,15 +188,43 @@ const loadInvitations = async () => {
   }
 }
 
-onMounted(async () => {
-  if (groupId) {
+const retryLoad = async () => {
+  loadError.value = false
+  pageLoading.value = true
+  try {
     await Promise.all([
       fetchGroup(groupId),
       loadGroupMembers(),
     ])
-    // Load invitations after members so we know if current user is admin
     if (isGroupAdmin.value) {
       await loadInvitations()
+    }
+  }
+  catch {
+    loadError.value = true
+  }
+  finally {
+    pageLoading.value = false
+  }
+}
+
+onMounted(async () => {
+  if (groupId) {
+    try {
+      await Promise.all([
+        fetchGroup(groupId),
+        loadGroupMembers(),
+      ])
+      // Load invitations after members so we know if current user is admin
+      if (isGroupAdmin.value) {
+        await loadInvitations()
+      }
+    }
+    catch {
+      loadError.value = true
+    }
+    finally {
+      pageLoading.value = false
     }
   }
 })

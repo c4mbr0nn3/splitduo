@@ -1,13 +1,11 @@
 <template>
   <div class="py-8">
-    <div class="mb-8">
-      <h1 class="text-2xl font-bold text-primary">
-        Users
-      </h1>
-      <p class="text-sm text-muted mt-1">
-        Manage platform users and their permissions
-      </p>
-    </div>
+    <UiCardHeader
+      size="lg"
+      title="Users"
+      subtitle="Manage platform users"
+      class="mb-6"
+    />
 
     <!-- User Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -45,11 +43,12 @@
         v-model="searchInput"
         icon="i-lucide-search"
         placeholder="Search users..."
-        class="w-64"
+        class="w-full sm:w-64 md:w-80"
       />
       <UButton
         icon="i-lucide-refresh-cw"
         variant="ghost"
+        size="sm"
         square
         :loading="isLoading"
         @click="refreshUsers"

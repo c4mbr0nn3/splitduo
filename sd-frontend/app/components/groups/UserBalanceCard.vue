@@ -7,11 +7,11 @@
       <div class="flex items-center gap-3">
         <div
           class="w-12 h-12 rounded-full flex items-center justify-center"
-          :class="balance.balance >= 0 ? 'bg-green-100' : 'bg-red-100'"
+          :class="balance.balance >= 0 ? 'bg-success/10' : 'bg-error/10'"
         >
           <UIcon
             :name="balance.balance >= 0 ? 'i-lucide-trending-up' : 'i-lucide-trending-down'"
-            :class="balance.balance >= 0 ? 'text-green-600' : 'text-red-600'"
+            :class="balance.balance >= 0 ? 'text-success' : 'text-error'"
             class="w-6 h-6"
           />
         </div>
@@ -21,7 +21,7 @@
           </p>
           <p
             class="font-bold text-2xl"
-            :class="balance.balance >= 0 ? 'text-green-600' : 'text-red-600'"
+            :class="balance.balance >= 0 ? 'text-success' : 'text-error'"
           >
             {{ balance.balance >= 0 ? '+' : '' }}{{ formatAmount(balance.balance) }} €
           </p>
@@ -34,7 +34,7 @@
         <p class="text-xs text-dimmed mb-1">
           You Paid
         </p>
-        <p class="font-semibold text-teal-600">
+        <p class="font-semibold text-success">
           {{ formatAmount(balance.totalPaid) }} €
         </p>
       </div>
@@ -42,7 +42,7 @@
         <p class="text-xs text-dimmed mb-1">
           You Owe
         </p>
-        <p class="font-semibold text-orange-600">
+        <p class="font-semibold text-warning">
           {{ formatAmount(balance.totalOwed) }} €
         </p>
       </div>

@@ -59,6 +59,26 @@ Backend response shape: `{ success, data, error, pagination }` — see backend C
 - No scoped styles, no CSS modules — utility classes only
 - **Mobile first**: design small screens first, enhance with `sm:`/`md:`/`lg:`. Never desktop-first.
 
+## UI Design Rules
+
+- **Page vertical rhythm**: default pages use `py-6 px-4 sm:py-8`; auth pages are centered with `p-4` and no `py-*` page wrapper.
+- **Auth page layout**: `min-h-dvh flex items-center justify-center p-4`; card is `UCard class="w-full max-w-md"`.
+- **Page headers**: use `UiCardHeader`. Page title: `text-2xl font-bold text-primary`; card title: `text-lg font-semibold`.
+- **Buttons**:
+  - Primary CTA: default `UButton` (solid primary).
+  - Destructive CTA: `color="error"`.
+  - Secondary/neutral: `variant="outline"` or `variant="ghost"` with `color="neutral"`.
+  - Icon-only actions: `size="sm" square`; minimum adjacent gap `gap-2`, prefer `gap-3` near destructive actions.
+- **Form containers**: complex forms `UCard class="w-full max-w-2xl"`; auth forms `UCard class="w-full max-w-md"`.
+- **Semantic colors only**: use Nuxt UI tokens (`success`, `error`, `warning`, `info`, `primary`, `secondary`, `neutral`). Never use raw `text-green-600`, `text-red-600`, `bg-green-100`, `border-gray-*`, etc.
+- **Icons**: Lucide only (`i-lucide-*`). No Heroicons unless a Lucide equivalent is truly missing.
+- **Search input**: list-page search uses `class="w-full sm:w-64 md:w-80"`.
+- **Empty states**: `UiEmptyState` is used bare; if inside a card, the card uses `variant="ghost"` or `variant="soft"`, never `variant="outline"`.
+- **Toasts**: `useNotifications` passes `duration: 4000` and `position: 'top-center'` to every toast.
+- **Page loading/error**: use `UiLoadingSpinner` for loading and `UiEmptyState` + retry `UButton` for fetch failures.
+- **Safe-area**: default layout main content adds `pb-[env(safe-area-inset-bottom)]`; PWA update button clears safe-area insets.
+- **No global FAB**: navigation stays in `UHeader` drawer; keep existing group-page add-expense button.
+
 ## State
 
 No Pinia. State via: composable-local `ref()` → `readonly()`, singleton refs (outside function), `useState()` (auth user), `useCookie()` (tokens, persistent).

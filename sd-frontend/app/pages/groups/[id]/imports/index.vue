@@ -1,8 +1,6 @@
 <template>
   <div class="py-8">
-    <UCard
-      variant="soft"
-    >
+    <UCard>
       <template #header>
         <UiCardHeader
           :title="group?.name || 'Group Imports'"

@@ -30,7 +30,7 @@
             <div
               v-for="member in analysisResults.members"
               :key="member.key"
-              class="grid grid-cols-1 md:grid-cols-2 gap-3 items-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg"
+              class="grid grid-cols-1 md:grid-cols-2 gap-3 items-center p-3 border border-muted rounded-lg"
             >
               <div class="flex items-center gap-2">
                 <UAvatar
@@ -71,7 +71,7 @@
             <div
               v-for="category in analysisResults.categories"
               :key="category.key"
-              class="grid grid-cols-1 md:grid-cols-2 gap-3 items-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg"
+              class="grid grid-cols-1 md:grid-cols-2 gap-3 items-center p-3 border border-muted rounded-lg"
             >
               <div class="flex items-center gap-2">
                 <UIcon
@@ -112,7 +112,7 @@
             <div
               v-for="paymentMode in analysisResults.paymentModes"
               :key="paymentMode.key"
-              class="grid grid-cols-1 md:grid-cols-2 gap-3 items-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg"
+              class="grid grid-cols-1 md:grid-cols-2 gap-3 items-center p-3 border border-muted rounded-lg"
             >
               <div class="flex items-center gap-2">
                 <UIcon
@@ -161,7 +161,6 @@
       <div class="flex justify-end">
         <UButton
           type="submit"
-          variant="subtle"
           icon="i-lucide-upload"
           :loading="isImporting"
           :disabled="hasValidationErrors || isImporting"

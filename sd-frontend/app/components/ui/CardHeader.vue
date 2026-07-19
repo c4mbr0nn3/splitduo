@@ -46,15 +46,26 @@ const props = defineProps({
     default: 'default',
     validator: value => ['default', 'centered'].includes(value),
   },
+  size: {
+    type: String,
+    default: 'md',
+    validator: value => ['md', 'lg'].includes(value),
+  },
 })
 
 const emit = defineEmits(['back'])
 
 const getDefaultTitleClass = computed(() => {
   if (props.variant === 'centered') {
+    if (props.size === 'lg') {
+      return 'text-2xl font-bold text-center'
+    }
     return 'text-xl font-bold text-center'
   }
-  return 'text-xl font-bold text-primary'
+  if (props.size === 'lg') {
+    return 'text-2xl font-bold text-primary'
+  }
+  return 'text-xl font-semibold'
 })
 
 const handleBack = () => {

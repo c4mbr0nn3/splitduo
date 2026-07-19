@@ -2,7 +2,7 @@
   <UiButtonDropdown
     :items="dropdownItems"
     icon-only
-    dropdown-icon="i-heroicons-ellipsis-vertical"
+    dropdown-icon="i-lucide-ellipsis-vertical"
     size="sm"
     variant="outline"
     color="neutral"

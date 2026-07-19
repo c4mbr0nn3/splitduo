@@ -61,7 +61,7 @@ const props = defineProps({
   },
   dropdownIcon: {
     type: String,
-    default: 'i-heroicons-chevron-down',
+    default: 'i-lucide-chevron-down',
   },
   iconOnly: {
     type: Boolean,

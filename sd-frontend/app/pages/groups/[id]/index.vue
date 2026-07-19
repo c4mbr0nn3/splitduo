@@ -1,6 +1,29 @@
 <template>
   <div class="py-8">
+    <UiLoadingSpinner
+      v-if="isLoading"
+      text="Loading group..."
+    />
+
+    <UiEmptyState
+      v-else-if="loadError"
+      icon="i-lucide-users"
+      title="Unable to load group"
+    >
+      <template #action>
+        <UButton
+          color="primary"
+          variant="outline"
+          size="sm"
+          @click="retryLoad"
+        >
+          Retry
+        </UButton>
+      </template>
+    </UiEmptyState>
+
     <UCard
+      v-else
       variant="soft"
     >
       <template #header>
@@ -27,11 +50,12 @@
 <script setup>
 const route = useRoute()
 const groupId = route.params.id
-const { currentGroup, fetchGroup } = useGroups()
+const { currentGroup, fetchGroup, isLoading } = useGroups()
 const { exportToCsv, isExporting } = useImportExport(groupId)
 
 const activeTab = computed(() => route.query.tab === 'stats' ? 'stats' : 'expenses')
 const group = computed(() => currentGroup.value)
+const loadError = ref(false)
 
 const handleExport = async () => {
   try {
@@ -42,9 +66,23 @@ const handleExport = async () => {
   }
 }
 
+const retryLoad = async () => {
+  loadError.value = false
+  if (groupId) {
+    await fetchGroup(groupId).catch(() => {
+      loadError.value = true
+    })
+  }
+}
+
 onMounted(async () => {
   if (groupId) {
-    await fetchGroup(groupId)
+    try {
+      await fetchGroup(groupId)
+    }
+    catch {
+      loadError.value = true
+    }
   }
 })
 

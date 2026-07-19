@@ -1,6 +1,6 @@
 <template>
-  <div class="flex justify-center items-center h-screen p-4">
-    <div class="w-full sm:w-3/4 md:w-1/2 space-y-4">
+  <div class="min-h-dvh flex items-center justify-center p-4">
+    <div class="w-full max-w-md space-y-4">
       <UCard>
         <UAuthForm
           title="Welcome Back"

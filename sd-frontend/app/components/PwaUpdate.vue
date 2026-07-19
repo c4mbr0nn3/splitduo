@@ -10,7 +10,7 @@ const updateApp = async () => {
   <ClientOnly>
     <div
       v-if="$pwa?.needRefresh"
-      class="fixed bottom-6 right-6 z-50"
+      class="fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom))] right-[calc(1.5rem+env(safe-area-inset-right))] z-50"
     >
       <UButton
         icon="i-lucide-refresh-cw"
