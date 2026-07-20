@@ -25,8 +25,8 @@ Nuxt 4 SPA (ssr: false), Vue 3 Composition API, Nuxt UI v4, TailwindCSS v4. **Pl
 - `app/composables/` — `api/base.js` (useApi), `auth/` (useAuth, useAuthToken, use2FA), `resources/` (one per entity), `ui/` (useModal, useChartTheme), `utils/` (useNotifications, useErrorHandling, usePagination, useDebounceSearch), `index.js` (barrel)
 - `app/pages/` — file-based routing, nested folders = nested routes
 - `app/middleware/` — `auth.js` (redirect to / if not authenticated), `admin.js` (redirect to /dashboard if not admin)
-- `app/plugins/` — `auth.client.js` (restores auth state on app start), `apexcharts.client.js` (registers ApexCharts globally)
-- `app/utils/` — currency, date, enumUtils, userRoles, withMinDuration
+- `app/plugins/` — `auth.client.js` (restores auth state on app start), `auth-refresh.client.js` (proactive token refresh: timer + visibilitychange), `apexcharts.client.js` (registers ApexCharts globally)
+- `app/utils/` — currency, date, enumUtils, jwt, userRoles, withMinDuration
 
 ## API Layer
 
@@ -40,7 +40,7 @@ Backend response shape: `{ success, data, error, pagination }` — see backend C
 
 **Singleton composables** (`useCategories`, `usePaymentModes`): global `ref()` declared outside function — shared across callers, auto-fetches on first use.
 
-**Auth**: `useAuthToken` (cookie token CRUD), `useAuth` (login/logout/refresh, user in cookie + `useState('user')`, exposes `isAuthenticated`/`isGlobalAdmin`), `use2FA` (TOTP/backup/email flow).
+**Auth**: `useAuthToken` (token in `useState` bridged to `useCookie` for persistence — synchronous shared source of truth; the 7d cookie `maxAge` is intentional because `/auth/refresh` needs the expired JWT), `useAuth` (login/logout/refresh, user in cookie + `useState('user')`, exposes `isAuthenticated`/`isGlobalAdmin`), `use2FA` (TOTP/backup/email flow). Proactive refresh via `plugins/auth-refresh.client.js` (timer + `visibilitychange`); `utils/jwt.js` decodes `exp` for scheduling.
 
 **Utility**: `useNotifications` (toast wrapper), `useErrorHandling`, `usePagination` (factory), `useDebounceSearch` (@vueuse/core), `useModal` (Nuxt UI useOverlay, returns Promise<boolean>), `useChartTheme`, `useSmartBack(parentRoute)` (smart back nav — `router.back()` if in-app history exists, else `navigateTo(parentRoute, { replace: true })`; powers `UiCardHeader`'s `backTo` prop and page-level cancel handlers).
 
@@ -86,6 +86,7 @@ No Pinia. State via: composable-local `ref()` → `readonly()`, singleton refs (
 ## Non-Obvious Implementation
 
 - Auth restore: `auth.client.js` plugin calls `/users/me` on app start to restore session
+- Proactive token refresh: `auth-refresh.client.js` schedules a refresh before JWT expiry (`max(exp-60, 10)`s) and on `visibilitychange` (sleep/wake safety net); on failure, `refreshToken()` clears the session and `auth.client.js` redirects to /
 - Two-phase import: `analyzeFile()` → `ImportMappingForm` → `importWithMapping()`
 - PWA: `@vite-pwa/nuxt` in `nuxt.config.ts` with manifest, workbox runtime caching, auto-update. `PwaUpdate.vue` prompts users on new deployments.
 
