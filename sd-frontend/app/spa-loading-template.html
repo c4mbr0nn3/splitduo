@@ -1,0 +1,61 @@
+<div class="sd-spa-loader">
+  <style>
+    html, body, .sd-spa-loader {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .sd-spa-loader {
+      background-color: oklch(98.5% 0 0);
+    }
+
+    .sd-spa-loader__track {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      overflow: hidden;
+      background-color: rgba(20, 184, 166, 0.12);
+    }
+
+    .sd-spa-loader__fill {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, #0d9488, #14b8a6 50%, #5eead4);
+      transform-origin: left center;
+      animation: sd-spa-shimmer 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .sd-spa-loader {
+        background-color: #18181b;
+      }
+
+      .sd-spa-loader__track {
+        background-color: rgba(20, 184, 166, 0.15);
+      }
+    }
+
+    @keyframes sd-spa-shimmer {
+      0% {
+        transform: translateX(-110%) scaleX(0.35);
+      }
+      50% {
+        transform: translateX(0%) scaleX(1);
+      }
+      100% {
+        transform: translateX(110%) scaleX(0.35);
+      }
+    }
+  </style>
+
+  <div class="sd-spa-loader__track" aria-hidden="true">
+    <div class="sd-spa-loader__fill"></div>
+  </div>
+</div>

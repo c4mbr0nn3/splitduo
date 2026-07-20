@@ -7,6 +7,7 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
 
   app: {
+    spaLoadingTemplate: true,
     head: {
       title: 'SplitDuo',
       titleTemplate: '%s | SplitDuo',
