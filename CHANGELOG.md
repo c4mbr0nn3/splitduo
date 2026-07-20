@@ -4,6 +4,11 @@ All notable changes to SplitDuo will be documented in this file.
 
 Generated with [git-cliff](https://git-cliff.org) from Conventional Commits.
 
+## [1.3.1] - 2026-07-20
+
+### Bug Fixes
+
+- *(frontend)* Preserve selected participants when editing expense
 ## [1.3.0] - 2026-07-20
 
 ### Features
