@@ -36,6 +36,7 @@ const expenseFormData = ref({
 watch(currentExpense, (expense) => {
   if (expense) {
     expenseFormData.value = {
+      expenseId: expense.id,
       groupId: expense.groupId,
       title: expense.title,
       description: expense.description,
