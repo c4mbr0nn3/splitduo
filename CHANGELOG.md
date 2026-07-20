@@ -4,6 +4,15 @@ All notable changes to SplitDuo will be documented in this file.
 
 Generated with [git-cliff](https://git-cliff.org) from Conventional Commits.
 
+## [1.4.0] - 2026-07-20
+
+### Bug Fixes
+
+- *(frontend)* Sync auth token state to prevent stale retry after refresh
+
+### Features
+
+- *(frontend)* Add loading indicator and SPA loading template
 ## [1.3.1] - 2026-07-20
 
 ### Bug Fixes
