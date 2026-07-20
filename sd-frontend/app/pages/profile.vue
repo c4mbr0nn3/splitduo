@@ -28,66 +28,76 @@
         v-else-if="user"
         class="space-y-6"
       >
-        <div class="flex items-center gap-2 p-3 rounded-lg border border-muted/30 bg-muted/10">
-          <UIcon
-            :name="user.twoFactorEnabled ? 'i-lucide-shield-check' : 'i-lucide-shield-off'"
-            :class="user.twoFactorEnabled ? 'text-success' : 'text-error'"
-            class="size-5 shrink-0"
-          />
-          <div class="flex-1 text-sm">
-            <span class="font-medium">Two-factor authentication</span>
+        <UCard
+          class="sd-surface"
+          :ui="{ body: 'p-4 sm:p-5' }"
+        >
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="text-sm font-medium text-highlighted">
+                Two-Factor Authentication
+              </p>
+              <p class="text-sm text-muted mt-1">
+                {{ user.twoFactorEnabled ? 'Enabled — your account is protected.' : 'Not enabled.' }}
+              </p>
+            </div>
+            <UBadge
+              :color="user.twoFactorEnabled ? 'success' : 'neutral'"
+              variant="subtle"
+            >
+              {{ user.twoFactorEnabled ? 'On' : 'Off' }}
+            </UBadge>
           </div>
-          <UBadge
-            :color="user.twoFactorEnabled ? 'success' : 'error'"
-            variant="subtle"
-            size="sm"
-          >
-            {{ user.twoFactorEnabled ? 'Active' : 'Off' }}
-          </UBadge>
-        </div>
+          <div class="mt-4">
+            <UButton
+              :to="user.twoFactorEnabled ? '/settings/2fa' : '/settings/2fa/setup'"
+              :label="user.twoFactorEnabled ? '2FA Settings' : 'Set up 2FA'"
+              variant="outline"
+              color="neutral"
+            />
+          </div>
+        </UCard>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-[160px_1fr] gap-x-4 gap-y-3">
           <template
             v-for="field in userForm"
             :key="field.label"
           >
-            <UFormField
-              :label="field.label"
-              :class="field.copyable ? 'sm:col-span-2' : ''"
+            <p class="text-sm text-muted sm:text-right sm:pt-2">
+              {{ field.label }}
+            </p>
+            <UInput
+              v-if="!field.copyable"
+              :value="field.value.value"
+              disabled
+              class="w-full"
+            />
+            <UInput
+              v-else
+              :value="field.value.value"
+              disabled
+              class="w-full"
+              :ui="{ trailing: 'pr-0.5' }"
             >
-              <UInput
-                v-if="!field.copyable"
-                :value="field.value.value"
-                disabled
-                class="w-full"
-              />
-              <UInput
-                v-else
-                :value="field.value.value"
-                disabled
-                class="w-full"
-                :ui="{ trailing: 'pr-0.5' }"
+              <template
+                v-if="field.value.value?.length"
+                #trailing
               >
-                <template
-                  v-if="field.value.value?.length"
-                  #trailing
+                <UTooltip
+                  text="Copy to clipboard"
+                  :content="{ side: 'right' }"
                 >
-                  <UTooltip
-                    text="Copy to clipboard"
-                    :content="{ side: 'right' }"
-                  >
-                    <UButton
-                      :color="copied ? 'success' : 'neutral'"
-                      variant="link"
-                      size="sm"
-                      :icon="copied ? 'i-lucide-copy-check' : 'i-lucide-copy'"
-                      aria-label="Copy to clipboard"
-                      @click="copy(field.value.value)"
-                    />
-                  </UTooltip>
-                </template>
-              </UInput>
-            </UFormField>
+                  <UButton
+                    :color="copied ? 'success' : 'neutral'"
+                    variant="link"
+                    size="sm"
+                    :icon="copied ? 'i-lucide-copy-check' : 'i-lucide-copy'"
+                    aria-label="Copy to clipboard"
+                    @click="copy(field.value.value)"
+                  />
+                </UTooltip>
+              </template>
+            </UInput>
           </template>
         </div>
       </div>

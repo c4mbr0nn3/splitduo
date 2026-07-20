@@ -13,27 +13,29 @@
         :group-total="groupStats.totalAmount"
       />
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 items-stretch">
+        <GroupsStatsMonthlyChart
+          v-if="groupStats.monthlyBreakdown?.length"
+          class="lg:col-span-2"
+          :monthly-breakdown="groupStats.monthlyBreakdown"
+        />
         <GroupsStatsCategoryChart
           v-if="groupStats.categoryBreakdown?.length"
           :category-breakdown="groupStats.categoryBreakdown"
         />
-        <GroupsStatsMonthlyChart
-          v-if="groupStats.monthlyBreakdown?.length"
-          :monthly-breakdown="groupStats.monthlyBreakdown"
-        />
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 items-stretch">
         <GroupsStatsMemberPaidChart
           v-if="groupStats.balances?.length"
+          class="lg:col-span-2"
           :balances="groupStats.balances"
         />
-        <div>
+        <div class="lg:col-span-1">
           <h3 class="text-lg font-semibold text-primary mb-3">
             Member Balances
           </h3>
-          <div class="space-y-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
             <GroupsMemberBalanceCard
               v-for="balance in groupStats.balances"
               :key="balance.userId"

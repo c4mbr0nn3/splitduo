@@ -24,6 +24,7 @@
         {{ subtitle }}
       </p>
     </div>
+    <slot name="actions" />
   </div>
 </template>
 
@@ -63,9 +64,9 @@ const getDefaultTitleClass = computed(() => {
     return 'text-xl font-bold text-center'
   }
   if (props.size === 'lg') {
-    return 'text-2xl font-bold text-primary'
+    return 'text-2xl font-semibold text-highlighted tracking-tight'
   }
-  return 'text-xl font-semibold'
+  return 'text-lg font-semibold text-highlighted'
 })
 
 const { goBack } = useSmartBack(props.backTo)

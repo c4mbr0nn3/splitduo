@@ -5,12 +5,14 @@
         Spending by Category
       </p>
     </template>
-    <apexchart
-      type="donut"
-      :options="chartOptions"
-      :series="series"
-      height="320"
-    />
+    <div class="p-1">
+      <apexchart
+        type="donut"
+        :options="chartOptions"
+        :series="series"
+        height="320"
+      />
+    </div>
   </UCard>
 </template>
 

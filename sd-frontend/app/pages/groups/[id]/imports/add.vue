@@ -2,32 +2,23 @@
   <div class="py-6 sm:py-8">
     <!-- Step Indicator -->
     <div class="overflow-x-auto pb-2 mb-4">
-      <div class="flex items-center gap-2">
-        <UBadge
-          :label="'1. Upload'"
-          :color="currentStep === 'upload' ? 'primary' : (analysisResults ? 'success' : 'neutral')"
-          :variant="currentStep === 'upload' ? 'solid' : 'soft'"
-        />
-        <UIcon
-          name="i-lucide-chevron-right"
-          class="text-muted shrink-0"
-          size="16"
-        />
-        <UBadge
-          :label="'2. Configure'"
-          :color="currentStep === 'configure' ? 'primary' : 'neutral'"
-          :variant="currentStep === 'configure' ? 'solid' : 'soft'"
-        />
-        <UIcon
-          name="i-lucide-chevron-right"
-          class="text-muted shrink-0"
-          size="16"
-        />
-        <UBadge
-          :label="'3. Import'"
-          :color="currentStep === 'importing' ? 'primary' : 'neutral'"
-          :variant="currentStep === 'importing' ? 'solid' : 'soft'"
-        />
+      <div class="flex items-center gap-2 sm:gap-4">
+        <template
+          v-for="(step, i) in steps"
+          :key="step.id"
+        >
+          <div class="flex items-center gap-2">
+            <UBadge
+              :label="step.label"
+              :color="step.active ? 'primary' : (step.done ? 'success' : 'neutral')"
+              :variant="step.active ? 'solid' : 'soft'"
+            />
+          </div>
+          <div
+            v-if="i < steps.length - 1"
+            class="h-px w-6 sm:w-12 bg-[var(--sd-surface-border)]"
+          />
+        </template>
       </div>
     </div>
 
@@ -158,6 +149,12 @@ const group = computed(() => currentGroup.value)
 const selectedImportType = ref(1)
 const selectedFile = ref(null)
 const currentStep = ref('upload') // 'upload', 'analysis', 'configure', 'importing'
+
+const steps = computed(() => [
+  { id: 'upload', label: '1. Upload', active: currentStep.value === 'upload', done: currentStep.value !== 'upload' },
+  { id: 'configure', label: '2. Configure', active: currentStep.value === 'configure' || currentStep.value === 'analysis', done: currentStep.value === 'importing' },
+  { id: 'importing', label: '3. Import', active: currentStep.value === 'importing', done: false },
+])
 
 const importTypeOptions = [
   { value: 1, label: 'Cospend' },

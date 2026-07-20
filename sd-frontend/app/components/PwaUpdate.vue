@@ -16,7 +16,7 @@ const updateApp = async () => {
         icon="i-lucide-refresh-cw"
         color="primary"
         size="lg"
-        class="rounded-full shadow-lg"
+        class="rounded-full shadow-[var(--sd-card-shadow)] hover:shadow-[var(--sd-card-shadow-hover)] transition-shadow"
         label="Update Available"
         @click="updateApp"
       />

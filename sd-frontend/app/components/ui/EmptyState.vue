@@ -1,15 +1,15 @@
 <template>
-  <div class="text-center py-8">
+  <div class="text-center py-10 sd-fade-in">
     <UIcon
       :name="icon"
       :class="iconClass"
     />
-    <p class="text-dimmed mb-4">
+    <h3 class="mt-4 text-base font-semibold text-highlighted">
       {{ title }}
-    </p>
+    </h3>
     <p
       v-if="subtitle"
-      class="text-sm text-muted mt-1 mb-4"
+      class="mt-1 text-sm text-muted"
     >
       {{ subtitle }}
     </p>
@@ -33,7 +33,7 @@ defineProps({
   },
   iconClass: {
     type: String,
-    default: 'w-12 h-12 text-dimmed mx-auto mb-4',
+    default: 'size-12 text-dimmed mx-auto',
   },
 })
 </script>

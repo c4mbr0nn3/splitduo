@@ -5,12 +5,14 @@
         Paid by Member
       </p>
     </template>
-    <apexchart
-      type="bar"
-      :options="chartOptions"
-      :series="series"
-      height="320"
-    />
+    <div class="p-1">
+      <apexchart
+        type="bar"
+        :options="chartOptions"
+        :series="series"
+        height="320"
+      />
+    </div>
   </UCard>
 </template>
 

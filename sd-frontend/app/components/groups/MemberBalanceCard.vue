@@ -18,13 +18,12 @@
         {{ balance.balance >= 0 ? '+' : '' }}{{ formatAmount(balance.balance) }} €
       </span>
     </div>
-    <USeparator class="my-3" />
-    <div class="grid grid-cols-2 gap-4 text-center">
+    <div class="grid grid-cols-2 gap-4 text-center mt-3">
       <div>
         <p class="text-xs text-dimmed mb-1">
           Paid
         </p>
-        <p class="font-semibold text-success">
+        <p class="font-semibold text-success sd-tabular">
           {{ formatAmount(balance.totalPaid) }} €
         </p>
       </div>
@@ -32,7 +31,7 @@
         <p class="text-xs text-dimmed mb-1">
           Owes
         </p>
-        <p class="font-semibold text-warning">
+        <p class="font-semibold text-warning sd-tabular">
           {{ formatAmount(balance.totalOwed) }} €
         </p>
       </div>

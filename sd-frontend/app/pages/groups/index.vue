@@ -8,33 +8,37 @@
     />
 
     <!-- Search Controls -->
-    <div class="flex justify-between items-center mb-6 w-full">
+    <div class="flex items-center gap-3 mb-6 w-full">
       <UInput
         v-model="searchInput"
         icon="i-lucide-search"
         placeholder="Search groups..."
         class="w-full sm:w-64 md:w-80"
       />
-      <div class="flex gap-2">
-        <UButton
-          icon="i-lucide-refresh-cw"
-          variant="ghost"
-          :loading="isLoadingGroups"
-          @click="refreshGroups"
-        />
-        <UButton
-          icon="i-lucide-plus"
-          @click="createNewGroup"
-        >
-          <span class="hidden sm:inline">Create</span>
-        </UButton>
-      </div>
+      <UButton
+        icon="i-lucide-refresh-cw"
+        variant="ghost"
+        :loading="isLoadingGroups"
+        @click="refreshGroups"
+      />
+      <UButton
+        to="/groups/add"
+        icon="i-lucide-plus"
+        square
+        class="sm:hidden"
+      />
+      <UButton
+        to="/groups/add"
+        icon="i-lucide-plus"
+        label="New Group"
+        class="hidden sm:inline-flex"
+      />
     </div>
 
     <!-- Loading State -->
     <div
       v-if="showSkeleton"
-      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6"
     >
       <GroupsGroupCardSkeleton
         v-for="i in 6"
@@ -61,29 +65,28 @@
     <!-- Groups Grid -->
     <div
       v-else
-      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6"
     >
       <UCard
         v-for="group in filteredGroups"
         :key="group.id"
-        class="hover:border-primary/50 transition-colors"
-        variant="outline"
+        class="sd-surface sd-surface-hover"
+        :ui="{ body: 'p-4 sm:p-5' }"
       >
-        <div class="space-y-4">
-          <!-- Group Header -->
-          <div class="flex items-start justify-between">
-            <div
-              class="flex items-center gap-3 cursor-pointer"
-              @click="navigateToGroup(group.id)"
-            >
-              <div class="border border-primary text-primary rounded-full flex items-center justify-center w-12 h-12">
+        <NuxtLink
+          :to="`/groups/${group.id}`"
+          class="block"
+        >
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="shrink-0 w-12 h-12 rounded-full border border-neutral-200 dark:border-neutral-700 bg-neutral-100/50 dark:bg-neutral-800/50 flex items-center justify-center text-muted">
                 <UIcon
                   name="i-lucide-users"
                   class="size-6"
                 />
               </div>
-              <div>
-                <h3 class="font-semibold text-primary text-lg">
+              <div class="min-w-0">
+                <h3 class="font-semibold text-highlighted text-lg truncate">
                   {{ group.name }}
                 </h3>
                 <p class="text-sm text-muted">
@@ -91,39 +94,38 @@
                 </p>
               </div>
             </div>
-            <div class="flex items-center gap-2">
+            <span @click.stop>
               <UiButtonDropdown
                 icon-only
                 dropdown-icon="i-lucide-ellipsis-vertical"
-                size="sm"
+                size="md"
+                square
                 variant="ghost"
                 color="neutral"
                 :items="dropdownItems(group)"
                 :disabled="isDeletingGroup"
               />
-            </div>
+            </span>
           </div>
 
-          <!-- Group Description -->
           <div
             v-if="group.description"
-            class="text-sm text-muted"
+            class="text-sm text-muted mt-3"
           >
             {{ group.description }}
           </div>
 
-          <!-- Group Metadata -->
-          <USeparator />
-          <div class="flex items-center justify-between text-xs text-muted">
+          <div class="flex items-center justify-between mt-3 text-xs text-muted">
             <span>Updated {{ formatDate(group.updatedAt) }}</span>
             <UBadge
               :color="group.netBalance > 0 ? 'success' : group.netBalance < 0 ? 'error' : 'neutral'"
               variant="subtle"
+              class="sd-tabular"
             >
               {{ group.netBalance > 0 ? `owed ${formatCurrency(group.netBalance)}` : group.netBalance < 0 ? `owes ${formatCurrency(Math.abs(group.netBalance))}` : 'settled' }}
             </UBadge>
           </div>
-        </div>
+        </NuxtLink>
       </UCard>
     </div>
   </div>
@@ -175,10 +177,6 @@ onMounted(async () => {
 })
 
 // Navigation handlers
-const navigateToGroup = (groupId) => {
-  navigateTo(`/groups/${groupId}`)
-}
-
 const createNewGroup = () => {
   navigateTo('/groups/add')
 }

@@ -5,13 +5,22 @@
       title="Users"
       subtitle="Manage platform users"
       class="mb-6"
-    />
+    >
+      <template #actions>
+        <UBadge
+          color="neutral"
+          variant="subtle"
+        >
+          v{{ appVersion }}
+        </UBadge>
+      </template>
+    </UiCardHeader>
 
     <!-- User Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-8">
       <template v-if="showSkeleton">
         <DashboardStatCardSkeleton
-          v-for="i in 4"
+          v-for="i in 3"
           :key="i"
         />
       </template>
@@ -30,11 +39,6 @@
           :stats="regularUsersStats"
           icon="i-lucide-user"
           color="green"
-        />
-        <DashboardStatCard
-          :stats="appVersionStats"
-          icon="i-lucide-info"
-          color="amber"
         />
       </template>
     </div>
@@ -190,6 +194,8 @@ const regularUsers = computed(() => {
   return users.value.filter(user => user.globalRoleId != 2)
 })
 
+const appVersion = computed(() => useRuntimeConfig().public.appVersion)
+
 // Stats objects for StatCard component
 const totalUsersStats = computed(() => ({
   label: 'Total Users',
@@ -207,12 +213,6 @@ const regularUsersStats = computed(() => ({
   label: 'Regular Users',
   value: regularUsers.value.length,
   color: 'green',
-}))
-
-const appVersionStats = computed(() => ({
-  label: 'App Version',
-  value: useRuntimeConfig().public.appVersion,
-  color: 'amber',
 }))
 
 // Methods

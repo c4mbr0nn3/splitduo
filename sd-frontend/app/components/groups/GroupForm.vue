@@ -35,19 +35,16 @@
             />
           </UFormField>
         </div>
-        <div class="flex justify-between items-center pt-4">
+        <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 mt-6">
           <UButton
-            type="button"
             label="Back"
-            variant="outline"
+            variant="ghost"
             color="neutral"
-            size="lg"
             @click="emit('cancel')"
           />
           <UButton
             type="submit"
             :label="submitLabel"
-            size="lg"
             :loading="loading"
           />
         </div>

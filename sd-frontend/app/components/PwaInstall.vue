@@ -53,7 +53,7 @@ onBeforeUnmount(() => {
         icon="i-lucide-download"
         color="secondary"
         size="lg"
-        class="rounded-full shadow-lg"
+        class="rounded-full shadow-[var(--sd-card-shadow)] hover:shadow-[var(--sd-card-shadow-hover)] transition-shadow"
         label="Install App"
         @click="installApp"
       />

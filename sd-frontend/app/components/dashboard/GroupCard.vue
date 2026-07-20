@@ -1,37 +1,59 @@
 <template>
   <UCard
-    class="cursor-pointer hover:border-primary/50 transition-colors"
-    variant="subtle"
+    class="sd-surface sd-surface-hover cursor-pointer"
+    :ui="{ body: 'p-4 sm:p-5' }"
   >
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-3 min-w-0">
-        <div class="border border-primary text-primary rounded-full flex items-center justify-center w-10 h-10 shrink-0">
-          <UIcon
-            name="i-lucide-users"
-            class="size-6"
+    <NuxtLink
+      :to="`/groups/${group.id}`"
+      class="block"
+    >
+      <div class="flex items-start justify-between gap-4">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="shrink-0 w-10 h-10 rounded-full border border-neutral-200 dark:border-neutral-700 bg-neutral-100/50 dark:bg-neutral-800/50 flex items-center justify-center text-muted">
+            <UIcon
+              name="i-lucide-users"
+              class="size-5"
+            />
+          </div>
+          <div class="min-w-0">
+            <h3 class="text-base font-semibold text-highlighted truncate">{{ group.name }}</h3>
+            <p class="text-sm text-muted mt-1">{{ group.memberCount || 0 }} member{{ group.memberCount === 1 ? '' : 's' }}</p>
+          </div>
+        </div>
+        <span @click.stop>
+          <UiButtonDropdown
+            icon-only
+            dropdown-icon="i-lucide-ellipsis-vertical"
+            size="md"
+            square
+            variant="ghost"
+            color="neutral"
+            :items="dropdownItems"
           />
-        </div>
-        <div class="min-w-0">
-          <h3 class="font-medium text-primary truncate">
-            {{ group.name }}
-          </h3>
-          <p class="text-xs text-muted">
-            {{ group.memberCount || 0 }} member(s)
-          </p>
-        </div>
+        </span>
       </div>
-      <div class="flex items-center gap-2 shrink-0">
+      <div class="flex items-center justify-between mt-3">
+        <p class="text-xs text-dimmed">
+          Updated {{ formatDate(group.updatedAt) }}
+        </p>
         <UBadge
+          v-if="net !== 0"
           :color="badgeColor"
           variant="subtle"
-          :label="badgeLabel"
-        />
-        <UIcon
-          name="i-lucide-chevron-right"
-          class="size-5 text-primary"
-        />
+          class="sd-tabular whitespace-nowrap"
+        >
+          {{ badgeLabel }}
+        </UBadge>
+        <UBadge
+          v-else
+          color="neutral"
+          variant="subtle"
+          class="whitespace-nowrap"
+        >
+          settled
+        </UBadge>
       </div>
-    </div>
+    </NuxtLink>
   </UCard>
 </template>
 
@@ -50,4 +72,13 @@ const badgeLabel = computed(() => {
   if (net.value < 0) return `owes €${formatAmount(Math.abs(net.value))}`
   return 'settled'
 })
+
+const dropdownItems = computed(() => [
+  {
+    label: 'View Group',
+    icon: 'i-lucide-eye',
+    color: 'info',
+    onSelect: () => navigateTo(`/groups/${props.group.id}`),
+  },
+])
 </script>

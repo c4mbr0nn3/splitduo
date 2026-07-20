@@ -54,7 +54,7 @@ definePageMeta({
 
 <template>
   <div class="min-h-dvh flex items-center justify-center p-4">
-    <UCard class="w-full max-w-md">
+    <UCard class="w-full max-w-md sd-surface">
       <template #header>
         <UiCardHeader
           title="Forgot Password?"
@@ -112,12 +112,12 @@ definePageMeta({
         <div class="flex justify-center">
           <UIcon
             name="i-lucide-mail-check"
-            class="size-16 text-success"
+            class="size-12 text-success"
           />
         </div>
 
         <div class="text-center space-y-2">
-          <h4 class="font-semibold">
+          <h4 class="text-lg font-semibold">
             Check Your Email
           </h4>
           <p class="text-sm text-muted">

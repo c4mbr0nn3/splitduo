@@ -6,11 +6,13 @@ export default defineAppConfig({
       secondary: 'rose',
       neutral: 'zinc',
     },
-    button: {
+    card: {
       defaultVariants: {
-        // Set default button color to neutral
-        // color: 'neutral'
+        variant: 'outline',
       },
+    },
+    button: {
+      defaultVariants: {},
     },
   },
 })

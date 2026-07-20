@@ -30,8 +30,8 @@
       />
 
       <UCard
-        variant="soft"
-        class="lg:shadow-sm"
+        class="sd-surface"
+        :ui="{ body: 'p-4 sm:p-6' }"
       >
         <template #header>
           <GroupsSectionHeader
@@ -42,14 +42,21 @@
         </template>
 
         <GroupsTabsNav :group-id="groupId" />
-        <GroupsExpensesTab
-          v-if="activeTab === 'expenses'"
-          :group-id="groupId"
-        />
-        <GroupsStatsTab
-          v-else-if="activeTab === 'stats'"
-          :group-id="groupId"
-        />
+        <Transition
+          name="sd-fade"
+          mode="out-in"
+        >
+          <GroupsExpensesTab
+            v-if="activeTab === 'expenses'"
+            :key="'expenses'"
+            :group-id="groupId"
+          />
+          <GroupsStatsTab
+            v-else-if="activeTab === 'stats'"
+            :key="'stats'"
+            :group-id="groupId"
+          />
+        </Transition>
       </UCard>
     </template>
   </div>

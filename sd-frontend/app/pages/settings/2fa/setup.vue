@@ -62,7 +62,7 @@
             <!-- QR code — rendered from uqr SVG string -->
             <div
               v-if="qrSvg"
-              class="flex justify-center p-4 bg-white dark:bg-white rounded-lg"
+              class="flex justify-center p-4 rounded-xl bg-white border border-neutral-200 dark:border-neutral-700 shadow-[var(--sd-card-shadow)]"
               v-html="qrSvg"
             />
 

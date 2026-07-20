@@ -1,87 +1,64 @@
 <template>
-  <UCard class="hover:shadow-md transition-shadow">
-    <!-- Row 1: Title, Description, Amount & Date -->
-    <div class="mb-3">
-      <div class="flex justify-between text-xs text-dimmed items-start gap-4 mb-3">
-        <span>
-          Paid by {{ expense.paidByUserId === currentUser?.id ? 'you' : `${expense.paidByUser.firstName} ${expense.paidByUser.lastName}` }}
-        </span>
-        <div>
-          {{ formattedDate }}
+  <UCard
+    class="sd-surface sd-surface-hover"
+    :ui="{ body: 'p-4 sm:p-5' }"
+  >
+    <NuxtLink
+      :to="`/groups/${expense.groupId}/expenses/${expense.id}/edit`"
+      class="block"
+    >
+      <!-- Row 1: date + payer · amount -->
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <p class="text-xs text-dimmed">{{ formattedDate }}</p>
+          <p class="text-sm text-muted mt-0.5">{{ payerName }}</p>
         </div>
-      </div>
-      <div class="flex justify-between items-start gap-4 mb-1">
-        <div class="flex min-w-0">
-          <h4 class="font-medium truncate">
-            {{ expense.title }}
-          </h4>
-        </div>
-        <div class="flex flex-col items-end flex-shrink-0">
-          <div
-            class="font-bold whitespace-nowrap"
-            :class="expense.paidByUserId === currentUser?.id ? 'text-success' : 'text-error'"
-          >
+        <div class="flex items-center gap-1.5 shrink-0">
+          <span
+            class="size-2 rounded-full"
+            :class="youOwe ? 'bg-error' : 'bg-success'"
+            aria-hidden="true"
+          />
+          <span class="text-lg font-semibold sd-tabular text-highlighted">
             {{ formatCurrency(expense.amount) }}
-          </div>
+          </span>
         </div>
       </div>
-      <div
-        v-if="expense.description"
-        class="flex justify-between items-start gap-4"
-      >
-        <p class="text-xs text-muted truncate">
-          {{ expense.description }}
-        </p>
-      </div>
-    </div>
 
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-      <div class="flex flex-wrap items-center gap-2">
+      <!-- Row 2: title -->
+      <h3 class="text-base font-medium text-highlighted mt-2 truncate">
+        {{ expense.title }}
+      </h3>
+
+      <!-- Row 3: metadata -->
+      <div class="flex flex-wrap items-center gap-2 mt-3">
         <UBadge
-          variant="soft"
           :color="categoryColor"
-          :label="categoryName"
-          class="capitalize"
-        >
-          <template #leading>
-            <UIcon
-              :name="categoryIcon"
-              mode="svg"
-            />
-          </template>
-        </UBadge>
-        <div class="flex items-center gap-1 text-xs text-dimmed">
-          <UIcon
-            name="i-lucide-credit-card"
-            class="w-3 h-3"
-          />
-          <span class="capitalize">{{ paymentModeName }}</span>
-        </div>
-        <div class="flex items-center gap-1 text-xs text-dimmed">
-          <UIcon
-            name="i-lucide-users"
-            class="w-3 h-3"
-          />
-          <span>{{ expense.splits.length }} people</span>
-        </div>
+          variant="subtle"
+          size="sm"
+        >{{ categoryName }}</UBadge>
         <UBadge
-          v-if="userSplit"
-          variant="soft"
+          v-if="paymentModeName"
           color="neutral"
-          :label="`Your share: ${formatAmount(userSplit.splitAmount)}€`"
-        />
+          variant="outline"
+          size="sm"
+        >{{ paymentModeName }}</UBadge>
+        <span class="text-xs text-dimmed">{{ splitCount }} people</span>
       </div>
-      <div class="flex items-center justify-end">
+    </NuxtLink>
+    <div class="flex items-center justify-end -mt-2">
+      <span @click.stop>
         <UiButtonDropdown
           icon-only
           dropdown-icon="i-lucide-ellipsis-vertical"
-          size="sm"
+          size="md"
+          square
           variant="ghost"
           color="neutral"
           :items="dropdownItems"
           :disabled="isDeletingExpense"
         />
-      </div>
+      </span>
     </div>
   </UCard>
 </template>
@@ -117,23 +94,6 @@ const formattedDate = computed(() => {
   return formatDateString(props.expense.expenseDate)
 })
 
-const categoryIcon = computed(() => {
-  const icons = {
-    groceries: 'i-lucide-shopping-cart',
-    transportation: 'i-lucide-car',
-    utilities: 'i-lucide-zap',
-    entertainment: 'i-lucide-gamepad-2',
-    health: 'i-lucide-heart-pulse',
-    education: 'i-lucide-graduation-cap',
-    travel: 'i-lucide-plane',
-    shopping: 'i-lucide-shopping-bag',
-    housing: 'i-lucide-home',
-    dining: 'i-lucide-utensils',
-    other: 'i-lucide-more-horizontal',
-  }
-  return icons[categoryName.value.toLowerCase()] || icons.other
-})
-
 const categoryColor = computed(() => {
   const colors = {
     groceries: 'success',
@@ -151,10 +111,16 @@ const categoryColor = computed(() => {
   return colors[categoryName.value.toLowerCase()] || colors.other
 })
 
-const userSplit = computed(() => {
-  if (!props.currentUser) return null
-  return props.expense.splits.find(split => split.userId === props.currentUser.id)
+const youOwe = computed(() => {
+  return props.currentUser && props.expense.paidByUserId !== props.currentUser.id
 })
+
+const payerName = computed(() => {
+  if (props.expense.paidByUserId === props.currentUser?.id) return 'you'
+  return `${props.expense.paidByUser.firstName} ${props.expense.paidByUser.lastName}`
+})
+
+const splitCount = computed(() => props.expense.splits.length)
 
 const emit = defineEmits(['expense-deleted'])
 

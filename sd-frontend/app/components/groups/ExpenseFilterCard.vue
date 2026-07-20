@@ -1,5 +1,8 @@
 <template>
-  <UCard variant="outline">
+  <UCard
+    class="bg-[var(--sd-panel-bg)] border-[var(--sd-surface-border)]"
+    :ui="{ body: 'p-4 sm:p-5' }"
+  >
     <div class="space-y-3">
       <div class="flex items-center justify-between">
         <span class="text-primary font-semibold">Filters</span>

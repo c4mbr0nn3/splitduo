@@ -6,8 +6,30 @@
       class="mb-6"
     />
 
+    <!-- Quick Actions (mobile only) -->
+    <UCard
+      class="sd-surface h-fit lg:hidden mb-8"
+      :ui="{ body: 'p-4 sm:p-5 space-y-3' }"
+    >
+      <p class="text-xs font-medium text-muted uppercase tracking-wide">
+        Quick Actions
+      </p>
+      <UButton
+        v-for="(action, index) in quickActions"
+        :key="action.id"
+        :to="action.to"
+        :icon="action.icon"
+        :label="action.label"
+        :variant="index === 0 ? 'solid' : 'outline'"
+        :color="index === 0 ? 'primary' : 'neutral'"
+        size="lg"
+        block
+        class="justify-start"
+      />
+    </UCard>
+
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 sd-stagger mb-8">
       <template v-if="showSkeleton">
         <DashboardStatCardSkeleton
           v-for="i in 4"
@@ -91,31 +113,30 @@
           >
             <DashboardGroupCard
               :group="group"
-              @click="navigateToGroup(group.id)"
             />
           </template>
         </div>
       </UCard>
-      <UCard class="h-fit">
-        <template #header>
-          <h2 class="text-lg font-semibold">
-            Quick Actions
-          </h2>
-        </template>
-
-        <div class="space-y-4">
-          <UButton
-            v-for="action in quickActions"
-            :key="action.id"
-            block
-            size="sm"
-            :variant="action.variant"
-            class="justify-start"
-            :label="action.label"
-            :icon="action.icon"
-            @click="action.handler"
-          />
-        </div>
+      <!-- Quick Actions (desktop only) -->
+      <UCard
+        class="sd-surface h-fit hidden lg:block"
+        :ui="{ body: 'p-4 sm:p-5 space-y-3' }"
+      >
+        <p class="text-xs font-medium text-muted uppercase tracking-wide">
+          Quick Actions
+        </p>
+        <UButton
+          v-for="(action, index) in quickActions"
+          :key="action.id"
+          :to="action.to"
+          :icon="action.icon"
+          :label="action.label"
+          :variant="index === 0 ? 'solid' : 'outline'"
+          :color="index === 0 ? 'primary' : 'neutral'"
+          size="lg"
+          block
+          class="justify-start"
+        />
       </UCard>
     </div>
   </div>
@@ -144,10 +165,6 @@ onMounted(async () => {
   }
 })
 
-const navigateToGroup = (groupId) => {
-  navigateTo(`/groups/${groupId}`)
-}
-
 const createFirstGroup = () => {
   navigateTo('/groups/add')
 }
@@ -161,15 +178,13 @@ const quickActions = [
     id: 'create-group',
     label: 'Create New Group',
     icon: 'i-lucide-plus',
-    variant: 'solid',
-    handler: () => navigateTo('/groups/add'),
+    to: '/groups/add',
   },
   {
     id: 'add-expense',
     label: 'Add Expense',
     icon: 'i-lucide-receipt',
-    variant: 'outline',
-    handler: () => navigateTo('/expenses/add'),
+    to: '/expenses/add',
   },
 ]
 

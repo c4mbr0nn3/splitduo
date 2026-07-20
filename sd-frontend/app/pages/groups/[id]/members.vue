@@ -24,18 +24,27 @@
 
     <UCard v-else>
       <template #header>
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between gap-3">
           <UiCardHeader
             title="Members"
             :subtitle="group?.name"
             :back-to="`/groups/${groupId}`"
           />
-          <UBadge
-            v-if="members.length"
-            variant="soft"
-            icon="i-lucide-users"
-            :label="members.length"
-          />
+          <div class="flex items-center gap-2 shrink-0">
+            <UButton
+              v-if="isGroupAdmin"
+              to="invite"
+              icon="i-lucide-user-plus"
+              label="Invite"
+              class="hidden sm:inline-flex"
+            />
+            <UBadge
+              v-if="members.length"
+              variant="soft"
+              icon="i-lucide-users"
+              :label="members.length"
+            />
+          </div>
         </div>
       </template>
 
@@ -106,7 +115,7 @@
           <UButton
             icon="i-lucide-user-plus"
             label="Invite User"
-            class="w-full sm:w-auto"
+            class="w-full sm:hidden"
             @click="navigateToInvite"
           />
         </div>

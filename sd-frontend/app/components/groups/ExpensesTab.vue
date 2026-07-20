@@ -3,12 +3,17 @@
     <div class="mb-6">
       <div
         v-if="summary && mySummary"
-        class="space-y-4"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-6 items-start"
       >
-        <GroupsUserBalanceCard :balance="mySummary" />
+        <GroupsUserBalanceCard
+          class="lg:col-span-2"
+          :balance="mySummary"
+        />
         <GroupsStatsCards
+          class="lg:col-span-3"
           :total-expenses="expensePagination.total"
           :group-total="getGroupTotal()"
+          :suggestion="mySuggestion"
         />
       </div>
       <UCard
@@ -150,6 +155,26 @@ const mySummary = computed(() => {
         totalOwed: my.totalOwed || 0,
       }
     : null
+})
+
+const userMap = computed(() => {
+  if (!summary.value?.balances) return {}
+  return Object.fromEntries(summary.value.balances.map(b => [b.userId, b.user]))
+})
+
+const mySuggestion = computed(() => {
+  if (!summary.value?.suggestions?.length || !user.value?.id) return null
+  const id = user.value.id
+  const s = summary.value.suggestions.find(el => el.fromUserId === id || el.toUserId === id)
+  if (!s) return null
+  const from = userMap.value[s.fromUserId]
+  const to = userMap.value[s.toUserId]
+  return {
+    label: s.fromUserId === id
+      ? `You owe ${to?.firstName || 'someone'} ${formatAmount(s.amount)} €`
+      : `${from?.firstName || 'someone'} owes you ${formatAmount(s.amount)} €`,
+    isOwed: s.toUserId === id,
+  }
 })
 
 const categoryOptions = computed(() => [

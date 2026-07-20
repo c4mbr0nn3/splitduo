@@ -1,28 +1,34 @@
 <template>
-  <UCard :class="cardBorder">
-    <div class="flex items-center gap-4">
-      <div class="flex-shrink-0">
-        <div
-          class="w-10 h-10 rounded-full flex items-center justify-center border"
-          :class="[iconColor.bg, iconColor.border]"
-        >
-          <UIcon
-            :name="icon"
-            class="size-6"
-            :class="iconColor.text"
-          />
-        </div>
+  <UCard
+    class="sd-surface"
+    :ui="{ body: 'p-4 sm:p-5' }"
+  >
+    <div class="flex items-start gap-3">
+      <div
+        class="size-10 rounded-full flex items-center justify-center shrink-0 mt-0.5"
+        :class="iconTint"
+      >
+        <UIcon
+          :name="icon"
+          class="size-5"
+          :class="iconText"
+        />
       </div>
-      <div>
-        <p class="text-sm font-medium text-dimmed">
+      <div class="min-w-0 flex-1">
+        <p class="text-sm font-medium text-muted truncate">
           {{ statsLabel }}
         </p>
-        <p
-          class="text-2xl font-bold"
-          :class="statsColor"
-        >
-          {{ statsValue }}
-        </p>
+        <div class="flex items-baseline justify-between gap-2">
+          <p class="text-2xl font-semibold sd-tabular text-highlighted">
+            {{ numericValue }}
+          </p>
+          <span
+            v-if="props.type === 'currency'"
+            class="text-base font-medium text-muted"
+          >
+            €
+          </span>
+        </div>
       </div>
     </div>
   </UCard>
@@ -40,7 +46,7 @@ const props = defineProps({
   },
   color: {
     type: String,
-    default: 'blue',
+    default: 'neutral',
   },
   type: {
     type: String,
@@ -48,79 +54,25 @@ const props = defineProps({
   },
 })
 
-const statsLabel = computed(() => {
-  return props.stats.label
+const statsLabel = computed(() => props.stats.label)
+
+const numericValue = computed(() => {
+  const v = props.stats.value || 0
+  return props.type === 'currency' ? formatAmount(v) : v
 })
 
-const statsType = computed(() => {
-  return props.type
-})
-
-const statsValue = computed(() => {
-  const value = props.stats.value || 0
-  if (statsType.value === 'currency') {
-    return `${formatAmount(value)} €`
-  }
-  return value
-})
-
-const statsColor = computed(() => {
-  switch (props.stats.color) {
-    case 'teal':
-      return 'text-primary'
-    case 'green':
-      return 'text-success'
-    case 'red':
-      return 'text-error'
-    case 'yellow':
-      return 'text-warning'
-    case 'purple':
-      return 'text-secondary'
-    case 'rose':
-      return 'text-secondary'
-    case 'pink':
-      return 'text-primary'
-    case 'amber':
-      return 'text-warning'
-    default:
-      return 'text-primary'
-  }
-})
-
-const cardBorder = computed(() => {
-  const borders = {
-    teal: 'border-l-4 border-l-primary',
-    green: 'border-l-4 border-l-success',
-    red: 'border-l-4 border-l-error',
-    yellow: 'border-l-4 border-l-warning',
-    purple: 'border-l-4 border-l-secondary',
-    rose: 'border-l-4 border-l-secondary',
-    pink: 'border-l-4 border-l-primary',
-    amber: 'border-l-4 border-l-warning',
-  }
-  return borders[props.color] || ''
-})
-
-const iconColor = computed(() => {
-  switch (props.color) {
-    case 'teal':
-      return { bg: 'bg-primary/10', text: 'text-primary', border: 'border-primary' }
-    case 'green':
-      return { bg: 'bg-success/10', text: 'text-success', border: 'border-success' }
-    case 'red':
-      return { bg: 'bg-error/10', text: 'text-error', border: 'border-error' }
-    case 'yellow':
-      return { bg: 'bg-warning/10', text: 'text-warning', border: 'border-warning' }
-    case 'purple':
-      return { bg: 'bg-secondary/10', text: 'text-secondary', border: 'border-secondary' }
-    case 'rose':
-      return { bg: 'bg-secondary/10', text: 'text-secondary', border: 'border-secondary' }
-    case 'pink':
-      return { bg: 'bg-primary/10', text: 'text-primary', border: 'border-primary' }
-    case 'amber':
-      return { bg: 'bg-warning/10', text: 'text-warning', border: 'border-warning' }
-    default:
-      return { bg: 'bg-muted/10', text: 'text-muted', border: 'border-muted' }
-  }
-})
+const tone = computed(() => props.stats.color || props.color)
+const toneMap = {
+  neutral: { tint: 'bg-muted/10', text: 'text-muted' },
+  teal: { tint: 'bg-primary/10', text: 'text-primary' },
+  primary: { tint: 'bg-primary/10', text: 'text-primary' },
+  green: { tint: 'bg-success/10', text: 'text-success' },
+  success: { tint: 'bg-success/10', text: 'text-success' },
+  red: { tint: 'bg-error/10', text: 'text-error' },
+  error: { tint: 'bg-error/10', text: 'text-error' },
+  yellow: { tint: 'bg-warning/10', text: 'text-warning' },
+  warning: { tint: 'bg-warning/10', text: 'text-warning' },
+}
+const iconTint = computed(() => (toneMap[tone.value] || toneMap.neutral).tint)
+const iconText = computed(() => (toneMap[tone.value] || toneMap.neutral).text)
 </script>

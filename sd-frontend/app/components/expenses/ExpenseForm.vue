@@ -135,64 +135,64 @@
 
         <!-- Split Section -->
         <div class="space-y-2">
-          <div class="flex items-center justify-between">
-            <label class="block text-sm font-medium py-2">
+          <div class="flex items-center justify-between mb-3">
+            <p class="text-sm font-medium text-muted">
               Split Between
-            </label>
-            <UiButtonDropdown
-              label="Adjust Splits"
-              :items="adjustSplitsMenuItems"
-              size="sm"
-              variant="soft"
-              color="primary"
-              :disabled="!model.amount || !groupMembers.length"
-            />
+            </p>
+            <div class="flex gap-2">
+              <UButton
+                label="Split Equally"
+                variant="ghost"
+                color="neutral"
+                size="xs"
+                @click="splitEqually"
+              />
+              <UButton
+                label="Adjust Splits"
+                variant="ghost"
+                color="neutral"
+                size="xs"
+                @click="showAdvanced = !showAdvanced"
+              />
+            </div>
           </div>
-          <div class="space-y-3">
-            <template
+          <div class="space-y-0">
+            <div
               v-for="member in groupMembers"
               :key="member.userId"
+              class="grid grid-cols-[1fr_auto_auto] items-center gap-3 py-2 border-b border-[var(--sd-surface-border)] last:border-0"
             >
-              <UCard :variant="splitByUser(member.userId).included ? 'subtle' : 'outline'">
-                <template #header>
-                  <div class="flex items-center justify-between">
-                    <span class="flex items-center gap-2 font-medium text-sm">
-                      {{ member.user.firstName }} {{ member.user.lastName }}
-                      <span
-                        v-if="model.amount && splitByUser(member.userId).splitAmount > 0"
-                        class="text-xs text-muted"
-                      >
-                        ({{ getSplitPercentage(member.userId) }}%)
-                      </span>
-                    </span>
-                    <UCheckbox
-                      v-model="splitByUser(member.userId).included"
-                      :color="splitByUser(member.userId).included ? 'success' : 'default'"
-                      @update:model-value="(value) => handleSplitToggle(member.userId, value)"
-                    />
-                  </div>
-                </template>
-                <div class="space-y-1">
-                  <UInputNumber
-                    v-model="splitByUser(member.userId).splitAmount"
-                    :step="0.001"
-                    :min="0"
-                    placeholder="Amount"
-                    :variant="splitByUser(member.userId).included ? 'subtle' : 'ghost'"
-                    :disabled="!splitByUser(member.userId).included"
-                    :color="getSplitValidationState(member.userId)?.state === 'error' ? 'error' : undefined"
-                    class="w-full"
-                    @update:model-value="trackUser(member.userId)"
-                  />
-                  <span
-                    v-if="getSplitValidationState(member.userId)?.state === 'error'"
-                    class="text-xs text-error"
-                  >
-                    {{ getSplitValidationState(member.userId)?.message }}
-                  </span>
-                </div>
-              </UCard>
-            </template>
+              <button
+                type="button"
+                class="flex items-center gap-2 min-w-0 text-left"
+                @click="handleSplitToggle(member.userId, !splitByUser(member.userId).included)"
+              >
+                <UAvatar
+                  icon="i-lucide-user"
+                  size="sm"
+                  :class="splitByUser(member.userId).included ? 'ring-2 ring-primary bg-primary/10 text-primary' : 'bg-muted/10 text-muted opacity-60'"
+                  :alt="`${member.user.firstName} ${member.user.lastName}`"
+                />
+                <span
+                  class="text-sm truncate"
+                  :class="splitByUser(member.userId).included ? 'text-highlighted' : 'text-muted'"
+                >
+                  {{ member.user.firstName }} {{ member.user.lastName }}
+                </span>
+              </button>
+              <span class="text-xs text-muted min-w-[2.5rem] text-right">
+                {{ model.amount && splitByUser(member.userId).splitAmount > 0 ? `${getSplitPercentage(member.userId)}%` : '' }}
+              </span>
+              <UInputNumber
+                v-model="splitByUser(member.userId).splitAmount"
+                :step="0.001"
+                :min="0"
+                size="sm"
+                class="w-24 text-right sd-tabular"
+                :disabled="!splitByUser(member.userId).included"
+                @update:model-value="trackUser(member.userId)"
+              />
+            </div>
           </div>
           <div class="text-xs space-y-1">
             <div
@@ -229,12 +229,11 @@
           </div>
         </div>
 
-        <div class="flex justify-between items-center pt-4">
+        <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 mt-6">
           <UButton
-            type="button"
             label="Cancel"
-            variant="outline"
-            size="lg"
+            variant="ghost"
+            color="neutral"
             @click="goBack"
           />
           <UFieldGroup size="lg">
@@ -299,15 +298,16 @@ const emit = defineEmits(['submit', 'addMore', 'cancel'])
 
 const { receiptImageUrl } = useReceiptScan()
 const isReceiptPreviewOpen = ref(false)
+const isEditMode = computed(() => !!model.value?.expenseId)
 
 const { user } = useAuth()
 const { groups, fetchGroups, fetchGroupMembers, isLoading: isLoadingGroups } = useGroups()
 const { categories, isLoading: isLoadingCategories } = useCategories()
 const { paymentModes, isLoading: isLoadingPaymentModes } = usePaymentModes()
-const { showError } = useNotifications()
 
 const isLoadingMembers = ref(false)
 const groupMembers = ref([])
+const showAdvanced = ref(false)
 
 // Tracks the last user to manually edit a split, so "Distribute Remaining"
 // can avoid re-adjusting the value they just set.
@@ -379,41 +379,6 @@ const remainingMillis = computed(() => amountMillis.value - splitTotalMillis.val
 const splitTotal = computed(() => fromMillis(splitTotalMillis.value))
 const remainingAmount = computed(() => fromMillis(remainingMillis.value))
 
-const showDistributeButton = computed(() => {
-  if (!model.value.amount) return false
-  return remainingMillis.value !== 0
-})
-
-const areSplitsEqual = computed(() => {
-  if (!model.value.amount || !model.value.splits) return true
-  const includedSplits = model.value.splits.filter(s => s.included)
-  if (includedSplits.length === 0) return true
-
-  const expected = splitMillis(amountMillis.value, includedSplits.length)
-  const current = includedSplits.map(s => toMillis(s.splitAmount))
-  // Sort both so we compare multisets — fair split positions are interchangeable.
-  expected.sort((a, b) => a - b)
-  current.sort((a, b) => a - b)
-  return current.every((m, i) => m === expected[i])
-})
-
-const adjustSplitsMenuItems = computed(() => {
-  return [
-    {
-      label: 'Distribute Remaining',
-      icon: 'i-lucide-arrow-left-right',
-      onSelect: distributeRemaining,
-      visible: showDistributeButton.value,
-    },
-    {
-      label: 'Split Equally',
-      icon: 'i-lucide-equal',
-      onSelect: splitEqually,
-      visible: !areSplitsEqual.value,
-    },
-  ]
-})
-
 // Returns a LIVE reference into model.value.splits, creating the entry if
 // missing so v-model mutations in the template are never silently lost.
 const splitByUser = (userId) => {
@@ -436,22 +401,6 @@ const getSplitPercentage = (userId) => {
 
 const trackUser = (userId) => {
   lastModifiedUserId.value = userId
-}
-
-const getSplitValidationState = (userId) => {
-  const split = splitByUser(userId)
-  if (!split.included) return null
-
-  const amount = parseFloat(model.value.amount) || 0
-  if (amount === 0) return null
-
-  if (split.splitAmount <= 0) {
-    return { state: 'error', message: 'Amount must be greater than zero' }
-  }
-  if (split.splitAmount > amount) {
-    return { state: 'error', message: 'Amount exceeds total expense' }
-  }
-  return null
 }
 
 // Split actions ----------------------------------------------------------------
@@ -492,36 +441,6 @@ const splitEqually = () => {
 
   const shares = splitMillis(amountMillis.value, includedSplits.length)
   assignShares(includedSplits, shares)
-}
-
-// Distributes the delta fairly among included members (minus last-modified).
-// Aborts if any recipient would go negative, instead of silently clamping.
-const distributeRemaining = () => {
-  if (!model.value.amount || !model.value.splits) return
-
-  const deltaMillis = remainingMillis.value
-  if (deltaMillis === 0) return
-
-  const targets = model.value.splits.filter(s =>
-    s.included && s.userId !== lastModifiedUserId.value,
-  )
-  if (targets.length === 0) return
-
-  const sign = deltaMillis >= 0 ? 1 : -1
-  const adjustments = splitMillis(Math.abs(deltaMillis), targets.length)
-
-  const wouldGoNegative = targets.some((s, i) =>
-    toMillis(s.splitAmount) + sign * adjustments[i] < 0,
-  )
-  if (wouldGoNegative) {
-    showError('Cannot distribute: some splits would go negative')
-    return
-  }
-
-  targets.forEach((s, i) => {
-    s.splitAmount = fromMillis(toMillis(s.splitAmount) + sign * adjustments[i])
-  })
-  lastModifiedUserId.value = null
 }
 
 // Group members ---------------------------------------------------------------
@@ -614,7 +533,7 @@ const updateSplits = () => {
 
   const byId = new Map((model.value.splits || []).map(s => [s.userId, s]))
   model.value.splits = members.map(m =>
-    byId.get(m.userId) ?? { userId: m.userId, included: true, splitAmount: 0 },
+    byId.get(m.userId) ?? { userId: m.userId, included: !isEditMode.value, splitAmount: 0 },
   )
 
   const includedSplits = model.value.splits.filter(s => s.included)

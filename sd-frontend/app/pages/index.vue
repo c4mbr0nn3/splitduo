@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-dvh flex items-center justify-center p-4">
-    <div class="w-full max-w-md space-y-4">
+    <div class="w-full max-w-md">
       <UCard>
         <UAuthForm
           title="Welcome Back"
@@ -8,16 +8,17 @@
           :submit="{ label: 'Login', loading: isLoading }"
           @submit="onSubmit"
         />
+        <template #footer>
+          <div class="text-center">
+            <NuxtLink
+              to="/forgot-password"
+              class="text-sm text-muted hover:text-primary transition-colors"
+            >
+              Forgot your password?
+            </NuxtLink>
+          </div>
+        </template>
       </UCard>
-
-      <div class="text-center">
-        <NuxtLink
-          to="/forgot-password"
-          class="text-sm text-muted hover:text-primary transition-colors"
-        >
-          Forgot your password?
-        </NuxtLink>
-      </div>
     </div>
   </div>
 </template>

@@ -119,7 +119,7 @@ definePageMeta({
 
 <template>
   <div class="min-h-dvh flex items-center justify-center p-4">
-    <UCard class="w-full max-w-md">
+    <UCard class="w-full max-w-md sd-surface">
       <template #header>
         <UiCardHeader
           title="Reset Your Password"
@@ -146,12 +146,12 @@ definePageMeta({
         <div class="flex justify-center">
           <UIcon
             name="i-lucide-x-circle"
-            class="size-16 text-error"
+            class="size-12 text-error"
           />
         </div>
 
         <div class="text-center space-y-2">
-          <h4 class="font-semibold">
+          <h4 class="text-lg font-semibold">
             Invalid or Expired Link
           </h4>
           <p class="text-sm text-muted">
@@ -189,12 +189,12 @@ definePageMeta({
         <div class="flex justify-center">
           <UIcon
             name="i-lucide-check-circle-2"
-            class="size-16 text-success"
+            class="size-12 text-success"
           />
         </div>
 
         <div class="text-center space-y-2">
-          <h4 class="font-semibold">
+          <h4 class="text-lg font-semibold">
             Password Reset Successful!
           </h4>
           <p class="text-sm text-muted">

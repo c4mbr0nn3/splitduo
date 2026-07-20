@@ -38,3 +38,78 @@
     transparent 60%
   );
 }
+
+/* ---- Refined surface system ---- */
+:root:not(.dark) {
+  --sd-card-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.04);
+  --sd-card-shadow-hover: 0 6px 16px -4px rgba(0, 0, 0, 0.06);
+  --sd-surface-border: var(--ui-color-neutral-200);
+  --sd-surface-bg: #ffffff;
+  --sd-panel-bg: var(--ui-color-neutral-100);
+}
+
+.dark {
+  --sd-card-shadow: 0 2px 12px -2px rgba(0, 0, 0, 0.3);
+  --sd-card-shadow-hover: 0 6px 20px -4px rgba(0, 0, 0, 0.4);
+  --sd-surface-border: var(--ui-color-neutral-800);
+  --sd-surface-bg: var(--ui-color-neutral-900);
+  --sd-panel-bg: var(--ui-color-neutral-900);
+}
+
+/* Subtle page background — less sterile than flat white/dark */
+:root:not(.dark) body {
+  background-color: color-mix(in oklch, var(--ui-color-neutral-100) 30%, var(--ui-bg));
+}
+
+/* Tabular numbers globally for money alignment */
+body {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Utilities (plain CSS, Tailwind v4 compatible) ---- */
+.sd-surface {
+  background-color: var(--sd-surface-bg) !important;
+  border-color: var(--sd-surface-border) !important;
+  box-shadow: var(--sd-card-shadow) !important;
+  border-radius: 0.75rem;
+}
+
+.sd-surface-hover {
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+.sd-surface-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sd-card-shadow-hover) !important;
+}
+
+.sd-tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.sd-fade-in {
+  animation: sd-fade-in 0.2s ease-out both;
+}
+
+.sd-stagger > * {
+  animation: sd-fade-in 0.25s ease-out both;
+}
+.sd-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.sd-stagger > *:nth-child(2) { animation-delay: 50ms; }
+.sd-stagger > *:nth-child(3) { animation-delay: 100ms; }
+.sd-stagger > *:nth-child(4) { animation-delay: 150ms; }
+.sd-stagger > *:nth-child(5) { animation-delay: 200ms; }
+.sd-stagger > *:nth-child(6) { animation-delay: 250ms; }
+
+.sd-fade-enter-active,
+.sd-fade-leave-active {
+  transition: opacity 0.15s ease;
+}
+.sd-fade-enter-from,
+.sd-fade-leave-to {
+  opacity: 0;
+}
+
+@keyframes sd-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

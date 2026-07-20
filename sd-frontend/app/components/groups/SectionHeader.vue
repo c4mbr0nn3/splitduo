@@ -1,17 +1,20 @@
 <template>
-  <div class="grid grid-cols-1 items-start">
-    <div class="flex items-center justify-between mb-2">
-      <div class="flex items-center gap-2">
+  <div class="space-y-2">
+    <div class="flex items-start justify-between gap-3">
+      <div class="min-w-0 flex items-center gap-2 flex-wrap">
+        <h1 class="text-xl font-semibold text-highlighted truncate max-w-[16rem] sm:max-w-none">
+          {{ group?.name || 'Group Details' }}
+        </h1>
         <UButton
           v-if="group?.memberCount"
           variant="soft"
           icon="i-lucide-users"
-          size="sm"
+          size="xs"
           :label="`${group.memberCount}`"
           @click="navigateTo(`/groups/${group.id}/members`)"
         />
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 shrink-0">
         <GroupsActionsDropdown
           :group="group"
           :is-exporting="isExporting"
@@ -21,16 +24,9 @@
         />
       </div>
     </div>
-    <div class="flex">
-      <div class="flex min-w-0">
-        <h1 class="text-xl font-bold text-primary truncate">
-          {{ group?.name || 'Group Details' }}
-        </h1>
-      </div>
-    </div>
     <p
       v-if="group?.description"
-      class="text-sm text-muted mt-1"
+      class="text-sm text-muted"
     >
       {{ group.description }}
     </p>
