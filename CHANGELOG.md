@@ -4,6 +4,11 @@ All notable changes to SplitDuo will be documented in this file.
 
 Generated with [git-cliff](https://git-cliff.org) from Conventional Commits.
 
+## [1.3.0] - 2026-07-20
+
+### Features
+
+- *(frontend)* Rework group stats and recap UI with hierarchy
 ## [1.2.0] - 2026-07-19
 
 ### Bug Fixes
