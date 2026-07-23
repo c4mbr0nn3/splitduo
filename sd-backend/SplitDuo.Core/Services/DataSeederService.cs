@@ -66,7 +66,8 @@ public class DataSeederService(IServiceProvider serviceProvider, ILogger<DataSee
         var clara = new UserBuilder().Email("clara@splitduo.demo").Name("Clara", "Dubois").Hash(demoHash).Build();
         var sam = new UserBuilder().Email("sam@splitduo.demo").Name("Sam", "Rivera").Hash(demoHash).Build();
         var jamie = new UserBuilder().Email("jamie@splitduo.demo").Name("Jamie", "Ngo").Hash(demoHash).Build();
-        context.Users.AddRange(alice, bob, clara, sam, jamie);
+        var tom = new UserBuilder().Email("tom@splitduo.demo").Name("Tom", "Reyes").Hash(demoHash).Build();
+        context.Users.AddRange(alice, bob, clara, sam, jamie, tom);
         await context.SaveChangesAsync();
 
         // ── Group 1: Our Expenses (Alice + Bob) ──────────────────────────────
@@ -214,6 +215,64 @@ public class DataSeederService(IServiceProvider serviceProvider, ILogger<DataSee
             ]);
         }
 
+        // ── Group 4: Friends Weekend (alias-mode, 3+2+1) ─────────────────────
+        var group4 = new GroupBuilder()
+            .Name("Friends Weekend").CreatedBy(alice.Id)
+            .UseAliases(true).AliasSetupFinalized(true)
+            .Build();
+        context.Groups.Add(group4);
+        await context.SaveChangesAsync();
+
+        // Create 3 aliases: Trio (3), Pair (2), Tom singleton (1)
+        var aliasA = new AliasBuilder().Group(group4.Id).Name("The Trio").Singleton(false).Build();
+        var aliasB = new AliasBuilder().Group(group4.Id).Name("The Pair").Singleton(false).Build();
+        var aliasC = new AliasBuilder().Group(group4.Id).Name("Tom").Singleton(true).Build();
+        context.Aliases.AddRange(aliasA, aliasB, aliasC);
+        await context.SaveChangesAsync();
+
+        // 6 members, each linked to their alias
+        context.GroupMembers.AddRange(
+            new GroupMemberBuilder().Group(group4.Id).User(alice.Id).Role(GroupRole.Admin).Alias(aliasA.Id).Build(),
+            new GroupMemberBuilder().Group(group4.Id).User(bob.Id).Role(GroupRole.Member).Alias(aliasA.Id).Build(),
+            new GroupMemberBuilder().Group(group4.Id).User(clara.Id).Role(GroupRole.Member).Alias(aliasA.Id).Build(),
+            new GroupMemberBuilder().Group(group4.Id).User(sam.Id).Role(GroupRole.Member).Alias(aliasB.Id).Build(),
+            new GroupMemberBuilder().Group(group4.Id).User(jamie.Id).Role(GroupRole.Member).Alias(aliasB.Id).Build(),
+            new GroupMemberBuilder().Group(group4.Id).User(tom.Id).Role(GroupRole.Member).Alias(aliasC.Id).Build()
+        );
+        await context.SaveChangesAsync();
+
+        // 8 alias-split expenses, each split equally among the 3 aliases
+        var group4Expenses =
+            new (string Title, decimal Amount, int PaidById, int PaidByAliasId, int DayOffset,
+                ExpenseCategory Category, PaymentMode PaymentMode)[]
+            {
+                ("Airbnb (2 nights)", 360.00m, alice.Id, aliasA.Id, -14, ExpenseCategory.Travel, PaymentMode.OnlineService),
+                ("Groceries for the weekend", 84.30m, sam.Id, aliasB.Id, -13, ExpenseCategory.Groceries, PaymentMode.Card),
+                ("Gas & tolls", 42.00m, tom.Id, aliasC.Id, -13, ExpenseCategory.Transportation, PaymentMode.Cash),
+                ("Dinner out Saturday", 126.00m, clara.Id, aliasA.Id, -12, ExpenseCategory.Dining, PaymentMode.Card),
+                ("Brunch Sunday", 57.00m, jamie.Id, aliasB.Id, -11, ExpenseCategory.Dining, PaymentMode.Card),
+                ("Museum tickets", 33.00m, alice.Id, aliasA.Id, -11, ExpenseCategory.Entertainment, PaymentMode.OnlineService),
+                ("Coffee & pastries", 18.00m, tom.Id, aliasC.Id, -11, ExpenseCategory.Dining, PaymentMode.Cash),
+                ("Souvenir haul", 27.00m, bob.Id, aliasA.Id, -10, ExpenseCategory.Shopping, PaymentMode.Card),
+            };
+
+        foreach (var (title, amount, paidById, paidByAliasId, dayOffset, category, paymentMode) in group4Expenses)
+        {
+            var expense = new ExpenseBuilder()
+                .InGroup(group4.Id).Title(title).Amount(amount)
+                .PaidBy(paidById).PaidByAlias(paidByAliasId)
+                .Date(today.AddDays(dayOffset))
+                .Category(category).PaymentMode(paymentMode)
+                .Build();
+            var share = Math.Round(amount / 3, 2, MidpointRounding.AwayFromZero);
+            var remainder = amount - share * 3; // add remainder to first alias to satisfy sum-to-total
+            await AddExpenseWithAliasSplitsAsync(context, expense, [
+                (aliasA.Id, share + remainder),
+                (aliasB.Id, share),
+                (aliasC.Id, share),
+            ]);
+        }
+
         logger.LogInformation("Demo data seeded");
     }
 
@@ -228,6 +287,31 @@ public class DataSeederService(IServiceProvider serviceProvider, ILogger<DataSee
             context.ExpenseSplits.Add(
                 new ExpenseSplit { ExpenseId = expense.Id, UserId = userId, SplitAmount = amount });
         await context.SaveChangesAsync();
+    }
+
+    private static async Task AddExpenseWithAliasSplitsAsync(
+        AppDbContext context,
+        Expense expense,
+        IEnumerable<(int AliasId, decimal Amount)> splits)
+    {
+        context.Expenses.Add(expense);
+        await context.SaveChangesAsync();
+        foreach (var (aliasId, amount) in splits)
+            context.ExpenseAliasSplits.Add(
+                new ExpenseAliasSplit { ExpenseId = expense.Id, AliasId = aliasId, SplitAmount = amount });
+        await context.SaveChangesAsync();
+    }
+
+    private sealed class AliasBuilder
+    {
+        private int _groupId;
+        private string _name = "";
+        private bool? _isSingleton;
+
+        public AliasBuilder Group(int v) { _groupId = v; return this; }
+        public AliasBuilder Name(string v) { _name = v; return this; }
+        public AliasBuilder Singleton(bool v) { _isSingleton = v; return this; }
+        public Alias Build() => new() { GroupId = _groupId, Name = _name, IsSingleton = _isSingleton };
     }
 
     private sealed class UserBuilder
@@ -268,6 +352,8 @@ public class DataSeederService(IServiceProvider serviceProvider, ILogger<DataSee
     {
         private string _name = "";
         private int _createdBy;
+        private bool _useAliases;
+        private bool _aliasSetupFinalized;
 
         public GroupBuilder Name(string v)
         {
@@ -281,13 +367,30 @@ public class DataSeederService(IServiceProvider serviceProvider, ILogger<DataSee
             return this;
         }
 
-        public Group Build() => new() { Name = _name, CreatedBy = _createdBy };
+        public GroupBuilder UseAliases(bool v)
+        {
+            _useAliases = v;
+            return this;
+        }
+
+        public GroupBuilder AliasSetupFinalized(bool v)
+        {
+            _aliasSetupFinalized = v;
+            return this;
+        }
+
+        public Group Build() => new()
+        {
+            Name = _name, CreatedBy = _createdBy,
+            UseAliases = _useAliases, AliasSetupFinalized = _aliasSetupFinalized
+        };
     }
 
     private sealed class GroupMemberBuilder
     {
         private int _groupId, _userId;
         private GroupRole _role = GroupRole.Member;
+        private int? _aliasId;
 
         public GroupMemberBuilder Group(int v)
         {
@@ -307,7 +410,13 @@ public class DataSeederService(IServiceProvider serviceProvider, ILogger<DataSee
             return this;
         }
 
-        public GroupMember Build() => new() { GroupId = _groupId, UserId = _userId, Role = _role };
+        public GroupMemberBuilder Alias(int v)
+        {
+            _aliasId = v;
+            return this;
+        }
+
+        public GroupMember Build() => new() { GroupId = _groupId, UserId = _userId, Role = _role, AliasId = _aliasId };
     }
 
     private sealed class ExpenseBuilder
@@ -318,6 +427,7 @@ public class DataSeederService(IServiceProvider serviceProvider, ILogger<DataSee
         private DateOnly _date;
         private ExpenseCategory _category;
         private PaymentMode _paymentMode;
+        private int? _paidByAliasId;
 
         public ExpenseBuilder InGroup(int v)
         {
@@ -343,6 +453,12 @@ public class DataSeederService(IServiceProvider serviceProvider, ILogger<DataSee
             return this;
         }
 
+        public ExpenseBuilder PaidByAlias(int v)
+        {
+            _paidByAliasId = v;
+            return this;
+        }
+
         public ExpenseBuilder Date(DateOnly v)
         {
             _date = v;
@@ -364,7 +480,8 @@ public class DataSeederService(IServiceProvider serviceProvider, ILogger<DataSee
         public Expense Build() => new()
         {
             GroupId = _groupId, Title = _title, Amount = _amount,
-            PaidBy = _paidBy, ExpenseDate = _date, Category = _category, PaymentMode = _paymentMode
+            PaidBy = _paidBy, PaidByAliasId = _paidByAliasId,
+            ExpenseDate = _date, Category = _category, PaymentMode = _paymentMode
         };
     }
 }

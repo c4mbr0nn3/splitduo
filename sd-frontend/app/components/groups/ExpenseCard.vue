@@ -43,7 +43,12 @@
           variant="outline"
           size="sm"
         >{{ paymentModeName }}</UBadge>
-        <span class="text-xs text-dimmed">{{ splitCount }} people</span>
+        <span
+          class="text-xs text-dimmed truncate max-w-[12rem] sm:max-w-[16rem]"
+          :title="splitLabel"
+        >
+          {{ splitLabel }}
+        </span>
       </div>
     </NuxtLink>
     <div class="flex items-center justify-end -mt-2">
@@ -120,7 +125,20 @@ const payerName = computed(() => {
   return `${props.expense.paidByUser.firstName} ${props.expense.paidByUser.lastName}`
 })
 
-const splitCount = computed(() => props.expense.splits.length)
+const isAliasSplit = computed(() => {
+  return Array.isArray(props.expense.aliasSplits) && props.expense.aliasSplits.length > 0
+})
+
+const splitCount = computed(() => {
+  if (isAliasSplit.value) return props.expense.aliasSplits.length
+  return props.expense.splits?.length || 0
+})
+
+const splitLabel = computed(() => {
+  if (!isAliasSplit.value) return `${splitCount.value} people`
+  const names = props.expense.aliasSplits.map(s => s.aliasName).join(', ')
+  return `Split among: ${names}`
+})
 
 const emit = defineEmits(['expense-deleted'])
 

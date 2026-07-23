@@ -22,7 +22,7 @@ Nuxt 4 SPA (ssr: false), Vue 3 Composition API, Nuxt UI v4, TailwindCSS v4. **Pl
 ## Structure
 
 - `app/components/` — auto-imported, folder nesting = name prefix (`groups/ExpenseCard.vue` → `<GroupsExpenseCard />`). Subfolders: `admin/`, `button/`, `dashboard/`, `expenses/`, `groups/` (+ `members/`), `layout/`, `ui/` (primitives)
-- `app/composables/` — `api/base.js` (useApi), `auth/` (useAuth, useAuthToken, use2FA), `resources/` (one per entity), `ui/` (useModal, useChartTheme), `utils/` (useNotifications, useErrorHandling, usePagination, useDebounceSearch), `index.js` (barrel)
+- `app/composables/` — `api/base.js` (useApi, incl. `getBlob` for binary downloads), `auth/` (useAuth, useAuthToken, use2FA), `resources/` (one per entity, incl. `useAliases`), `ui/` (useModal, useChartTheme), `utils/` (useNotifications, useErrorHandling, usePagination, useDebounceSearch), `index.js` (barrel)
 - `app/pages/` — file-based routing, nested folders = nested routes
 - `app/middleware/` — `auth.js` (redirect to / if not authenticated), `admin.js` (redirect to /dashboard if not admin)
 - `app/plugins/` — `auth.client.js` (restores auth state on app start), `auth-refresh.client.js` (proactive token refresh: timer + visibilitychange), `apexcharts.client.js` (registers ApexCharts globally)
@@ -87,7 +87,8 @@ No Pinia. State via: composable-local `ref()` → `readonly()`, singleton refs (
 
 - Auth restore: `auth.client.js` plugin calls `/users/me` on app start to restore session
 - Proactive token refresh: `auth-refresh.client.js` schedules a refresh before JWT expiry (`max(exp-60, 10)`s) and on `visibilitychange` (sleep/wake safety net); on failure, `refreshToken()` clears the session and `auth.client.js` redirects to /
-- Two-phase import: `analyzeFile()` → `ImportMappingForm` → `importWithMapping()`
+- Two-phase import: `analyzeFile()` → `ImportMappingForm` → `importWithMapping()`. Alias-mode groups force `SplitDuoAlias` type (4) and pass `aliasMappings` (alias name → alias GUID) in the mapping payload.
+- **Alias mode**: `group.useAliases` (immutable after creation) switches members page to `AliasMembersList` (alias cards + finalize banner) and `ExpenseForm` to alias-based splits (`aliasSplits` payload). `useAliases` composable wraps the alias CRUD endpoints; `useBalances` enriches balances with alias metadata when `isAliasMode`.
 - PWA: `@vite-pwa/nuxt` in `nuxt.config.ts` with manifest, workbox runtime caching, auto-update. `PwaUpdate.vue` prompts users on new deployments.
 
 ## Documentation Resources

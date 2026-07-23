@@ -8,7 +8,7 @@
 </template>
 
 <script setup>
-defineProps({
+const props = defineProps({
   groupId: {
     type: String,
     required: true,
@@ -28,7 +28,7 @@ const activeTab = computed({
     return route.query.tab === 'stats' ? 'stats' : 'expenses'
   },
   set(tab) {
-    router.push({ path: route.path, query: { ...route.query, tab, page: 1 } })
+    router.push({ path: `/groups/${props.groupId}`, query: { tab, page: 1 } })
   },
 })
 </script>

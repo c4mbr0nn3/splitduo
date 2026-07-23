@@ -60,6 +60,45 @@
         </UFormField>
       </div>
 
+      <!-- Alias Mappings Section -->
+      <div v-if="analysisResults.aliases?.length">
+        <UFormField
+          label="Alias Mappings"
+          description="Map each alias from your import file to an existing group alias"
+          class="mb-4"
+        >
+          <div class="space-y-3">
+            <div
+              v-for="alias in analysisResults.aliases"
+              :key="alias.key"
+              class="grid grid-cols-1 md:grid-cols-2 gap-3 items-center p-3 border border-muted rounded-lg"
+            >
+              <div class="flex items-center gap-2">
+                <UIcon
+                  name="i-lucide-users"
+                  class="text-muted"
+                  size="20"
+                />
+                <div>
+                  <div class="font-medium">
+                    {{ alias.value }}
+                  </div>
+                </div>
+              </div>
+              <UFormField :name="`aliasMappings.${alias.key}`">
+                <USelect
+                  v-model="mappingState.aliasMappings[alias.key]"
+                  :items="aliasOptions"
+                  placeholder="Select group alias..."
+                  :loading="loadingGroupData"
+                  class="w-full"
+                />
+              </UFormField>
+            </div>
+          </div>
+        </UFormField>
+      </div>
+
       <!-- Category Mappings Section -->
       <div v-if="analysisResults.categories?.length">
         <UFormField
@@ -192,6 +231,7 @@ const emit = defineEmits(['submit'])
 
 // Composables
 const { fetchGroupMembers } = useGroups()
+const { fetchAliases } = useAliases()
 const { categories } = useCategories()
 const { paymentModes } = usePaymentModes()
 const { showError } = useNotifications()
@@ -200,10 +240,12 @@ const { showError } = useNotifications()
 const form = ref(null)
 const loadingGroupData = ref(false)
 const groupMemberOptions = ref([])
+const aliasOptions = ref([])
 
 // Initialize mapping state
 const mappingState = reactive({
   userMappings: {},
+  aliasMappings: {},
   categoryMappings: {},
   paymentModeMappings: {},
 })
@@ -213,6 +255,11 @@ const initializeMappings = () => {
   // Initialize user mappings
   props.analysisResults.members?.forEach((member) => {
     mappingState.userMappings[member.key] = null
+  })
+
+  // Initialize alias mappings
+  props.analysisResults.aliases?.forEach((alias) => {
+    mappingState.aliasMappings[alias.key] = null
   })
 
   // Initialize category mappings (convert keys to numbers)
@@ -234,6 +281,13 @@ const validate = () => {
   props.analysisResults.members?.forEach((member) => {
     if (!mappingState.userMappings[member.key]) {
       errors.push({ name: `userMappings.${member.key}`, message: 'User mapping is required' })
+    }
+  })
+
+  // Alias mapping validation - all required
+  props.analysisResults.aliases?.forEach((alias) => {
+    if (!mappingState.aliasMappings[alias.key]) {
+      errors.push({ name: `aliasMappings.${alias.key}`, message: 'Alias mapping is required' })
     }
   })
 
@@ -261,6 +315,11 @@ const hasValidationErrors = computed(() => {
     !mappingState.userMappings[member.key],
   )
 
+  // Check alias mappings
+  const missingAliasMappings = props.analysisResults.aliases?.some(alias =>
+    !mappingState.aliasMappings[alias.key],
+  )
+
   // Check category mappings
   const missingCategoryMappings = props.analysisResults.categories?.some(category =>
     !mappingState.categoryMappings[parseInt(category.key)],
@@ -271,7 +330,7 @@ const hasValidationErrors = computed(() => {
     !mappingState.paymentModeMappings[parseInt(paymentMode.key)],
   )
 
-  return missingUserMappings || missingCategoryMappings || missingPaymentModeMappings
+  return missingUserMappings || missingAliasMappings || missingCategoryMappings || missingPaymentModeMappings
 })
 
 // Load group data for mapping options
@@ -293,6 +352,17 @@ const loadGroupData = async () => {
     }
     else {
       groupMemberOptions.value = []
+    }
+
+    const aliases = await fetchAliases(props.groupId)
+    if (aliases && aliases.length > 0) {
+      aliasOptions.value = aliases.map(alias => ({
+        value: alias.id,
+        label: alias.name,
+      }))
+    }
+    else {
+      aliasOptions.value = []
     }
   }
   catch (error) {
@@ -318,6 +388,7 @@ const onSubmit = () => {
 
   emit('submit', {
     userMappings: mappingState.userMappings,
+    aliasMappings: mappingState.aliasMappings,
     categoryMappings: mappingState.categoryMappings,
     paymentModeMappings: mappingState.paymentModeMappings,
   })

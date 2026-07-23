@@ -2,6 +2,7 @@
   <UCard
     v-if="balance"
     variant="outline"
+    class="h-full"
   >
     <div class="flex items-center justify-between mb-4">
       <div class="flex items-center gap-3">
@@ -17,7 +18,7 @@
         </div>
         <div>
           <p class="text-sm text-muted">
-            Your Net Balance
+            {{ isAliasMode ? `Your Alias (${balance.aliasName || '—'})` : 'Your Net Balance' }}
           </p>
           <p
             class="font-bold text-2xl"
@@ -32,7 +33,7 @@
     <div class="grid grid-cols-2 gap-4 pt-4">
       <div class="text-center">
         <p class="text-xs text-dimmed mb-1">
-          You Paid
+          {{ isAliasMode ? 'Alias Paid' : 'You Paid' }}
         </p>
         <p class="font-semibold text-success">
           {{ formatAmount(balance.totalPaid) }} €
@@ -40,7 +41,7 @@
       </div>
       <div class="text-center">
         <p class="text-xs text-dimmed mb-1">
-          You Owe
+          {{ isAliasMode ? 'Alias Owes' : 'You Owe' }}
         </p>
         <p class="font-semibold text-warning">
           {{ formatAmount(balance.totalOwed) }} €
@@ -55,6 +56,10 @@ defineProps({
   balance: {
     type: Object,
     default: null,
+  },
+  isAliasMode: {
+    type: Boolean,
+    default: false,
   },
 })
 </script>

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SplitDuo.Api.Features.Aliases.Services;
 using SplitDuo.Api.Features.Common.Dto;
 using SplitDuo.Api.Features.Groups.Dto;
 using SplitDuo.Core.Common;
@@ -77,36 +78,147 @@ public class GroupsService(
 
         var groupIds = userGroups.Select(ug => ug.Group.Id).ToList();
 
-        var paidByGroup = await unitOfWork.Expenses
-            .AsNoTracking()
-            .Where(e => groupIds.Contains(e.GroupId) && e.PaidBy == user.Id && e.DeletedAt == null)
-            .GroupBy(e => e.GroupId)
-            .Select(g => new { GroupId = g.Key, Total = g.Sum(e => e.Amount) })
-            .ToDictionaryAsync(x => x.GroupId, x => x.Total);
+        // Split groups into individual-mode and alias-mode for balance computation.
+        // For individual-mode groups: use the existing per-user ExpenseSplit aggregation.
+        // For alias-mode groups: find the user's alias, then compute the alias's net balance
+        // (TotalPaid = sum of expenses paid by any member of the alias; TotalOwed = sum of
+        // ExpenseAliasSplit.SplitAmount for that alias). The user's NetBalance is their alias's
+        // net balance — this represents what the user's subgroup is owed/owes, which is the
+        // actionable figure for the user (intra-alias settlement is out of scope).
+        var individualGroupIds = userGroups.Where(ug => !ug.Group.UseAliases).Select(ug => ug.Group.Id).ToList();
+        var aliasGroupIds = userGroups.Where(ug => ug.Group.UseAliases).Select(ug => ug.Group.Id).ToList();
 
-        var splitByGroup = await unitOfWork.ExpenseSplits
-            .AsNoTracking()
-            .Where(es => es.UserId == user.Id)
-            .Join(unitOfWork.Expenses.AsNoTracking().Where(e => e.DeletedAt == null),
-                es => es.ExpenseId, e => e.Id,
-                (es, e) => new { e.GroupId, es.SplitAmount })
-            .Where(x => groupIds.Contains(x.GroupId))
-            .GroupBy(x => x.GroupId)
-            .Select(g => new { GroupId = g.Key, Total = g.Sum(x => x.SplitAmount) })
-            .ToDictionaryAsync(x => x.GroupId, x => x.Total);
+        // Per-user balances for individual-mode groups (existing logic)
+        var paidByGroup = individualGroupIds.Count > 0
+            ? await unitOfWork.Expenses
+                .AsNoTracking()
+                .Where(e => individualGroupIds.Contains(e.GroupId) && e.PaidBy == user.Id && e.DeletedAt == null)
+                .GroupBy(e => e.GroupId)
+                .Select(g => new { GroupId = g.Key, Total = g.Sum(e => e.Amount) })
+                .ToDictionaryAsync(x => x.GroupId, x => x.Total)
+            : new Dictionary<int, decimal>();
 
-        var groupDtos = userGroups.Select(ug => new GroupDto
+        var splitByGroup = individualGroupIds.Count > 0
+            ? await unitOfWork.ExpenseSplits
+                .AsNoTracking()
+                .Where(es => es.UserId == user.Id)
+                .Join(unitOfWork.Expenses.AsNoTracking().Where(e => e.DeletedAt == null),
+                    es => es.ExpenseId, e => e.Id,
+                    (es, e) => new { e.GroupId, es.SplitAmount })
+                .Where(x => individualGroupIds.Contains(x.GroupId))
+                .GroupBy(x => x.GroupId)
+                .Select(g => new { GroupId = g.Key, Total = g.Sum(x => x.SplitAmount) })
+                .ToDictionaryAsync(x => x.GroupId, x => x.Total)
+            : new Dictionary<int, decimal>();
+
+        // Alias-level balances for alias-mode groups
+        // First, find the user's alias in each alias-mode group
+        var userMemberships = await unitOfWork.GroupMembers
+            .AsNoTracking()
+            .Where(gm => aliasGroupIds.Contains(gm.GroupId) && gm.UserId == user.Id && gm.DeletedAt == null)
+            .Select(gm => new { gm.GroupId, gm.AliasId })
+            .ToListAsync();
+
+        var userAliasByGroup = userMemberships
+            .Where(x => x.AliasId != null)
+            .ToDictionary(x => x.GroupId, x => x.AliasId!.Value);
+
+        // TotalPaid per alias: sum of Expense.Amount where Expense.PaidByAliasId == aliasId
+        // (with fallback to current-membership for null PaidByAliasId — backward compat)
+        var aliasPaidByGroup = new Dictionary<(int GroupId, int AliasId), decimal>();
+
+        if (aliasGroupIds.Count > 0)
         {
-            Id = ug.Group.Guid.ToString(),
-            OriginalId = ug.Group.Id,
-            Name = ug.Group.Name,
-            Description = ug.Group.Description,
-            CreatedByUserId = ug.Group.CreatedByUser?.Guid.ToString() ?? "",
-            MemberCount = ug.MemberCount,
-            CreatedAt = ug.Group.CreatedAt,
-            UpdatedAt = ug.Group.UpdatedAt,
-            NetBalance = paidByGroup.GetValueOrDefault(ug.Group.Id, 0m)
-                         - splitByGroup.GetValueOrDefault(ug.Group.Id, 0m)
+            var aliasExpenses = await unitOfWork.Expenses
+                .AsNoTracking()
+                .Where(e => aliasGroupIds.Contains(e.GroupId) && e.DeletedAt == null)
+                .Select(e => new { e.GroupId, e.PaidBy, e.PaidByAliasId, e.Amount })
+                .ToListAsync();
+
+            // Get current alias membership for fallback
+            var currentMemberships = await unitOfWork.GroupMembers
+                .AsNoTracking()
+                .Where(gm => aliasGroupIds.Contains(gm.GroupId) && gm.DeletedAt == null && gm.AliasId != null)
+                .Select(gm => new { gm.GroupId, gm.UserId, gm.AliasId })
+                .ToListAsync();
+
+            var userAliasLookup = currentMemberships
+                .Where(x => x.AliasId != null)
+                .ToLookup(x => (x.GroupId, x.UserId), x => x.AliasId!.Value);
+
+            foreach (var expense in aliasExpenses)
+            {
+                int? aliasId;
+
+                if (expense.PaidByAliasId != null)
+                {
+                    aliasId = expense.PaidByAliasId;
+                }
+                else
+                {
+                    aliasId = userAliasLookup[(expense.GroupId, expense.PaidBy)].FirstOrDefault();
+                }
+
+                if (aliasId != null)
+                {
+                    var key = (expense.GroupId, aliasId.Value);
+                    aliasPaidByGroup.TryGetValue(key, out var current);
+                    aliasPaidByGroup[key] = current + expense.Amount;
+                }
+            }
+        }
+
+        // TotalOwed per alias: sum of ExpenseAliasSplit.SplitAmount for that alias
+        var aliasSplitByGroup = aliasGroupIds.Count > 0
+            ? await unitOfWork.ExpenseAliasSplits
+                .AsNoTracking()
+                .Join(unitOfWork.Expenses.AsNoTracking().Where(e => aliasGroupIds.Contains(e.GroupId) && e.DeletedAt == null),
+                    eas => eas.ExpenseId, e => e.Id,
+                    (eas, e) => new { e.GroupId, eas.AliasId, eas.SplitAmount })
+                .GroupBy(x => new { x.GroupId, x.AliasId })
+                .Select(g => new { g.Key.GroupId, g.Key.AliasId, Total = g.Sum(x => x.SplitAmount) })
+                .ToDictionaryAsync(x => (x.GroupId, x.AliasId), x => x.Total)
+            : new Dictionary<(int GroupId, int AliasId), decimal>();
+
+        var groupDtos = userGroups.Select(ug =>
+        {
+            decimal netBalance;
+
+            if (ug.Group.UseAliases)
+            {
+                // Alias-mode: user's NetBalance = their alias's net balance
+                if (userAliasByGroup.TryGetValue(ug.Group.Id, out var aliasId))
+                {
+                    var totalPaid = aliasPaidByGroup.GetValueOrDefault((ug.Group.Id, aliasId), 0m);
+                    var totalOwed = aliasSplitByGroup.GetValueOrDefault((ug.Group.Id, aliasId), 0m);
+                    netBalance = totalPaid - totalOwed;
+                }
+                else
+                {
+                    netBalance = 0m;
+                }
+            }
+            else
+            {
+                // Individual-mode: existing per-user computation
+                netBalance = paidByGroup.GetValueOrDefault(ug.Group.Id, 0m)
+                             - splitByGroup.GetValueOrDefault(ug.Group.Id, 0m);
+            }
+
+            return new GroupDto
+            {
+                Id = ug.Group.Guid.ToString(),
+                OriginalId = ug.Group.Id,
+                Name = ug.Group.Name,
+                Description = ug.Group.Description,
+                CreatedByUserId = ug.Group.CreatedByUser?.Guid.ToString() ?? "",
+                MemberCount = ug.MemberCount,
+                CreatedAt = ug.Group.CreatedAt,
+                UpdatedAt = ug.Group.UpdatedAt,
+                UseAliases = ug.Group.UseAliases,
+                AliasSetupFinalized = ug.Group.AliasSetupFinalized,
+                NetBalance = netBalance
+            };
         }).ToList();
 
         return Result<List<GroupDto>>.Success(groupDtos);
@@ -125,13 +237,34 @@ public class GroupsService(
             Name = request.Name,
             Description = request.Description,
             CreatedBy = user.Id,
+            UseAliases = request.UseAliases,
         };
 
-        group.GroupMembers.Add(new GroupMember
+        var creatorMember = new GroupMember
         {
             UserId = user.Id,
             Role = GroupRole.Admin
-        });
+        };
+
+        group.GroupMembers.Add(creatorMember);
+
+        // If alias mode is enabled, auto-create a singleton alias for the creator.
+        // Uses navigation relationships so EF fixup assigns the FKs on save
+        // (group.Id is 0 until SaveChangesAsync; setting GroupId/AliasId directly would violate FKs).
+        if (request.UseAliases)
+        {
+            var singletonName = await AliasNamingHelper.GenerateUniqueSingletonNameAsync(
+                unitOfWork, group.Id, user);
+
+            var singletonAlias = new Alias
+            {
+                Name = singletonName,
+                IsSingleton = true
+            };
+
+            group.Aliases.Add(singletonAlias);
+            creatorMember.Alias = singletonAlias;
+        }
 
         unitOfWork.Groups.Add(group);
 
@@ -144,7 +277,9 @@ public class GroupsService(
             CreatedByUserId = user.Guid.ToString(),
             MemberCount = group.GroupMembers.Count,
             CreatedAt = group.CreatedAt,
-            UpdatedAt = group.UpdatedAt
+            UpdatedAt = group.UpdatedAt,
+            UseAliases = group.UseAliases,
+            AliasSetupFinalized = group.AliasSetupFinalized
         };
 
         return Result<GroupDto>.Success(groupDto);
@@ -187,7 +322,9 @@ public class GroupsService(
             CreatedByUserId = group.CreatedByUser?.Guid.ToString() ?? "",
             MemberCount = memberCount,
             CreatedAt = group.CreatedAt,
-            UpdatedAt = group.UpdatedAt
+            UpdatedAt = group.UpdatedAt,
+            UseAliases = group.UseAliases,
+            AliasSetupFinalized = group.AliasSetupFinalized
         };
 
         return Result<GroupDto>.Success(groupDto);
@@ -223,6 +360,8 @@ public class GroupsService(
             return Result<GroupDto>.Forbidden("Only group administrators can update group information");
 
         // Update group properties
+        // UseAliases is immutable — the DTO (UpdateGroupRequestDto) intentionally has no
+        // UseAliases field, so JSON deserialization drops any client-supplied value.
         if (!string.IsNullOrWhiteSpace(request.Name))
             group.Name = request.Name;
 
@@ -241,7 +380,9 @@ public class GroupsService(
             CreatedByUserId = group.CreatedByUser?.Guid.ToString() ?? "",
             MemberCount = memberCount,
             CreatedAt = group.CreatedAt,
-            UpdatedAt = group.UpdatedAt
+            UpdatedAt = group.UpdatedAt,
+            UseAliases = group.UseAliases,
+            AliasSetupFinalized = group.AliasSetupFinalized
         };
 
         return Result<GroupDto>.Success(groupDto);
@@ -404,6 +545,26 @@ public class GroupsService(
 
         unitOfWork.GroupMembers.Add(groupMember);
 
+        // If the group is alias-mode, auto-create a singleton alias for the new member.
+        // This applies whether or not the group is finalized (REQ-007 / AC-012).
+        // Uses navigation relationships so EF fixup assigns the FK on save
+        // (singletonAlias.Id is 0 until SaveChangesAsync; setting AliasId directly would violate the FK).
+        if (group.UseAliases)
+        {
+            var singletonName = await AliasNamingHelper.GenerateUniqueSingletonNameAsync(
+                unitOfWork, group.Id, userToAdd);
+
+            var singletonAlias = new Alias
+            {
+                GroupId = group.Id,
+                Name = singletonName,
+                IsSingleton = true
+            };
+
+            unitOfWork.Aliases.Add(singletonAlias);
+            groupMember.Alias = singletonAlias;
+        }
+
         var memberDto = new GroupMemberDto
         {
             GroupId = group.Guid.ToString(),
@@ -479,6 +640,29 @@ public class GroupsService(
 
         // Soft delete the membership
         membershipToRemove.DeletedAt = timeProvider.GetUtcNow().ToUnixTimeSeconds();
+
+        // Handle alias side: if the member had an AliasId, clear it and check
+        // if the alias now has zero non-deleted members (soft-delete it if so).
+        // Historical ExpenseAliasSplit rows keep their AliasId (do not touch).
+        if (membershipToRemove.AliasId != null)
+        {
+            var aliasId = membershipToRemove.AliasId.Value;
+            membershipToRemove.AliasId = null;
+
+            var remainingMemberCount = await unitOfWork.GroupMembers
+                .CountAsync(gm => gm.GroupId == group.Id && gm.AliasId == aliasId && gm.DeletedAt == null);
+
+            if (remainingMemberCount == 0)
+            {
+                var alias = await unitOfWork.Aliases
+                    .FirstOrDefaultAsync(a => a.Id == aliasId && a.DeletedAt == null);
+
+                if (alias != null)
+                {
+                    alias.DeletedAt = timeProvider.GetUtcNow().ToUnixTimeSeconds();
+                }
+            }
+        }
 
         // Notify the removed user only if it's not a self-removal
         if (currentUser.Id != userToRemove.Id)

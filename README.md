@@ -33,6 +33,9 @@ Add expenses, pick a split, move on. SplitDuo handles the arithmetic — proport
 **Settlement-aware balances**
 Rather than a raw transaction log, SplitDuo computes net balances across the whole group and surfaces clear settlement suggestions — minimizing the number of transfers needed to settle up.
 
+**Alias mode for subgroup splitting**
+For groups where members act as sub-units (a couple sharing one slot, a household treated as one), turn on alias mode at creation. Members are grouped into named aliases and expenses split by subgroup instead of by person. Balances settle at the alias level.
+
 **AI-powered receipt scanning**
 Point your camera at a receipt and SplitDuo prefills the amount, date, and category. Works with any OpenAI-compatible endpoint — bring your own key, keep your data local.
 
@@ -43,7 +46,7 @@ The interface is designed for a phone screen first. Add it to your home screen a
 Add your partner via a secure, time-limited invitation link. No account needed on their end until they accept.
 
 **Data portability**
-Import existing data from Cospend or a SplitDuo CSV export. Export at any time. No lock-in.
+Import existing data from Cospend, Splitwise, or a SplitDuo CSV export. Alias-mode groups use a dedicated three-section CSV format. Export at any time. No lock-in.
 
 **Two-factor authentication**
 Each user can independently enable TOTP-based 2FA on their account.
@@ -142,7 +145,7 @@ The frontend is compiled to static files and served directly by the .NET backend
 cd sd-backend
 dotnet restore
 dotnet run --project SplitDuo.Api
-# → http://localhost:5000
+# → http://localhost:8080
 ```
 
 ### Frontend

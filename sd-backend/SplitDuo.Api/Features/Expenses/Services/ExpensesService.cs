@@ -108,6 +108,20 @@ public class ExpensesService(
 
         var splitsByExpense = splits.GroupBy(s => s.ExpenseId).ToDictionary(g => g.Key, g => g.ToList());
 
+        // Load alias splits for alias-mode groups
+        List<ExpenseAliasSplit>? aliasSplits = null;
+        Dictionary<int, List<ExpenseAliasSplit>>? aliasSplitsByExpense = null;
+
+        if (group.UseAliases)
+        {
+            aliasSplits = await unitOfWork.ExpenseAliasSplits
+                .Where(eas => expenseIds.Contains(eas.ExpenseId))
+                .Include(eas => eas.Alias)
+                .ToListAsync();
+
+            aliasSplitsByExpense = aliasSplits.GroupBy(s => s.ExpenseId).ToDictionary(g => g.Key, g => g.ToList());
+        }
+
         // Map to DTOs
         var expenseDtos = expenses.Select(expense =>
         {
@@ -115,7 +129,13 @@ public class ExpensesService(
                 ? splitsByExpense[expense.Id]
                 : [];
 
-            return new ExpenseDto(expense, expenseSplits);
+            List<ExpenseAliasSplit>? expenseAliasSplits = null;
+            if (aliasSplitsByExpense != null && aliasSplitsByExpense.ContainsKey(expense.Id))
+            {
+                expenseAliasSplits = aliasSplitsByExpense[expense.Id];
+            }
+
+            return new ExpenseDto(expense, expenseSplits, expenseAliasSplits);
         }).ToList();
 
         var pagination = new PaginationDto
@@ -189,117 +209,203 @@ public class ExpensesService(
             return Result<ExpenseDto>.BadRequest("Invalid expense payment mode");
         }
 
-        // Validate splits
-        if (request.Splits == null || request.Splits.Count == 0)
-            return Result<ExpenseDto>.BadRequest("At least one expense split is required");
-
-        // Check for duplicate users in splits
-        var userIds = request.Splits.Select(s => s.UserId).ToList();
-        var duplicateUsers = userIds.GroupBy(id => id).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
-        if (duplicateUsers.Any())
-            return Result<ExpenseDto>.BadRequest(
-                $"Duplicate users found in splits: {string.Join(", ", duplicateUsers)}");
-
-        var splitUsers = new List<User>();
-        var totalSplitAmount = 0m;
-
-        foreach (var split in request.Splits)
+        // Branch on alias mode vs individual mode
+        if (group.UseAliases)
         {
-            if (!Guid.TryParse(split.UserId, out var splitUserGuid))
-                return Result<ExpenseDto>.BadRequest($"Invalid user ID format in split: {split.UserId}");
+            // Alias-mode branch: validate and create alias splits
 
-            var splitUser = await unitOfWork.Users
-                .FirstOrDefaultAsync(u => u.Guid == splitUserGuid && u.DeletedAt == null);
+            // Reject if alias setup is not finalized
+            if (!group.AliasSetupFinalized)
+                return Result<ExpenseDto>.Conflict("Alias setup must be finalized before creating expenses");
 
-            if (splitUser == null)
-                return Result<ExpenseDto>.BadRequest($"User not found in split: {split.UserId}");
+            // Validate AliasSplits is non-null and non-empty
+            if (request.AliasSplits == null || request.AliasSplits.Count == 0)
+                return Result<ExpenseDto>.BadRequest("At least one alias split is required for alias-mode groups");
 
-            // Check if split user is member of the group
-            var isSplitUserMember = await unitOfWork.GroupMembers
-                .AnyAsync(gm => gm.GroupId == group.Id && gm.UserId == splitUser.Id && gm.DeletedAt == null);
-
-            if (!isSplitUserMember)
+            // Check for duplicate AliasId in splits
+            var aliasIds = request.AliasSplits.Select(s => s.AliasId).ToList();
+            var duplicateAliases = aliasIds.GroupBy(id => id).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
+            if (duplicateAliases.Any())
                 return Result<ExpenseDto>.BadRequest(
-                    $"User {splitUser.FirstName} {splitUser.LastName} is not a member of this group");
+                    $"Duplicate aliases found in splits: {string.Join(", ", duplicateAliases)}");
 
-            splitUsers.Add(splitUser);
+            var totalSplitAmount = 0m;
+            var validatedAliases = new Dictionary<Guid, Alias>();
 
-            // Validate split amount
-            if (split.SplitAmount <= 0)
-                return Result<ExpenseDto>.BadRequest("Split amount must be greater than zero");
-
-            totalSplitAmount += split.SplitAmount;
-        }
-
-        // Validate that splits sum up to total amount (allow for small rounding differences)
-        var difference = Math.Abs(totalSplitAmount - request.Amount);
-        if (difference > 0.001m)
-            return Result<ExpenseDto>.BadRequest(
-                $"Split amounts ({totalSplitAmount:F2}) do not sum up to expense amount ({request.Amount:F2})");
-
-        // Create expense
-        var expense = new Expense
-        {
-            GroupId = group.Id,
-            Title = request.Title,
-            Description = request.Description,
-            Amount = request.Amount,
-            PaidBy = paidByUser.Id,
-            ExpenseDate = expenseDate,
-            Category = category,
-            PaymentMode = paymentMode
-        };
-
-        // Create splits
-        for (var i = 0; i < request.Splits.Count; i++)
-        {
-            var split = request.Splits[i];
-            var splitUser = splitUsers[i];
-
-            var expenseSplit = new ExpenseSplit
+            foreach (var split in request.AliasSplits)
             {
-                UserId = splitUser.Id,
-                SplitAmount = split.SplitAmount
+                if (!Guid.TryParse(split.AliasId, out var aliasGuid))
+                    return Result<ExpenseDto>.BadRequest($"Invalid alias ID format in split: {split.AliasId}");
+
+                var alias = await unitOfWork.Aliases
+                    .FirstOrDefaultAsync(a => a.Guid == aliasGuid && a.DeletedAt == null);
+
+                if (alias == null)
+                    return Result<ExpenseDto>.BadRequest($"Alias not found or is deleted: {split.AliasId}");
+
+                if (alias.GroupId != group.Id)
+                    return Result<ExpenseDto>.BadRequest($"Alias {split.AliasId} does not belong to this group");
+
+                // Validate split amount
+                if (split.SplitAmount <= 0)
+                    return Result<ExpenseDto>.BadRequest("Split amount must be greater than zero");
+
+                validatedAliases[aliasGuid] = alias;
+                totalSplitAmount += split.SplitAmount;
+            }
+
+            // Validate that splits sum up to total amount (allow for small rounding differences)
+            var difference = Math.Abs(totalSplitAmount - request.Amount);
+            if (difference > 0.001m)
+                return Result<ExpenseDto>.BadRequest(
+                    $"Split amounts ({totalSplitAmount:F2}) do not sum up to expense amount ({request.Amount:F2})");
+
+            // Look up the payer's current alias to set PaidByAliasId
+            var payerMembership = await unitOfWork.GroupMembers
+                .FirstOrDefaultAsync(gm => gm.GroupId == group.Id && gm.UserId == paidByUser.Id && gm.DeletedAt == null);
+
+            // Create expense
+            var expense = new Expense
+            {
+                GroupId = group.Id,
+                Title = request.Title,
+                Description = request.Description,
+                Amount = request.Amount,
+                PaidBy = paidByUser.Id,
+                ExpenseDate = expenseDate,
+                Category = category,
+                PaymentMode = paymentMode,
+                PaidByAliasId = payerMembership?.AliasId
             };
 
-            expense.ExpenseSplits.Add(expenseSplit);
-        }
-
-        await unitOfWork.Expenses.AddAsync(expense);
-
-        // Set navigation properties for the DTO constructor
-        expense.Group = group;
-        expense.PaidByUser = paidByUser;
-
-        // Notify other group members
-        var otherMembersForCreate = await unitOfWork.GroupMembers
-            .Where(gm => gm.GroupId == group.Id && gm.UserId != currentUser.Id && gm.DeletedAt == null)
-            .Include(gm => gm.User)
-            .Where(gm => gm.User.DeletedAt == null)
-            .ToListAsync();
-
-        /*foreach (var member in otherMembersForCreate)
-        {
-            await notificationService.EnqueueAsync(emailTemplateProvider.Render(new ExpenseAddedModel
+            // Create alias splits (no ExpenseSplit rows) — reuse cached aliases
+            foreach (var split in request.AliasSplits)
             {
-                To = member.User.Email, RecipientFirstName = member.User.FirstName,
-                AddedByFirstName = currentUser.FirstName, AddedByLastName = currentUser.LastName,
-                GroupName = group.Name, GroupGuid = group.Guid,
-                ExpenseTitle = expense.Title, ExpenseAmount = expense.Amount, ExpenseDate = expense.ExpenseDate
-            }));
-        }*/
+                var aliasGuid = Guid.Parse(split.AliasId);
+                var alias = validatedAliases[aliasGuid];
 
-        // Map splits with users for the DTO
-        var splitsWithUsers = expense.ExpenseSplits.Select((split, index) =>
+                var expenseAliasSplit = new ExpenseAliasSplit
+                {
+                    AliasId = alias.Id,
+                    SplitAmount = split.SplitAmount
+                };
+
+                expense.ExpenseAliasSplits.Add(expenseAliasSplit);
+            }
+
+            await unitOfWork.Expenses.AddAsync(expense);
+
+            // Set navigation properties for the DTO constructor
+            expense.Group = group;
+            expense.PaidByUser = paidByUser;
+
+            // Map alias splits with Alias nav for DTO — reuse cached aliases
+            var aliasSplitsWithAlias = expense.ExpenseAliasSplits.Select(eas =>
+            {
+                eas.Alias = validatedAliases.Values.First(a => a.Id == eas.AliasId);
+                return eas;
+            }).ToList();
+
+            var expenseDto = new ExpenseDto(expense, null, aliasSplitsWithAlias);
+            return Result<ExpenseDto>.Success(expenseDto);
+        }
+        else
         {
-            split.User = splitUsers[index];
-            return split;
-        }).ToList();
+            // Individual-mode branch: existing per-user split logic (unchanged)
 
-        // Create response DTO
-        var expenseDto = new ExpenseDto(expense, splitsWithUsers);
+            // Validate splits
+            if (request.Splits == null || request.Splits.Count == 0)
+                return Result<ExpenseDto>.BadRequest("At least one expense split is required");
 
-        return Result<ExpenseDto>.Success(expenseDto);
+            // Check for duplicate users in splits
+            var userIds = request.Splits.Select(s => s.UserId).ToList();
+            var duplicateUsers = userIds.GroupBy(id => id).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
+            if (duplicateUsers.Any())
+                return Result<ExpenseDto>.BadRequest(
+                    $"Duplicate users found in splits: {string.Join(", ", duplicateUsers)}");
+
+            var splitUsers = new List<User>();
+            var totalSplitAmount = 0m;
+
+            foreach (var split in request.Splits)
+            {
+                if (!Guid.TryParse(split.UserId, out var splitUserGuid))
+                    return Result<ExpenseDto>.BadRequest($"Invalid user ID format in split: {split.UserId}");
+
+                var splitUser = await unitOfWork.Users
+                    .FirstOrDefaultAsync(u => u.Guid == splitUserGuid && u.DeletedAt == null);
+
+                if (splitUser == null)
+                    return Result<ExpenseDto>.BadRequest($"User not found in split: {split.UserId}");
+
+                // Check if split user is member of the group
+                var isSplitUserMember = await unitOfWork.GroupMembers
+                    .AnyAsync(gm => gm.GroupId == group.Id && gm.UserId == splitUser.Id && gm.DeletedAt == null);
+
+                if (!isSplitUserMember)
+                    return Result<ExpenseDto>.BadRequest(
+                        $"User {splitUser.FirstName} {splitUser.LastName} is not a member of this group");
+
+                splitUsers.Add(splitUser);
+
+                // Validate split amount
+                if (split.SplitAmount <= 0)
+                    return Result<ExpenseDto>.BadRequest("Split amount must be greater than zero");
+
+                totalSplitAmount += split.SplitAmount;
+            }
+
+            // Validate that splits sum up to total amount (allow for small rounding differences)
+            var diff = Math.Abs(totalSplitAmount - request.Amount);
+            if (diff > 0.001m)
+                return Result<ExpenseDto>.BadRequest(
+                    $"Split amounts ({totalSplitAmount:F2}) do not sum up to expense amount ({request.Amount:F2})");
+
+            // Create expense
+            var expense = new Expense
+            {
+                GroupId = group.Id,
+                Title = request.Title,
+                Description = request.Description,
+                Amount = request.Amount,
+                PaidBy = paidByUser.Id,
+                ExpenseDate = expenseDate,
+                Category = category,
+                PaymentMode = paymentMode
+            };
+
+            // Create splits
+            for (var i = 0; i < request.Splits.Count; i++)
+            {
+                var split = request.Splits[i];
+                var splitUser = splitUsers[i];
+
+                var expenseSplit = new ExpenseSplit
+                {
+                    UserId = splitUser.Id,
+                    SplitAmount = split.SplitAmount
+                };
+
+                expense.ExpenseSplits.Add(expenseSplit);
+            }
+
+            await unitOfWork.Expenses.AddAsync(expense);
+
+            // Set navigation properties for the DTO constructor
+            expense.Group = group;
+            expense.PaidByUser = paidByUser;
+
+            // Map splits with users for the DTO
+            var splitsWithUsers = expense.ExpenseSplits.Select((split, index) =>
+            {
+                split.User = splitUsers[index];
+                return split;
+            }).ToList();
+
+            // Create response DTO
+            var expenseDto = new ExpenseDto(expense, splitsWithUsers);
+            return Result<ExpenseDto>.Success(expenseDto);
+        }
     }
 
     public async Task<Result<ExpenseDto>> GetExpenseAsync(string groupId, string expenseId, Guid currentUserId)
@@ -343,7 +449,17 @@ public class ExpensesService(
             .Include(es => es.User)
             .ToListAsync();
 
-        var expenseDto = new ExpenseDto(expense, splits);
+        // Load alias splits if the group is alias-mode
+        List<ExpenseAliasSplit>? aliasSplits = null;
+        if (group.UseAliases)
+        {
+            aliasSplits = await unitOfWork.ExpenseAliasSplits
+                .Where(eas => eas.ExpenseId == expense.Id)
+                .Include(eas => eas.Alias)
+                .ToListAsync();
+        }
+
+        var expenseDto = new ExpenseDto(expense, splits, aliasSplits);
 
         return Result<ExpenseDto>.Success(expenseDto);
     }
@@ -438,11 +554,94 @@ public class ExpensesService(
 
             expense.PaidBy = paidByUser.Id;
             expense.PaidByUser = paidByUser;
+
+            // Re-derive PaidByAliasId from the new payer's current alias membership
+            // (PaidByAliasId is fixed at creation time, but if the payer changes, update it)
+            if (group.UseAliases)
+            {
+                var newPayerMembership = await unitOfWork.GroupMembers
+                    .FirstOrDefaultAsync(gm => gm.GroupId == group.Id && gm.UserId == paidByUser.Id && gm.DeletedAt == null);
+                expense.PaidByAliasId = newPayerMembership?.AliasId;
+            }
         }
 
         var newSplits = new List<ExpenseSplit>();
+        var newAliasSplits = new List<ExpenseAliasSplit>();
 
-        // Update splits if provided
+        // Determine if this expense currently has alias splits or user splits
+        var hasExistingAliasSplits = await unitOfWork.ExpenseAliasSplits
+            .AnyAsync(eas => eas.ExpenseId == expense.Id);
+
+        // Block switching split type (user ↔ alias)
+        if (hasExistingAliasSplits && request.Splits is { Count: > 0 })
+            return Result<ExpenseDto>.Conflict("Cannot change an alias-split expense to user splits");
+
+        if (!hasExistingAliasSplits && request.AliasSplits is { Count: > 0 })
+            return Result<ExpenseDto>.Conflict("Cannot change a user-split expense to alias splits");
+
+        // Update alias splits if provided (alias-mode)
+        if (request.AliasSplits is { Count: > 0 })
+        {
+            // Remove existing alias splits
+            var existingAliasSplits = await unitOfWork.ExpenseAliasSplits
+                .Where(eas => eas.ExpenseId == expense.Id)
+                .ToListAsync();
+
+            unitOfWork.ExpenseAliasSplits.RemoveRange(existingAliasSplits);
+
+            // Validate and create new alias splits
+            var aliasIds = request.AliasSplits.Select(s => s.AliasId).ToList();
+            var duplicateAliases = aliasIds.GroupBy(id => id).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
+            if (duplicateAliases.Count > 0)
+                return Result<ExpenseDto>.BadRequest(
+                    $"Duplicate aliases found in splits: {string.Join(", ", duplicateAliases)}");
+
+            var totalSplitAmount = 0m;
+
+            foreach (var split in request.AliasSplits)
+            {
+                if (!Guid.TryParse(split.AliasId, out var aliasGuid))
+                    return Result<ExpenseDto>.BadRequest($"Invalid alias ID format in split: {split.AliasId}");
+
+                var alias = await unitOfWork.Aliases
+                    .FirstOrDefaultAsync(a => a.Guid == aliasGuid && a.DeletedAt == null);
+
+                if (alias == null)
+                    return Result<ExpenseDto>.BadRequest($"Alias not found or is deleted: {split.AliasId}");
+
+                if (alias.GroupId != group.Id)
+                    return Result<ExpenseDto>.BadRequest($"Alias {split.AliasId} does not belong to this group");
+
+                if (split.SplitAmount <= 0)
+                    return Result<ExpenseDto>.BadRequest("Split amount must be greater than zero");
+
+                totalSplitAmount += split.SplitAmount;
+            }
+
+            var diff = Math.Abs(totalSplitAmount - expense.Amount);
+            if (diff > 0.001m)
+                return Result<ExpenseDto>.BadRequest(
+                    $"Split amounts ({totalSplitAmount:F2}) do not sum up to expense amount ({expense.Amount:F2})");
+
+            // Create new alias splits
+            foreach (var split in request.AliasSplits)
+            {
+                var aliasGuid = Guid.Parse(split.AliasId);
+                var alias = await unitOfWork.Aliases.FirstAsync(a => a.Guid == aliasGuid);
+
+                var expenseAliasSplit = new ExpenseAliasSplit
+                {
+                    ExpenseId = expense.Id,
+                    AliasId = alias.Id,
+                    SplitAmount = split.SplitAmount
+                };
+
+                unitOfWork.ExpenseAliasSplits.Add(expenseAliasSplit);
+                newAliasSplits.Add(expenseAliasSplit);
+            }
+        }
+
+        // Update user splits if provided (individual-mode)
         if (request.Splits is { Count: > 0 })
         {
             // Remove existing splits
@@ -453,7 +652,6 @@ public class ExpensesService(
             unitOfWork.ExpenseSplits.RemoveRange(existingSplits);
 
             // Validate and create new splits
-            // Check for duplicate users in splits
             var userIds = request.Splits.Select(s => s.UserId).ToList();
             var duplicateUsers = userIds.GroupBy(id => id).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
             if (duplicateUsers.Count > 0)
@@ -474,7 +672,6 @@ public class ExpensesService(
                 if (splitUser == null)
                     return Result<ExpenseDto>.BadRequest($"User not found in split: {split.UserId}");
 
-                // Check if split user is member of the group
                 var isSplitUserMember = await unitOfWork.GroupMembers
                     .AnyAsync(gm => gm.GroupId == group.Id && gm.UserId == splitUser.Id && gm.DeletedAt == null);
 
@@ -484,20 +681,17 @@ public class ExpensesService(
 
                 splitUsersByUserId[splitUser.Id] = splitUser;
 
-                // Validate split amount
                 if (split.SplitAmount <= 0)
                     return Result<ExpenseDto>.BadRequest("Split amount must be greater than zero");
 
                 totalSplitAmount += split.SplitAmount;
             }
 
-            // Validate that splits sum up to total amount (allow for small rounding differences)
-            var difference = Math.Abs(totalSplitAmount - expense.Amount);
-            if (difference > 0.001m)
+            var diff = Math.Abs(totalSplitAmount - expense.Amount);
+            if (diff > 0.001m)
                 return Result<ExpenseDto>.BadRequest(
                     $"Split amounts ({totalSplitAmount:F2}) do not sum up to expense amount ({expense.Amount:F2})");
 
-            // Create new splits
             foreach (var split in request.Splits)
             {
                 var splitUserGuid = Guid.Parse(split.UserId);
@@ -517,7 +711,7 @@ public class ExpensesService(
         }
 
         // Return with in-memory splits (avoids EF Core identity resolution issue)
-        var expenseDto = new ExpenseDto(expense, newSplits);
+        var expenseDto = new ExpenseDto(expense, newSplits, newAliasSplits);
         return Result<ExpenseDto>.Success(expenseDto);
     }
 

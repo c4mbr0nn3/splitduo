@@ -19,7 +19,10 @@ public class Group : AuditableAndSoftDeletableEntity
     public string? Description { get; set; }
 
     [Column("created_by")] public int CreatedBy { get; set; }
+    [Column("use_aliases")] public bool UseAliases { get; set; }
+    [Column("alias_setup_finalized")] public bool AliasSetupFinalized { get; set; }
 
     [ForeignKey(nameof(CreatedBy))] public virtual User? CreatedByUser { get; set; }
     public virtual ICollection<GroupMember> GroupMembers { get; set; } = new List<GroupMember>();
+    public virtual ICollection<Alias> Aliases { get; set; } = new List<Alias>();
 }

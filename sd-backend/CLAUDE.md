@@ -12,7 +12,7 @@
 
 ## Structure
 
-- `SplitDuo.Api/Features/` — vertical slices: `Authentication`, `Categories`, `Common`, `Expenses`, `Exports`, `Groups`, `Imports`, `Invitations`, `PaymentModes`, `Receipts`, `Settlements`, `Users`, `Ai`
+- `SplitDuo.Api/Features/` — vertical slices: `Aliases`, `Authentication`, `Categories`, `Common`, `Expenses`, `Exports`, `Groups`, `Imports`, `Invitations`, `PaymentModes`, `Receipts`, `Settlements`, `Users`, `Ai`
 - Each slice: `Controllers/`, `Dto/`, optionally `Services/`
 - `SplitDuo.Core/` — `Domain/` (entities, enums, interfaces), `Persistence/` (AppContext, UnitOfWork, interceptors), `Services/` (background jobs, imports, exports, email), `Options/` (IConfigureOptions pattern)
 - `Common/Result.cs` — Result<T> pattern
@@ -39,7 +39,14 @@ Manual mapping — no AutoMapper. DTOs have constructors that accept entities. *
 
 Base classes: `AuditableEntity` (int Id, Guid Guid, long CreatedAt, long UpdatedAt — Unix seconds) → `AuditableAndSoftDeletableEntity` (+ long? DeletedAt).
 
-Soft-deletable: User, Group, Expense, Settlement. Others: GroupMember, ExpenseSplit, RefreshToken, TwoFactorToken, Notification, InvitationToken, Import, AiCallLog.
+Soft-deletable: User, Group, Expense, Settlement, Alias. Others: GroupMember, ExpenseSplit, ExpenseAliasSplit, RefreshToken, TwoFactorToken, Notification, InvitationToken, Import, AiCallLog.
+
+Key conventions:
+- Tokens (refresh, 2FA, invitation) stored as SHA256 hash, never plaintext
+- `InvitationToken`: 48h expiry, `IsPending` computed, accept resolves ALL pending invitations for that email
+- `Import.TempFile` (byte[]) cleared after processing
+- `RefreshToken`: rotation chain via `ReplacedByToken`, reuse detection revokes all user tokens
+- **Alias mode**: `Group.UseAliases` (immutable after creation) + `Group.AliasSetupFinalized` (admin-locked after setup). `Alias` (name, optional `IsSingleton`) groups `GroupMember`s; `Expense.PaidByAliasId` + `ExpenseAliasSplit` rows drive alias-level balances. Removing a member from an alias auto-creates a singleton alias. Expenses blocked until finalized.
 
 Key conventions:
 - Tokens (refresh, 2FA, invitation) stored as SHA256 hash, never plaintext
@@ -47,7 +54,7 @@ Key conventions:
 - `Import.TempFile` (byte[]) cleared after processing
 - `RefreshToken`: rotation chain via `ReplacedByToken`, reuse detection revokes all user tokens
 
-Enums: `GlobalRole` (BaseUser=1, SystemAdmin=2), `GroupRole` (Member, Admin), `ExpenseCategory` (11 values), `PaymentMode` (5 values), `ImportStatus`, `ImportType` (Cospend, SplitDuo), `EmailTemplate` (11 values).
+Enums: `GlobalRole` (BaseUser=1, SystemAdmin=2), `GroupRole` (Member, Admin), `ExpenseCategory` (11 values), `PaymentMode` (5 values), `ImportStatus`, `ImportType` (Cospend, SplitDuo, Splitwise, SplitDuoAlias), `EmailTemplate` (11 values).
 
 EF interceptors: `AuditSaveChangesInterceptor` (auto CreatedAt/UpdatedAt), `SoftDeleteSaveChangesInterceptor` (Delete → Modified + DeletedAt).
 
@@ -85,9 +92,9 @@ In-memory job store, max 5 concurrent threads.
 
 ## Import/Export
 
-Import (two-phase): Analyze (parse CSV, return unmatched) → Map (user provides mappings) → Process (Quartz job, background). Factory resolves importer by ImportType (keyed DI). `AbstractImportService` base, `CospendImportsService`/`SplitDuoImportsService` concrete.
+Import (two-phase): Analyze (parse CSV, return unmatched) → Map (user provides mappings) → Process (Quartz job, background). Factory resolves importer by ImportType (keyed DI). `AbstractImportService` base; concrete: `CospendImportsService`, `SplitDuoImportsService`, `SplitwiseImportsService`, `SplitDuoAliasImportsService` (three-section CSV: aliases, members, expenses; `SplitDuoAliasCsvParser`).
 
-Export: CSV only, CsvHelper. Owers encoded as `email:amount|email:amount`.
+Export: CSV only, CsvHelper. Normal mode: owers encoded as `email:amount|email:amount`. Alias mode (`group.UseAliases`): three-section CSV (aliases, members, expenses); alias splits encoded as `aliasName:amount|aliasName:amount`.
 
 ## Email
 

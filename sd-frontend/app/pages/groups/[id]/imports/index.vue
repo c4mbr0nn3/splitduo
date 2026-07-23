@@ -148,6 +148,7 @@ const importStatusMap = {
 const importTypeMap = {
   1: 'Cospend',
   2: 'SplitDuo',
+  4: 'SplitDuo Alias',
 }
 
 const getStatusLabel = (statusId) => {

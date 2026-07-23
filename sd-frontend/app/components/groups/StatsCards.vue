@@ -1,5 +1,8 @@
 <template>
-  <UCard variant="soft">
+  <UCard
+    variant="soft"
+    class="h-full"
+  >
     <div class="space-y-4">
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div class="flex items-center gap-3">
@@ -80,6 +83,10 @@ defineProps({
   suggestion: {
     type: Object,
     default: null,
+  },
+  isAliasMode: {
+    type: Boolean,
+    default: false,
   },
 })
 </script>

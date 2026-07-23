@@ -12,6 +12,7 @@ public class UpdateExpenseRequestDto
     public int CategoryId { get; set; }
     public int PaymentModeId { get; set; }
     public List<UpdateExpenseSplitDto>? Splits { get; set; }
+    public List<CreateExpenseAliasSplitDto>? AliasSplits { get; set; }
 }
 
 public class UpdateExpenseSplitDto

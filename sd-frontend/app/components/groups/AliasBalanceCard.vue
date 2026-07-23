@@ -1,0 +1,86 @@
+<template>
+  <UCard variant="outline">
+    <div class="flex items-start justify-between">
+      <div class="flex items-center gap-3 min-w-0">
+        <UAvatar
+          icon="i-lucide-users"
+          size="md"
+          class="shrink-0 text-primary bg-primary/10"
+          :alt="balance.aliasName"
+        />
+        <div class="min-w-0">
+          <p class="font-semibold text-primary truncate">
+            {{ balance.aliasName }}
+          </p>
+          <div
+            v-if="balance.members?.length"
+            class="flex items-center gap-1.5 flex-wrap mt-1"
+          >
+            <UAvatar
+              v-for="member in visibleMembers"
+              :key="member.id"
+              :alt="`${member.firstName} ${member.lastName || ''}`.trim()"
+              icon="i-lucide-user"
+              size="xs"
+              class="shrink-0"
+            />
+            <span
+              v-if="balance.members.length > 3"
+              class="text-xs text-muted"
+            >
+              +{{ balance.members.length - 3 }}
+            </span>
+          </div>
+        </div>
+      </div>
+      <span
+        class="font-bold text-lg shrink-0"
+        :class="balance.balance >= 0 ? 'text-success' : 'text-error'"
+      >
+        {{ balance.balance >= 0 ? '+' : '' }}{{ formatAmount(balance.balance) }} €
+      </span>
+    </div>
+    <div class="grid grid-cols-2 gap-4 text-center mt-3">
+      <div>
+        <p class="text-xs text-dimmed mb-1">
+          Paid
+        </p>
+        <p class="font-semibold text-success sd-tabular">
+          {{ formatAmount(balance.totalPaid) }} €
+        </p>
+      </div>
+      <div>
+        <p class="text-xs text-dimmed mb-1">
+          Owes
+        </p>
+        <p class="font-semibold text-warning sd-tabular">
+          {{ formatAmount(balance.totalOwed) }} €
+        </p>
+      </div>
+    </div>
+    <div
+      v-if="balance.isSingleton"
+      class="mt-3"
+    >
+      <UBadge
+        variant="soft"
+        color="secondary"
+        label="singleton"
+        size="xs"
+      />
+    </div>
+  </UCard>
+</template>
+
+<script setup>
+const props = defineProps({
+  balance: {
+    type: Object,
+    required: true,
+  },
+})
+
+const visibleMembers = computed(() => {
+  return props.balance.members?.slice(0, 3) || []
+})
+</script>

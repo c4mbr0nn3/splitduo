@@ -18,7 +18,7 @@ export default function useApi() {
   }
 
   const fetchOnce = (endpoint, options) =>
-    $fetch(`${apiConfig.baseURL}${endpoint}`, {
+    $fetch.raw(`${apiConfig.baseURL}${endpoint}`, {
       headers: {
         // 'Content-Type': 'application/json',
         ...getAuthHeaders(),
@@ -27,8 +27,8 @@ export default function useApi() {
       ...options,
     })
 
-  // Base request function with error handling
-  const request = async (endpoint, options = {}) => {
+  // Base request function with error handling — returns raw response
+  const requestRaw = async (endpoint, options = {}) => {
     try {
       return await fetchOnce(endpoint, options)
     }
@@ -62,6 +62,11 @@ export default function useApi() {
     }
   }
 
+  // Thin wrapper that returns parsed body only
+  const request = async (endpoint, options = {}) => {
+    return (await requestRaw(endpoint, options))._data
+  }
+
   return {
     get: (endpoint, params) =>
       request(endpoint, { method: 'GET', params }),
@@ -74,5 +79,11 @@ export default function useApi() {
 
     delete: endpoint =>
       request(endpoint, { method: 'DELETE' }),
+
+    // For binary downloads that need response headers (Content-Disposition)
+    getBlob: async (endpoint, params) => {
+      const response = await requestRaw(endpoint, { method: 'GET', params, responseType: 'blob' })
+      return { blob: response._data, headers: response.headers }
+    },
   }
 }

@@ -16,4 +16,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<TwoFactorToken> TwoFactorTokens { get; set; }
     public DbSet<InvitationToken> InvitationTokens { get; set; }
     public DbSet<AiCallLog> AiCallLogs { get; set; }
+    public DbSet<Alias> Aliases { get; set; }
+    public DbSet<ExpenseAliasSplit> ExpenseAliasSplits { get; set; }
 }
