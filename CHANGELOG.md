@@ -4,6 +4,11 @@ All notable changes to SplitDuo will be documented in this file.
 
 Generated with [git-cliff](https://git-cliff.org) from Conventional Commits.
 
+## [1.6.0] - 2026-07-23
+
+### Features
+
+- Group alias
 ## [1.5.0] - 2026-07-20
 
 ### Features
