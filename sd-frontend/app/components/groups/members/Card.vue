@@ -15,6 +15,12 @@
           <p class="text-sm text-muted truncate">
             {{ member.email }}
           </p>
+          <p
+            v-if="member.aliasName"
+            class="text-sm text-secondary truncate"
+          >
+            {{ member.aliasName }}
+          </p>
         </div>
       </div>
       <UBadge

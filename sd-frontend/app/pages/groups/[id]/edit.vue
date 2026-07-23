@@ -4,6 +4,7 @@
     submit-label="Update"
     :initial-data="initialData"
     :loading="isLoading"
+    disabled-aliases
     @submit="onSubmit"
     @cancel="onCancel"
   />
@@ -18,6 +19,7 @@ const { currentGroup, fetchGroup, updateGroup, isLoading } = useGroups()
 const initialData = computed(() => ({
   name: currentGroup.value?.name || '',
   description: currentGroup.value?.description || '',
+  useAliases: currentGroup.value?.useAliases || false,
 }))
 
 async function onSubmit(formData) {

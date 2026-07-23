@@ -11,6 +11,7 @@
       <GroupsStatsCards
         :total-expenses="groupStats.totalExpenses"
         :group-total="groupStats.totalAmount"
+        :is-alias-mode="isAliasMode"
       />
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 items-stretch">
@@ -31,16 +32,32 @@
           class="lg:col-span-2"
           :balances="groupStats.balances"
         />
-        <div class="lg:col-span-1">
+        <div
+          v-if="groupStats.balances?.length"
+          class="lg:col-span-1"
+        >
           <h3 class="text-lg font-semibold text-primary mb-3">
-            Member Balances
+            {{ isAliasMode ? 'Alias Balances' : 'Member Balances' }}
           </h3>
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
-            <GroupsMemberBalanceCard
-              v-for="balance in groupStats.balances"
-              :key="balance.userId"
-              :balance="balance"
-            />
+            <template
+              v-if="isAliasMode"
+            >
+              <GroupsAliasBalanceCard
+                v-for="balance in groupStats.balances"
+                :key="balance.aliasId"
+                :balance="balance"
+              />
+            </template>
+            <template
+              v-else
+            >
+              <GroupsMemberBalanceCard
+                v-for="balance in groupStats.balances"
+                :key="balance.userId"
+                :balance="balance"
+              />
+            </template>
           </div>
         </div>
       </div>
@@ -59,7 +76,7 @@ const props = defineProps({
   groupId: { type: String, required: true },
 })
 
-const { groupStats, fetchGroupStats, isLoading: isLoadingStats } = useBalances(props.groupId)
+const { groupStats, fetchGroupStats, isLoading: isLoadingStats, isAliasMode } = useBalances(props.groupId)
 
 onMounted(async () => {
   await fetchGroupStats()

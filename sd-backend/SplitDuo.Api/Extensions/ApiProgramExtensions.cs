@@ -15,6 +15,7 @@ using SplitDuo.Api.Features.Authentication.Services;
 using SplitDuo.Api.Features.Receipts.Services;
 using SplitDuo.Api.Features.Common.Services;
 using SplitDuo.Api.Features.Expenses.Services;
+using SplitDuo.Api.Features.Aliases.Services;
 using SplitDuo.Api.Features.Groups.Services;
 using SplitDuo.Api.Features.Invitations.Services;
 using SplitDuo.Core.Domain.Enums;
@@ -43,6 +44,7 @@ public static class ApiProgramExtensions
         builder.Services.AddScoped<IUserContextService, UserContextService>();
         builder.Services.AddScoped<IUsersService, UsersService>();
         builder.Services.AddScoped<IGroupsService, GroupsService>();
+        builder.Services.AddScoped<IAliasesService, AliasesService>();
         builder.Services.AddScoped<IInvitationsService, InvitationsService>();
         builder.Services.AddScoped<IExpensesService, ExpensesService>();
         builder.Services.AddScoped<IBalancesService, BalancesService>();
@@ -53,6 +55,7 @@ public static class ApiProgramExtensions
         builder.Services.AddKeyedScoped<IImportsService, CospendImportsService>(ImportType.Cospend);
         builder.Services.AddKeyedScoped<IImportsService, SplitDuoImportsService>(ImportType.SplitDuo);
         builder.Services.AddKeyedScoped<IImportsService, SplitwiseImportsService>(ImportType.Splitwise);
+        builder.Services.AddKeyedScoped<IImportsService, SplitDuoAliasImportsService>(ImportType.SplitDuoAlias);
 
         // Register factories
         builder.Services.AddScoped<IImportServiceFactory, ImportServiceFactory>();
@@ -109,7 +112,7 @@ public static class ApiProgramExtensions
         {
             app.MapOpenApi();
             app.MapScalarApiReference();
-            app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+            app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().WithExposedHeaders("Content-Disposition"));
         }
 
         app.UseHttpsRedirection();

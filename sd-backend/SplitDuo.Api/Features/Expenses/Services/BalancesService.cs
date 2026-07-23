@@ -3,6 +3,7 @@ using SplitDuo.Api.Features.Common.Dto;
 using SplitDuo.Api.Features.Expenses.Dto;
 using SplitDuo.Api.Features.Groups.Dto;
 using SplitDuo.Core.Common;
+using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Domain.Enums;
 using SplitDuo.Core.Persistence;
 
@@ -11,7 +12,9 @@ namespace SplitDuo.Api.Features.Expenses.Services;
 public interface IBalancesService
 {
     Task<Result<List<BalanceDto>>> GetBalancesAsync(string groupId, Guid currentUserId);
+    Task<Result<List<AliasBalanceDto>>> GetAliasBalancesAsync(string groupId, Guid currentUserId);
     Task<Result<BalanceSummaryDto>> GetBalanceSummaryAsync(string groupId, Guid currentUserId);
+    Task<Result<AliasBalanceSummaryDto>> GetAliasBalanceSummaryAsync(string groupId, Guid currentUserId);
     Task<Result<GroupStatsDto>> GetGroupStatsAsync(string groupId, Guid currentUserId);
 }
 
@@ -47,6 +50,33 @@ public class BalancesService(
         return Result<List<BalanceDto>>.Success(balances);
     }
 
+    public async Task<Result<List<AliasBalanceDto>>> GetAliasBalancesAsync(string groupId, Guid currentUserId)
+    {
+        if (!Guid.TryParse(groupId, out var groupGuid))
+            return Result<List<AliasBalanceDto>>.BadRequest("Invalid group ID format");
+
+        var currentUser = await unitOfWork.Users
+            .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
+
+        if (currentUser == null)
+            return Result<List<AliasBalanceDto>>.Unauthorized("User not authenticated");
+
+        var group = await unitOfWork.Groups
+            .FirstOrDefaultAsync(g => g.Guid == groupGuid && g.DeletedAt == null);
+
+        if (group == null)
+            return Result<List<AliasBalanceDto>>.NotFound("Group not found");
+
+        var isMember = await unitOfWork.GroupMembers
+            .AnyAsync(gm => gm.GroupId == group.Id && gm.UserId == currentUser.Id && gm.DeletedAt == null);
+
+        if (!isMember)
+            return Result<List<AliasBalanceDto>>.Forbidden("Access to this group is not allowed");
+
+        var balances = await CalculateAliasBalancesAsync(group.Id);
+        return Result<List<AliasBalanceDto>>.Success(balances);
+    }
+
     public async Task<Result<GroupStatsDto>> GetGroupStatsAsync(string groupId, Guid currentUserId)
     {
         if (!Guid.TryParse(groupId, out var groupGuid))
@@ -77,7 +107,20 @@ public class BalancesService(
             .Where(e => e.GroupId == group.Id && e.DeletedAt == null)
             .SumAsync(e => (decimal?)e.Amount) ?? 0m;
 
-        var balances = await CalculateBalancesAsync(group.Id);
+        List<BalanceDto> balances;
+        if (group.UseAliases)
+        {
+            var aliasBalances = await CalculateAliasBalancesAsync(group.Id);
+            // For GroupStatsDto, we still need BalanceDto list — convert alias balances to a flat
+            // per-user representation for backward compatibility, or leave empty.
+            // The GroupStatsDto is used by the frontend stats view; for alias-mode groups,
+            // the per-user balance is not meaningful. Return empty list.
+            balances = [];
+        }
+        else
+        {
+            balances = await CalculateBalancesAsync(group.Id);
+        }
 
         var categoryData = await unitOfWork.Expenses
             .Where(e => e.GroupId == group.Id && e.DeletedAt == null)
@@ -159,6 +202,42 @@ public class BalancesService(
         return Result<BalanceSummaryDto>.Success(summary);
     }
 
+    public async Task<Result<AliasBalanceSummaryDto>> GetAliasBalanceSummaryAsync(string groupId, Guid currentUserId)
+    {
+        if (!Guid.TryParse(groupId, out var groupGuid))
+            return Result<AliasBalanceSummaryDto>.BadRequest("Invalid group ID format");
+
+        var currentUser = await unitOfWork.Users
+            .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
+
+        if (currentUser == null)
+            return Result<AliasBalanceSummaryDto>.Unauthorized("User not authenticated");
+
+        var group = await unitOfWork.Groups
+            .FirstOrDefaultAsync(g => g.Guid == groupGuid && g.DeletedAt == null);
+
+        if (group == null)
+            return Result<AliasBalanceSummaryDto>.NotFound("Group not found");
+
+        var isMember = await unitOfWork.GroupMembers
+            .AnyAsync(gm => gm.GroupId == group.Id && gm.UserId == currentUser.Id && gm.DeletedAt == null);
+
+        if (!isMember)
+            return Result<AliasBalanceSummaryDto>.Forbidden("Access to this group is not allowed");
+
+        var balances = await CalculateAliasBalancesAsync(group.Id);
+        var suggestions = GenerateAliasSettlementSuggestions(balances);
+
+        var summary = new AliasBalanceSummaryDto
+        {
+            GroupId = groupId,
+            Balances = balances,
+            Suggestions = suggestions
+        };
+
+        return Result<AliasBalanceSummaryDto>.Success(summary);
+    }
+
     private async Task<List<BalanceDto>> CalculateBalancesAsync(int groupId)
     {
         // Get all group members
@@ -225,6 +304,138 @@ public class BalancesService(
         return balances.Values.OrderBy(b => b.User.FirstName).ThenBy(b => b.User.LastName).ToList();
     }
 
+    /// <summary>
+    /// Calculates alias-level balances for alias-mode groups.
+    ///
+    /// TotalPaid per alias = sum of Expense.Amount over non-deleted expenses where
+    /// Expense.PaidByAliasId == alias.Id. This captures the payer's alias at the time
+    /// of payment, making paid/owed symmetric and historically accurate.
+    ///
+    /// For expenses with null PaidByAliasId (backward compat with pre-migration data),
+    /// falls back to current-membership attribution: looks up the payer's current
+    /// GroupMember.AliasId. This preserves balance correctness for any expenses created
+    /// before the PaidByAliasId migration.
+    ///
+    /// TotalOwed per alias = sum of ExpenseAliasSplit.SplitAmount for that alias
+    /// (over non-deleted expenses). This naturally includes soft-deleted aliases
+    /// referenced by historical splits.
+    /// </summary>
+    private async Task<List<AliasBalanceDto>> CalculateAliasBalancesAsync(int groupId)
+    {
+        // Load all non-deleted aliases in the group (include members → users)
+        var aliases = await unitOfWork.Aliases
+            .Where(a => a.GroupId == groupId && a.DeletedAt == null)
+            .Include(a => a.Members)
+            .ThenInclude(m => m.User)
+            .ToListAsync();
+
+        // Also load soft-deleted aliases that are referenced by non-deleted ExpenseAliasSplit rows
+        // (for balance integrity — EXT-003 / edge case "balance with soft-deleted alias")
+        var softDeletedAliasIds = await unitOfWork.ExpenseAliasSplits
+            .Where(eas => eas.Expense.DeletedAt == null)
+            .Select(eas => eas.AliasId)
+            .Distinct()
+            .ToListAsync();
+
+        var softDeletedAliasesWithSplits = await unitOfWork.Aliases
+            .Where(a => a.GroupId == groupId && a.DeletedAt != null && softDeletedAliasIds.Contains(a.Id))
+            .Include(a => a.Members)
+            .ThenInclude(m => m.User)
+            .ToListAsync();
+
+        var allAliases = aliases.Concat(softDeletedAliasesWithSplits).ToList();
+
+        // Build a dictionary keyed by alias Id
+        var aliasBalances = new Dictionary<int, AliasBalanceDto>();
+
+        foreach (var alias in allAliases)
+        {
+            var activeMembers = alias.Members.Where(m => m.DeletedAt == null).ToList();
+
+            aliasBalances[alias.Id] = new AliasBalanceDto
+            {
+                AliasId = alias.Guid.ToString(),
+                AliasName = alias.Name,
+                Balance = 0,
+                TotalPaid = 0,
+                TotalOwed = 0,
+                IsSingleton = alias.IsSingleton ?? false,
+                Members = activeMembers.Select(m => new UserBasicInfoDto
+                {
+                    Id = m.User.Guid.ToString(),
+                    FirstName = m.User.FirstName,
+                    LastName = m.User.LastName
+                }).ToList()
+            };
+        }
+
+        // Get all non-deleted expenses for the group
+        var expenses = await unitOfWork.Expenses
+            .Where(e => e.GroupId == groupId && e.DeletedAt == null)
+            .ToListAsync();
+
+        // Get current alias membership for fallback (expenses with null PaidByAliasId)
+        var currentMemberships = await unitOfWork.GroupMembers
+            .Where(gm => gm.GroupId == groupId && gm.DeletedAt == null && gm.AliasId != null)
+            .Select(gm => new { gm.UserId, gm.AliasId })
+            .ToListAsync();
+
+        var userAliasMap = currentMemberships
+            .Where(x => x.AliasId != null)
+            .ToDictionary(x => x.UserId, x => x.AliasId!.Value);
+
+        // TotalPaid per alias: use PaidByAliasId (historical), fall back to current membership
+        foreach (var expense in expenses)
+        {
+            int? payerAliasId;
+
+            if (expense.PaidByAliasId != null)
+            {
+                // Historical attribution — use the alias at payment time
+                payerAliasId = expense.PaidByAliasId;
+            }
+            else if (userAliasMap.TryGetValue(expense.PaidBy, out var currentAliasId))
+            {
+                // Fallback for pre-migration data — use current membership
+                payerAliasId = currentAliasId;
+            }
+            else
+            {
+                continue;
+            }
+
+            if (payerAliasId.HasValue && aliasBalances.ContainsKey(payerAliasId.Value))
+            {
+                aliasBalances[payerAliasId.Value].TotalPaid += expense.Amount;
+            }
+        }
+
+        // TotalOwed per alias: sum of ExpenseAliasSplit.SplitAmount for that alias
+        // (over non-deleted expenses). This naturally includes soft-deleted aliases
+        // referenced by historical splits.
+        var expenseIds = expenses.Select(e => e.Id).ToHashSet();
+
+        var aliasSplits = await unitOfWork.ExpenseAliasSplits
+            .Where(eas => expenseIds.Contains(eas.ExpenseId))
+            .ToListAsync();
+
+        foreach (var split in aliasSplits)
+        {
+            if (aliasBalances.ContainsKey(split.AliasId))
+            {
+                aliasBalances[split.AliasId].TotalOwed += split.SplitAmount;
+            }
+        }
+
+        // Calculate final balances
+        foreach (var balance in aliasBalances.Values)
+        {
+            balance.Balance = balance.TotalPaid - balance.TotalOwed;
+        }
+
+        return aliasBalances.Values.OrderBy(b => b.AliasName).ToList();
+    }
+
     private static List<BalanceSuggestionDto> GenerateSettlementSuggestions(List<BalanceDto> balances)
     {
         var suggestions = new List<BalanceSuggestionDto>();
@@ -269,6 +480,52 @@ public class BalancesService(
             {
                 debtorQueue.Enqueue((debtor, remainingDebtor));
             }
+        }
+
+        return suggestions;
+    }
+
+    /// <summary>
+    /// Generates alias-level settlement suggestions using the same greedy algorithm
+    /// as the per-user version, but operating on AliasBalanceDto.
+    /// </summary>
+    private static List<AliasSettlementSuggestionDto> GenerateAliasSettlementSuggestions(List<AliasBalanceDto> balances)
+    {
+        var suggestions = new List<AliasSettlementSuggestionDto>();
+
+        var creditors = balances.Where(b => b.Balance > 0.01m).OrderByDescending(b => b.Balance).ToList();
+        var debtors = balances.Where(b => b.Balance < -0.01m).OrderBy(b => b.Balance).ToList();
+
+        var creditorQueue = new Queue<(AliasBalanceDto balance, decimal remaining)>(
+            creditors.Select(c => (c, c.Balance)));
+        var debtorQueue = new Queue<(AliasBalanceDto balance, decimal remaining)>(
+            debtors.Select(d => (d, Math.Abs(d.Balance))));
+
+        while (creditorQueue.Count > 0 && debtorQueue.Count > 0)
+        {
+            var (creditor, creditorAmount) = creditorQueue.Dequeue();
+            var (debtor, debtorAmount) = debtorQueue.Dequeue();
+
+            var settlementAmount = Math.Min(creditorAmount, debtorAmount);
+
+            suggestions.Add(new AliasSettlementSuggestionDto
+            {
+                FromAliasId = debtor.AliasId,
+                ToAliasId = creditor.AliasId,
+                FromAliasName = debtor.AliasName,
+                ToAliasName = creditor.AliasName,
+                Amount = Math.Round(settlementAmount, 2),
+                Description = $"{debtor.AliasName} owes {creditor.AliasName} {settlementAmount:F2}"
+            });
+
+            var remainingCreditor = creditorAmount - settlementAmount;
+            var remainingDebtor = debtorAmount - settlementAmount;
+
+            if (remainingCreditor > 0.01m)
+                creditorQueue.Enqueue((creditor, remainingCreditor));
+
+            if (remainingDebtor > 0.01m)
+                debtorQueue.Enqueue((debtor, remainingDebtor));
         }
 
         return suggestions;

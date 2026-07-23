@@ -17,6 +17,8 @@ public interface IUnitOfWork : IDisposable, IAsyncDisposable
     DbSet<TwoFactorToken> TwoFactorTokens { get; }
     DbSet<InvitationToken> InvitationTokens { get; }
     DbSet<AiCallLog> AiCallLogs { get; }
+    DbSet<Alias> Aliases { get; }
+    DbSet<ExpenseAliasSplit> ExpenseAliasSplits { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task BeginTransactionAsync(CancellationToken cancellationToken = default);
@@ -39,6 +41,8 @@ public class UnitOfWork(AppDbContext context) : IUnitOfWork
     public DbSet<TwoFactorToken> TwoFactorTokens => context.TwoFactorTokens;
     public DbSet<InvitationToken> InvitationTokens => context.InvitationTokens;
     public DbSet<AiCallLog> AiCallLogs => context.AiCallLogs;
+    public DbSet<Alias> Aliases => context.Aliases;
+    public DbSet<ExpenseAliasSplit> ExpenseAliasSplits => context.ExpenseAliasSplits;
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

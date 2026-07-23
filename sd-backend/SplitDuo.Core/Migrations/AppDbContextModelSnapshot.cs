@@ -17,7 +17,7 @@ namespace SplitDuo.Core.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.9")
+                .HasAnnotation("ProductVersion", "10.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -78,6 +78,56 @@ namespace SplitDuo.Core.Migrations
                     b.ToTable("ai_call_logs");
                 });
 
+            modelBuilder.Entity("SplitDuo.Core.Domain.Entities.Alias", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("created_at");
+
+                    b.Property<long?>("DeletedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<int>("GroupId")
+                        .HasColumnType("integer")
+                        .HasColumnName("group_id");
+
+                    b.Property<Guid>("Guid")
+                        .HasColumnType("uuid")
+                        .HasColumnName("guid");
+
+                    b.Property<bool?>("IsSingleton")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_singleton");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.Property<long>("UpdatedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeletedAt");
+
+                    b.HasIndex("GroupId");
+
+                    b.HasIndex("Guid");
+
+                    b.ToTable("aliases");
+                });
+
             modelBuilder.Entity("SplitDuo.Core.Domain.Entities.Expense", b =>
                 {
                     b.Property<int>("Id")
@@ -127,6 +177,10 @@ namespace SplitDuo.Core.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("paid_by");
 
+                    b.Property<int?>("PaidByAliasId")
+                        .HasColumnType("integer")
+                        .HasColumnName("paid_by_alias_id");
+
                     b.Property<int>("PaymentModeId")
                         .HasColumnType("integer")
                         .HasColumnName("payment_mode_id");
@@ -150,6 +204,8 @@ namespace SplitDuo.Core.Migrations
 
                     b.HasIndex("ImportId");
 
+                    b.HasIndex("PaidByAliasId");
+
                     b.HasIndex("GroupId", "ExpenseDate");
 
                     b.HasIndex("PaidBy", "ExpenseDate");
@@ -159,6 +215,44 @@ namespace SplitDuo.Core.Migrations
                     b.HasIndex("GroupId", "PaymentModeId", "ExpenseDate");
 
                     b.ToTable("expenses");
+                });
+
+            modelBuilder.Entity("SplitDuo.Core.Domain.Entities.ExpenseAliasSplit", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AliasId")
+                        .HasColumnType("integer")
+                        .HasColumnName("alias_id");
+
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("created_at");
+
+                    b.Property<int>("ExpenseId")
+                        .HasColumnType("integer")
+                        .HasColumnName("expense_id");
+
+                    b.Property<decimal>("SplitAmount")
+                        .HasColumnType("numeric")
+                        .HasColumnName("split_amount");
+
+                    b.Property<long>("UpdatedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AliasId");
+
+                    b.HasIndex("ExpenseId");
+
+                    b.ToTable("expense_alias_splits");
                 });
 
             modelBuilder.Entity("SplitDuo.Core.Domain.Entities.ExpenseSplit", b =>
@@ -208,6 +302,10 @@ namespace SplitDuo.Core.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("AliasSetupFinalized")
+                        .HasColumnType("boolean")
+                        .HasColumnName("alias_setup_finalized");
+
                     b.Property<long>("CreatedAt")
                         .HasColumnType("bigint")
                         .HasColumnName("created_at");
@@ -239,6 +337,10 @@ namespace SplitDuo.Core.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("updated_at");
 
+                    b.Property<bool>("UseAliases")
+                        .HasColumnType("boolean")
+                        .HasColumnName("use_aliases");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedBy");
@@ -258,6 +360,10 @@ namespace SplitDuo.Core.Migrations
                         .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AliasId")
+                        .HasColumnType("integer")
+                        .HasColumnName("alias_id");
 
                     b.Property<long>("CreatedAt")
                         .HasColumnType("bigint")
@@ -284,6 +390,8 @@ namespace SplitDuo.Core.Migrations
                         .HasColumnName("user_id");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AliasId");
 
                     b.HasIndex("DeletedAt");
 
@@ -777,6 +885,17 @@ namespace SplitDuo.Core.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("SplitDuo.Core.Domain.Entities.Alias", b =>
+                {
+                    b.HasOne("SplitDuo.Core.Domain.Entities.Group", "Group")
+                        .WithMany("Aliases")
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Group");
+                });
+
             modelBuilder.Entity("SplitDuo.Core.Domain.Entities.Expense", b =>
                 {
                     b.HasOne("SplitDuo.Core.Domain.Entities.Group", "Group")
@@ -795,11 +914,36 @@ namespace SplitDuo.Core.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("SplitDuo.Core.Domain.Entities.Alias", "PaidByAlias")
+                        .WithMany()
+                        .HasForeignKey("PaidByAliasId");
+
                     b.Navigation("Group");
 
                     b.Navigation("Import");
 
+                    b.Navigation("PaidByAlias");
+
                     b.Navigation("PaidByUser");
+                });
+
+            modelBuilder.Entity("SplitDuo.Core.Domain.Entities.ExpenseAliasSplit", b =>
+                {
+                    b.HasOne("SplitDuo.Core.Domain.Entities.Alias", "Alias")
+                        .WithMany()
+                        .HasForeignKey("AliasId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SplitDuo.Core.Domain.Entities.Expense", "Expense")
+                        .WithMany("ExpenseAliasSplits")
+                        .HasForeignKey("ExpenseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Alias");
+
+                    b.Navigation("Expense");
                 });
 
             modelBuilder.Entity("SplitDuo.Core.Domain.Entities.ExpenseSplit", b =>
@@ -834,6 +978,10 @@ namespace SplitDuo.Core.Migrations
 
             modelBuilder.Entity("SplitDuo.Core.Domain.Entities.GroupMember", b =>
                 {
+                    b.HasOne("SplitDuo.Core.Domain.Entities.Alias", "Alias")
+                        .WithMany("Members")
+                        .HasForeignKey("AliasId");
+
                     b.HasOne("SplitDuo.Core.Domain.Entities.Group", "Group")
                         .WithMany("GroupMembers")
                         .HasForeignKey("GroupId")
@@ -845,6 +993,8 @@ namespace SplitDuo.Core.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Alias");
 
                     b.Navigation("Group");
 
@@ -911,13 +1061,22 @@ namespace SplitDuo.Core.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("SplitDuo.Core.Domain.Entities.Alias", b =>
+                {
+                    b.Navigation("Members");
+                });
+
             modelBuilder.Entity("SplitDuo.Core.Domain.Entities.Expense", b =>
                 {
+                    b.Navigation("ExpenseAliasSplits");
+
                     b.Navigation("ExpenseSplits");
                 });
 
             modelBuilder.Entity("SplitDuo.Core.Domain.Entities.Group", b =>
                 {
+                    b.Navigation("Aliases");
+
                     b.Navigation("GroupMembers");
                 });
 #pragma warning restore 612, 618

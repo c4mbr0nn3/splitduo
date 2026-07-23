@@ -27,11 +27,14 @@ public class Expense : AuditableAndSoftDeletableEntity
     [Column("category_id")] public int CategoryId { get; set; }
     [Column("payment_mode_id")] public int PaymentModeId { get; set; }
     [Column("import_id")] public int? ImportId { get; set; }
+    [Column("paid_by_alias_id")] public int? PaidByAliasId { get; set; }
 
     [ForeignKey(nameof(GroupId))] public virtual Group Group { get; set; } = null!;
     [ForeignKey(nameof(PaidBy))] public virtual User PaidByUser { get; set; } = null!;
     [ForeignKey(nameof(ImportId))] public virtual Import? Import { get; set; }
+    [ForeignKey(nameof(PaidByAliasId))] public virtual Alias? PaidByAlias { get; set; }
     public virtual ICollection<ExpenseSplit> ExpenseSplits { get; set; } = new List<ExpenseSplit>();
+    public virtual ICollection<ExpenseAliasSplit> ExpenseAliasSplits { get; set; } = new List<ExpenseAliasSplit>();
 
     [NotMapped]
     public ExpenseCategory Category

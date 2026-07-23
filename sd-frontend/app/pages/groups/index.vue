@@ -67,66 +67,13 @@
       v-else
       class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6"
     >
-      <UCard
+      <GroupsGroupCard
         v-for="group in filteredGroups"
         :key="group.id"
-        class="sd-surface sd-surface-hover"
-        :ui="{ body: 'p-4 sm:p-5' }"
-      >
-        <NuxtLink
-          :to="`/groups/${group.id}`"
-          class="block"
-        >
-          <div class="flex items-start justify-between gap-4">
-            <div class="flex items-center gap-3 min-w-0">
-              <div class="shrink-0 w-12 h-12 rounded-full border border-neutral-200 dark:border-neutral-700 bg-neutral-100/50 dark:bg-neutral-800/50 flex items-center justify-center text-muted">
-                <UIcon
-                  name="i-lucide-users"
-                  class="size-6"
-                />
-              </div>
-              <div class="min-w-0">
-                <h3 class="font-semibold text-highlighted text-lg truncate">
-                  {{ group.name }}
-                </h3>
-                <p class="text-sm text-muted">
-                  {{ group.memberCount || 0 }} member{{ group.memberCount === 1 ? '' : 's' }}
-                </p>
-              </div>
-            </div>
-            <span @click.stop>
-              <UiButtonDropdown
-                icon-only
-                dropdown-icon="i-lucide-ellipsis-vertical"
-                size="md"
-                square
-                variant="ghost"
-                color="neutral"
-                :items="dropdownItems(group)"
-                :disabled="isDeletingGroup"
-              />
-            </span>
-          </div>
-
-          <div
-            v-if="group.description"
-            class="text-sm text-muted mt-3"
-          >
-            {{ group.description }}
-          </div>
-
-          <div class="flex items-center justify-between mt-3 text-xs text-muted">
-            <span>Updated {{ formatDate(group.updatedAt) }}</span>
-            <UBadge
-              :color="group.netBalance > 0 ? 'success' : group.netBalance < 0 ? 'error' : 'neutral'"
-              variant="subtle"
-              class="sd-tabular"
-            >
-              {{ group.netBalance > 0 ? `owed ${formatCurrency(group.netBalance)}` : group.netBalance < 0 ? `owes ${formatCurrency(Math.abs(group.netBalance))}` : 'settled' }}
-            </UBadge>
-          </div>
-        </NuxtLink>
-      </UCard>
+        :group="group"
+        :is-deleting="isDeletingGroup"
+        @delete="confirmDeleteGroup"
+      />
     </div>
   </div>
 </template>
@@ -179,30 +126,6 @@ onMounted(async () => {
 // Navigation handlers
 const createNewGroup = () => {
   navigateTo('/groups/add')
-}
-
-const navigateToEdit = (groupId) => {
-  navigateTo(`/groups/${groupId}/edit/`)
-}
-
-const dropdownItems = (group) => {
-  return [
-    {
-      label: 'Edit',
-      icon: 'i-lucide-edit-2',
-      color: 'info',
-      onSelect: () => navigateToEdit(group.id),
-    },
-    {
-      type: 'separator',
-    },
-    {
-      label: 'Delete',
-      icon: 'i-lucide-trash-2',
-      color: 'error',
-      onSelect: () => confirmDeleteGroup(group),
-    },
-  ]
 }
 
 // Delete group handlers

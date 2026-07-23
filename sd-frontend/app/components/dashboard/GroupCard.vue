@@ -1,63 +1,72 @@
 <template>
   <UCard
-    class="sd-surface sd-surface-hover cursor-pointer"
-    :ui="{ body: 'p-4 sm:p-5' }"
+    class="sd-surface sd-surface-hover"
+    :ui="{ body: 'p-3 sm:p-4' }"
   >
     <NuxtLink
       :to="`/groups/${group.id}`"
       class="block"
     >
-      <div class="flex items-start justify-between gap-4">
-        <div class="flex items-center gap-3 min-w-0">
-          <div class="shrink-0 w-10 h-10 rounded-full border border-neutral-200 dark:border-neutral-700 bg-neutral-100/50 dark:bg-neutral-800/50 flex items-center justify-center text-muted">
-            <UIcon
-              name="i-lucide-users"
-              class="size-5"
-            />
-          </div>
-          <div class="min-w-0">
-            <h3 class="text-base font-semibold text-highlighted truncate">{{ group.name }}</h3>
-            <p class="text-sm text-muted mt-1">{{ group.memberCount || 0 }} member{{ group.memberCount === 1 ? '' : 's' }}</p>
-          </div>
+      <!-- Title row -->
+      <div class="flex items-start justify-between gap-2 sm:gap-3">
+        <div class="min-w-0">
+          <h3 class="font-semibold text-highlighted text-base sm:text-lg truncate">
+            {{ group.name }}
+          </h3>
         </div>
-        <span @click.stop>
-          <UiButtonDropdown
-            icon-only
-            dropdown-icon="i-lucide-ellipsis-vertical"
-            size="md"
-            square
-            variant="ghost"
-            color="neutral"
-            :items="dropdownItems"
-          />
-        </span>
       </div>
-      <div class="flex items-center justify-between mt-3">
-        <p class="text-xs text-dimmed">
-          Updated {{ formatDate(group.updatedAt) }}
-        </p>
+
+      <!-- Status badges -->
+      <div class="flex flex-wrap items-center gap-2 mt-3">
         <UBadge
-          v-if="net !== 0"
-          :color="badgeColor"
-          variant="subtle"
-          class="sd-tabular whitespace-nowrap"
-        >
-          {{ badgeLabel }}
-        </UBadge>
-        <UBadge
-          v-else
+          v-if="group.memberCount"
+          variant="soft"
           color="neutral"
+          icon="i-lucide-users"
+          size="sm"
+          :label="`${group.memberCount} member${group.memberCount === 1 ? '' : 's'}`"
+        />
+
+        <UBadge
+          v-if="group.useAliases && group.aliasSetupFinalized"
+          variant="soft"
+          color="info"
+          icon="i-lucide-layers"
+          size="sm"
+          label="Alias"
+        />
+
+        <UBadge
+          v-if="group.useAliases && !group.aliasSetupFinalized"
+          variant="soft"
+          color="warning"
+          icon="i-lucide-alert-triangle"
+          size="sm"
+          label="Alias setup pending"
+        />
+      </div>
+
+      <!-- Balance + updated row -->
+      <div class="flex items-end justify-between gap-2 mt-3 sm:mt-4">
+        <div class="text-xs text-dimmed">
+          Updated {{ formatDate(group.updatedAt) }}
+        </div>
+
+        <UBadge
+          :color="balanceColor"
           variant="subtle"
-          class="whitespace-nowrap"
-        >
-          settled
-        </UBadge>
+          size="sm"
+          class="font-semibold sd-tabular"
+          :label="balanceLabel"
+        />
       </div>
     </NuxtLink>
   </UCard>
 </template>
 
 <script setup>
+import { formatCurrency } from '~/utils/currency'
+
 const props = defineProps({
   group: {
     type: Object,
@@ -65,20 +74,16 @@ const props = defineProps({
   },
 })
 
-const net = computed(() => props.group.netBalance ?? 0)
-const badgeColor = computed(() => net.value > 0 ? 'success' : net.value < 0 ? 'error' : 'neutral')
-const badgeLabel = computed(() => {
-  if (net.value > 0) return `owed €${formatAmount(net.value)}`
-  if (net.value < 0) return `owes €${formatAmount(Math.abs(net.value))}`
-  return 'settled'
+const balanceColor = computed(() => {
+  if (props.group.netBalance > 0) return 'success'
+  if (props.group.netBalance < 0) return 'error'
+  return 'neutral'
 })
 
-const dropdownItems = computed(() => [
-  {
-    label: 'View Group',
-    icon: 'i-lucide-eye',
-    color: 'info',
-    onSelect: () => navigateTo(`/groups/${props.group.id}`),
-  },
-])
+const balanceLabel = computed(() => {
+  const balance = props.group.netBalance
+  if (balance > 0) return `owed ${formatCurrency(balance)}`
+  if (balance < 0) return `owes ${formatCurrency(Math.abs(balance))}`
+  return 'settled'
+})
 </script>

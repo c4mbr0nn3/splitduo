@@ -24,11 +24,48 @@
         </template>
         <template #description>
           Found {{ getTotalItems() }} items to configure:
+          {{ analysisResults.aliases?.length || 0 }} aliases,
           {{ analysisResults.members?.length || 0 }} users,
           {{ analysisResults.categories?.length || 0 }} categories,
           {{ analysisResults.paymentModes?.length || 0 }} payment modes
         </template>
       </UAlert>
+
+      <!-- Aliases Section -->
+      <div v-if="analysisResults.aliases?.length">
+        <h4 class="text-sm font-medium text-highlighted mb-3">
+          Aliases Found ({{ analysisResults.aliases.length }})
+        </h4>
+        <div class="grid gap-2">
+          <UCard
+            v-for="alias in analysisResults.aliases"
+            :key="alias.key"
+            variant="outline"
+            class="p-3"
+          >
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <UAvatar
+                  :alt="alias.key"
+                  size="sm"
+                  class="bg-primary/10"
+                >
+                  <UIcon
+                    name="i-lucide-users"
+                    size="16"
+                  />
+                </UAvatar>
+                <span class="font-medium">{{ alias.key }}</span>
+              </div>
+              <UBadge
+                :label="alias.value"
+                color="neutral"
+                variant="soft"
+              />
+            </div>
+          </UCard>
+        </div>
+      </div>
 
       <!-- Users/Members Section -->
       <div v-if="analysisResults.members?.length">
@@ -158,8 +195,8 @@ const props = defineProps({
 })
 
 const getTotalItems = () => {
-  const { members = [], categories = [], paymentModes = [] } = props.analysisResults || {}
-  return members.length + categories.length + paymentModes.length
+  const { aliases = [], members = [], categories = [], paymentModes = [] } = props.analysisResults || {}
+  return aliases.length + members.length + categories.length + paymentModes.length
 }
 
 const getInitials = (name) => {

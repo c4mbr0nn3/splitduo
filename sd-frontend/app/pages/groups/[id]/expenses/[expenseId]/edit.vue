@@ -35,6 +35,7 @@ const expenseFormData = ref({
 // Watch currentExpense and update form data
 watch(currentExpense, (expense) => {
   if (expense) {
+    const isAliasMode = Array.isArray(expense.aliasSplits) && expense.aliasSplits.length > 0
     expenseFormData.value = {
       expenseId: expense.id,
       groupId: expense.groupId,
@@ -45,15 +46,28 @@ watch(currentExpense, (expense) => {
       expenseDate: expense.expenseDate ? new Date(expense.expenseDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       categoryId: expense.categoryId,
       paymentModeId: expense.paymentModeId,
-      splits: mapSplits(expense.splits) || [],
+      splits: isAliasMode ? [] : (mapSplits(expense.splits) || []),
+      aliasSplits: isAliasMode ? (mapAliasSplits(expense.aliasSplits) || []) : [],
     }
   }
 }, { immediate: true })
 
 const mapSplits = (splits) => {
+  if (!Array.isArray(splits)) return []
   return splits.map((s) => {
     return {
       userId: s.userId,
+      included: true,
+      splitAmount: s.splitAmount,
+    }
+  })
+}
+
+const mapAliasSplits = (aliasSplits) => {
+  if (!Array.isArray(aliasSplits)) return []
+  return aliasSplits.map((s) => {
+    return {
+      aliasId: s.aliasId,
       included: true,
       splitAmount: s.splitAmount,
     }

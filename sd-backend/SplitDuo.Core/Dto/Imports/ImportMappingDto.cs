@@ -6,4 +6,5 @@ public class ImportMappingDto
     public Dictionary<string, string> UserMappings { get; set; } = new();
     public Dictionary<int, int> CategoryMappings { get; set; } = new();
     public Dictionary<int, int> PaymentModeMappings { get; set; } = new();
+    public Dictionary<string, string> AliasMappings { get; set; } = new();
 }

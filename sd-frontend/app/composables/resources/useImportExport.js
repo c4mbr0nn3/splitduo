@@ -131,6 +131,7 @@ export default function useImportExport(groupId) {
       const requestData = {
         importId: currentImport.value.id,
         userMappings: mappingConfig.userMappings || {},
+        aliasMappings: mappingConfig.aliasMappings || {},
         categoryMappings: mappingConfig.categoryMappings || {},
         paymentModeMappings: mappingConfig.paymentModeMappings || {},
       }
@@ -192,20 +193,23 @@ export default function useImportExport(groupId) {
     currentImport.value = null
   }
 
-  // Export to CSV
+  // Export to CSV — filename driven by backend Content-Disposition
   const exportToCsv = async () => {
     if (!groupIdRef.value) return
 
     isExporting.value = true
     try {
-      const response = await api.get(`/groups/${groupIdRef.value}/export/csv`)
+      const { blob, headers } = await api.getBlob(`/groups/${groupIdRef.value}/export/csv`)
 
-      // Handle file download
-      const blob = new Blob([response], { type: 'text/csv' })
+      // Parse filename from Content-Disposition: attachment; filename="..."
+      const disposition = headers.get('content-disposition') || ''
+      const match = disposition.match(/filename="?([^";]+)"?/i)
+      const fileName = match?.[1] || `export_${groupIdRef.value}.csv`
+
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `splitduo-export-${groupIdRef.value}.csv`
+      a.download = fileName
       document.body.appendChild(a)
       a.click()
       window.URL.revokeObjectURL(url)
@@ -215,36 +219,6 @@ export default function useImportExport(groupId) {
     }
     catch (error) {
       showError('Failed to export data')
-      throw error
-    }
-    finally {
-      isExporting.value = false
-    }
-  }
-
-  // Export to Cospend format
-  const exportToCospend = async () => {
-    if (!groupIdRef.value) return
-
-    isExporting.value = true
-    try {
-      const response = await api.get(`/groups/${groupIdRef.value}/export/cospend`)
-
-      // Handle file download
-      const blob = new Blob([response], { type: 'application/json' })
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `cospend-export-${groupIdRef.value}.json`
-      document.body.appendChild(a)
-      a.click()
-      window.URL.revokeObjectURL(url)
-      document.body.removeChild(a)
-
-      showSuccess('Cospend export successful')
-    }
-    catch (error) {
-      showError('Failed to export to Cospend format')
       throw error
     }
     finally {
@@ -269,6 +243,5 @@ export default function useImportExport(groupId) {
     fetchImports,
     importData,
     exportToCsv,
-    exportToCospend,
   }
 }

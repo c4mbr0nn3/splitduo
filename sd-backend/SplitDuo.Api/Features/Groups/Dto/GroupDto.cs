@@ -13,6 +13,8 @@ public class GroupDto
     public long UpdatedAt { get; set; }
 
     public decimal NetBalance { get; set; }
+    public bool UseAliases { get; set; }
+    public bool AliasSetupFinalized { get; set; }
 
     [JsonIgnore] public int OriginalId { get; set; }
 }

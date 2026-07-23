@@ -4,5 +4,6 @@ public enum ImportType
 {
     Cospend = 1,
     SplitDuo = 2,
-    Splitwise = 3
+    Splitwise = 3,
+    SplitDuoAlias = 4
 }

@@ -46,12 +46,21 @@
         class="space-y-6"
       >
         <USelect
+          v-if="!isAliasMode"
           v-model="selectedImportType"
           :items="importTypeOptions"
           option-attribute="label"
           value-attribute="value"
           placeholder="Select import type"
           class="w-full"
+        />
+        <UBadge
+          v-else
+          label="SplitDuo Alias"
+          color="primary"
+          variant="soft"
+          size="lg"
+          class="w-full justify-center py-2"
         />
         <UFileUpload
           v-model="selectedFile"
@@ -95,45 +104,44 @@
           </p>
         </div>
       </div>
-
-      <template #footer>
-        <div class="flex items-center justify-between">
-          <!-- Back Button -->
-          <UButton
-            v-if="currentStep !== 'upload'"
-            label="Back"
-            variant="ghost"
-            icon="i-lucide-arrow-left"
-            @click="onBack"
-          />
-          <div v-else />
-
-          <!-- Action Buttons -->
-          <div class="flex items-center gap-3">
-            <UButton
-              label="Cancel"
-              variant="ghost"
-              :disabled="isAnalyzing || isImporting"
-              @click="onCancel"
-            />
-            <UButton
-              v-if="currentStep === 'upload'"
-              label="Analyze File"
-              icon="i-lucide-search"
-              :loading="isAnalyzing"
-              :disabled="!canAnalyze"
-              @click="onAnalyze"
-            />
-            <UButton
-              v-else-if="currentStep === 'analysis'"
-              label="Next"
-              icon="i-lucide-arrow-right-circle"
-              @click="currentStep = 'configure'"
-            />
-          </div>
-        </div>
-      </template>
     </UCard>
+
+    <!-- Navigation (always visible) -->
+    <div class="mt-4 flex items-center justify-between">
+      <!-- Back Button -->
+      <UButton
+        v-if="currentStep !== 'upload'"
+        label="Back"
+        variant="ghost"
+        icon="i-lucide-arrow-left"
+        @click="onBack"
+      />
+      <div v-else />
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-3">
+        <UButton
+          label="Cancel"
+          variant="ghost"
+          :disabled="isAnalyzing || isImporting"
+          @click="onCancel"
+        />
+        <UButton
+          v-if="currentStep === 'upload'"
+          label="Analyze File"
+          icon="i-lucide-search"
+          :loading="isAnalyzing"
+          :disabled="!canAnalyze"
+          @click="onAnalyze"
+        />
+        <UButton
+          v-else-if="currentStep === 'analysis'"
+          label="Next"
+          icon="i-lucide-arrow-right-circle"
+          @click="currentStep = 'configure'"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -150,6 +158,8 @@ const selectedImportType = ref(1)
 const selectedFile = ref(null)
 const currentStep = ref('upload') // 'upload', 'analysis', 'configure', 'importing'
 
+const isAliasMode = computed(() => !!group.value?.useAliases)
+
 const steps = computed(() => [
   { id: 'upload', label: '1. Upload', active: currentStep.value === 'upload', done: currentStep.value !== 'upload' },
   { id: 'configure', label: '2. Configure', active: currentStep.value === 'configure' || currentStep.value === 'analysis', done: currentStep.value === 'importing' },
@@ -160,6 +170,7 @@ const importTypeOptions = [
   { value: 1, label: 'Cospend' },
   { value: 2, label: 'SplitDuo' },
   { value: 3, label: 'Splitwise' },
+  { value: 4, label: 'SplitDuo Alias' },
 ]
 
 const acceptedFileTypes = computed(() => {
@@ -176,6 +187,9 @@ const fileFormatDescription = computed(() => {
   }
   if (selectedImportType.value === 3) {
     return 'Upload a Splitwise .csv export file (max 10MB)'
+  }
+  if (selectedImportType.value === 4) {
+    return 'Upload a SplitDuo Alias .csv file (aliases, members, expenses sections) — max 10MB'
   }
   return 'Upload a file (max 10MB)'
 })
@@ -291,11 +305,18 @@ const getImportTypeLabel = () => {
   return importTypeOptions.find(opt => opt.value === selectedImportType.value)?.label || 'Unknown'
 }
 
+// Watch alias mode and force SplitDuoAlias import type
+watch(isAliasMode, (newValue) => {
+  if (newValue) {
+    selectedImportType.value = 4
+  }
+})
+
 // Watch import type changes and clear file if format doesn't match
 watch(selectedImportType, () => {
   if (selectedFile.value) {
     const extension = selectedFile.value.name.split('.').pop()?.toLowerCase()
-    const expectedExtension = 'csv' // Both Cospend and SplitDuo use CSV format
+    const expectedExtension = 'csv' // All import types use CSV format
 
     if (extension !== expectedExtension) {
       clearFile()
@@ -311,6 +332,10 @@ onBeforeUnmount(() => {
 onMounted(async () => {
   if (groupId) {
     await fetchGroup(groupId)
+
+    if (isAliasMode.value) {
+      selectedImportType.value = 4
+    }
 
     // Check if we're continuing an existing import
     const continueImportId = route.query.continue

@@ -22,7 +22,10 @@
       </template>
     </UiEmptyState>
 
-    <UCard v-else>
+    <UCard
+      v-else
+      :ui="{ footer: 'sm:hidden' }"
+    >
       <template #header>
         <div class="flex items-center justify-between gap-3">
           <UiCardHeader
@@ -38,6 +41,14 @@
               label="Invite"
               class="hidden sm:inline-flex"
             />
+            <UButton
+              v-if="isGroupAdmin && group?.useAliases"
+              icon="i-lucide-plus"
+              label="Create Alias"
+              variant="outline"
+              class="hidden sm:inline-flex"
+              @click="openCreateModal"
+            />
             <UBadge
               v-if="members.length"
               variant="soft"
@@ -48,100 +59,188 @@
         </div>
       </template>
 
-      <div class="space-y-6">
-        <GroupsMembersList
-          :members="members"
-          :is-loading="isLoading"
-        />
-
-        <!-- Pending Invitations (admin only) -->
-        <div
-          v-if="isGroupAdmin && pendingInvitations.length"
-          class="space-y-2"
-        >
-          <USeparator />
-          <h3 class="text-sm font-medium text-muted">
-            Pending Invitations
-          </h3>
-          <UCard
-            v-for="invitation in pendingInvitations"
-            :key="invitation.id"
-            variant="outline"
-          >
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="font-semibold">
-                  {{ invitation.email }}
-                </p>
-                <p class="text-sm text-muted">
-                  Invited {{ formatDate(invitation.invitedAt) }}
-                </p>
-              </div>
-              <div class="flex items-center gap-3">
-                <UBadge
-                  variant="soft"
-                  color="warning"
-                  label="Pending"
-                  icon="i-lucide-clock"
-                />
-                <UButton
-                  icon="i-lucide-refresh-cw"
-                  variant="ghost"
-                  size="sm"
-                  square
-                  :loading="invitationLoading"
-                  @click="onResend(invitation)"
-                />
-                <UButton
-                  icon="i-lucide-x"
-                  variant="ghost"
-                  color="error"
-                  size="sm"
-                  square
-                  :loading="invitationLoading"
-                  @click="onRevoke(invitation)"
-                />
-              </div>
-            </div>
-          </UCard>
-        </div>
-      </div>
+      <component
+        :is="activeComponent"
+        :members="members"
+        :aliases="aliases"
+        :group="group"
+        :is-group-admin="isGroupAdmin"
+        :alias-loading="aliasLoading"
+        :pending-invitations="pendingInvitations"
+        :invitation-loading="invitationLoading"
+        :is-loading="isLoading"
+        :is-finalizing="isFinalizing"
+        @resend="onResend"
+        @revoke="onRevoke"
+        @rename="openRenameModal"
+        @delete="onDelete"
+        @assign="onAssignMember"
+        @remove="onRemoveMember"
+        @finalize="onFinalize"
+      />
 
       <template #footer>
         <div
           v-if="isGroupAdmin"
-          class="flex justify-end"
+          class="flex flex-col gap-2"
         >
+          <UButton
+            v-if="group?.useAliases"
+            icon="i-lucide-plus"
+            label="Create Alias"
+            variant="outline"
+            class="w-full"
+            @click="openCreateModal"
+          />
           <UButton
             icon="i-lucide-user-plus"
             label="Invite User"
-            class="w-full sm:hidden"
+            class="w-full"
             @click="navigateToInvite"
           />
         </div>
       </template>
     </UCard>
+
+    <!-- Create alias modal -->
+    <UModal
+      v-if="group?.useAliases"
+      v-model:open="isCreateModalOpen"
+      :dismissible="!aliasLoading"
+    >
+      <template #header>
+        <UiCardHeader title="Create Alias" />
+      </template>
+      <template #body>
+        <UForm
+          :state="createForm"
+          class="space-y-4"
+          @submit="onCreate"
+        >
+          <UFormField
+            label="Alias Name"
+            name="name"
+            required
+          >
+            <UInput
+              v-model="createForm.name"
+              placeholder="e.g. Couple A"
+              required
+              class="w-full"
+            />
+          </UFormField>
+        </UForm>
+      </template>
+      <template #footer>
+        <div class="flex gap-2 w-full">
+          <UButton
+            color="neutral"
+            variant="outline"
+            class="ml-auto"
+            :disabled="aliasLoading"
+            @click="isCreateModalOpen = false"
+          >
+            Cancel
+          </UButton>
+          <UButton
+            :loading="aliasLoading"
+            :disabled="!createForm.name || aliasLoading"
+            @click="onCreate"
+          >
+            Create Alias
+          </UButton>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Rename alias modal -->
+    <UModal
+      v-if="group?.useAliases"
+      v-model:open="isRenameModalOpen"
+      :dismissible="!aliasLoading"
+    >
+      <template #header>
+        <UiCardHeader title="Rename Alias" />
+      </template>
+      <template #body>
+        <UForm
+          :state="renameForm"
+          class="space-y-4"
+          @submit="onRename"
+        >
+          <UFormField
+            label="Alias Name"
+            name="name"
+            required
+          >
+            <UInput
+              v-model="renameForm.name"
+              placeholder="Enter alias name"
+              required
+              class="w-full"
+            />
+          </UFormField>
+        </UForm>
+      </template>
+      <template #footer>
+        <div class="flex gap-2 w-full">
+          <UButton
+            color="neutral"
+            variant="outline"
+            class="ml-auto"
+            :disabled="aliasLoading"
+            @click="isRenameModalOpen = false"
+          >
+            Cancel
+          </UButton>
+          <UButton
+            :loading="aliasLoading"
+            :disabled="!renameForm.name || aliasLoading"
+            @click="onRename"
+          >
+            Save
+          </UButton>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>
 
 <script setup>
-import { formatDate } from '~/utils/date'
-
 const route = useRoute()
 const groupId = route.params.id
 
 const { user } = useAuth()
 const { currentGroup, fetchGroup, fetchGroupMembers, isLoading } = useGroups()
+const {
+  aliases,
+  isLoading: aliasLoading,
+  fetchAliases,
+  createAlias,
+  updateAlias,
+  deleteAlias,
+  assignMember,
+  removeMember,
+  finalizeAliasSetup,
+} = useAliases()
 const { fetchGroupInvitations, resendInvitation, revokeInvitation, isLoading: invitationLoading } = useInvitations()
+
+const NormalMembersList = defineAsyncComponent(() => import('~/components/groups/members/NormalMembersList.vue'))
+const AliasMembersList = defineAsyncComponent(() => import('~/components/groups/members/AliasMembersList.vue'))
 
 const group = computed(() => currentGroup.value)
 const members = ref([])
 const pendingInvitations = ref([])
 const pageLoading = ref(true)
 const loadError = ref(false)
+const isFinalizing = ref(false)
 
 const isGroupAdmin = computed(() => {
   return members.value.some(m => m.id === user.value?.id && m.role === 'admin')
+})
+
+const activeComponent = computed(() => {
+  return group.value?.useAliases ? AliasMembersList : NormalMembersList
 })
 
 const navigateToInvite = () => {
@@ -209,6 +308,14 @@ const loadInvitations = async () => {
   }
 }
 
+const refreshAliasesAndMembers = async () => {
+  await Promise.all([
+    fetchGroup(groupId),
+    fetchAliases(groupId),
+    loadGroupMembers(),
+  ])
+}
+
 const retryLoad = async () => {
   loadError.value = false
   pageLoading.value = true
@@ -217,6 +324,9 @@ const retryLoad = async () => {
       fetchGroup(groupId),
       loadGroupMembers(),
     ])
+    if (group.value?.useAliases) {
+      await fetchAliases(groupId)
+    }
     if (isGroupAdmin.value) {
       await loadInvitations()
     }
@@ -236,6 +346,10 @@ onMounted(async () => {
         fetchGroup(groupId),
         loadGroupMembers(),
       ])
+      // Load aliases for alias-mode groups
+      if (group.value?.useAliases) {
+        await fetchAliases(groupId)
+      }
       // Load invitations after members so we know if current user is admin
       if (isGroupAdmin.value) {
         await loadInvitations()
@@ -249,6 +363,119 @@ onMounted(async () => {
     }
   }
 })
+
+const onFinalize = async () => {
+  isFinalizing.value = true
+  try {
+    await finalizeAliasSetup(groupId)
+    await refreshAliasesAndMembers()
+  }
+  catch {
+    // Error shown via toast
+  }
+  finally {
+    isFinalizing.value = false
+  }
+}
+
+const isCreateModalOpen = ref(false)
+const createForm = ref({ name: '' })
+
+const openCreateModal = () => {
+  createForm.value.name = ''
+  isCreateModalOpen.value = true
+}
+
+const onCreate = async () => {
+  if (!createForm.value.name) return
+
+  try {
+    await createAlias(groupId, { name: createForm.value.name })
+    isCreateModalOpen.value = false
+    createForm.value.name = ''
+    await refreshAliasesAndMembers()
+  }
+  catch {
+    // Error shown via toast
+  }
+}
+
+const isRenameModalOpen = ref(false)
+const renameForm = ref({ name: '' })
+const activeAlias = ref(null)
+
+const openRenameModal = (alias) => {
+  activeAlias.value = alias
+  renameForm.value.name = alias.name
+  isRenameModalOpen.value = true
+}
+
+const onRename = async () => {
+  if (!activeAlias.value || !renameForm.value.name) return
+
+  try {
+    await updateAlias(activeAlias.value.id, { name: renameForm.value.name })
+    isRenameModalOpen.value = false
+    activeAlias.value = null
+    renameForm.value.name = ''
+    await refreshAliasesAndMembers()
+  }
+  catch {
+    // Error shown via toast
+  }
+}
+
+const onDelete = async (alias) => {
+  const confirmed = await modal.error({
+    title: 'Delete Alias',
+    subtitle: 'This action cannot be undone.',
+    content: `The alias '${alias.name}' will be removed and its members will become individual singleton aliases.`,
+    confirmText: 'Delete Alias',
+    cancelText: 'Cancel',
+  })
+
+  if (!confirmed) return
+
+  try {
+    await deleteAlias(alias.id)
+    await refreshAliasesAndMembers()
+  }
+  catch {
+    // Error shown via toast
+  }
+}
+
+const onAssignMember = async (alias, userId) => {
+  if (!userId) return
+
+  try {
+    await assignMember(alias.id, { userId })
+    await refreshAliasesAndMembers()
+  }
+  catch {
+    // Error shown via toast
+  }
+}
+
+const onRemoveMember = async (alias, userId) => {
+  const confirmed = await modal.warning({
+    title: 'Remove Member',
+    subtitle: 'This action cannot be undone.',
+    content: 'This member will be moved to a new singleton alias.',
+    confirmText: 'Remove',
+    cancelText: 'Cancel',
+  })
+
+  if (!confirmed) return
+
+  try {
+    await removeMember(alias.id, userId)
+    await refreshAliasesAndMembers()
+  }
+  catch {
+    // Error shown via toast
+  }
+}
 
 useHead({
   title: computed(() => `Members - ${group.value?.name || 'Group'}`),

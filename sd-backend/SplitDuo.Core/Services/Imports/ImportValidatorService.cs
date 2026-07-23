@@ -76,6 +76,24 @@ public class ImportValidatorServiceService(ILogger<ImportValidatorServiceService
             return Result.BadRequest(message);
         }
 
+        // Validate alias mappings
+        if (mappings.AliasMappings.Count > 0)
+        {
+            foreach (var aliasMapping in mappings.AliasMappings)
+            {
+                if (Guid.TryParse(aliasMapping.Value, out var aliasGuid) &&
+                    await unitOfWork.Aliases.AnyAsync(a => a.Guid == aliasGuid && a.GroupId == groupId && a.DeletedAt == null))
+                {
+                    continue;
+                }
+
+                var message =
+                    $"Alias mapping for '{aliasMapping.Key}' maps to invalid or non-group alias ID '{aliasMapping.Value}'";
+                logger.LogWarning("Alias mapping error: {Message}", message);
+                return Result.BadRequest(message);
+            }
+        }
+
         return Result.Success();
     }
 }

@@ -16,10 +16,17 @@ public class CreateExpenseRequestDto
     public int CategoryId { get; set; }
     public int PaymentModeId { get; set; }
     public List<CreateExpenseSplitDto> Splits { get; set; } = [];
+    public List<CreateExpenseAliasSplitDto>? AliasSplits { get; set; }
 }
 
 public class CreateExpenseSplitDto
 {
     [Required] public string UserId { get; set; } = "";
+    [Required] public decimal SplitAmount { get; set; }
+}
+
+public class CreateExpenseAliasSplitDto
+{
+    [Required] public string AliasId { get; set; } = "";
     [Required] public decimal SplitAmount { get; set; }
 }

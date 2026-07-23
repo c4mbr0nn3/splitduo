@@ -16,6 +16,7 @@ public class ExpenseDto
     public int CategoryId { get; set; }
     public int PaymentModeId { get; set; }
     public List<ExpenseSplitDto> Splits { get; set; } = [];
+    public List<ExpenseAliasSplitDto>? AliasSplits { get; set; }
     public long CreatedAt { get; set; }
     public long UpdatedAt { get; set; }
 
@@ -25,7 +26,7 @@ public class ExpenseDto
     }
 
     // Constructor that takes an Expense entity
-    public ExpenseDto(Expense expense, List<ExpenseSplit>? splits = null)
+    public ExpenseDto(Expense expense, List<ExpenseSplit>? splits = null, List<ExpenseAliasSplit>? aliasSplits = null)
     {
         Id = expense.Guid.ToString();
         GroupId = expense.Group.Guid.ToString();
@@ -62,6 +63,19 @@ public class ExpenseDto
                 SplitPercentage = expense.Amount > 0 ? split.SplitAmount / expense.Amount * 100 : null
             }).ToList();
         }
+
+        // Map alias splits if provided
+        if (aliasSplits != null)
+        {
+            AliasSplits = aliasSplits.Select(aliasSplit => new ExpenseAliasSplitDto
+            {
+                Id = aliasSplit.Id.ToString(),
+                AliasId = aliasSplit.Alias.Guid.ToString(),
+                AliasName = aliasSplit.Alias.Name,
+                SplitAmount = aliasSplit.SplitAmount,
+                SplitPercentage = expense.Amount > 0 ? aliasSplit.SplitAmount / expense.Amount * 100 : null
+            }).ToList();
+        }
     }
 }
 
@@ -70,6 +84,15 @@ public class ExpenseSplitDto
     public string Id { get; set; } = "";
     public string UserId { get; set; } = "";
     public UserBasicInfoDto User { get; set; } = new();
+    public decimal SplitAmount { get; set; }
+    public decimal? SplitPercentage { get; set; }
+}
+
+public class ExpenseAliasSplitDto
+{
+    public string Id { get; set; } = "";
+    public string AliasId { get; set; } = "";
+    public string AliasName { get; set; } = "";
     public decimal SplitAmount { get; set; }
     public decimal? SplitPercentage { get; set; }
 }

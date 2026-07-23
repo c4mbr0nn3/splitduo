@@ -133,11 +133,41 @@
           </UFormField>
         </div>
 
+        <!-- Alias setup not finalized notice -->
+        <UCard
+          v-if="isAliasMode && !aliasSetupFinalized"
+          variant="soft"
+          color="warning"
+          class="mb-2"
+          :ui="{ body: 'p-3' }"
+        >
+          <div class="flex items-start gap-3">
+            <UIcon
+              name="i-lucide-alert-triangle"
+              class="size-5 text-warning shrink-0 mt-0.5"
+            />
+            <div>
+              <p class="text-sm font-semibold text-highlighted">
+                Alias setup must be finalized before adding expenses
+              </p>
+              <UButton
+                :to="`/groups/${effectiveGroupId}/aliases`"
+                variant="link"
+                color="warning"
+                size="xs"
+                class="p-0 h-auto mt-1"
+              >
+                Finalize aliases in group settings
+              </UButton>
+            </div>
+          </div>
+        </UCard>
+
         <!-- Split Section -->
         <div class="space-y-2">
           <div class="flex items-center justify-between mb-3">
             <p class="text-sm font-medium text-muted">
-              Split Between
+              {{ isAliasMode ? 'Split Between Aliases' : 'Split Between' }}
             </p>
             <div class="flex gap-2">
               <UButton
@@ -157,42 +187,92 @@
             </div>
           </div>
           <div class="space-y-0">
-            <div
-              v-for="member in groupMembers"
-              :key="member.userId"
-              class="grid grid-cols-[1fr_auto_auto] items-center gap-3 py-2 border-b border-[var(--sd-surface-border)] last:border-0"
-            >
-              <button
-                type="button"
-                class="flex items-center gap-2 min-w-0 text-left"
-                @click="handleSplitToggle(member.userId, !splitByUser(member.userId).included)"
+            <template v-if="isAliasMode">
+              <div
+                v-for="alias in aliases"
+                :key="alias.id"
+                class="grid grid-cols-[1fr_auto_auto] items-center gap-3 py-2 border-b border-[var(--sd-surface-border)] last:border-0"
               >
-                <UAvatar
-                  icon="i-lucide-user"
-                  size="sm"
-                  :class="splitByUser(member.userId).included ? 'ring-2 ring-primary bg-primary/10 text-primary' : 'bg-muted/10 text-muted opacity-60'"
-                  :alt="`${member.user.firstName} ${member.user.lastName}`"
-                />
-                <span
-                  class="text-sm truncate"
-                  :class="splitByUser(member.userId).included ? 'text-highlighted' : 'text-muted'"
+                <button
+                  type="button"
+                  class="flex items-center gap-2 min-w-0 text-left"
+                  @click="handleAliasSplitToggle(alias.id, !splitByAlias(alias.id).included)"
                 >
-                  {{ member.user.firstName }} {{ member.user.lastName }}
+                  <UAvatar
+                    icon="i-lucide-users"
+                    size="sm"
+                    :class="splitByAlias(alias.id).included ? 'ring-2 ring-primary bg-primary/10 text-primary' : 'bg-muted/10 text-muted opacity-60'"
+                    :alt="alias.name"
+                  />
+                  <span class="min-w-0">
+                    <span
+                      class="text-sm truncate block"
+                      :class="splitByAlias(alias.id).included ? 'text-highlighted' : 'text-muted'"
+                    >
+                      {{ alias.name }}
+                    </span>
+                    <UBadge
+                      v-if="alias.isSingleton"
+                      variant="soft"
+                      color="secondary"
+                      label="singleton"
+                      size="xs"
+                      class="mt-0.5"
+                    />
+                  </span>
+                </button>
+                <span class="text-xs text-muted min-w-[2.5rem] text-right">
+                  {{ model.amount && splitByAlias(alias.id).splitAmount > 0 ? `${getAliasSplitPercentage(alias.id)}%` : '' }}
                 </span>
-              </button>
-              <span class="text-xs text-muted min-w-[2.5rem] text-right">
-                {{ model.amount && splitByUser(member.userId).splitAmount > 0 ? `${getSplitPercentage(member.userId)}%` : '' }}
-              </span>
-              <UInputNumber
-                v-model="splitByUser(member.userId).splitAmount"
-                :step="0.001"
-                :min="0"
-                size="sm"
-                class="w-24 text-right sd-tabular"
-                :disabled="!splitByUser(member.userId).included"
-                @update:model-value="trackUser(member.userId)"
-              />
-            </div>
+                <UInputNumber
+                  v-model="splitByAlias(alias.id).splitAmount"
+                  :step="0.001"
+                  :min="0"
+                  size="sm"
+                  class="w-24 text-right sd-tabular"
+                  :disabled="!splitByAlias(alias.id).included"
+                  @update:model-value="trackAlias(alias.id)"
+                />
+              </div>
+            </template>
+            <template v-else>
+              <div
+                v-for="member in groupMembers"
+                :key="member.userId"
+                class="grid grid-cols-[1fr_auto_auto] items-center gap-3 py-2 border-b border-[var(--sd-surface-border)] last:border-0"
+              >
+                <button
+                  type="button"
+                  class="flex items-center gap-2 min-w-0 text-left"
+                  @click="handleSplitToggle(member.userId, !splitByUser(member.userId).included)"
+                >
+                  <UAvatar
+                    icon="i-lucide-user"
+                    size="sm"
+                    :class="splitByUser(member.userId).included ? 'ring-2 ring-primary bg-primary/10 text-primary' : 'bg-muted/10 text-muted opacity-60'"
+                    :alt="`${member.user.firstName} ${member.user.lastName}`"
+                  />
+                  <span
+                    class="text-sm truncate"
+                    :class="splitByUser(member.userId).included ? 'text-highlighted' : 'text-muted'"
+                  >
+                    {{ member.user.firstName }} {{ member.user.lastName }}
+                  </span>
+                </button>
+                <span class="text-xs text-muted min-w-[2.5rem] text-right">
+                  {{ model.amount && splitByUser(member.userId).splitAmount > 0 ? `${getSplitPercentage(member.userId)}%` : '' }}
+                </span>
+                <UInputNumber
+                  v-model="splitByUser(member.userId).splitAmount"
+                  :step="0.001"
+                  :min="0"
+                  size="sm"
+                  class="w-24 text-right sd-tabular"
+                  :disabled="!splitByUser(member.userId).included"
+                  @update:model-value="trackUser(member.userId)"
+                />
+              </div>
+            </template>
           </div>
           <div class="text-xs space-y-1">
             <div
@@ -242,6 +322,7 @@
               variant="subtle"
               :label="submitLabel"
               :loading="loading"
+              :disabled="!canCreateExpense"
             />
             <UDropdownMenu
               v-if="showAddMore"
@@ -252,6 +333,7 @@
                 variant="subtle"
                 icon="i-lucide-chevron-down"
                 :loading="loading"
+                :disabled="!canCreateExpense"
               />
             </UDropdownMenu>
           </UFieldGroup>
@@ -301,7 +383,8 @@ const isReceiptPreviewOpen = ref(false)
 const isEditMode = computed(() => !!model.value?.expenseId)
 
 const { user } = useAuth()
-const { groups, fetchGroups, fetchGroupMembers, isLoading: isLoadingGroups } = useGroups()
+const { groups, fetchGroups, fetchGroup, currentGroup, fetchGroupMembers, isLoading: isLoadingGroups } = useGroups()
+const { aliases, fetchAliases } = useAliases()
 const { categories, isLoading: isLoadingCategories } = useCategories()
 const { paymentModes, isLoading: isLoadingPaymentModes } = usePaymentModes()
 
@@ -309,9 +392,20 @@ const isLoadingMembers = ref(false)
 const groupMembers = ref([])
 const showAdvanced = ref(false)
 
-// Tracks the last user to manually edit a split, so "Distribute Remaining"
+const group = computed(() => {
+  if (props.preSelectedGroupId) {
+    return currentGroup.value?.id === props.preSelectedGroupId ? currentGroup.value : null
+  }
+  return groups.value.find(g => g.id === model.value.groupId) || null
+})
+
+const isAliasMode = computed(() => !!group.value?.useAliases)
+const aliasSetupFinalized = computed(() => !!group.value?.aliasSetupFinalized)
+const canCreateExpense = computed(() => !isAliasMode.value || aliasSetupFinalized.value)
+
+// Tracks the last entity to manually edit a split, so "Distribute Remaining"
 // can avoid re-adjusting the value they just set.
-const lastModifiedUserId = ref(null)
+const lastModifiedEntityId = ref(null)
 
 // Assigns per-user shares (in millis) back onto the split records.
 const assignShares = (splits, sharesMillis) => {
@@ -367,8 +461,12 @@ const paymentModeOptions = computed(() => {
 // Summing per-split millis (not millis-of-sum) avoids FP drift entirely.
 const amountMillis = computed(() => toMillis(model.value.amount))
 
+const activeSplits = computed(() =>
+  isAliasMode.value ? (model.value.aliasSplits ?? []) : (model.value.splits ?? []),
+)
+
 const splitTotalMillis = computed(() =>
-  (model.value.splits ?? [])
+  activeSplits.value
     .filter(s => s.included)
     .reduce((t, s) => t + toMillis(s.splitAmount), 0),
 )
@@ -400,7 +498,7 @@ const getSplitPercentage = (userId) => {
 }
 
 const trackUser = (userId) => {
-  lastModifiedUserId.value = userId
+  lastModifiedEntityId.value = userId
 }
 
 // Split actions ----------------------------------------------------------------
@@ -435,17 +533,78 @@ const handleSplitToggle = (userId, included) => {
 }
 
 const splitEqually = () => {
-  if (!model.value.amount || !model.value.splits) return
+  if (!model.value.amount) return
+
+  if (isAliasMode.value) {
+    if (!model.value.aliasSplits) return
+    const includedSplits = model.value.aliasSplits.filter(s => s.included)
+    if (includedSplits.length === 0) return
+    const shares = splitMillis(amountMillis.value, includedSplits.length)
+    assignShares(includedSplits, shares)
+    return
+  }
+
+  if (!model.value.splits) return
   const includedSplits = model.value.splits.filter(s => s.included)
   if (includedSplits.length === 0) return
-
   const shares = splitMillis(amountMillis.value, includedSplits.length)
   assignShares(includedSplits, shares)
 }
 
+// Alias split helpers ----------------------------------------------------------
+
+const splitByAlias = (aliasId) => {
+  if (!model.value.aliasSplits) model.value.aliasSplits = []
+  let s = model.value.aliasSplits.find(x => x.aliasId === aliasId)
+  if (!s) {
+    s = { aliasId, included: false, splitAmount: 0 }
+    model.value.aliasSplits.push(s)
+  }
+  return s
+}
+
+const getAliasSplitPercentage = (aliasId) => {
+  const split = splitByAlias(aliasId)
+  const amount = parseFloat(model.value.amount) || 0
+  if (amount === 0 || !split.splitAmount) return 0
+  const pct = (split.splitAmount / amount) * 100
+  return parseFloat(pct.toFixed(1))
+}
+
+const trackAlias = (aliasId) => {
+  lastModifiedEntityId.value = aliasId
+}
+
+const handleAliasSplitToggle = (aliasId, included) => {
+  const split = splitByAlias(aliasId)
+  split.included = included
+  if (!model.value.amount) return
+
+  if (!included) split.splitAmount = 0
+
+  const includedSplits = model.value.aliasSplits.filter(s => s.included)
+  if (includedSplits.length === 0) return
+
+  if (included) {
+    const perAlias = Math.floor(amountMillis.value / includedSplits.length)
+    split.splitAmount = fromMillis(perAlias)
+    const others = includedSplits.filter(s => s.aliasId !== aliasId)
+    if (others.length > 0) {
+      const otherCurrent = others.map(s => toMillis(s.splitAmount))
+      const rescaled = redistributeMillis(otherCurrent, amountMillis.value - perAlias)
+      assignShares(others, rescaled)
+    }
+  }
+  else {
+    const currentMillis = includedSplits.map(s => toMillis(s.splitAmount))
+    const rescaled = redistributeMillis(currentMillis, amountMillis.value)
+    assignShares(includedSplits, rescaled)
+  }
+}
+
 // Group members ---------------------------------------------------------------
 
-const loadGroupMembers = async (groupId) => {
+const loadGroupData = async (groupId) => {
   if (!groupId) {
     groupMembers.value = []
     return
@@ -455,6 +614,10 @@ const loadGroupMembers = async (groupId) => {
   try {
     const members = await fetchGroupMembers(groupId)
     groupMembers.value = members || []
+
+    if (isAliasMode.value) {
+      await fetchAliases(groupId)
+    }
 
     if (!model.value.paidByUserId) {
       const currentUserMember = members?.find(m => m.userId === user.value?.id)
@@ -476,18 +639,24 @@ const loadGroupMembers = async (groupId) => {
 
 watch(
   () => model.value.groupId,
-  (newGroupId) => {
-    if (newGroupId) loadGroupMembers(newGroupId)
+  async (newGroupId) => {
+    if (!newGroupId) return
+    await fetchGroup(newGroupId)
+    await loadGroupData(newGroupId)
   },
   { immediate: true },
 )
 
-// Re-sync splits with the current member list whenever it changes —
-// preserves existing per-user splits, drops ones for removed members,
+// Re-sync splits with the current member/alias list whenever it changes —
+// preserves existing splits, drops ones for removed entities,
 // adds zero-entries for newcomers.
-watch(groupMembers, (members) => {
-  if (members && members.length > 0) updateSplits()
-})
+watch([groupMembers, aliases], () => {
+  if (isAliasMode.value) {
+    if (aliases.value && aliases.value.length > 0) updateSplits()
+    return
+  }
+  if (groupMembers.value && groupMembers.value.length > 0) updateSplits()
+}, { immediate: true })
 
 // Validation ------------------------------------------------------------------
 
@@ -512,8 +681,11 @@ const validate = () => {
     errors.push({ name: 'paymentModeId', message: 'Payment Mode is required' })
   }
 
-  if (!model.value.splits || model.value.splits.filter(s => s.included).length === 0) {
-    errors.push({ name: 'splits', message: 'At least one person must be included in the split' })
+  const activeSplitList = isAliasMode.value ? model.value.aliasSplits : model.value.splits
+  const splitEntityLabel = isAliasMode.value ? 'alias' : 'person'
+
+  if (!activeSplitList || activeSplitList.filter(s => s.included).length === 0) {
+    errors.push({ name: 'splits', message: `At least one ${splitEntityLabel} must be included in the split` })
   }
   else if (model.value.amount && remainingMillis.value !== 0) {
     errors.push({
@@ -525,10 +697,18 @@ const validate = () => {
   return errors
 }
 
-// Merge existing splits with the current member list (keyed by userId),
+// Merge existing splits with the current member/alias list (keyed by id),
 // then either initialize to an equal split (when stuck at zero) or rescale
 // proportionally (when the amount changed).
 const updateSplits = () => {
+  if (isAliasMode.value) {
+    updateAliasSplits()
+    return
+  }
+  updateUserSplits()
+}
+
+const updateUserSplits = () => {
   const members = groupMembers.value || []
 
   const byId = new Map((model.value.splits || []).map(s => [s.userId, s]))
@@ -558,15 +738,47 @@ const updateSplits = () => {
   }
 }
 
+const updateAliasSplits = () => {
+  const aliasList = aliases.value || []
+
+  const byId = new Map((model.value.aliasSplits || []).map(s => [s.aliasId, s]))
+  model.value.aliasSplits = aliasList.map(a =>
+    byId.get(a.id) ?? { aliasId: a.id, included: !isEditMode.value, splitAmount: 0 },
+  )
+
+  const includedSplits = model.value.aliasSplits.filter(s => s.included)
+  if (amountMillis.value === 0 || includedSplits.length === 0) return
+
+  const currentTotalMillis = includedSplits.reduce(
+    (s, x) => s + toMillis(x.splitAmount),
+    0,
+  )
+
+  if (currentTotalMillis === 0) {
+    assignShares(includedSplits, splitMillis(amountMillis.value, includedSplits.length))
+    return
+  }
+
+  if (currentTotalMillis !== amountMillis.value) {
+    const rescaled = redistributeMillis(
+      includedSplits.map(s => toMillis(s.splitAmount)),
+      amountMillis.value,
+    )
+    assignShares(includedSplits, rescaled)
+  }
+}
+
 // Submit ----------------------------------------------------------------------
 
 const onSubmit = async () => {
   emit('submit', buildExpensePayload())
 }
 
+const effectiveGroupId = computed(() => props.preSelectedGroupId || model.value.groupId)
+
 const buildExpensePayload = () => {
-  return {
-    groupId: props.preSelectedGroupId || model.value.groupId,
+  const payload = {
+    groupId: effectiveGroupId.value,
     expenseData: {
       title: model.value.title,
       description: model.value.description || null,
@@ -575,14 +787,27 @@ const buildExpensePayload = () => {
       expenseDate: model.value.expenseDate,
       categoryId: model.value.categoryId || undefined,
       paymentModeId: model.value.paymentModeId || undefined,
-      splits: model.value.splits
-        ? model.value.splits.filter(s => s.included).map(s => ({
-            userId: s.userId,
-            splitAmount: parseFloat(s.splitAmount) || 0,
-          }))
-        : [],
     },
   }
+
+  if (isAliasMode.value) {
+    payload.expenseData.aliasSplits = model.value.aliasSplits
+      ? model.value.aliasSplits.filter(s => s.included).map(s => ({
+          aliasId: s.aliasId,
+          splitAmount: parseFloat(s.splitAmount) || 0,
+        }))
+      : []
+  }
+  else {
+    payload.expenseData.splits = model.value.splits
+      ? model.value.splits.filter(s => s.included).map(s => ({
+          userId: s.userId,
+          splitAmount: parseFloat(s.splitAmount) || 0,
+        }))
+      : []
+  }
+
+  return payload
 }
 
 const onAddMore = () => {

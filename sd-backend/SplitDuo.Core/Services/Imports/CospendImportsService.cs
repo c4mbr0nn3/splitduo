@@ -100,6 +100,18 @@ public class CospendImportsService(
                 return Result<int>.BadRequest("No mapping configuration found");
             }
 
+            // Guard: reject if group is in alias mode
+            var group = await UnitOfWork.Groups.FirstOrDefaultAsync(g => g.Id == groupId && g.DeletedAt == null);
+            if (group == null)
+            {
+                return Result<int>.NotFound("Group not found");
+            }
+
+            if (group.UseAliases)
+            {
+                return Result<int>.Conflict("This group uses alias mode — use the SplitDuo Alias import type");
+            }
+
             var groupMembers = await UnitOfWork.GroupMembers
                 .Where(gm => gm.GroupId == groupId)
                 .Include(gm => gm.User)

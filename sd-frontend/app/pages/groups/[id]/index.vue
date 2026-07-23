@@ -36,6 +36,7 @@
         <template #header>
           <GroupsSectionHeader
             :group="group"
+            :alias-count="group?.useAliases ? aliasCount : null"
             :is-exporting="isExporting"
             @export="handleExport"
           />
@@ -66,10 +67,12 @@
 const route = useRoute()
 const groupId = route.params.id
 const { currentGroup, fetchGroup, isLoading } = useGroups()
+const { aliases, fetchAliases } = useAliases()
 const { exportToCsv, isExporting } = useImportExport(groupId)
 
 const activeTab = computed(() => route.query.tab === 'stats' ? 'stats' : 'expenses')
 const group = computed(() => currentGroup.value)
+const aliasCount = computed(() => aliases.value?.length || 0)
 const loadError = ref(false)
 
 const handleExport = async () => {
@@ -94,6 +97,9 @@ onMounted(async () => {
   if (groupId) {
     try {
       await fetchGroup(groupId)
+      if (group.value?.useAliases) {
+        await fetchAliases(groupId)
+      }
     }
     catch {
       loadError.value = true

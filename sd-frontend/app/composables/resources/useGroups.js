@@ -65,9 +65,14 @@ export default function useGroups() {
 
   // Update group
   const updateGroup = async (groupId, updates) => {
+    const updatePayload = {
+      name: updates.name,
+      description: updates.description,
+    }
+
     isLoading.value = true
     try {
-      const response = await api.put(`/groups/${groupId}`, updates)
+      const response = await api.put(`/groups/${groupId}`, updatePayload)
       if (response.success && response.data) {
         const index = groups.value.findIndex(g => g.id === groupId)
         if (index !== -1) {
