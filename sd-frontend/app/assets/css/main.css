@@ -1,6 +1,10 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
 
+/* Drive the browser chrome (Android nav bar, scrollbars, form controls) from the app color mode */
+:root { color-scheme: light; }
+.dark { color-scheme: dark; }
+
 @theme static {
   --font-sans: 'Geist', sans-serif;
 
