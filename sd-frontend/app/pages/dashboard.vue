@@ -29,7 +29,26 @@
     </UCard>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 sd-stagger mb-8">
+    <UCarousel
+      v-if="!isDesktop"
+      dots
+      class="mb-12"
+      :items="carouselItems"
+      :ui="{ item: 'basis-full pe-2' }"
+    >
+      <template #default="{ item }">
+        <DashboardStatCardSkeleton v-if="showSkeleton" />
+        <DashboardStatCard
+          v-else
+          v-bind="item"
+        />
+      </template>
+    </UCarousel>
+
+    <div
+      v-else
+      class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 sd-stagger mb-8"
+    >
       <template v-if="showSkeleton">
         <DashboardStatCardSkeleton
           v-for="i in 4"
@@ -38,27 +57,9 @@
       </template>
       <template v-else>
         <DashboardStatCard
-          :stats="{ label: 'Total Groups', value: userStats?.totalGroups }"
-          icon="i-lucide-users"
-          color="teal"
-        />
-        <DashboardStatCard
-          :stats="{ label: 'You Owe', value: userStats?.youOwe, color: 'red' }"
-          type="currency"
-          icon="i-lucide-trending-down"
-          color="red"
-        />
-        <DashboardStatCard
-          :stats="{ label: `You're Owed`, value: userStats?.youreOwed, color: 'green' }"
-          type="currency"
-          icon="i-lucide-trending-up"
-          color="green"
-        />
-        <DashboardStatCard
-          :stats="{ label: 'Net Balance', value: netBalance, color: netBalanceColor }"
-          type="currency"
-          :icon="netBalance >= 0 ? 'i-lucide-trending-up' : 'i-lucide-trending-down'"
-          :color="netBalanceColor"
+          v-for="card in statCards"
+          :key="card.stats.label"
+          v-bind="card"
         />
       </template>
     </div>
@@ -143,13 +144,44 @@
 </template>
 
 <script setup>
+import { useMediaQuery } from '@vueuse/core'
+
 const { groups, fetchGroups } = useGroups()
 const { userStats, fetchUserStats } = useUsers()
 
 const showSkeleton = ref(true)
+const isDesktop = useMediaQuery('(min-width: 640px)')
 
 const netBalance = computed(() => (userStats.value?.youreOwed || 0) - (userStats.value?.youOwe || 0))
 const netBalanceColor = computed(() => netBalance.value > 0 ? 'green' : netBalance.value < 0 ? 'red' : 'teal')
+
+const statCards = computed(() => [
+  {
+    stats: { label: 'Total Groups', value: userStats.value?.totalGroups },
+    icon: 'i-lucide-users',
+    color: 'teal',
+  },
+  {
+    stats: { label: 'You Owe', value: userStats.value?.youOwe, color: 'red' },
+    type: 'currency',
+    icon: 'i-lucide-trending-down',
+    color: 'red',
+  },
+  {
+    stats: { label: 'You\'re Owed', value: userStats.value?.youreOwed, color: 'green' },
+    type: 'currency',
+    icon: 'i-lucide-trending-up',
+    color: 'green',
+  },
+  {
+    stats: { label: 'Net Balance', value: netBalance.value, color: netBalanceColor.value },
+    type: 'currency',
+    icon: netBalance.value >= 0 ? 'i-lucide-trending-up' : 'i-lucide-trending-down',
+    color: netBalanceColor.value,
+  },
+])
+
+const carouselItems = computed(() => (showSkeleton.value ? Array.from({ length: 4 }) : statCards.value))
 
 onMounted(async () => {
   try {
