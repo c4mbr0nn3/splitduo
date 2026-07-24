@@ -60,9 +60,13 @@
   --sd-panel-bg: var(--ui-color-neutral-900);
 }
 
-/* Subtle page background — less sterile than flat white/dark */
+/* Subtle page background — less sterile than flat white/dark.
+   Applied to body (not a wrapper) so Android samples it for the nav bar. */
 :root:not(.dark) body {
   background-color: color-mix(in oklch, var(--ui-color-neutral-100) 30%, var(--ui-bg));
+}
+.dark body {
+  background-color: color-mix(in oklch, var(--ui-color-neutral-950) 40%, var(--ui-bg));
 }
 
 /* Tabular numbers globally for money alignment */
