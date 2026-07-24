@@ -4,6 +4,11 @@ All notable changes to SplitDuo will be documented in this file.
 
 Generated with [git-cliff](https://git-cliff.org) from Conventional Commits.
 
+## [1.6.3] - 2026-07-24
+
+### Features
+
+- *(frontend)* Carousel for dashboard recap stats on mobile
 ## [1.6.2] - 2026-07-24
 
 ### Bug Fixes
