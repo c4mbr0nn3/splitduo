@@ -55,17 +55,19 @@ export const rescaleMillis = (currentMillisList, targetMillis) => {
 }
 
 /**
- * Format an amount as a plain number with 2 decimals by default,
- * or 3 decimals when the third decimal is meaningful (non-zero).
+ * Format an amount as a plain number, rounded to 2 decimals for display.
+ * Pass `{ fullPrecision: true }` to show 3 decimals when the third decimal is
+ * non-zero (used in the expense form where exact millicent values matter).
  *
  * Used for display components that add their own currency symbol around the value.
  *
  * @param {number|string} amount
+ * @param {{ fullPrecision?: boolean }} [options]
  * @returns {string} e.g. "12.50", "3.334"
  */
-export function formatAmount(amount) {
+export function formatAmount(amount, { fullPrecision = false } = {}) {
   const n = Number(amount) || 0
-  const needs3 = Math.round(n * 1000) % 10 !== 0
+  const needs3 = fullPrecision && Math.round(n * 1000) % 10 !== 0
   return new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: needs3 ? 3 : 2,
@@ -73,16 +75,17 @@ export function formatAmount(amount) {
 }
 
 /**
- * Format an amount as a full currency string with symbol, 2 decimals by default,
- * 3 decimals when the third decimal is meaningful.
+ * Format an amount as a full currency string with symbol, rounded to 2 decimals
+ * for display. Pass `{ fullPrecision: true }` to show 3 decimals when the third
+ * decimal is non-zero (used in the expense form).
  *
  * @param {number|string} amount
- * @param {{ currency?: string }} [options] - defaults to EUR
+ * @param {{ currency?: string, fullPrecision?: boolean }} [options] - defaults to EUR
  * @returns {string} e.g. "€12.50", "€3.334"
  */
-export function formatCurrency(amount, { currency = 'EUR' } = {}) {
+export function formatCurrency(amount, { currency = 'EUR', fullPrecision = false } = {}) {
   const n = Number(amount) || 0
-  const needs3 = Math.round(n * 1000) % 10 !== 0
+  const needs3 = fullPrecision && Math.round(n * 1000) % 10 !== 0
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency,

@@ -19,12 +19,12 @@
           {{ statsLabel }}
         </p>
         <div class="flex items-baseline justify-between gap-2">
-          <p class="text-2xl font-semibold sd-tabular text-highlighted">
+          <p class="min-w-0 text-2xl font-semibold sd-tabular text-highlighted truncate">
             {{ numericValue }}
           </p>
           <span
             v-if="props.type === 'currency'"
-            class="text-base font-medium text-muted"
+            class="shrink-0 text-base font-medium text-muted"
           >
             €
           </span>

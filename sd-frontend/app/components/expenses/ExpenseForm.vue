@@ -280,14 +280,14 @@
               class="flex justify-between items-center"
             >
               <span class="text-toned">Expense Total:</span>
-              <span class="font-medium">{{ formatCurrency(parseFloat(model.amount)) }}</span>
+              <span class="font-medium">{{ formatCurrency(parseFloat(model.amount), { fullPrecision: true }) }}</span>
             </div>
             <div
               v-if="splitTotal > 0"
               class="flex justify-between items-center"
             >
               <span class="text-toned">Split Total:</span>
-              <span class="font-medium">{{ formatCurrency(splitTotal) }}</span>
+              <span class="font-medium">{{ formatCurrency(splitTotal, { fullPrecision: true }) }}</span>
             </div>
             <div
               v-if="model.amount && remainingMillis !== 0"
@@ -298,7 +298,7 @@
               }"
             >
               <span>{{ remainingMillis > 0 ? 'Remaining:' : 'Over by:' }}</span>
-              <span>{{ formatCurrency(Math.abs(remainingAmount)) }}</span>
+              <span>{{ formatCurrency(Math.abs(remainingAmount), { fullPrecision: true }) }}</span>
             </div>
             <div
               v-if="model.amount && remainingMillis === 0"
@@ -690,7 +690,7 @@ const validate = () => {
   else if (model.value.amount && remainingMillis.value !== 0) {
     errors.push({
       name: 'splits',
-      message: `Split total (${formatCurrency(splitTotal.value)}) must equal expense amount (${formatCurrency(parseFloat(model.value.amount))})`,
+      message: `Split total (${formatCurrency(splitTotal.value, { fullPrecision: true })}) must equal expense amount (${formatCurrency(parseFloat(model.value.amount), { fullPrecision: true })})`,
     })
   }
 
