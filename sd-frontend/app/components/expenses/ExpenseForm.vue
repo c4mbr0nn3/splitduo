@@ -55,15 +55,16 @@
             name="amount"
             required
           >
-            <UInputNumber
-              v-model="model.amount"
-              :step="0.01"
-              :min="0.01"
-              orientation="horizontal"
+            <UInput
+              :model-value="displayValue('amount', model.amount)"
+              type="text"
+              inputmode="decimal"
               placeholder="Enter the amount"
               size="lg"
               class="w-full"
-              @update:model-value="updateSplits"
+              @focus="onAmountFocus('amount', model.amount)"
+              @update:model-value="v => onAmountInput('amount', v, 'amount')"
+              @blur="onAmountBlur"
             />
           </UFormField>
           <UFormField
@@ -224,14 +225,16 @@
                 <span class="text-xs text-muted min-w-[2.5rem] text-right">
                   {{ model.amount && splitByAlias(alias.id).splitAmount > 0 ? `${getAliasSplitPercentage(alias.id)}%` : '' }}
                 </span>
-                <UInputNumber
-                  v-model="splitByAlias(alias.id).splitAmount"
-                  :step="0.001"
-                  :min="0"
+                <UInput
+                  :model-value="displayValue('alias-' + alias.id, splitByAlias(alias.id).splitAmount)"
+                  type="text"
+                  inputmode="decimal"
                   size="sm"
                   class="w-24 text-right sd-tabular"
                   :disabled="!splitByAlias(alias.id).included"
-                  @update:model-value="trackAlias(alias.id)"
+                  @focus="onAmountFocus('alias-' + alias.id, splitByAlias(alias.id).splitAmount)"
+                  @update:model-value="v => onAmountInput('alias-' + alias.id, v, 'splitAmount', splitByAlias(alias.id), () => trackAlias(alias.id))"
+                  @blur="onAmountBlur"
                 />
               </div>
             </template>
@@ -262,14 +265,16 @@
                 <span class="text-xs text-muted min-w-[2.5rem] text-right">
                   {{ model.amount && splitByUser(member.userId).splitAmount > 0 ? `${getSplitPercentage(member.userId)}%` : '' }}
                 </span>
-                <UInputNumber
-                  v-model="splitByUser(member.userId).splitAmount"
-                  :step="0.001"
-                  :min="0"
+                <UInput
+                  :model-value="displayValue('split-' + member.userId, splitByUser(member.userId).splitAmount)"
+                  type="text"
+                  inputmode="decimal"
                   size="sm"
                   class="w-24 text-right sd-tabular"
                   :disabled="!splitByUser(member.userId).included"
-                  @update:model-value="trackUser(member.userId)"
+                  @focus="onAmountFocus('split-' + member.userId, splitByUser(member.userId).splitAmount)"
+                  @update:model-value="v => onAmountInput('split-' + member.userId, v, 'splitAmount', splitByUser(member.userId), () => trackUser(member.userId))"
+                  @blur="onAmountBlur"
                 />
               </div>
             </template>
@@ -387,6 +392,83 @@ const { groups, fetchGroups, fetchGroup, currentGroup, fetchGroupMembers, isLoad
 const { aliases, fetchAliases } = useAliases()
 const { categories, isLoading: isLoadingCategories } = useCategories()
 const { paymentModes, isLoading: isLoadingPaymentModes } = usePaymentModes()
+
+// Amount input handling --------------------------------------------------------
+
+/**
+ * Normalize an amount string:
+ * - comma is always treated as the decimal separator, translated to a dot
+ * - any thousands separators / non-numeric characters are stripped
+ * - only one decimal separator is allowed; a second separator stops parsing
+ * - amounts are positive here, so no leading minus support needed
+ *
+ * The rule for a second separator is "keep the first separator, drop everything
+ * after the second one". This means typing "10.5.2" becomes "10.5" rather than
+ * jumping to "1052".
+ */
+const parseAmount = (raw) => {
+  if (raw === '' || raw === null || raw === undefined) return null
+
+  // First, translate comma to dot so both behave as the same decimal separator.
+  let normalized = String(raw).replace(/,/g, '.')
+
+  // Strip every character that isn't a digit or a dot.
+  normalized = normalized.replace(/[^\d.]/g, '')
+
+  // Keep only the first dot; drop everything after a second one.
+  const firstDot = normalized.indexOf('.')
+  if (firstDot !== -1) {
+    const before = normalized.slice(0, firstDot + 1)
+    const after = normalized.slice(firstDot + 1).replace(/\./g, '')
+    normalized = before + after
+  }
+
+  // Remove a trailing dot so the model stays numeric while the user is typing.
+  if (normalized.endsWith('.')) normalized = normalized.slice(0, -1)
+
+  const n = Number(normalized)
+  if (!Number.isFinite(n) || normalized === '') return null
+  return n
+}
+
+const handleAmountInput = (raw, field, target, onChange) => {
+  const parsed = parseAmount(raw)
+
+  if (target) {
+    target[field] = parsed ?? null
+  }
+  else {
+    model.value[field] = parsed ?? null
+    updateSplits()
+  }
+
+  onChange?.()
+}
+
+// Display formatting is applied on blur, not on every keystroke, so the
+// formatted value (e.g. "10.50") doesn't fight typing while the field is focused.
+const editingField = ref(null) // id string of the field currently being edited
+const editingValue = ref('') // raw string shown while editing
+
+const displayValue = (id, numericVal) =>
+  editingField.value === id
+    ? editingValue.value
+    : (numericVal == null ? '' : formatAmount(numericVal))
+
+const onAmountFocus = (id, numericVal) => {
+  editingField.value = id
+  editingValue.value = numericVal == null ? '' : String(numericVal)
+}
+
+const onAmountInput = (id, raw, field, target, onChange) => {
+  editingValue.value = raw
+  handleAmountInput(raw, field, target, onChange)
+}
+
+const onAmountBlur = () => {
+  editingField.value = null
+  editingValue.value = ''
+}
 
 const isLoadingMembers = ref(false)
 const groupMembers = ref([])
