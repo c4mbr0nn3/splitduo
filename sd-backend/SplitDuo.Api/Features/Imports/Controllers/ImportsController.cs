@@ -68,7 +68,8 @@ public class ImportsController(
         }
 
         var validationResult = await validatorService.IsValidImportAsync(request.File, group!.OriginalId);
-        if (validationResult.IsFailure) return HandleResult(Result<ImportStatusDto>.BadRequest(validationResult.Error));
+        if (validationResult.IsFailure)
+            return HandleResult(validationResult);
 
         var analysisResult = await importsService.AnalyzeFileAsync(request.File);
         if (analysisResult.IsFailure) return HandleResult(analysisResult.MapTo<ImportStatusDto>());

@@ -204,11 +204,6 @@ public class ImportsTests : IntegrationTest
         Assert.Equal("Invalid import type", body!.Error!.Message);
     }
 
-    // BUG: ImportsController.AnalyzeImportFile (line 71) wraps the validator's Result.Conflict
-    // failure as Result.BadRequest(validationResult.Error), discarding the 409 Conflict status
-    // and returning 400 instead. The validator correctly detects the duplicate (returns
-    // Result.Conflict), but the controller downgrades it. EXPECTED TO FAIL until the controller
-    // preserves the original status code.
     [Fact]
     public async Task Analyze_DuplicateFile_Returns409()
     {
@@ -513,11 +508,6 @@ public class ImportsTests : IntegrationTest
         Assert.NotNull(import.CompletedAt);
     }
 
-    // BUG: SplitDuoImportsService.CreateExpensesAsync calls BeginTransactionAsync (line 75) then
-    // returns Result.Conflict on the alias-mode guard (line 103) WITHOUT rolling back the
-    // transaction. The orphaned open transaction prevents ImportProcessingJob's finally-block
-    // SaveChangesAsync from persisting the Failed status, so the import stays stuck in Processing.
-    // EXPECTED TO FAIL until the service rolls back before returning early.
     [Fact]
     public async Task ProcessImportAsync_AliasModeGroup_ReturnsConflict()
     {
