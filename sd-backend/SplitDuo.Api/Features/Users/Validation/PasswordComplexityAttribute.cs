@@ -49,7 +49,10 @@ public class PasswordComplexityAttribute : ValidationAttribute
         // Check for special character
         if (!password.Any(c => SpecialCharacters.Contains(c)))
         {
-            errors.Add($"at least one special character ({SpecialCharacters})");
+            // Brace characters in the message are escaped (doubled) because
+            // ValidationAttribute.FormatErrorMessage runs string.Format on ErrorMessage,
+            // which would otherwise throw FormatException on literal '{' / '}'.
+            errors.Add($"at least one special character ({SpecialCharacters.Replace("{", "{{").Replace("}", "}}")})");
         }
 
         if (errors.Count > 0)

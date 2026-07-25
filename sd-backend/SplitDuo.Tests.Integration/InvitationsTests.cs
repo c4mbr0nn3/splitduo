@@ -455,10 +455,6 @@ public class InvitationsTests : IntegrationTest
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    // BUG: PasswordComplexityAttribute sets ErrorMessage to a string containing literal '{' and '}'
-    // (from the special-characters list "[]{}|..."). ValidationAttribute.FormatErrorMessage runs
-    // string.Format on ErrorMessage, which throws FormatException ("Expected an ASCII digit") on
-    // those braces. Result: weak passwords return 500 instead of 400. EXPECTED TO FAIL until fixed.
     [Fact]
     public async Task AcceptInvitation_WeakPassword_Returns400()
     {
