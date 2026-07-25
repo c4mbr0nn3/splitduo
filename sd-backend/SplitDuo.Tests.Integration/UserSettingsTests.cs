@@ -9,7 +9,7 @@ public class UserSettingsTests : IntegrationTest
 {
     public UserSettingsTests(SplitDuoApiFactory factory) : base(factory) { }
 
-    // --- GET /users/me ---
+    #region GET /users/me
 
     [Fact]
     public async Task GetCurrentUser_ReturnsDefaultSettings_ForSeededAdmin()
@@ -26,7 +26,9 @@ public class UserSettingsTests : IntegrationTest
         Assert.Equal("en", body.Data.Settings.UiLanguage);
     }
 
-    // --- PUT /users/me/settings: valid updates ---
+    #endregion
+
+    #region PUT /users/me/settings: valid updates
 
     [Fact]
     public async Task UpdateTheme_PersistsAndReturnsUpdated()
@@ -93,7 +95,9 @@ public class UserSettingsTests : IntegrationTest
         Assert.Equal("en", body.Data.UiLanguage);
     }
 
-    // --- PUT /users/me/settings: validation ---
+    #endregion
+
+    #region PUT /users/me/settings: validation
 
     [Fact]
     public async Task UpdateTheme_InvalidValue_Returns400()
@@ -123,7 +127,9 @@ public class UserSettingsTests : IntegrationTest
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    // --- PUT /users/me/settings: auth ---
+    #endregion
+
+    #region PUT /users/me/settings: auth
 
     [Fact]
     public async Task UpdateSettings_Unauthenticated_Returns401()
@@ -146,7 +152,9 @@ public class UserSettingsTests : IntegrationTest
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
-    // --- PUT /users/me/settings: null = leave unchanged ---
+    #endregion
+
+    #region PUT /users/me/settings: null = leave unchanged
 
     [Fact]
     public async Task UpdateSettings_EmptyBody_LeavesSettingsUnchanged()
@@ -165,7 +173,9 @@ public class UserSettingsTests : IntegrationTest
         Assert.Equal("dark", body!.Data!.Theme); // unchanged from previous PUT
     }
 
-    // --- jsonb round-trip (the core feature assertion) ---
+    #endregion
+
+    #region jsonb round-trip (the core feature assertion)
 
     [Fact]
     public async Task Settings_RoundTripThroughJsonb_PreservesValues()
@@ -188,4 +198,6 @@ public class UserSettingsTests : IntegrationTest
         Assert.Equal("dark", body!.Data!.Settings!.Theme);
         Assert.Equal("en", body.Data.Settings.UiLanguage);
     }
+
+    #endregion
 }

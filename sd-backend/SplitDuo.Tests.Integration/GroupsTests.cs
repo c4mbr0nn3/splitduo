@@ -10,7 +10,7 @@ public class GroupsTests : IntegrationTest
 {
     public GroupsTests(SplitDuoApiFactory factory) : base(factory) { }
 
-    // ===================== Happy paths =====================
+    #region Happy paths
 
     [Fact]
     public async Task CreateGroup_Returns200_WithGroupData()
@@ -205,7 +205,9 @@ public class GroupsTests : IntegrationTest
         Assert.Equal("Group not found", getBody!.Error!.Message);
     }
 
-    // ===================== Validation (400, ProblemDetails) =====================
+    #endregion
+
+    #region Validation (400, ProblemDetails)
 
     [Fact]
     public async Task CreateGroup_MissingName_Returns400()
@@ -249,7 +251,9 @@ public class GroupsTests : IntegrationTest
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    // ===================== Invalid Guid format (400, ApiResponseDto) =====================
+    #endregion
+
+    #region Invalid Guid format (400, ApiResponseDto)
 
     [Fact]
     public async Task GetGroup_InvalidGuidFormat_Returns400()
@@ -293,7 +297,9 @@ public class GroupsTests : IntegrationTest
         Assert.Equal("Invalid group ID format", body!.Error!.Message);
     }
 
-    // ===================== Auth — 401 unauthenticated =====================
+    #endregion
+
+    #region Auth — 401 unauthenticated
 
     [Fact]
     public async Task ListGroups_Unauthenticated_Returns401()
@@ -318,7 +324,9 @@ public class GroupsTests : IntegrationTest
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
-    // ===================== Not found — valid but nonexistent Guid =====================
+    #endregion
+
+    #region Not found — valid but nonexistent Guid
 
     [Fact]
     public async Task GetGroup_NonexistentGuid_Returns404()
@@ -362,7 +370,9 @@ public class GroupsTests : IntegrationTest
         Assert.Equal("Group not found", body!.Error!.Message);
     }
 
-    // ===================== Authorization — 403 not a member =====================
+    #endregion
+
+    #region Authorization — 403 not a member
 
     [Fact]
     public async Task GetGroup_NotAMember_Returns403()
@@ -419,4 +429,6 @@ public class GroupsTests : IntegrationTest
         var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<object>>(ct);
         Assert.Equal("Access to this group is not allowed", body!.Error!.Message);
     }
+
+    #endregion
 }
