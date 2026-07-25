@@ -19,6 +19,7 @@ public interface IUsersService
     Task<Result<UserStatsDto>> GetCurrentUserStatsAsync(string currentUserId);
     Task<Result<UserDto>> UpdateCurrentUserAsync(Guid currentUserId, UpdateUserRequestDto request);
     Task<Result> ChangeCurrentUserPasswordAsync(Guid currentUserId, ChangePasswordRequestDto request);
+    Task<Result<UserSettingsDto>> UpdateCurrentUserSettingsAsync(Guid userGuid, UpdateUserSettingsRequestDto request);
     Task<Result<UserDto>> GetUserAsync(string userId);
     Task<Result<UserDto>> UpdateUserAsync(string userId, UpdateUserRequestDto request);
     Task<Result> DeleteUserAsync(string userId);
@@ -143,6 +144,23 @@ public class UsersService(
             user.LastName = request.LastName;
 
         return Result<UserDto>.Success(new UserDto(user));
+    }
+
+    public async Task<Result<UserSettingsDto>> UpdateCurrentUserSettingsAsync(Guid userGuid, UpdateUserSettingsRequestDto request)
+    {
+        var user = await unitOfWork.Users
+            .FirstOrDefaultAsync(u => u.Guid == userGuid && u.DeletedAt == null);
+
+        if (user == null)
+            return Result<UserSettingsDto>.NotFound("User not found");
+
+        if (request.Theme != null)
+            user.Settings.Theme = request.Theme;
+
+        if (request.UiLanguage != null)
+            user.Settings.UiLanguage = request.UiLanguage;
+
+        return Result<UserSettingsDto>.Success(new UserSettingsDto(user.Settings));
     }
 
     public async Task<Result> ChangeCurrentUserPasswordAsync(Guid currentUserId, ChangePasswordRequestDto request)

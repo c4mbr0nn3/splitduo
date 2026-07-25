@@ -32,6 +32,29 @@
           class="sd-surface"
           :ui="{ body: 'p-4 sm:p-5' }"
         >
+          <p class="text-sm font-medium text-highlighted">
+            Preferences
+          </p>
+          <p class="text-sm text-muted mt-1">
+            Choose how the app looks for you across all your devices.
+          </p>
+          <UFormField
+            label="Theme"
+            class="mt-4"
+          >
+            <USelect
+              v-model="themePreference"
+              :items="themeOptions"
+              placeholder="Select theme..."
+              class="w-full sm:w-64"
+            />
+          </UFormField>
+        </UCard>
+
+        <UCard
+          class="sd-surface"
+          :ui="{ body: 'p-4 sm:p-5' }"
+        >
           <div class="flex items-start justify-between gap-3">
             <div>
               <p class="text-sm font-medium text-highlighted">
@@ -128,10 +151,28 @@
 import { useClipboard } from '@vueuse/core'
 
 const { user, isLoading } = useAuth()
+const { settings } = useUserSettings()
 const { copy, copied } = useClipboard()
 
 // Password change modal state
 const isPasswordModalOpen = ref(false)
+
+const themeOptions = [
+  { label: 'Auto', value: 'auto' },
+  { label: 'Light', value: 'light' },
+  { label: 'Dark', value: 'dark' },
+]
+
+const themePreference = computed({
+  get() {
+    return settings.value.theme
+  },
+  set(value) {
+    // Apply locally; AppHeader's colorMode.preference watcher persists it
+    const colorMode = useColorMode()
+    colorMode.preference = value === 'auto' ? 'system' : value
+  },
+})
 
 const profileActions = computed(() => [
   [

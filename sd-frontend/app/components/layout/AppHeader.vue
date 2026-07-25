@@ -49,7 +49,6 @@
         />
         <template #footer>
           <div class="flex flex-col space-y-4">
-            <ButtonColorMode />
             <LayoutLogoutButton />
           </div>
         </template>
@@ -60,8 +59,19 @@
 
 <script setup>
 const { user, isGlobalAdmin } = useAuth()
+const { settings, update: updateUserSettings } = useUserSettings()
+const colorMode = useColorMode()
 
 const route = useRoute()
+
+// Persist color-mode toggles from UColorModeButton to the backend.
+// Skip when the change originates from syncFromUser (server → client apply),
+// detected by matching the last-known-good server theme.
+watch(() => colorMode.preference, (preference) => {
+  const theme = preference === 'system' ? 'auto' : preference
+  if (theme === settings.value.theme) return
+  updateUserSettings({ theme })
+})
 
 const navigationItems = computed(() => {
   const items = [

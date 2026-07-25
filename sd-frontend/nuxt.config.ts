@@ -33,6 +33,11 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  colorMode: {
+    storage: 'cookie',
+    cookieKey: 'nuxt-color-mode',
+  },
+
   runtimeConfig: {
     public: {
       apiBaseUrl: '/api/v1',

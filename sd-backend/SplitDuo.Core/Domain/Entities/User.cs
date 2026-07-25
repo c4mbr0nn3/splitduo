@@ -36,6 +36,8 @@ public class User : AuditableAndSoftDeletableEntity
     // Security Stamp
     [Column("security_stamp"), MaxLength(64)] public string SecurityStamp { get; set; } = Guid.CreateVersion7().ToString();
 
+    public UserSettings Settings { get; set; } = new();
+
     [NotMapped]
     public GlobalRole GlobalRole
     {

@@ -13,6 +13,7 @@ export { default as usePaymentModes } from '@/composables/resources/usePaymentMo
 export { default as useReceiptScan } from '@/composables/resources/useReceiptScan'
 export { default as useUsers } from '@/composables/resources/useUsers'
 export { default as useAliases } from '@/composables/resources/useAliases'
+export { default as useUserSettings } from '@/composables/resources/useUserSettings'
 export { default as useErrorHandling } from '@/composables/utils/useErrorHandling'
 export { default as useNotifications } from '@/composables/utils/useNotifications'
 export { default as usePagination } from '@/composables/utils/usePagination'

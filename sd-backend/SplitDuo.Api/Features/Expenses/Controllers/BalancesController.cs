@@ -6,7 +6,6 @@ using SplitDuo.Api.Features.Common.Controllers;
 using SplitDuo.Api.Features.Common.Dto;
 using SplitDuo.Api.Features.Expenses.Dto;
 using SplitDuo.Api.Features.Expenses.Services;
-using SplitDuo.Core.Common;
 using SplitDuo.Core.Persistence;
 
 namespace SplitDuo.Api.Features.Expenses.Controllers;

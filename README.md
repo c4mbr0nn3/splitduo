@@ -176,6 +176,35 @@ dotnet ef migrations add <MigrationName> --project SplitDuo.Core --startup-proje
 dotnet ef database update --project SplitDuo.Core --startup-project SplitDuo.Api
 ```
 
+### Testing
+
+Integration tests live in `sd-backend/SplitDuo.Tests.Integration` and run the full API against a real PostgreSQL 17 container via [Testcontainers](https://dotnet.testcontainers.org/) + podman. No Docker daemon required — only podman.
+
+**Prerequisites:**
+- podman installed and the user socket running:
+  ```bash
+  systemctl --user start podman.socket   # one-time per session
+  podman info --format '{{.Host.RemoteSocket.Path}}'  # verify: unix:///run/user/<uid>/podman/podman.sock
+  ```
+- .NET 10 SDK
+
+**Run the tests:**
+```bash
+cd sd-backend
+./run-integration-tests.sh
+```
+
+The script sets the podman socket env vars (`DOCKER_HOST`, `TESTCONTAINERS_RYUK_CONTAINER_PRIVILEGED`) and the test app config (`SD_JWT_SECRET_KEY`, `SD_JWT_ISSUER`, `SD_JWT_AUDIENCE`, `SD_SEED_DEMO_DATA=false`), then runs `dotnet test`. A fresh `postgres:17-alpine` container is spun up per test run and torn down after.
+
+**What's covered:** the user-settings feature (`PUT /api/v1/users/me/settings`, `GET /api/v1/users/me`) — defaults, persistence, jsonb round-trip, validation, auth enforcement. The harness (`SplitDuoApiFactory` + `IntegrationTest` base class) is reusable for future endpoint tests.
+
+**Troubleshooting:**
+- `Could not connect to Docker daemon` → the podman socket isn't running. Start it with `systemctl --user start podman.socket`.
+- `Ryuk container failed to start` → rootless podman needs privileged Ryuk. The script sets `TESTCONTAINERS_RYUK_CONTAINER_PRIVILEGED=true`; if it still fails, add `export TESTCONTAINERS_RYUK_DISABLED=true` to skip the resource reaper.
+- Tests hang on startup → first container pull takes ~30s; subsequent runs reuse the cached image.
+
+Detailed plan and architecture: [Integration Tests Plan](docs/features/user-settings-integration-tests.md)
+
 ### Releasing
 
 Releases follow semantic versioning and are driven by `scripts/bump-version.sh`, which orchestrates [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) (bumps `package.json` + `VERSION`) and [git-cliff](https://git-cliff.org) (changelog), then commits, tags `vX.Y.Z`, and pushes to trigger the GitLab CI pipeline.
