@@ -4,6 +4,16 @@ All notable changes to SplitDuo will be documented in this file.
 
 Generated with [git-cliff](https://git-cliff.org) from Conventional Commits.
 
+## [1.7.1] - 2026-07-25
+
+### Bug Fixes
+
+- *(expenses)* Validate enum values and preserve category/payment mode on empty update
+
+### Testing
+
+- *(groups)* Add integration tests for Groups CRUD
+- *(expenses)* Add integration tests for Expenses CRUD
 ## [1.7.0] - 2026-07-25
 
 ### Features
