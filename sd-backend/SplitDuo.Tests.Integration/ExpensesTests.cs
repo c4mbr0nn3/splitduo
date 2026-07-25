@@ -335,11 +335,6 @@ public class ExpensesTests : IntegrationTest
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    // BUG: ExpensesService uses Enum.TryParse(request.CategoryId.ToString(), out ExpenseCategory)
-    // which succeeds for ANY integer valid for the underlying type, even with no named member.
-    // There is no Enum.IsDefined check, so categoryId=99 is accepted and stored as an unnamed enum
-    // value (silent data corruption). This test asserts the CORRECT behavior (400) and is
-    // EXPECTED TO FAIL until the bug is fixed by adding Enum.IsDefined validation.
     [Fact]
     public async Task CreateExpense_InvalidCategoryId_Returns400()
     {
@@ -365,9 +360,6 @@ public class ExpensesTests : IntegrationTest
         Assert.Equal("Invalid expense category", body!.Error!.Message);
     }
 
-    // BUG: same root cause as CreateExpense_InvalidCategoryId — Enum.TryParse accepts any integer,
-    // no Enum.IsDefined check. paymentModeId=99 is stored as an unnamed enum value. This test
-    // asserts the CORRECT behavior (400) and is EXPECTED TO FAIL until the bug is fixed.
     [Fact]
     public async Task CreateExpense_InvalidPaymentModeId_Returns400()
     {
@@ -790,12 +782,6 @@ public class ExpensesTests : IntegrationTest
 
     #region Bug documentation + update validation
 
-    // BUG: UpdateExpenseRequestDto.CategoryId/PaymentModeId default to 0 (int, not nullable)
-    // AND ExpensesService uses Enum.TryParse which accepts 0 as a valid underlying value (no
-    // Enum.IsDefined check). So empty-body update succeeds and overwrites CategoryId/PaymentModeId
-    // to 0 (unnamed enum values) — silent data corruption. This test asserts the CORRECT behavior
-    // (200 with preserved category/payment mode) and is EXPECTED TO FAIL until the bug is fixed
-    // (make DTO nullable + add "don't update on null" guard, or add Enum.IsDefined).
     [Fact]
     public async Task UpdateExpense_EmptyBody_PreservesCategoryAndPaymentMode()
     {

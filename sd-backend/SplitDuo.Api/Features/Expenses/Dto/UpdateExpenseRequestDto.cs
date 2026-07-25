@@ -9,8 +9,8 @@ public class UpdateExpenseRequestDto
     [Range(0.01, double.MaxValue)] public decimal? Amount { get; set; }
     public string? PaidByUserId { get; set; }
     public string? ExpenseDate { get; set; }
-    public int CategoryId { get; set; }
-    public int PaymentModeId { get; set; }
+    public int? CategoryId { get; set; }
+    public int? PaymentModeId { get; set; }
     public List<UpdateExpenseSplitDto>? Splits { get; set; }
     public List<CreateExpenseAliasSplitDto>? AliasSplits { get; set; }
 }

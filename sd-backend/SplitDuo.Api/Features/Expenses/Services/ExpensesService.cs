@@ -198,13 +198,15 @@ public class ExpensesService(
             return Result<ExpenseDto>.BadRequest("Paid by user is not a member of this group");
 
         // Parse and validate category
-        if (!Enum.TryParse(request.CategoryId.ToString(), true, out ExpenseCategory category))
+        if (!Enum.TryParse(request.CategoryId.ToString(), true, out ExpenseCategory category) ||
+            !Enum.IsDefined(category))
         {
             return Result<ExpenseDto>.BadRequest("Invalid expense category");
         }
 
         // Parse and validate payment mode
-        if (!Enum.TryParse(request.PaymentModeId.ToString(), true, out PaymentMode paymentMode))
+        if (!Enum.TryParse(request.PaymentModeId.ToString(), true, out PaymentMode paymentMode) ||
+            !Enum.IsDefined(paymentMode))
         {
             return Result<ExpenseDto>.BadRequest("Invalid expense payment mode");
         }
@@ -518,21 +520,29 @@ public class ExpensesService(
             expense.ExpenseDate = expenseDate;
         }
 
-        // Parse and validate category
-        if (!Enum.TryParse(request.CategoryId.ToString(), true, out ExpenseCategory category))
+        // Parse and validate category (only when provided)
+        if (request.CategoryId.HasValue)
         {
-            return Result<ExpenseDto>.BadRequest("Invalid expense category");
+            if (!Enum.TryParse(request.CategoryId.Value.ToString(), true, out ExpenseCategory category) ||
+                !Enum.IsDefined(category))
+            {
+                return Result<ExpenseDto>.BadRequest("Invalid expense category");
+            }
+
+            expense.Category = category;
         }
 
-        expense.Category = category;
-
-        // Parse and validate payment mode
-        if (!Enum.TryParse(request.PaymentModeId.ToString(), true, out PaymentMode paymentMode))
+        // Parse and validate payment mode (only when provided)
+        if (request.PaymentModeId.HasValue)
         {
-            return Result<ExpenseDto>.BadRequest("Invalid expense payment mode");
-        }
+            if (!Enum.TryParse(request.PaymentModeId.Value.ToString(), true, out PaymentMode paymentMode) ||
+                !Enum.IsDefined(paymentMode))
+            {
+                return Result<ExpenseDto>.BadRequest("Invalid expense payment mode");
+            }
 
-        expense.PaymentMode = paymentMode;
+            expense.PaymentMode = paymentMode;
+        }
 
         if (!string.IsNullOrWhiteSpace(request.PaidByUserId))
         {
