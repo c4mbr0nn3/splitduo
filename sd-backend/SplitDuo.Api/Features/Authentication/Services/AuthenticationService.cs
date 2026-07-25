@@ -37,7 +37,7 @@ public class AuthenticationService(
     public async Task<Result<AuthResponseDto>> LoginAsync(LoginRequestDto request)
     {
         var user = await unitOfWork.Users
-            .FirstOrDefaultAsync(u => u.Email == request.Email);
+            .FirstOrDefaultAsync(u => u.Email == request.Email && u.DeletedAt == null);
 
         if (user == null)
             return Result<AuthResponseDto>.Unauthorized("Invalid email or password");

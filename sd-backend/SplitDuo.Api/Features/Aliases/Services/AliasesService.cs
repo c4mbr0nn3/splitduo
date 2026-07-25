@@ -271,11 +271,15 @@ public class AliasesService(
         // Set the member's AliasId to this alias
         groupMember.AliasId = alias.Id;
 
-        // Reload members to include the newly assigned one
-        var updatedMembers = await unitOfWork.GroupMembers
-            .Where(gm => gm.GroupId == alias.GroupId && gm.AliasId == alias.Id && gm.DeletedAt == null)
-            .Include(gm => gm.User)
-            .ToListAsync();
+        // Build the DTO from tracked state. Re-querying the DB would miss the unsaved
+        // change (the controller calls SaveChangesAsync after the service returns), and
+        // EF does not auto-fixup the alias.Members navigation from a manual FK assignment.
+        // Explicitly add the member to the navigation collection so the DTO reflects the
+        // post-save state. memberUser is already loaded above.
+        groupMember.User = memberUser;
+        alias.Members.Add(groupMember);
+
+        var updatedMembers = alias.Members.Where(m => m.DeletedAt == null).ToList();
 
         var aliasDto = new AliasDto(alias, updatedMembers);
         return Result<AliasDto>.Success(aliasDto);

@@ -358,12 +358,6 @@ public class AliasesTests : IntegrationTest
 
     #region AssignMember
 
-    // BUG: AssignMemberAsync sets groupMember.AliasId on the tracked entity, then reloads members
-    // via a DB query (Where(gm => gm.AliasId == alias.Id)) BEFORE SaveChangesAsync runs (the
-    // controller saves after the service returns). The query executes against the DB, which still
-    // has the old AliasId, so the just-assigned member is not in the result. The response DTO's
-    // Members list is empty even though the assignment will persist after save. EXPECTED TO FAIL
-    // until the service builds the DTO from tracked state (or saves before reloading).
     [Fact]
     public async Task AssignMember_AddsUserToAlias()
     {

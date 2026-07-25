@@ -498,10 +498,6 @@ public class UsersProfileTests : IntegrationTest
 
     #region DELETE /users/{userId} (admin-only)
 
-    // BUG: AuthenticationService.LoginAsync queries users by email WITHOUT a DeletedAt == null
-    // filter (line 40: FirstOrDefaultAsync(u => u.Email == request.Email)), unlike every other
-    // auth query which filters on DeletedAt. Result: soft-deleted users can still log in.
-    // EXPECTED TO FAIL until the login query adds `&& u.DeletedAt == null`.
     [Fact]
     public async Task DeleteUser_AsAdmin_SoftDeletes()
     {
