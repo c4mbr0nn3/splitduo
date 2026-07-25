@@ -5,6 +5,16 @@ namespace SplitDuo.Core.Persistence;
 
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<User>(e =>
+        {
+            e.ComplexProperty(u => u.Settings, s => s.ToJson("settings"));
+        });
+    }
+
     public DbSet<Expense> Expenses { get; set; }
     public DbSet<ExpenseSplit> ExpenseSplits { get; set; }
     public DbSet<Group> Groups { get; set; }

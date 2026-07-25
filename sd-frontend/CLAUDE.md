@@ -110,3 +110,4 @@ MCP servers are available for up-to-date Nuxt and Nuxt UI docs:
 - **Use `useModal()`** for confirmation dialogs — don't create ad-hoc modals
 - **Mobile first** — design for small screens, enhance with responsive prefixes. Never desktop-first.
 - **Run `pnpm lint:fix`** before considering any frontend task done
+- **User settings** — live in `useState('user-settings')` via `useUserSettings` composable. `auth.client.js` watches `user` and calls `syncFromUser` to apply the saved theme on any auth state change. Updates go via debounced PUT to `/users/me/settings`. Theme `"auto"` maps to Nuxt UI's `"system"` color-mode preference. `colorMode.storage` is set to `'cookie'` in `nuxt.config.ts` so the server-synced theme wins over stale localStorage on reload.

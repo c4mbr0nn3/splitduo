@@ -85,6 +85,22 @@ public class UsersController(
         return HandleResult(result, "User profile updated successfully");
     }
 
+    [HttpPut("me/settings")]
+    public async Task<ActionResult<ApiResponseDto<UserSettingsDto>>> UpdateCurrentUserSettings(
+        [FromBody] UpdateUserSettingsRequestDto request)
+    {
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+            return HandleResult(Result<UserSettingsDto>.Unauthorized("User not authenticated"));
+
+        var result = await usersService.UpdateCurrentUserSettingsAsync(currentUserId.Value, request);
+
+        if (result.IsSuccess)
+            await unitOfWork.SaveChangesAsync();
+
+        return HandleResult(result, "Settings updated successfully");
+    }
+
     [HttpPut("me/password")]
     public async Task<ActionResult> ChangeCurrentUserPassword(
         [FromBody] ChangePasswordRequestDto request)

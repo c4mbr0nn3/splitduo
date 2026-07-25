@@ -26,4 +26,8 @@
         <ProjectReference Include="..\SplitDuo.Core\SplitDuo.Core.csproj"/>
     </ItemGroup>
 
+    <ItemGroup>
+        <InternalsVisibleTo Include="SplitDuo.Tests.Integration" />
+    </ItemGroup>
+
 </Project>
