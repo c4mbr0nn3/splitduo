@@ -56,9 +56,11 @@ integration-tests:
     - echo "----- coverage summary -----"
     - sed -n "/Summary/,/^$/p" coverage/Summary.txt
     # Move reports to the project root so artifact paths resolve regardless
-    # of the working directory GitLab uses when collecting artifacts.
+    # of the working directory GitLab uses when collecting artifacts. The
+    # JUnit logger writes next to the test project (LogFilePath is relative to
+    # the test assembly's directory, not --results-directory).
     - mv coverage/Cobertura.xml "$CI_PROJECT_DIR/coverage.xml"
-    - mv TestResults/test-results.xml "$CI_PROJECT_DIR/junit-results.xml" 2>/dev/null || true
+    - mv SplitDuo.Tests.Integration/test-results.xml "$CI_PROJECT_DIR/junit-results.xml"
   coverage: '/Line coverage: (\d+\.?\d*)%/'
   rules:
     # Manual on branches only — never on tags (version bumps/releases) and
