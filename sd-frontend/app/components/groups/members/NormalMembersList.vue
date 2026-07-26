@@ -33,54 +33,19 @@
       <h3 class="text-sm font-medium text-muted">
         Pending Invitations
       </h3>
-      <UCard
+      <GroupsMembersPendingInvitationCard
         v-for="invitation in pendingInvitations"
         :key="invitation.id"
-        variant="outline"
-      >
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="font-semibold">
-              {{ invitation.email }}
-            </p>
-            <p class="text-sm text-muted">
-              Invited {{ formatDate(invitation.invitedAt) }}
-            </p>
-          </div>
-          <div class="flex items-center gap-3">
-            <UBadge
-              variant="soft"
-              color="warning"
-              label="Pending"
-              icon="i-lucide-clock"
-            />
-            <UButton
-              icon="i-lucide-refresh-cw"
-              variant="ghost"
-              size="sm"
-              square
-              :loading="invitationLoading"
-              @click="$emit('resend', invitation)"
-            />
-            <UButton
-              icon="i-lucide-x"
-              variant="ghost"
-              color="error"
-              size="sm"
-              square
-              :loading="invitationLoading"
-              @click="$emit('revoke', invitation)"
-            />
-          </div>
-        </div>
-      </UCard>
+        :invitation="invitation"
+        :invitation-loading="invitationLoading"
+        @resend="$emit('resend', $event)"
+        @revoke="$emit('revoke', $event)"
+      />
     </div>
   </div>
 </template>
 
 <script setup>
-import { formatDate } from '~/utils/date'
-
 defineProps({
   members: {
     type: Array,
