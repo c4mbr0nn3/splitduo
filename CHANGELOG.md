@@ -4,6 +4,25 @@ All notable changes to SplitDuo will be documented in this file.
 
 Generated with [git-cliff](https://git-cliff.org) from Conventional Commits.
 
+## [1.7.2] - 2026-07-26
+
+### Bug Fixes
+
+- *(auth)* Escape braces in password complexity error message
+- *(auth,aliases)* Block deleted users from login and return assigned member in alias DTO
+- *(imports)* Preserve conflict status on duplicate and rollback transaction on alias-mode guard
+- *(groups)* Rework pending invitation card for mobile and extract shared component
+
+### Build System
+
+- *(test)* Add manual integration tests job with cobertura coverage report
+
+### Testing
+
+- *(auth,invitations)* Add integration tests for auth and invitations
+- *(groups,balances)* Add integration tests for group members and balances
+- *(aliases,2fa,users)* Add integration tests for aliases, 2FA, and user profile
+- *(imports)* Add integration tests for import analyze, map, and process flow
 ## [1.7.1] - 2026-07-25
 
 ### Bug Fixes
