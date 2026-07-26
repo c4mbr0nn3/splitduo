@@ -34,16 +34,18 @@ integration-tests:
     SD_SEED_DEMO_DATA: "false"
   script:
     - cd sd-backend
-    - dotnet test SplitDuo.Tests.Integration/SplitDuo.Tests.Integration.csproj
-        --configuration Release
-        --collect:"XPlat Code Coverage"
-        --results-directory ./TestResults
+    - |
+      dotnet test SplitDuo.Tests.Integration/SplitDuo.Tests.Integration.csproj \
+        --configuration Release \
+        --collect:"XPlat Code Coverage" \
+        --results-directory ./TestResults \
         --logger "junit;LogFilePath=test-results.xml"
-    - dotnet tool install --global dotnet-reportgenerator-globaltool
-    - export PATH="$PATH:$HOME/.dotnet/tools"
-    - reportgenerator
-        -reports:"./TestResults/**/coverage.cobertura.xml"
-        -targetdir:"./coverage"
+    - |
+      dotnet tool install --global dotnet-reportgenerator-globaltool
+      export PATH="$PATH:$HOME/.dotnet/tools"
+      reportgenerator \
+        -reports:"./TestResults/**/coverage.cobertura.xml" \
+        -targetdir:"./coverage" \
         -reporttypes:"Cobertura;TextSummary"
     - echo "----- coverage summary -----"
     - sed -n "/Summary/,/^$/p" coverage/Summary.txt
