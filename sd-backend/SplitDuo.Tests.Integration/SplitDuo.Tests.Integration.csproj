@@ -24,7 +24,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="JunitXml.TestLogger" Version="8.0.0" />
+    <PackageReference Include="JunitXml.TestLogger" Version="7.1.0" />
     <PackageReference Include="Testcontainers.PostgreSql" Version="4.13.0" />
     <PackageReference Include="Respawn" Version="7.0.0" />
     <PackageReference Include="Npgsql" Version="10.0.3" />
