@@ -1,54 +1,13 @@
 # GitLab CI/CD Pipeline for SplitDuo
-# Builds and pushes Docker images to Docker Hub
-
-image: docker:28
-
-services:
-  - docker:28-dind
-
-variables:
-  DOCKER_DRIVER: overlay2
-  DOCKER_TLS_CERTDIR: "/certs"
-  IMAGE_NAME: "j1mm0/splitduo"
+#
+# Pipeline composition lives in ci/*.yml — this file only declares the shared
+# stages and includes the per-concern job files. Add new CI concerns as new
+# files under ci/ and include them here.
 
 stages:
   - build
+  - test
 
-before_script:
-  - echo $DOCKER_HUB_PASSWORD | docker login -u $DOCKER_HUB_USERNAME --password-stdin
-
-build_and_push:
-  stage: build
-  script:
-    # Extract version and build with version arg
-    - VERSION=$(cat VERSION)
-    - docker build --build-arg APP_VERSION=$VERSION -t $IMAGE_NAME:temp .
-
-    # Handle version tags (only on main branch)
-    - |
-      if [[ "$CI_COMMIT_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+.*$ ]]; then
-        VERSION_TAG=${CI_COMMIT_TAG#v}
-        docker tag $IMAGE_NAME:temp $IMAGE_NAME:$VERSION_TAG
-        docker tag $IMAGE_NAME:temp $IMAGE_NAME:latest
-        docker push $IMAGE_NAME:$VERSION_TAG
-        docker push $IMAGE_NAME:latest
-        echo "Pushed version $VERSION_TAG and latest tags"
-      fi
-
-    # Handle dev branch pushes (any branch except main)
-    - |
-      if [[ -z "$CI_COMMIT_TAG" ]] && [[ "$CI_COMMIT_REF_NAME" != "main" ]]; then
-        BRANCH_TAG=$(echo $CI_COMMIT_REF_NAME | sed 's/[^a-zA-Z0-9._-]/-/g')
-        docker tag $IMAGE_NAME:temp $IMAGE_NAME:$BRANCH_TAG
-        docker push $IMAGE_NAME:$BRANCH_TAG
-        echo "Pushed branch tag: $BRANCH_TAG"
-      fi
-
-  rules:
-    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+.*$/
-      when: on_success
-    - if: '$CI_COMMIT_TAG == null && $CI_COMMIT_REF_NAME != "main" && $CI_PIPELINE_SOURCE != "merge_request_event"'
-      when: manual
-
-after_script:
-  - docker logout
+include:
+  - local: ci/build.yml
+  - local: ci/integration-tests.yml
