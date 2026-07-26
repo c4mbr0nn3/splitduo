@@ -11,11 +11,10 @@ variables:
   DOCKER_TLS_CERTDIR: "/certs"
   IMAGE_NAME: "j1mm0/splitduo"
 
-before_script:
-  - echo $DOCKER_HUB_PASSWORD | docker login -u $DOCKER_HUB_USERNAME --password-stdin
-
 build_and_push:
   stage: build
+  before_script:
+    - echo $DOCKER_HUB_PASSWORD | docker login -u $DOCKER_HUB_USERNAME --password-stdin
   script:
     # Extract version and build with version arg
     - VERSION=$(cat VERSION)
