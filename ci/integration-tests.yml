@@ -65,7 +65,10 @@ integration-tests:
     - cp sd-backend/TestResults/test-results.xml junit-results.xml 2>/dev/null || true
   coverage: '/Line coverage: (\d+\.?\d*)%/'
   rules:
-    # Manual on every branch (and on tags) — never automatic.
+    # Manual on branches only — never on tags (version bumps/releases) and
+    # never automatic.
+    - if: $CI_COMMIT_TAG
+      when: never
     - when: manual
       allow_failure: true
   artifacts:
