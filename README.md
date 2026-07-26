@@ -1,5 +1,9 @@
 # SplitDuo
 
+[![pipeline status](https://gitlab.com/j1mm0/splitduo/badges/main/pipeline.svg)](https://gitlab.com/j1mm0/splitduo/-/pipelines)
+[![coverage report](https://gitlab.com/j1mm0/splitduo/badges/main/coverage.svg)](https://gitlab.com/j1mm0/splitduo/-/graphs/main/charts)
+[![latest version](https://img.shields.io/gitlab/v/tag/j1mm0/splitduo?label=latest%20version)](https://gitlab.com/j1mm0/splitduo/-/tags)
+
 Shared finances, without the noise. SplitDuo is a self-hosted expense splitting app for small groups — couples, housemates, travel companions, or anyone sharing costs. No subscription, no third-party servers, no data you don't control.
 
 A focused alternative to Splitwise and Cospend, deployable in one `docker compose up`.
