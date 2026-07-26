@@ -2,26 +2,30 @@
 # SplitDuo CI — test stage
 #
 # Runs the xUnit integration tests (SplitDuo.Tests.Integration) with a real
-# PostgreSQL container spun up by Testcontainers. Produces a Cobertura
-# coverage report consumed by GitLab's coverage visualization (MR annotations
-# + pipeline widget percentage).
+# PostgreSQL container spun up by Testcontainers against the dind daemon.
+# Produces a Cobertura coverage report consumed by GitLab's coverage
+# visualization (MR annotations + pipeline widget percentage).
 #
-# Manual trigger on every branch — never runs automatically.
+# The job image is the .NET SDK directly (not docker:28) so `dotnet restore`
+# runs in the job container with normal internet access to nuget.org. dind is
+# only used as the Docker daemon for Testcontainers, reached over TCP.
+#
+# Manual trigger on every branch — never runs automatically, never on tags.
 
 stages:
   - test
 
 integration-tests:
   stage: test
-  image: docker:28
+  image: mcr.microsoft.com/dotnet/sdk:10.0
   services:
-    - docker:28-dind
+    - name: docker:28-dind
+      command: ["--host=tcp://0.0.0.0:2375", "--tls=false"]
+      alias: docker
   variables:
     DOCKER_DRIVER: overlay2
-    DOCKER_TLS_CERTDIR: "/certs"
-    # Testcontainers talks to the Docker daemon via DOCKER_HOST; under dind the
-    # socket is at /var/run/docker.sock inside the service container.
-    DOCKER_HOST: "tcp://docker:2376"
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_HOST: "tcp://docker:2375"
     TESTCONTAINERS_RYUK_DISABLED: "true"
     ASPNETCORE_ENVIRONMENT: "Development"
     SD_JWT_SECRET_KEY: "ci-integration-secret-key-32-chars-min!!"
@@ -29,40 +33,24 @@ integration-tests:
     SD_JWT_AUDIENCE: "test"
     SD_SEED_DEMO_DATA: "false"
   script:
-    # Run the integration tests inside the .NET 10 SDK container, mounting the
-    # Docker socket so Testcontainers can spawn the PostgreSQL sidecar.
-    - |
-      docker run --rm \
-        -v /var/run/docker.sock:/var/run/docker.sock \
-        -v "$CI_PROJECT_DIR":/src -w /src \
-        -e DOCKER_HOST="unix:///var/run/docker.sock" \
-        -e TESTCONTAINERS_RYUK_DISABLED="true" \
-        -e ASPNETCORE_ENVIRONMENT="$ASPNETCORE_ENVIRONMENT" \
-        -e SD_JWT_SECRET_KEY="$SD_JWT_SECRET_KEY" \
-        -e SD_JWT_ISSUER="$SD_JWT_ISSUER" \
-        -e SD_JWT_AUDIENCE="$SD_JWT_AUDIENCE" \
-        -e SD_SEED_DEMO_DATA="$SD_SEED_DEMO_DATA" \
-        mcr.microsoft.com/dotnet/sdk:10.0 \
-        sh -c '
-          cd /src/sd-backend &&
-          dotnet test SplitDuo.Tests.Integration/SplitDuo.Tests.Integration.csproj \
-            --configuration Release \
-            --collect:"XPlat Code Coverage" \
-            --results-directory ./TestResults \
-            --logger "junit;LogFilePath=test-results.xml" &&
-          dotnet tool install --global dotnet-reportgenerator-globaltool &&
-          export PATH="$PATH:$HOME/.dotnet/tools" &&
-          reportgenerator \
-            -reports:"./TestResults/**/coverage.cobertura.xml" \
-            -targetdir:"./coverage" \
-            -reporttypes:"Cobertura;TextSummary" &&
-          echo "----- coverage summary -----" &&
-          sed -n "/Summary/,/^$/p" coverage/Summary.txt
-        '
-    # Copy the merged report out of the container-friendly path into the
-    # project root so the artifacts paths resolve regardless of working dir.
-    - cp sd-backend/coverage/Cobertura.xml coverage.xml
-    - cp sd-backend/TestResults/test-results.xml junit-results.xml 2>/dev/null || true
+    - cd sd-backend
+    - dotnet test SplitDuo.Tests.Integration/SplitDuo.Tests.Integration.csproj
+        --configuration Release
+        --collect:"XPlat Code Coverage"
+        --results-directory ./TestResults
+        --logger "junit;LogFilePath=test-results.xml"
+    - dotnet tool install --global dotnet-reportgenerator-globaltool
+    - export PATH="$PATH:$HOME/.dotnet/tools"
+    - reportgenerator
+        -reports:"./TestResults/**/coverage.cobertura.xml"
+        -targetdir:"./coverage"
+        -reporttypes:"Cobertura;TextSummary"
+    - echo "----- coverage summary -----"
+    - sed -n "/Summary/,/^$/p" coverage/Summary.txt
+    # Move reports to the project root so artifact paths resolve regardless
+    # of the working directory GitLab uses when collecting artifacts.
+    - mv coverage/Cobertura.xml "$CI_PROJECT_DIR/coverage.xml"
+    - mv TestResults/test-results.xml "$CI_PROJECT_DIR/junit-results.xml" 2>/dev/null || true
   coverage: '/Line coverage: (\d+\.?\d*)%/'
   rules:
     # Manual on branches only — never on tags (version bumps/releases) and
