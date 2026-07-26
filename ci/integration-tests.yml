@@ -19,13 +19,19 @@ integration-tests:
   stage: test
   image: mcr.microsoft.com/dotnet/sdk:10.0
   services:
-    - name: docker:28-dind
-      command: ["--host=tcp://0.0.0.0:2375", "--tls=false"]
-      alias: docker
+    # No explicit alias — `docker` is the default alias GitLab assigns. Setting
+    # it explicitly triggers a "Skipping alias" warning. No custom command —
+    # the dind entrypoint sets up TLS certs when DOCKER_TLS_CERTDIR is non-empty.
+    - docker:28-dind
   variables:
-    DOCKER_DRIVER: overlay2
-    DOCKER_TLS_CERTDIR: ""
-    DOCKER_HOST: "tcp://docker:2375"
+    # Docker daemon connection (TLS enabled — default on gitlab.com shared
+    # runners). The runner mounts /certs/client into the job container.
+    DOCKER_HOST: tcp://docker:2376
+    DOCKER_TLS_CERTDIR: "/certs"
+    DOCKER_TLS_VERIFY: "1"
+    DOCKER_CERT_PATH: "/certs/client"
+    # Testcontainers talks to the Docker API directly (Docker.DotNet), no CLI.
+    # Ryuk resource reaper is disabled — it can't reach back to the daemon in dind.
     TESTCONTAINERS_RYUK_DISABLED: "true"
     ASPNETCORE_ENVIRONMENT: "Development"
     SD_JWT_SECRET_KEY: "ci-integration-secret-key-32-chars-min!!"
