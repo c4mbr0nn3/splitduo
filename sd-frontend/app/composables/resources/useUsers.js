@@ -149,6 +149,25 @@ export default function useUsers() {
     }
   }
 
+  // Change user role (admin only)
+  const changeUserRole = async (userId, globalRoleId) => {
+    try {
+      const response = await api.put(`/users/${userId}`, { globalRole: globalRoleId })
+      if (response.success && response.data) {
+        const index = users.value.findIndex(u => u.id === userId)
+        if (index !== -1) {
+          users.value[index] = response.data
+        }
+        showSuccess('User role updated successfully')
+        return response.data
+      }
+    }
+    catch (error) {
+      showError('Failed to update user role')
+      throw error
+    }
+  }
+
   // Revoke all tokens for user (admin only)
   const revokeUserTokens = async (userGuid) => {
     try {
@@ -175,6 +194,7 @@ export default function useUsers() {
     fetchUserStats,
     fetchUser,
     updateUser,
+    changeUserRole,
     deleteUser,
     revokeUserTokens,
   }

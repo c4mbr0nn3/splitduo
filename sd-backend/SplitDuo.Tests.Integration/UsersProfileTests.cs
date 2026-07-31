@@ -576,4 +576,178 @@ public class UsersProfileTests : IntegrationTest
     }
 
     #endregion
+
+    #region ChangeUserRole
+
+    [Fact]
+    public async Task ChangeUserRole_PromoteUser_ReturnsAdminRole()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var adminClient = await CreateAuthenticatedClientAsync();
+
+        // Seed a new base user
+        var targetEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "promotee@localhost");
+        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme");
+        var target = await targetClient.GetCurrentUserAsync();
+
+        // Admin promotes them to SystemAdmin
+        var response = await adminClient.PutAsJsonAsync($"/api/v1/users/{target.Id}", new
+        {
+            globalRole = 2,
+        }, ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserDto>>(ct);
+        Assert.Equal((int)GlobalRole.SystemAdmin, body!.Data!.GlobalRoleId);
+
+        // Verify persistence
+        var get = await adminClient.GetAsync($"/api/v1/users/{target.Id}", ct);
+        var getBody = await get.Content.ReadFromJsonAsync<ApiResponseDto<UserDto>>(ct);
+        Assert.Equal((int)GlobalRole.SystemAdmin, getBody!.Data!.GlobalRoleId);
+    }
+
+    [Fact]
+    public async Task ChangeUserRole_DemoteAdmin_ReturnsBaseUserRole()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var adminClient = await CreateAuthenticatedClientAsync();
+
+        // Seed a new user and promote them to admin
+        var targetEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "demotee@localhost");
+        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme");
+        var target = await targetClient.GetCurrentUserAsync();
+
+        await adminClient.PutAsJsonAsync($"/api/v1/users/{target.Id}", new
+        {
+            globalRole = 2,
+        }, ct);
+
+        // Admin demotes them back to BaseUser
+        var response = await adminClient.PutAsJsonAsync($"/api/v1/users/{target.Id}", new
+        {
+            globalRole = 1,
+        }, ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserDto>>(ct);
+        Assert.Equal((int)GlobalRole.BaseUser, body!.Data!.GlobalRoleId);
+
+        // Verify persistence
+        var get = await adminClient.GetAsync($"/api/v1/users/{target.Id}", ct);
+        var getBody = await get.Content.ReadFromJsonAsync<ApiResponseDto<UserDto>>(ct);
+        Assert.Equal((int)GlobalRole.BaseUser, getBody!.Data!.GlobalRoleId);
+    }
+
+    [Fact]
+    public async Task ChangeUserRole_SelfDemotion_Returns403()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var adminClient = await CreateAuthenticatedClientAsync();
+        var admin = await adminClient.GetCurrentUserAsync();
+
+        var response = await adminClient.PutAsJsonAsync($"/api/v1/users/{admin.Id}", new
+        {
+            globalRole = 1,
+        }, ct);
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<object>>(ct);
+        Assert.Equal("You cannot change your own role", body!.Error!.Message);
+    }
+
+    [Fact]
+    public async Task ChangeUserRole_NonAdmin_Returns403()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "baseuser@localhost");
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+        var member = await memberClient.GetCurrentUserAsync();
+
+        var response = await memberClient.PutAsJsonAsync($"/api/v1/users/{member.Id}", new
+        {
+            globalRole = 2,
+        }, ct);
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<object>>(ct);
+        Assert.Equal("Only system administrators can modify user roles", body!.Error!.Message);
+    }
+
+    [Fact]
+    public async Task ChangeUserRole_DuplicateRole_Returns400()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var adminClient = await CreateAuthenticatedClientAsync();
+
+        // Seed a new base user (already BaseUser)
+        var targetEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "duplicaterole@localhost");
+        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme");
+        var target = await targetClient.GetCurrentUserAsync();
+
+        // Admin tries to set role to BaseUser (already is)
+        var response = await adminClient.PutAsJsonAsync($"/api/v1/users/{target.Id}", new
+        {
+            globalRole = 1,
+        }, ct);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<object>>(ct);
+        Assert.Equal("User already has this role", body!.Error!.Message);
+    }
+
+    [Fact]
+    public async Task ChangeUserRole_InvalidRoleValue_Returns400()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var adminClient = await CreateAuthenticatedClientAsync();
+
+        // Seed a new base user
+        var targetEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "invalidrole@localhost");
+        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme");
+        var target = await targetClient.GetCurrentUserAsync();
+
+        // Admin tries to set an out-of-range role value
+        var response = await adminClient.PutAsJsonAsync($"/api/v1/users/{target.Id}", new
+        {
+            globalRole = 99,
+        }, ct);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<object>>(ct);
+        Assert.Equal("Invalid role value", body!.Error!.Message);
+    }
+
+    [Fact]
+    public async Task ChangeUserRole_DemoteOneOfTwoAdmins_Succeeds()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var adminClient = await CreateAuthenticatedClientAsync();
+
+        // Seed a new user and promote them to admin (now there are 2 admins)
+        var targetEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "secondadmin@localhost");
+        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme");
+        var target = await targetClient.GetCurrentUserAsync();
+
+        await adminClient.PutAsJsonAsync($"/api/v1/users/{target.Id}", new
+        {
+            globalRole = 2,
+        }, ct);
+
+        // Admin demotes the other admin (should succeed since >1 admin exists)
+        var response = await adminClient.PutAsJsonAsync($"/api/v1/users/{target.Id}", new
+        {
+            globalRole = 1,
+        }, ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserDto>>(ct);
+        Assert.Equal((int)GlobalRole.BaseUser, body!.Data!.GlobalRoleId);
+
+        // Verify persistence
+        var get = await adminClient.GetAsync($"/api/v1/users/{target.Id}", ct);
+        var getBody = await get.Content.ReadFromJsonAsync<ApiResponseDto<UserDto>>(ct);
+        Assert.Equal((int)GlobalRole.BaseUser, getBody!.Data!.GlobalRoleId);
+    }
+
+    #endregion
 }

@@ -87,6 +87,7 @@
         @edit="navigateToEdit"
         @revoke-tokens="revokeTokens"
         @delete="handleDeleteUser"
+        @refresh="refreshUsers"
       />
     </div>
 

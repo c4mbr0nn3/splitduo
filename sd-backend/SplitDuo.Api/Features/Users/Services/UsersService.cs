@@ -5,6 +5,7 @@ using SplitDuo.Api.Features.Common.Services;
 using SplitDuo.Api.Features.Users.Dto;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Email;
+using SplitDuo.Core.Domain.Enums;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Dto.Imports;
 using SplitDuo.Core.Persistence;
@@ -266,8 +267,25 @@ public class UsersService(
 
         if (!request.GlobalRole.HasValue) return Result<UserDto>.Success(new UserDto(user));
 
+        if (!Enum.IsDefined(request.GlobalRole.Value))
+            return Result<UserDto>.BadRequest("Invalid role value");
+
         if (!isSystemAdmin)
             return Result<UserDto>.Forbidden("Only system administrators can modify user roles");
+
+        if (user.GlobalRole == request.GlobalRole.Value)
+            return Result<UserDto>.BadRequest("User already has this role");
+
+        if (request.GlobalRole.Value == GlobalRole.BaseUser && currentUserId == userGuid)
+            return Result<UserDto>.Forbidden("You cannot change your own role");
+
+        if (request.GlobalRole.Value == GlobalRole.BaseUser && user.GlobalRole == GlobalRole.SystemAdmin)
+        {
+            var adminCount = await unitOfWork.Users
+                .CountAsync(u => u.GlobalRoleId == (int)GlobalRole.SystemAdmin && u.DeletedAt == null);
+            if (adminCount <= 1)
+                return Result<UserDto>.Conflict("Cannot demote the only system administrator");
+        }
 
         user.GlobalRole = request.GlobalRole.Value;
 

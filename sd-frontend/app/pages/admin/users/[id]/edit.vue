@@ -28,7 +28,8 @@ const initialData = computed(() => ({
 
 async function onSubmit(formData) {
   try {
-    const updatedUser = await updateUser(userId, formData)
+    const { globalRoleId, ...rest } = formData
+    const updatedUser = await updateUser(userId, { ...rest, globalRole: globalRoleId })
     if (updatedUser) {
       navigateTo('/admin/users')
     }

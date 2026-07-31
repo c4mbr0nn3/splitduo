@@ -59,7 +59,7 @@
             variant="ghost"
             color="neutral"
             :items="dropdownItems"
-            :disabled="isSameUser || isDeleting || isRevokingTokens"
+            :disabled="isSameUser || isDeleting || isRevokingTokens || isChangingRole"
           />
         </span>
       </div>
@@ -83,14 +83,17 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['edit', 'revoke-tokens', 'delete'])
+const emit = defineEmits(['edit', 'revoke-tokens', 'delete', 'refresh'])
 
 const { user: authUser } = useAuth()
 const modal = useModal()
+const { changeUserRole } = useUsers()
 
 const isSameUser = computed(() => {
   return authUser.value?.id === props.user.id
 })
+
+const isChangingRole = ref(false)
 
 const confirmDeleteUser = async () => {
   const userName = props.user.fullName || `${props.user.firstName} ${props.user.lastName || ''}`.trim()
@@ -124,31 +127,103 @@ const confirmRevokeTokens = async () => {
   }
 }
 
+const confirmPromote = async () => {
+  const firstName = props.user.firstName || props.user.fullName || ''
+
+  const confirmed = await modal.warning({
+    title: 'Promote to System Admin',
+    content: `${firstName} will have full access to manage all users and platform settings.`,
+    confirmText: 'Promote',
+    cancelText: 'Cancel',
+  })
+
+  if (confirmed) {
+    isChangingRole.value = true
+    try {
+      await changeUserRole(props.user.id, UserRole.SYSTEM_ADMIN)
+      emit('refresh')
+    }
+    catch {
+      // Error shown via toast
+    }
+    finally {
+      isChangingRole.value = false
+    }
+  }
+}
+
+const confirmDemote = async () => {
+  const firstName = props.user.firstName || props.user.fullName || ''
+
+  const confirmed = await modal.warning({
+    title: 'Demote to Regular User',
+    content: `${firstName} will no longer have access to the admin panel or manage platform users.`,
+    confirmText: 'Demote',
+    cancelText: 'Cancel',
+  })
+
+  if (confirmed) {
+    isChangingRole.value = true
+    try {
+      await changeUserRole(props.user.id, UserRole.BASE_USER)
+      emit('refresh')
+    }
+    catch {
+      // Error shown via toast
+    }
+    finally {
+      isChangingRole.value = false
+    }
+  }
+}
+
 const onEdit = () => {
   navigateTo(`/admin/users/${props.user.id}/edit`)
 }
 
-const dropdownItems = computed(() => [
-  {
-    label: 'Edit',
-    icon: 'i-lucide-edit-2',
-    color: 'info',
-    onSelect: onEdit,
-  },
-  {
-    label: 'Revoke Tokens',
-    icon: 'i-lucide-rotate-ccw-key',
-    color: 'warning',
-    onSelect: confirmRevokeTokens,
-  },
-  {
-    type: 'separator',
-  },
-  {
-    label: 'Delete',
-    icon: 'i-lucide-trash-2',
-    color: 'error',
-    onSelect: confirmDeleteUser,
-  },
-])
+const dropdownItems = computed(() => {
+  const items = [
+    {
+      label: 'Edit',
+      icon: 'i-lucide-edit-2',
+      color: 'info',
+      onSelect: onEdit,
+    },
+    {
+      label: 'Revoke Tokens',
+      icon: 'i-lucide-rotate-ccw-key',
+      color: 'warning',
+      onSelect: confirmRevokeTokens,
+    },
+    {
+      type: 'separator',
+    },
+    {
+      label: 'Delete',
+      icon: 'i-lucide-trash-2',
+      color: 'error',
+      onSelect: confirmDeleteUser,
+    },
+  ]
+
+  // Promote/demote items for role management
+  if (props.user.globalRoleId == UserRole.BASE_USER) {
+    items.unshift({
+      label: 'Promote to Admin',
+      icon: 'i-lucide-arrow-up-circle',
+      color: 'success',
+      onSelect: confirmPromote,
+    })
+  }
+  else if (props.user.globalRoleId == UserRole.SYSTEM_ADMIN && !isSameUser.value) {
+    items.unshift({
+      label: 'Demote to User',
+      icon: 'i-lucide-arrow-down-circle',
+      color: 'warning',
+      onSelect: confirmDemote,
+    })
+  }
+
+  return items
+})
 </script>
