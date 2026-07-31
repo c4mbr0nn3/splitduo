@@ -685,5 +685,72 @@ public class GroupMembersTests : IntegrationTest
         Assert.Equal("User already has this role", body!.Error!.Message);
     }
 
+    [Fact]
+    public async Task ChangeMemberRole_NonMemberCaller_Returns403()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var adminClient = await CreateAuthenticatedClientAsync();
+        var group = await adminClient.CreateGroupAsync();
+
+        var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
+            "member@localhost", "changeme", "Member", "User");
+        await adminClient.PostAsJsonAsync(
+            $"/api/v1/groups/{group.Id}/members", new { userEmail = memberEmail, role = "member" }, ct);
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+        var member = await memberClient.GetCurrentUserAsync();
+
+        // Seed a third user who is NOT a member of the group
+        var outsiderEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "outsider@localhost");
+        var outsiderClient = await CreateAuthenticatedClientAsync(outsiderEmail, "changeme");
+
+        var response = await outsiderClient.PutAsJsonAsync(
+            $"/api/v1/groups/{group.Id}/members/{member.Id}/role", new { role = "admin" }, ct);
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<object>>(ct);
+        Assert.Equal("Access to this group is not allowed", body!.Error!.Message);
+    }
+
+    [Fact]
+    public async Task ChangeMemberRole_TargetNotInGroup_Returns404()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var adminClient = await CreateAuthenticatedClientAsync();
+        var group = await adminClient.CreateGroupAsync();
+
+        var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
+            "member2@localhost", "changeme", "Member", "User");
+        await adminClient.PostAsJsonAsync(
+            $"/api/v1/groups/{group.Id}/members", new { userEmail = memberEmail, role = "member" }, ct);
+
+        // Seed a third user who is NOT a member of the group
+        var outsiderEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "outsider2@localhost");
+        var outsiderClient = await CreateAuthenticatedClientAsync(outsiderEmail, "changeme");
+        var outsider = await outsiderClient.GetCurrentUserAsync();
+
+        // Admin tries to change role of a user who is not in the group
+        var response = await adminClient.PutAsJsonAsync(
+            $"/api/v1/groups/{group.Id}/members/{outsider.Id}/role", new { role = "admin" }, ct);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<object>>(ct);
+        Assert.Equal("User is not a member of this group", body!.Error!.Message);
+    }
+
+    [Fact]
+    public async Task ChangeMemberRole_NonexistentTargetUser_Returns404()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var adminClient = await CreateAuthenticatedClientAsync();
+        var group = await adminClient.CreateGroupAsync();
+
+        var response = await adminClient.PutAsJsonAsync(
+            $"/api/v1/groups/{group.Id}/members/{Guid.NewGuid()}/role", new { role = "admin" }, ct);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<object>>(ct);
+        Assert.Equal("User not found", body!.Error!.Message);
+    }
+
     #endregion
 }
