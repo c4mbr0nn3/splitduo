@@ -209,6 +209,21 @@ The script sets the podman socket env vars (`DOCKER_HOST`, `TESTCONTAINERS_RYUK_
 
 Detailed plan and architecture: [Integration Tests Plan](docs/features/user-settings-integration-tests.md)
 
+### Coverage
+
+Both test projects collect coverage via [coverlet](https://github.com/coverlet-coverage/coverlet). The `run-coverage.sh` wrapper runs unit + integration tests with coverage and aggregates the results into an HTML report.
+
+```bash
+# One-time: install the report generator
+dotnet tool install -g dotnet-reportgenerator-globaltool
+
+cd sd-backend
+./run-coverage.sh
+xdg-open TestResults/coverage-report/index.html
+```
+
+Raw `coverage.cobertura.xml` files are written under `TestResults/` (gitignored). The script wipes `TestResults/` each run so reports never merge stale data.
+
 ### Releasing
 
 Releases follow semantic versioning and are driven by `scripts/bump-version.sh`, which orchestrates [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) (bumps `package.json` + `VERSION`) and [git-cliff](https://git-cliff.org) (changelog), then commits, tags `vX.Y.Z`, and pushes to trigger the GitLab CI pipeline.
