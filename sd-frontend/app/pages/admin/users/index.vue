@@ -107,43 +107,11 @@
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <UCard
+        <AdminPendingUserCard
           v-for="pending in pendingUsers"
           :key="pending.email"
-          variant="outline"
-        >
-          <div class="space-y-3">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <UIcon
-                  name="i-lucide-mail"
-                  class="text-muted"
-                />
-                <span class="font-medium text-sm">{{ pending.email }}</span>
-              </div>
-              <UBadge
-                variant="soft"
-                color="warning"
-                label="Pending"
-                size="xs"
-              />
-            </div>
-            <div class="space-y-1">
-              <p class="text-xs text-muted">
-                Invited to:
-              </p>
-              <div class="flex flex-wrap gap-1">
-                <UBadge
-                  v-for="group in pending.groups"
-                  :key="group.id"
-                  variant="subtle"
-                  size="xs"
-                  :label="group.name"
-                />
-              </div>
-            </div>
-          </div>
-        </UCard>
+          :pending="pending"
+        />
       </div>
     </div>
   </div>
