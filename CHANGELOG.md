@@ -4,6 +4,35 @@ All notable changes to SplitDuo will be documented in this file.
 
 Generated with [git-cliff](https://git-cliff.org) from Conventional Commits.
 
+## [1.8.0] - 2026-07-31
+
+### Build System
+
+- *(test)* Skip integration tests on version tags
+- *(test)* Use sdk image directly to fix nuget access on gitlab runners
+- *(test)* Scope after_script to build job and fix test script line continuations
+- *(test)* Use canonical dind TLS config and drop redundant service alias
+- *(build)* Scope before_script to build job to avoid leaking docker login to test job
+- *(test)* Fix junit report path — logger writes next to test project, not results dir
+- *(release)* Create GitLab release on v* tags
+- *(release)* Create GitHub release on mirrored repo for v* tags
+
+### Code Refactoring
+
+- *(admin)* Extract pending user card to component
+
+### Features
+
+- *(groups)* Allow admins to promote and demote members
+- *(users)* Allow system admins to promote and demote users
+
+### Testing
+
+- *(integration)* Add JunitXml.TestLogger for junit report in CI
+- *(integration)* Bump JunitXml.TestLogger to 8.0.0
+- *(integration)* Pin JunitXml.TestLogger to 7.1.0 for Testing.Platform 1.x compat
+- *(coverage)* Add coverlet to unit tests and run-coverage wrapper
+- *(groups)* Add missing ChangeMemberRole guard tests and document lessons learned
 ## [1.7.2] - 2026-07-26
 
 ### Bug Fixes
