@@ -155,6 +155,21 @@ export default function useGroups() {
     }
   }
 
+  // Change member role
+  const changeMemberRole = async (groupId, userId, role) => {
+    try {
+      const response = await api.put(`/groups/${groupId}/members/${userId}/role`, { role })
+      if (response.success && response.data) {
+        showSuccess('Member role updated successfully')
+        return response.data
+      }
+    }
+    catch (error) {
+      showError('Failed to update member role')
+      throw error
+    }
+  }
+
   return {
     groups: readonly(groups),
     currentGroup: readonly(currentGroup),
@@ -167,5 +182,6 @@ export default function useGroups() {
     fetchGroupMembers,
     addGroupMember,
     removeGroupMember,
+    changeMemberRole,
   }
 }

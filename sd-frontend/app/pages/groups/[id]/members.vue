@@ -65,6 +65,8 @@
         :aliases="aliases"
         :group="group"
         :is-group-admin="isGroupAdmin"
+        :current-user-id="user?.id"
+        :group-id="groupId"
         :alias-loading="aliasLoading"
         :pending-invitations="pendingInvitations"
         :invitation-loading="invitationLoading"
@@ -77,6 +79,7 @@
         @assign="onAssignMember"
         @remove="onRemoveMember"
         @finalize="onFinalize"
+        @refresh="loadGroupMembers"
       />
 
       <template #footer>

@@ -143,4 +143,20 @@ public class GroupsController(
 
         return HandleResult(result, "Group member removed successfully");
     }
+
+    [HttpPut("{groupId}/members/{userId}/role")]
+    public async Task<ActionResult<ApiResponseDto<GroupMemberDto>>> ChangeMemberRole(string groupId, string userId,
+        [FromBody] UpdateGroupMemberRoleRequestDto request)
+    {
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+            return HandleResult(Result<GroupMemberDto>.Unauthorized("User not authenticated"));
+
+        var result = await groupsService.ChangeMemberRoleAsync(groupId, userId, currentUserId.Value, request);
+
+        if (result.IsSuccess)
+            await unitOfWork.SaveChangesAsync();
+
+        return HandleResult(result, "Member role updated successfully");
+    }
 }

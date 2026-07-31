@@ -104,15 +104,31 @@
                 v-if="isGroupAdmin"
                 #actions
               >
-                <UButton
-                  icon="i-lucide-user-minus"
-                  variant="ghost"
-                  color="neutral"
-                  size="xs"
-                  square
-                  :loading="aliasLoading"
-                  @click="$emit('remove', alias, member.id)"
-                />
+                <span
+                  v-if="member.id !== currentUserId"
+                  @click.stop
+                >
+                  <UiButtonDropdown
+                    :items="getRoleItems(member)"
+                    icon-only
+                    dropdown-icon="i-lucide-ellipsis-vertical"
+                    size="sm"
+                    square
+                    variant="ghost"
+                    color="neutral"
+                  />
+                </span>
+                <span @click.stop>
+                  <UButton
+                    icon="i-lucide-user-minus"
+                    variant="ghost"
+                    color="neutral"
+                    size="sm"
+                    square
+                    :loading="aliasLoading"
+                    @click="$emit('remove', alias, member.id)"
+                  />
+                </span>
               </template>
             </GroupsMembersRow>
           </div>
@@ -194,6 +210,14 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  currentUserId: {
+    type: String,
+    default: '',
+  },
+  groupId: {
+    type: String,
+    default: '',
+  },
   aliasLoading: {
     type: Boolean,
     default: false,
@@ -212,7 +236,57 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['rename', 'delete', 'assign', 'remove', 'finalize', 'resend', 'revoke'])
+const emit = defineEmits(['rename', 'delete', 'assign', 'remove', 'finalize', 'resend', 'revoke', 'refresh'])
+
+const { changeMemberRole } = useGroups()
+const modal = useModal()
+
+const getRoleItems = (member) => {
+  const items = []
+
+  if (member.role === 'member') {
+    items.push({
+      label: 'Promote to Admin',
+      icon: 'i-lucide-arrow-up-circle',
+      color: 'success',
+      onSelect: () => confirmRoleChange(member, 'admin'),
+    })
+  }
+  else if (member.role === 'admin') {
+    items.push({
+      label: 'Demote to Member',
+      icon: 'i-lucide-arrow-down-circle',
+      color: 'warning',
+      onSelect: () => confirmRoleChange(member, 'member'),
+    })
+  }
+
+  return items
+}
+
+const confirmRoleChange = async (member, newRole) => {
+  const isPromote = newRole === 'admin'
+  const firstName = member.firstName || member.fullName || ''
+
+  const confirmed = await modal.warning({
+    title: isPromote ? 'Promote to Admin' : 'Demote to Member',
+    content: isPromote
+      ? `${firstName} will be able to edit group settings, manage members, and delete this group.`
+      : `${firstName} will no longer be able to manage this group.`,
+    confirmText: isPromote ? 'Promote' : 'Demote',
+    cancelText: 'Cancel',
+  })
+
+  if (!confirmed) return
+
+  try {
+    await changeMemberRole(props.groupId, member.id, newRole)
+    emit('refresh')
+  }
+  catch {
+    // Error shown via toast
+  }
+}
 
 const selectedAssignee = reactive({})
 

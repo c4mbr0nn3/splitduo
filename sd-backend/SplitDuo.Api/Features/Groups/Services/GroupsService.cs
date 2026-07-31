@@ -26,6 +26,9 @@ public interface IGroupsService
 
     Task<Result> RemoveGroupMemberAsync(string groupId, string userId, Guid currentUserId);
 
+    Task<Result<GroupMemberDto>> ChangeMemberRoleAsync(string groupId, string userId, Guid currentUserId,
+        UpdateGroupMemberRoleRequestDto request);
+
     Task<Result<PaginatedResponseDto<ImportStatusDto>>> GetGroupImportsAsync(
         string groupId,
         Guid currentUserId,
@@ -676,6 +679,92 @@ public class GroupsService(
         }
 
         return Result.Success();
+    }
+
+    public async Task<Result<GroupMemberDto>> ChangeMemberRoleAsync(string groupId, string userId,
+        Guid currentUserId, UpdateGroupMemberRoleRequestDto request)
+    {
+        if (!Guid.TryParse(groupId, out var groupGuid))
+            return Result<GroupMemberDto>.BadRequest("Invalid group ID format");
+
+        if (!Guid.TryParse(userId, out var userGuid))
+            return Result<GroupMemberDto>.BadRequest("Invalid user ID format");
+
+        if (!Enum.TryParse<GroupRole>(request.Role, true, out var newRole))
+            return Result<GroupMemberDto>.BadRequest("Invalid role. Must be 'admin' or 'member'.");
+
+        var currentUser = await unitOfWork.Users
+            .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
+
+        if (currentUser == null)
+            return Result<GroupMemberDto>.Unauthorized("User not found");
+
+        var group = await unitOfWork.Groups
+            .FirstOrDefaultAsync(g => g.Guid == groupGuid && g.DeletedAt == null);
+
+        if (group == null)
+            return Result<GroupMemberDto>.NotFound("Group not found");
+
+        // Check if caller is a member of the group
+        var callerMember = await unitOfWork.GroupMembers
+            .FirstOrDefaultAsync(gm => gm.GroupId == group.Id && gm.UserId == currentUser.Id && gm.DeletedAt == null);
+
+        if (callerMember == null)
+            return Result<GroupMemberDto>.Forbidden("Access to this group is not allowed");
+
+        if (callerMember.Role != GroupRole.Admin)
+            return Result<GroupMemberDto>.Forbidden("Only group administrators can change member roles");
+
+        // Find target user
+        var targetUser = await unitOfWork.Users
+            .FirstOrDefaultAsync(u => u.Guid == userGuid && u.DeletedAt == null);
+
+        if (targetUser == null)
+            return Result<GroupMemberDto>.NotFound("User not found");
+
+        // Find target's membership
+        var targetMember = await unitOfWork.GroupMembers
+            .FirstOrDefaultAsync(gm => gm.GroupId == group.Id && gm.UserId == targetUser.Id && gm.DeletedAt == null);
+
+        if (targetMember == null)
+            return Result<GroupMemberDto>.NotFound("User is not a member of this group");
+
+        // Cannot change own role
+        if (targetMember.UserId == callerMember.UserId)
+            return Result<GroupMemberDto>.Forbidden("You cannot change your own role");
+
+        // Already has this role
+        if (targetMember.Role == newRole)
+            return Result<GroupMemberDto>.BadRequest("User already has this role");
+
+        // Last-admin protection when demoting
+        if (newRole == GroupRole.Member && targetMember.Role == GroupRole.Admin)
+        {
+            var adminCount = await unitOfWork.GroupMembers
+                .CountAsync(gm => gm.GroupId == group.Id && gm.RoleId == (int)GroupRole.Admin && gm.DeletedAt == null);
+
+            if (adminCount <= 1)
+                return Result<GroupMemberDto>.Conflict("Cannot demote the only administrator of the group");
+        }
+
+        targetMember.Role = newRole;
+
+        var memberDto = new GroupMemberDto
+        {
+            GroupId = group.Guid.ToString(),
+            UserId = targetUser.Guid.ToString(),
+            User = new UserInfoDto
+            {
+                Id = targetUser.Guid.ToString(),
+                Email = targetUser.Email,
+                FirstName = targetUser.FirstName,
+                LastName = targetUser.LastName
+            },
+            Role = newRole.ToString().ToLowerInvariant(),
+            JoinedAt = targetMember.CreatedAt
+        };
+
+        return Result<GroupMemberDto>.Success(memberDto);
     }
 
     public async Task<Result<PaginatedResponseDto<ImportStatusDto>>> GetGroupImportsAsync(

@@ -508,4 +508,182 @@ public class GroupMembersTests : IntegrationTest
     }
 
     #endregion
+
+    #region ChangeMemberRole
+
+    [Fact]
+    public async Task ChangeMemberRole_PromoteMember_ReturnsAdminRole()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var adminClient = await CreateAuthenticatedClientAsync();
+        var group = await adminClient.CreateGroupAsync();
+
+        var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
+            "promotee@localhost", "changeme", "Promotee", "User");
+        await adminClient.PostAsJsonAsync(
+            $"/api/v1/groups/{group.Id}/members", new { userEmail = memberEmail, role = "member" }, ct);
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+        var member = await memberClient.GetCurrentUserAsync();
+
+        var response = await adminClient.PutAsJsonAsync(
+            $"/api/v1/groups/{group.Id}/members/{member.Id}/role", new { role = "admin" }, ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<GroupMemberDto>>(ct);
+        Assert.NotNull(body!.Data);
+        Assert.Equal("admin", body.Data!.Role);
+        Assert.Equal(member.Id, body.Data.UserId);
+        Assert.Equal(memberEmail, body.Data.User.Email);
+
+        // Verify persistence
+        var membersResponse = await adminClient.GetAsync($"/api/v1/groups/{group.Id}/members", ct);
+        var membersBody = await membersResponse.Content.ReadFromJsonAsync<ApiResponseDto<List<GroupMemberDto>>>(ct);
+        var target = membersBody!.Data!.FirstOrDefault(m => m.UserId == member.Id);
+        Assert.NotNull(target);
+        Assert.Equal("admin", target!.Role);
+    }
+
+    [Fact]
+    public async Task ChangeMemberRole_DemoteAdmin_ReturnsMemberRole()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var adminClient = await CreateAuthenticatedClientAsync();
+        var group = await adminClient.CreateGroupAsync();
+
+        var secondEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
+            "demotee@localhost", "changeme", "Demotee", "User");
+        await adminClient.PostAsJsonAsync(
+            $"/api/v1/groups/{group.Id}/members", new { userEmail = secondEmail, role = "admin" }, ct);
+        var secondClient = await CreateAuthenticatedClientAsync(secondEmail, "changeme");
+        var second = await secondClient.GetCurrentUserAsync();
+
+        var response = await adminClient.PutAsJsonAsync(
+            $"/api/v1/groups/{group.Id}/members/{second.Id}/role", new { role = "member" }, ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<GroupMemberDto>>(ct);
+        Assert.NotNull(body!.Data);
+        Assert.Equal("member", body.Data!.Role);
+        Assert.Equal(second.Id, body.Data.UserId);
+
+        // Verify persistence
+        var membersResponse = await adminClient.GetAsync($"/api/v1/groups/{group.Id}/members", ct);
+        var membersBody = await membersResponse.Content.ReadFromJsonAsync<ApiResponseDto<List<GroupMemberDto>>>(ct);
+        var target = membersBody!.Data!.FirstOrDefault(m => m.UserId == second.Id);
+        Assert.NotNull(target);
+        Assert.Equal("member", target!.Role);
+    }
+
+    [Fact]
+    public async Task ChangeMemberRole_SelfDemotion_Returns403()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var adminClient = await CreateAuthenticatedClientAsync();
+        var group = await adminClient.CreateGroupAsync();
+        var admin = await adminClient.GetCurrentUserAsync();
+
+        var response = await adminClient.PutAsJsonAsync(
+            $"/api/v1/groups/{group.Id}/members/{admin.Id}/role", new { role = "member" }, ct);
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<object>>(ct);
+        Assert.Equal("You cannot change your own role", body!.Error!.Message);
+    }
+
+    [Fact]
+    public async Task ChangeMemberRole_DemoteOneOfTwoAdmins_Succeeds()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var adminClient = await CreateAuthenticatedClientAsync();
+        var group = await adminClient.CreateGroupAsync();
+
+        var secondEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
+            "secondadmin@localhost", "changeme", "Second", "Admin");
+        await adminClient.PostAsJsonAsync(
+            $"/api/v1/groups/{group.Id}/members", new { userEmail = secondEmail, role = "admin" }, ct);
+        var secondClient = await CreateAuthenticatedClientAsync(secondEmail, "changeme");
+        var second = await secondClient.GetCurrentUserAsync();
+
+        var response = await adminClient.PutAsJsonAsync(
+            $"/api/v1/groups/{group.Id}/members/{second.Id}/role", new { role = "member" }, ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<GroupMemberDto>>(ct);
+        Assert.NotNull(body!.Data);
+        Assert.Equal("member", body.Data!.Role);
+    }
+
+    [Fact]
+    public async Task ChangeMemberRole_NonAdminMember_Returns403()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var adminClient = await CreateAuthenticatedClientAsync();
+        var group = await adminClient.CreateGroupAsync();
+
+        var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
+            "regular@localhost", "changeme", "Regular", "User");
+        await adminClient.PostAsJsonAsync(
+            $"/api/v1/groups/{group.Id}/members", new { userEmail = memberEmail, role = "member" }, ct);
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+
+        var targetEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
+            "target@localhost", "changeme", "Target", "User");
+        await adminClient.PostAsJsonAsync(
+            $"/api/v1/groups/{group.Id}/members", new { userEmail = targetEmail, role = "member" }, ct);
+        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme");
+        var target = await targetClient.GetCurrentUserAsync();
+
+        var response = await memberClient.PutAsJsonAsync(
+            $"/api/v1/groups/{group.Id}/members/{target.Id}/role", new { role = "admin" }, ct);
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<object>>(ct);
+        Assert.Equal("Only group administrators can change member roles", body!.Error!.Message);
+    }
+
+    [Fact]
+    public async Task ChangeMemberRole_InvalidRole_Returns400()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var adminClient = await CreateAuthenticatedClientAsync();
+        var group = await adminClient.CreateGroupAsync();
+
+        var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
+            "invalidrole@localhost", "changeme", "Invalid", "Role");
+        await adminClient.PostAsJsonAsync(
+            $"/api/v1/groups/{group.Id}/members", new { userEmail = memberEmail, role = "member" }, ct);
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+        var member = await memberClient.GetCurrentUserAsync();
+
+        var response = await adminClient.PutAsJsonAsync(
+            $"/api/v1/groups/{group.Id}/members/{member.Id}/role", new { role = "superadmin" }, ct);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<object>>(ct);
+        Assert.Equal("Invalid role. Must be 'admin' or 'member'.", body!.Error!.Message);
+    }
+
+    [Fact]
+    public async Task ChangeMemberRole_DuplicateRole_Returns400()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var adminClient = await CreateAuthenticatedClientAsync();
+        var group = await adminClient.CreateGroupAsync();
+
+        var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
+            "duperole@localhost", "changeme", "Dupe", "Role");
+        await adminClient.PostAsJsonAsync(
+            $"/api/v1/groups/{group.Id}/members", new { userEmail = memberEmail, role = "member" }, ct);
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+        var member = await memberClient.GetCurrentUserAsync();
+
+        var response = await adminClient.PutAsJsonAsync(
+            $"/api/v1/groups/{group.Id}/members/{member.Id}/role", new { role = "member" }, ct);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<object>>(ct);
+        Assert.Equal("User already has this role", body!.Error!.Message);
+    }
+
+    #endregion
 }
