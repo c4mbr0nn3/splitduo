@@ -5,11 +5,13 @@
 # files under ci/ and include them here.
 
 stages:
+  - verify
   - build
   - test
   - release
 
 include:
+  - local: ci/verify.yml
   - local: ci/build.yml
   - local: ci/integration-tests.yml
   - local: ci/release.yml
