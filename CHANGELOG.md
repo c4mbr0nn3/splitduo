@@ -4,6 +4,19 @@ All notable changes to SplitDuo will be documented in this file.
 
 Generated with [git-cliff](https://git-cliff.org) from Conventional Commits.
 
+## [1.9.0] - 2026-08-01
+
+### Bug Fixes
+
+- *(scripts)* Keep backfill-releases scratch files in repo root
+
+### Build System
+
+- Add verify stage and document pipeline
+
+### Features
+
+- I18n
 ## [1.8.0] - 2026-07-31
 
 ### Build System
