@@ -5,6 +5,10 @@
 # unit tests (SplitDuo.Tests.Unit) on every main push, version tag, and MR
 # so the main-branch pipeline badge reflects real branch health.
 #
+# Release commits (chore: bump version to …) are skipped on the main branch
+# because the same commit is also tagged vX.Y.Z, which triggers an identical
+# tag pipeline — running both would duplicate the work on unchanged code.
+#
 # The lint job uses node:22-alpine (matches the Dockerfile frontend stage).
 # The unit-tests job uses the .NET 10 SDK directly (no dind needed — unit
 # tests have no external dependencies).
@@ -22,6 +26,8 @@ lint:
   rules:
     - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+.*$/
       when: on_success
+    - if: '$CI_COMMIT_BRANCH == "main" && $CI_COMMIT_MESSAGE =~ /chore: bump version to \d+\.\d+\.\d+/'
+      when: never
     - if: $CI_COMMIT_BRANCH == "main"
       when: on_success
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -53,6 +59,8 @@ unit-tests:
   rules:
     - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+.*$/
       when: on_success
+    - if: '$CI_COMMIT_BRANCH == "main" && $CI_COMMIT_MESSAGE =~ /chore: bump version to \d+\.\d+\.\d+/'
+      when: never
     - if: $CI_COMMIT_BRANCH == "main"
       when: on_success
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
