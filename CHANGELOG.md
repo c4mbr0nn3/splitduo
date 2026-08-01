@@ -4,6 +4,15 @@ All notable changes to SplitDuo will be documented in this file.
 
 Generated with [git-cliff](https://git-cliff.org) from Conventional Commits.
 
+## [1.9.1] - 2026-08-01
+
+### Bug Fixes
+
+- *(ci)* Add JunitXml.TestLogger to unit test project
+
+### Styling
+
+- Wrap arrow arg parens in nuxt.config
 ## [1.9.0] - 2026-08-01
 
 ### Bug Fixes
