@@ -80,6 +80,8 @@ integration-tests:
   artifacts:
     when: always
     expire_in: 30 days
+    paths:
+      - coverage-integration.xml
     reports:
       junit: junit-results-integration.xml
       coverage_report:
