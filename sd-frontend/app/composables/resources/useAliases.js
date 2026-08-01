@@ -1,5 +1,6 @@
 export default function useAliases() {
   const api = useApi()
+  const { t } = useI18n()
   const { showError, showSuccess } = useNotifications()
 
   const aliases = ref([])
@@ -17,7 +18,7 @@ export default function useAliases() {
       }
     }
     catch (error) {
-      showError('Failed to load aliases')
+      showError(t('toasts.aliases.loadFailed'))
       throw error
     }
     finally {
@@ -34,12 +35,12 @@ export default function useAliases() {
     try {
       const response = await api.post(`/groups/${groupId}/aliases`, { name })
       if (response.success && response.data) {
-        showSuccess('Alias created successfully')
+        showSuccess(t('toasts.aliases.created'))
         return response.data
       }
     }
     catch (error) {
-      showError('Failed to create alias')
+      showError(t('toasts.aliases.createFailed'))
       throw error
     }
     finally {
@@ -52,12 +53,12 @@ export default function useAliases() {
     try {
       const response = await api.put(`/aliases/${aliasId}`, { name })
       if (response.success && response.data) {
-        showSuccess('Alias updated successfully')
+        showSuccess(t('toasts.aliases.updated'))
         return response.data
       }
     }
     catch (error) {
-      showError('Failed to update alias')
+      showError(t('toasts.aliases.updateFailed'))
       throw error
     }
     finally {
@@ -69,10 +70,10 @@ export default function useAliases() {
     isLoading.value = true
     try {
       await api.delete(`/aliases/${aliasId}`)
-      showSuccess('Alias deleted successfully')
+      showSuccess(t('toasts.aliases.deleted'))
     }
     catch (error) {
-      showError('Failed to delete alias')
+      showError(t('toasts.aliases.deleteFailed'))
       throw error
     }
     finally {
@@ -85,12 +86,12 @@ export default function useAliases() {
     try {
       const response = await api.post(`/aliases/${aliasId}/members`, { userId })
       if (response.success && response.data) {
-        showSuccess('Member assigned successfully')
+        showSuccess(t('toasts.aliases.memberAssigned'))
         return response.data
       }
     }
     catch (error) {
-      showError('Failed to assign member')
+      showError(t('toasts.aliases.memberAssignFailed'))
       throw error
     }
     finally {
@@ -102,10 +103,10 @@ export default function useAliases() {
     isLoading.value = true
     try {
       await api.delete(`/aliases/${aliasId}/members/${userId}`)
-      showSuccess('Member removed successfully')
+      showSuccess(t('toasts.aliases.memberRemoved'))
     }
     catch (error) {
-      showError('Failed to remove member')
+      showError(t('toasts.aliases.memberRemoveFailed'))
       throw error
     }
     finally {
@@ -118,12 +119,12 @@ export default function useAliases() {
     try {
       const response = await api.post(`/groups/${groupId}/aliases/finalize`)
       if (response.success && response.data) {
-        showSuccess('Alias setup finalized successfully')
+        showSuccess(t('toasts.aliases.finalized'))
         return response.data
       }
     }
     catch (error) {
-      showError('Failed to finalize alias setup')
+      showError(t('toasts.aliases.finalizeFailed'))
       throw error
     }
     finally {

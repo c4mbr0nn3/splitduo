@@ -15,21 +15,21 @@
           />
           <div>
             <p class="font-semibold text-highlighted">
-              Finalize alias setup
+              {{ $t('groups.finalizeAliasSetup') }}
             </p>
             <p class="text-sm text-muted mt-1">
-              Aliases must be finalized before expenses can be created in this group.
+              {{ $t('groups.finalizeAliasDescription') }}
             </p>
             <p
               v-if="!hasMultiPersonAlias"
               class="text-sm text-warning mt-1"
             >
-              Create at least one alias with 2+ members to finalize.
+              {{ $t('groups.createMultiPersonAlias') }}
             </p>
           </div>
         </div>
         <UButton
-          label="Finalize Alias Setup"
+          :label="$t('groups.finalizeButton')"
           color="warning"
           variant="solid"
           :loading="isFinalizing"
@@ -61,7 +61,7 @@
                 v-if="alias.isSingleton"
                 variant="soft"
                 color="secondary"
-                label="singleton"
+                :label="$t('members.singleton')"
                 size="xs"
               />
             </div>
@@ -93,7 +93,7 @@
               v-if="!alias.members?.length"
               class="text-sm text-muted"
             >
-              No members
+              {{ $t('members.noMembers') }}
             </p>
             <GroupsMembersRow
               v-for="member in alias.members"
@@ -135,7 +135,7 @@
 
           <UFormField
             v-if="isGroupAdmin && availableMembers.length"
-            label="Add member"
+            :label="$t('groups.addMember')"
             :name="`assign-${alias.id}`"
           >
             <div class="flex items-center gap-2">
@@ -144,7 +144,7 @@
                 :items="availableMembers"
                 value-key="value"
                 label-key="label"
-                placeholder="Select member..."
+                :placeholder="$t('groups.selectMember')"
                 class="w-full"
                 @update:model-value="value => selectedAssignee[alias.id] = value"
               />
@@ -167,8 +167,8 @@
     <UiEmptyState
       v-if="!aliases.length && !aliasLoading"
       icon="i-lucide-users-round"
-      title="No aliases yet"
-      subtitle="Create your first alias to group members together."
+      :title="$t('groups.noAliasesYet')"
+      :subtitle="$t('groups.noAliasesSubtitle')"
     />
 
     <!-- Pending Invitations -->
@@ -178,7 +178,7 @@
     >
       <USeparator />
       <h3 class="text-sm font-medium text-muted">
-        Pending Invitations
+        {{ $t('members.pendingInvitations') }}
       </h3>
       <GroupsMembersPendingInvitationCard
         v-for="invitation in pendingInvitations"
@@ -193,6 +193,7 @@
 </template>
 
 <script setup>
+const { t } = useI18n()
 const props = defineProps({
   aliases: {
     type: Array,
@@ -246,7 +247,7 @@ const getRoleItems = (member) => {
 
   if (member.role === 'member') {
     items.push({
-      label: 'Promote to Admin',
+      label: t('members.promoteToAdmin'),
       icon: 'i-lucide-arrow-up-circle',
       color: 'success',
       onSelect: () => confirmRoleChange(member, 'admin'),
@@ -254,7 +255,7 @@ const getRoleItems = (member) => {
   }
   else if (member.role === 'admin') {
     items.push({
-      label: 'Demote to Member',
+      label: t('members.demoteToMember'),
       icon: 'i-lucide-arrow-down-circle',
       color: 'warning',
       onSelect: () => confirmRoleChange(member, 'member'),
@@ -269,12 +270,12 @@ const confirmRoleChange = async (member, newRole) => {
   const firstName = member.firstName || member.fullName || ''
 
   const confirmed = await modal.warning({
-    title: isPromote ? 'Promote to Admin' : 'Demote to Member',
+    title: isPromote ? t('members.promoteConfirmTitle') : t('members.demoteConfirmTitle'),
     content: isPromote
-      ? `${firstName} will be able to edit group settings, manage members, and delete this group.`
-      : `${firstName} will no longer be able to manage this group.`,
-    confirmText: isPromote ? 'Promote' : 'Demote',
-    cancelText: 'Cancel',
+      ? t('members.promoteConfirmContent', { name: firstName })
+      : t('members.demoteConfirmContent', { name: firstName }),
+    confirmText: isPromote ? t('members.promote') : t('members.demote'),
+    cancelText: t('common.cancel'),
   })
 
   if (!confirmed) return

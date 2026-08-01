@@ -1,8 +1,8 @@
 <template>
   <ExpensesExpenseForm
     v-model="expenseFormData"
-    title="Add New Expense"
-    submit-label="Add Expense"
+    :title="$t('expenses.addNew')"
+    :submit-label="$t('expenses.addExpense')"
     :pre-selected-group-id="preSelectedGroupId"
     :loading="isCreating"
     show-add-more
@@ -13,6 +13,7 @@
 </template>
 
 <script setup>
+const { t } = useI18n()
 const route = useRoute()
 const { clearReceiptImage } = useReceiptScan()
 
@@ -83,7 +84,7 @@ const onAddMore = async ({ groupId, expenseData }) => {
 const { goBack } = useSmartBack(`/groups/${route.query.groupId}`)
 
 useHead({
-  title: 'Add Expense',
+  title: computed(() => t('expenses.addNew')),
 })
 
 definePageMeta({

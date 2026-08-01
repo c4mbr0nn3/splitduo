@@ -24,7 +24,7 @@
           color="neutral"
           icon="i-lucide-users"
           size="sm"
-          :label="`${group.memberCount} member${group.memberCount === 1 ? '' : 's'}`"
+          :label="$t('groups.memberCount', { count: group.memberCount }, group.memberCount)"
         />
 
         <UBadge
@@ -33,7 +33,7 @@
           color="info"
           icon="i-lucide-layers"
           size="sm"
-          label="Alias"
+          :label="$t('groups.alias')"
         />
 
         <UBadge
@@ -42,14 +42,14 @@
           color="warning"
           icon="i-lucide-alert-triangle"
           size="sm"
-          label="Alias setup pending"
+          :label="$t('groups.aliasPending')"
         />
       </div>
 
       <!-- Balance + updated row -->
       <div class="flex items-end justify-between gap-2 mt-3 sm:mt-4">
         <div class="text-xs text-dimmed">
-          Updated {{ formatDate(group.updatedAt) }}
+          {{ $t('common.updated') }} {{ formatDate(group.updatedAt) }}
         </div>
 
         <UBadge
@@ -67,6 +67,8 @@
 <script setup>
 import { formatCurrency } from '~/utils/currency'
 
+const { t } = useI18n()
+
 const props = defineProps({
   group: {
     type: Object,
@@ -82,8 +84,8 @@ const balanceColor = computed(() => {
 
 const balanceLabel = computed(() => {
   const balance = props.group.netBalance
-  if (balance > 0) return `owed ${formatCurrency(balance)}`
-  if (balance < 0) return `owes ${formatCurrency(Math.abs(balance))}`
-  return 'settled'
+  if (balance > 0) return t('groups.owed', { amount: formatCurrency(balance) })
+  if (balance < 0) return t('groups.owes', { amount: formatCurrency(Math.abs(balance)) })
+  return t('groups.settled')
 })
 </script>

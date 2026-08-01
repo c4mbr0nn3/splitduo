@@ -3,13 +3,14 @@
     variant="ghost"
     color="error"
     icon="i-lucide-log-out"
-    label="Logout"
+    :label="$t('auth.logout')"
     :loading="isLoggingOut"
     @click="handleLogout"
   />
 </template>
 
 <script setup>
+const { t } = useI18n()
 const { logout } = useAuth()
 const { showSuccess } = useNotifications()
 
@@ -20,7 +21,7 @@ const handleLogout = async () => {
 
   try {
     await logout()
-    showSuccess('Logged out successfully')
+    showSuccess(t('auth.logout'))
     await navigateTo('/')
   }
   catch (error) {

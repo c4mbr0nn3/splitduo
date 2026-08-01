@@ -129,6 +129,7 @@ public static class ApiProgramExtensions
         });
 
         app.UseRateLimiter();
+        app.UseRequestLocalization();
         app.UseAuthentication();
         app.UseAuthorization();
         app.MapControllers();

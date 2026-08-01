@@ -33,7 +33,7 @@
             />
             <div class="ml-3">
               <div class="text-base font-medium text-primary">
-                {{ user?.firstName || 'User' }} {{ user?.lastName || '' }}
+                {{ user?.firstName || $t('layout.userFallback') }} {{ user?.lastName || '' }}
               </div>
               <div class="text-sm text-dimmed">
                 {{ user?.email || '' }}
@@ -58,6 +58,7 @@
 </template>
 
 <script setup>
+const { t } = useI18n()
 const { user, isGlobalAdmin } = useAuth()
 const { settings, update: updateUserSettings } = useUserSettings()
 const colorMode = useColorMode()
@@ -77,19 +78,19 @@ const navigationItems = computed(() => {
   const items = [
     {
       to: '/dashboard',
-      label: 'Dashboard',
+      label: t('nav.dashboard'),
       icon: 'i-lucide-home',
       active: route.path.startsWith('/dashboard'),
     },
     {
       to: '/groups',
-      label: 'Groups',
+      label: t('nav.groups'),
       icon: 'i-lucide-users',
       active: route.path.startsWith('/groups'),
     },
     {
       to: '/profile',
-      label: 'Profile',
+      label: t('nav.profile'),
       icon: 'i-lucide-heart',
       active: route.path.startsWith('/profile'),
     },
@@ -99,7 +100,7 @@ const navigationItems = computed(() => {
   if (isGlobalAdmin.value) {
     items.push({
       to: '/admin/users',
-      label: 'Admin',
+      label: t('nav.admin'),
       icon: 'i-lucide-shield-user',
       active: route.path.startsWith('/admin'),
     })

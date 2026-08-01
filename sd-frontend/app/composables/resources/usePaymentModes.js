@@ -6,6 +6,7 @@ let fetchPromise = null
 
 export default function usePaymentModes() {
   const api = useApi()
+  const { t } = useI18n()
   const { showError } = useNotifications()
 
   // Get available payment modes (singleton with auto-initialization)
@@ -30,7 +31,7 @@ export default function usePaymentModes() {
         }
       }
       catch (error) {
-        showError('Failed to load payment modes')
+        showError(t('toasts.paymentModes.loadFailed'))
         throw error
       }
       finally {

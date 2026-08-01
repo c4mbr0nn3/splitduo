@@ -1,5 +1,6 @@
 export default function useExpenses(groupId) {
   const api = useApi()
+  const { t } = useI18n()
   const { showError, showSuccess } = useNotifications()
 
   const groupIdRef = toRef(groupId)
@@ -45,7 +46,7 @@ export default function useExpenses(groupId) {
       }
     }
     catch (error) {
-      showError('Failed to load expenses')
+      showError(t('toasts.expenses.loadFailed'))
       throw error
     }
     finally {
@@ -66,7 +67,7 @@ export default function useExpenses(groupId) {
       }
     }
     catch (error) {
-      showError('Failed to load expense')
+      showError(t('toasts.expenses.loadOneFailed'))
       throw error
     }
     finally {
@@ -86,12 +87,12 @@ export default function useExpenses(groupId) {
 
       if (response.success && response.data) {
         expenses.value.unshift(response.data)
-        showSuccess('Expense created successfully')
+        showSuccess(t('toasts.expenses.created'))
         return response.data
       }
     }
     catch (error) {
-      showError('Failed to create expense')
+      showError(t('toasts.expenses.createFailed'))
       throw error
     }
   }
@@ -114,12 +115,12 @@ export default function useExpenses(groupId) {
         if (currentExpense.value?.id === expenseId) {
           currentExpense.value = response.data
         }
-        showSuccess('Expense updated successfully')
+        showSuccess(t('toasts.expenses.updated'))
         return response.data
       }
     }
     catch (error) {
-      showError('Failed to update expense')
+      showError(t('toasts.expenses.updateFailed'))
       throw error
     }
   }
@@ -134,10 +135,10 @@ export default function useExpenses(groupId) {
       if (currentExpense.value?.id === expenseId) {
         currentExpense.value = null
       }
-      showSuccess('Expense deleted successfully')
+      showSuccess(t('toasts.expenses.deleted'))
     }
     catch (error) {
-      showError('Failed to delete expense')
+      showError(t('toasts.expenses.deleteFailed'))
       throw error
     }
   }

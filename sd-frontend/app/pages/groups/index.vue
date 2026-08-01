@@ -2,8 +2,8 @@
   <div class="py-6 sm:py-8">
     <UiCardHeader
       size="lg"
-      title="Groups"
-      subtitle="Manage your expense sharing groups"
+      :title="$t('groups.title')"
+      :subtitle="$t('groups.subtitle')"
       class="mb-6"
     />
 
@@ -12,7 +12,7 @@
       <UInput
         v-model="searchInput"
         icon="i-lucide-search"
-        placeholder="Search groups..."
+        :placeholder="$t('groups.search')"
         class="w-full sm:w-64 md:w-80"
       />
       <UButton
@@ -30,7 +30,7 @@
       <UButton
         to="/groups/add"
         icon="i-lucide-plus"
-        label="New Group"
+        :label="$t('groups.newGroup')"
         class="hidden sm:inline-flex"
       />
     </div>
@@ -50,12 +50,12 @@
     <UiEmptyState
       v-else-if="filteredGroups.length === 0"
       icon="i-lucide-users"
-      :title="debouncedSearchQuery ? 'No groups found' : 'No groups yet'"
-      :subtitle="debouncedSearchQuery ? 'No groups match your search criteria' : 'Get started by creating your first group to track shared expenses'"
+      :title="debouncedSearchQuery ? $t('groups.notFound') : $t('groups.noGroupsYet')"
+      :subtitle="debouncedSearchQuery ? $t('groups.noMatch') : $t('groups.createFirst')"
     >
       <template #action>
         <UButton
-          label="Create Your First Group"
+          :label="$t('dashboard.createFirstGroup')"
           icon="i-lucide-plus"
           @click="createNewGroup"
         />
@@ -79,6 +79,8 @@
 </template>
 
 <script setup>
+const { t } = useI18n()
+
 const { groups, fetchGroups, isLoading: isLoadingGroups, deleteGroup: deleteGroupAPI } = useGroups()
 
 const showSkeleton = ref(true)
@@ -131,11 +133,11 @@ const createNewGroup = () => {
 // Delete group handlers
 const confirmDeleteGroup = async (group) => {
   const confirmed = await modal.error({
-    title: 'Delete Group',
-    subtitle: 'This action cannot be undone.',
-    content: `The group '${group.name}' will be permanently deleted. Are you sure you want to delete this group?`,
-    confirmText: 'Delete Group',
-    cancelText: 'Cancel',
+    title: t('groups.deleteTitle'),
+    subtitle: t('groups.deleteConfirm'),
+    content: t('groups.deleteContent', { name: group.name }),
+    confirmText: t('groups.deleteButton'),
+    cancelText: t('common.cancel'),
   })
 
   if (confirmed) {
@@ -158,7 +160,7 @@ const deleteGroup = async (groupId) => {
 
 // Page meta
 useHead({
-  title: 'Groups',
+  title: computed(() => t('groups.title')),
 })
 
 definePageMeta({

@@ -1,4 +1,5 @@
 <script setup>
+const { t } = useI18n()
 const api = useApi()
 const { showSuccess } = useNotifications()
 
@@ -12,7 +13,7 @@ const form = ref({
 const emailError = computed(() => {
   if (!form.value.email) return null
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  return !emailRegex.test(form.value.email) ? 'Please enter a valid email address' : null
+  return !emailRegex.test(form.value.email) ? t('auth.validEmailRequired') : null
 })
 
 const isFormValid = computed(() => {
@@ -30,13 +31,13 @@ const handleSubmit = async () => {
     })
 
     emailSent.value = true
-    showSuccess('Password reset instructions have been sent to your email.')
+    showSuccess(t('auth.resetInstructionsSentToEmail'))
   }
   catch {
     // Backend returns success even if email doesn't exist (security)
     // So we show success regardless
     emailSent.value = true
-    showSuccess('If your email is registered, you will receive password reset instructions.')
+    showSuccess(t('auth.resetInstructionsSentGeneric'))
   }
   finally {
     isSubmitting.value = false
@@ -44,7 +45,7 @@ const handleSubmit = async () => {
 }
 
 useHead({
-  title: 'Forgot Password',
+  title: computed(() => t('auth.forgotPassword')),
 })
 
 definePageMeta({
@@ -57,8 +58,8 @@ definePageMeta({
     <UCard class="w-full max-w-md sd-surface">
       <template #header>
         <UiCardHeader
-          title="Forgot Password?"
-          subtitle="Enter your email to receive reset instructions"
+          :title="$t('auth.forgotPasswordTitle')"
+          :subtitle="$t('auth.forgotPasswordSubtitle')"
         />
       </template>
       <div v-if="!emailSent">
@@ -68,7 +69,7 @@ definePageMeta({
           @submit.prevent="handleSubmit"
         >
           <UFormField
-            label="Email Address"
+            :label="$t('auth.emailAddress')"
             name="email"
             required
             :error="emailError"
@@ -76,7 +77,7 @@ definePageMeta({
             <UInput
               v-model="form.email"
               type="email"
-              placeholder="Enter your email"
+              :placeholder="$t('auth.enterEmail')"
               autocomplete="email"
               required
               :disabled="isSubmitting"
@@ -92,14 +93,14 @@ definePageMeta({
               :loading="isSubmitting"
               :disabled="isSubmitting || !isFormValid"
             >
-              Send Reset Link
+              {{ $t('auth.sendResetLink') }}
             </UButton>
 
             <NuxtLink
               to="/"
               class="text-center text-sm text-muted hover:text-primary transition-colors"
             >
-              Back to Login
+              {{ $t('auth.backToLogin') }}
             </NuxtLink>
           </div>
         </UForm>
@@ -118,13 +119,13 @@ definePageMeta({
 
         <div class="text-center space-y-2">
           <h4 class="text-lg font-semibold">
-            Check Your Email
+            {{ $t('auth.checkYourEmail') }}
           </h4>
           <p class="text-sm text-muted">
-            We've sent password reset instructions to <strong>{{ form.email }}</strong>
+            <span>{{ $t('auth.resetInstructionsSent', { email: form.email }) }}</span>
           </p>
           <p class="text-sm text-muted">
-            The link will expire in 1 hour.
+            {{ $t('auth.linkExpiresIn1Hour') }}
           </p>
         </div>
 
@@ -135,14 +136,14 @@ definePageMeta({
             class="w-full"
             @click="() => { emailSent = false; form.email = '' }"
           >
-            Try Another Email
+            {{ $t('auth.tryAnotherEmail') }}
           </UButton>
 
           <NuxtLink
             to="/"
             class="text-center text-sm text-muted hover:text-primary transition-colors"
           >
-            Back to Login
+            {{ $t('auth.backToLogin') }}
           </NuxtLink>
         </div>
       </div>

@@ -7,7 +7,7 @@
           <UButton
             v-if="receiptImageUrl"
             icon="i-lucide-image"
-            label="View Receipt"
+            :label="$t('expenses.viewReceipt')"
             size="sm"
             variant="ghost"
             @click="isReceiptPreviewOpen = true"
@@ -24,34 +24,34 @@
           <UFormField
             v-if="!preSelectedGroupId"
             class="sm:col-span-2"
-            label="Group"
+            :label="$t('expenses.group')"
             name="groupId"
             required
           >
             <USelect
               v-model="model.groupId"
               :items="groupOptions"
-              placeholder="Select a group"
+              :placeholder="$t('expenses.selectGroup')"
               size="lg"
               :loading="isLoadingGroups"
               class="w-full"
             />
           </UFormField>
           <UFormField
-            label="Expense Title"
+            :label="$t('expenses.expenseTitle')"
             name="title"
             required
           >
             <UInput
               v-model="model.title"
-              placeholder="Enter expense title"
+              :placeholder="$t('expenses.enterTitle')"
               size="lg"
               class="w-full"
               maxlength="255"
             />
           </UFormField>
           <UFormField
-            label="Amount"
+            :label="$t('expenses.amount')"
             name="amount"
             required
           >
@@ -59,7 +59,7 @@
               :model-value="displayValue('amount', model.amount)"
               type="text"
               inputmode="decimal"
-              placeholder="Enter the amount"
+              :placeholder="$t('expenses.enterAmount')"
               size="lg"
               class="w-full"
               @focus="onAmountFocus('amount', model.amount)"
@@ -69,25 +69,25 @@
           </UFormField>
           <UFormField
             class="sm:col-span-2"
-            label="Description"
+            :label="$t('expenses.description')"
             name="description"
           >
             <UTextarea
               v-model="model.description"
-              placeholder="Enter description (optional)"
+              :placeholder="$t('expenses.enterDescription')"
               size="lg"
               class="w-full"
             />
           </UFormField>
           <UFormField
-            label="Who Paid?"
+            :label="$t('expenses.whoPaid')"
             name="paidByUserId"
             required
           >
             <USelect
               v-model="model.paidByUserId"
               :items="memberOptions"
-              placeholder="Select who paid"
+              :placeholder="$t('expenses.selectWhoPaid')"
               size="lg"
               :disabled="!model.groupId"
               :loading="isLoadingMembers"
@@ -95,7 +95,7 @@
             />
           </UFormField>
           <UFormField
-            label="Date"
+            :label="$t('expenses.date')"
             name="expenseDate"
             required
           >
@@ -105,28 +105,28 @@
             />
           </UFormField>
           <UFormField
-            label="Category"
+            :label="$t('expenses.category')"
             name="categoryId"
             required
           >
             <USelect
               v-model="model.categoryId"
               :items="categoryOptions"
-              placeholder="Select category"
+              :placeholder="$t('expenses.selectCategory')"
               size="lg"
               :loading="isLoadingCategories"
               class="w-full"
             />
           </UFormField>
           <UFormField
-            label="Payment Method"
+            :label="$t('expenses.paymentMethod')"
             name="paymentModeId"
             required
           >
             <USelect
               v-model="model.paymentModeId"
               :items="paymentModeOptions"
-              placeholder="Select payment method"
+              :placeholder="$t('expenses.selectPaymentMethod')"
               size="lg"
               :loading="isLoadingPaymentModes"
               class="w-full"
@@ -149,7 +149,7 @@
             />
             <div>
               <p class="text-sm font-semibold text-highlighted">
-                Alias setup must be finalized before adding expenses
+                {{ $t('expenses.aliasSetupNotFinalized') }}
               </p>
               <UButton
                 :to="`/groups/${effectiveGroupId}/aliases`"
@@ -158,7 +158,7 @@
                 size="xs"
                 class="p-0 h-auto mt-1"
               >
-                Finalize aliases in group settings
+                {{ $t('expenses.finalizeAliases') }}
               </UButton>
             </div>
           </div>
@@ -168,18 +168,18 @@
         <div class="space-y-2">
           <div class="flex items-center justify-between mb-3">
             <p class="text-sm font-medium text-muted">
-              {{ isAliasMode ? 'Split Between Aliases' : 'Split Between' }}
+              {{ isAliasMode ? $t('expenses.splitBetweenAliases') : $t('expenses.splitBetween') }}
             </p>
             <div class="flex gap-2">
               <UButton
-                label="Split Equally"
+                :label="$t('expenses.splitEqually')"
                 variant="ghost"
                 color="neutral"
                 size="xs"
                 @click="splitEqually"
               />
               <UButton
-                label="Adjust Splits"
+                :label="$t('expenses.adjustSplits')"
                 variant="ghost"
                 color="neutral"
                 size="xs"
@@ -216,7 +216,7 @@
                       v-if="alias.isSingleton"
                       variant="soft"
                       color="secondary"
-                      label="singleton"
+                      :label="$t('members.singleton')"
                       size="xs"
                       class="mt-0.5"
                     />
@@ -284,14 +284,14 @@
               v-if="model.amount"
               class="flex justify-between items-center"
             >
-              <span class="text-toned">Expense Total:</span>
+              <span class="text-toned">{{ $t('expenses.expenseTotal') }}</span>
               <span class="font-medium">{{ formatCurrency(parseFloat(model.amount), { fullPrecision: true }) }}</span>
             </div>
             <div
               v-if="splitTotal > 0"
               class="flex justify-between items-center"
             >
-              <span class="text-toned">Split Total:</span>
+              <span class="text-toned">{{ $t('expenses.splitTotal') }}</span>
               <span class="font-medium">{{ formatCurrency(splitTotal, { fullPrecision: true }) }}</span>
             </div>
             <div
@@ -302,21 +302,21 @@
                 'text-warning': remainingMillis > 0,
               }"
             >
-              <span>{{ remainingMillis > 0 ? 'Remaining:' : 'Over by:' }}</span>
+              <span>{{ remainingMillis > 0 ? $t('expenses.remaining') : $t('expenses.overBy') }}</span>
               <span>{{ formatCurrency(Math.abs(remainingAmount), { fullPrecision: true }) }}</span>
             </div>
             <div
               v-if="model.amount && remainingMillis === 0"
               class="flex justify-between items-center text-success font-semibold"
             >
-              <span>✓ Splits balanced</span>
+              <span>{{ $t('expenses.splitsBalanced') }}</span>
             </div>
           </div>
         </div>
 
         <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 mt-6">
           <UButton
-            label="Cancel"
+            :label="$t('expenses.cancel')"
             variant="ghost"
             color="neutral"
             @click="goBack"
@@ -353,6 +353,8 @@
 </template>
 
 <script setup>
+const { t } = useI18n()
+
 const props = defineProps({
   title: {
     type: String,
@@ -745,34 +747,37 @@ watch([groupMembers, aliases], () => {
 const validate = () => {
   const errors = []
   if (!props.preSelectedGroupId && !model.value.groupId) {
-    errors.push({ name: 'groupId', message: 'Group is required' })
+    errors.push({ name: 'groupId', message: t('expenses.groupRequired') })
   }
   if (!model.value.title) {
-    errors.push({ name: 'title', message: 'Title is required' })
+    errors.push({ name: 'title', message: t('expenses.titleRequired') })
   }
   if (!model.value.amount) {
-    errors.push({ name: 'amount', message: 'Amount is required' })
+    errors.push({ name: 'amount', message: t('expenses.amountRequired') })
   }
   if (!model.value.paidByUserId) {
-    errors.push({ name: 'paidByUserId', message: 'Paid By is required' })
+    errors.push({ name: 'paidByUserId', message: t('expenses.paidByRequired') })
   }
   if (!model.value.categoryId) {
-    errors.push({ name: 'categoryId', message: 'Category is required' })
+    errors.push({ name: 'categoryId', message: t('expenses.categoryRequired') })
   }
   if (!model.value.paymentModeId) {
-    errors.push({ name: 'paymentModeId', message: 'Payment Mode is required' })
+    errors.push({ name: 'paymentModeId', message: t('expenses.paymentModeRequired') })
   }
 
   const activeSplitList = isAliasMode.value ? model.value.aliasSplits : model.value.splits
-  const splitEntityLabel = isAliasMode.value ? 'alias' : 'person'
+  const splitEntityLabel = isAliasMode.value ? t('expenses.alias') : t('expenses.person')
 
   if (!activeSplitList || activeSplitList.filter(s => s.included).length === 0) {
-    errors.push({ name: 'splits', message: `At least one ${splitEntityLabel} must be included in the split` })
+    errors.push({ name: 'splits', message: t('expenses.atLeastOneSplit', { entity: splitEntityLabel }) })
   }
   else if (model.value.amount && remainingMillis.value !== 0) {
     errors.push({
       name: 'splits',
-      message: `Split total (${formatCurrency(splitTotal.value, { fullPrecision: true })}) must equal expense amount (${formatCurrency(parseFloat(model.value.amount), { fullPrecision: true })})`,
+      message: t('expenses.splitTotalMustEqual', {
+        total: formatCurrency(splitTotal.value, { fullPrecision: true }),
+        amount: formatCurrency(parseFloat(model.value.amount), { fullPrecision: true }),
+      }),
     })
   }
 
@@ -900,7 +905,7 @@ const onAddMore = () => {
 
 const addMoreMenuItems = computed(() => [[
   {
-    label: 'Add & Add More',
+    label: t('expenses.addAndAddMore'),
     icon: 'i-lucide-plus',
     onSelect: onAddMore,
   },

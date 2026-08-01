@@ -30,8 +30,7 @@ public class ExpensesController(
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-            return HandlePaginatedResult(
-                Result<PaginatedResponseDto<ExpenseDto>>.Unauthorized("User not authenticated"));
+            return HandlePaginatedResult(NotAuthenticated<PaginatedResponseDto<ExpenseDto>>());
 
         var filters = new ExpenseFilterOptions(startDate, endDate, category, userId, search);
         var result = await expensesService.GetGroupExpensesAsync(groupId, currentUserId.Value, page, limit, filters);
@@ -47,7 +46,7 @@ public class ExpensesController(
 
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-            return HandleResult(Result<ExpenseDto>.Unauthorized("User not authenticated"));
+            return HandleResult(NotAuthenticated<ExpenseDto>());
 
         var result = await expensesService.CreateExpenseAsync(groupId, currentUserId.Value, request);
 
@@ -62,7 +61,7 @@ public class ExpensesController(
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-            return HandleResult(Result<ExpenseDto>.Unauthorized("User not authenticated"));
+            return HandleResult(NotAuthenticated<ExpenseDto>());
 
         var result = await expensesService.GetExpenseAsync(groupId, expenseId, currentUserId.Value);
         return HandleResult(result, "Expense retrieved successfully");
@@ -76,7 +75,7 @@ public class ExpensesController(
 
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-            return HandleResult(Result<ExpenseDto>.Unauthorized("User not authenticated"));
+            return HandleResult(NotAuthenticated<ExpenseDto>());
 
         var result = await expensesService.UpdateExpenseAsync(groupId, expenseId, currentUserId.Value, request);
 
@@ -93,7 +92,7 @@ public class ExpensesController(
 
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-            return HandleResult(Result.Unauthorized("User not authenticated"));
+            return HandleResult(NotAuthenticated());
 
         var result = await expensesService.DeleteExpenseAsync(groupId, expenseId, currentUserId.Value);
 

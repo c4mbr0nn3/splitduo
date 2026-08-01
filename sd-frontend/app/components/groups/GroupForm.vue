@@ -11,33 +11,33 @@
       >
         <div class="grid grid-cols-1 gap-4">
           <UFormField
-            label="Group Name"
+            :label="$t('groups.groupName')"
             name="name"
             required
           >
             <UInput
               v-model="form.name"
-              placeholder="Enter group name"
+              :placeholder="$t('groups.enterGroupName')"
               required
               size="lg"
               class="w-full"
             />
           </UFormField>
           <UFormField
-            label="Description"
+            :label="$t('groups.description')"
             name="description"
           >
             <UInput
               v-model="form.description"
-              placeholder="Enter description (optional)"
+              :placeholder="$t('groups.enterDescription')"
               size="lg"
               class="w-full"
             />
           </UFormField>
           <UFormField
-            label="Use member aliases (subgroups, e.g., couples)"
+            :label="$t('groups.useAliases')"
             name="useAliases"
-            description="Members are grouped into sub-units; expenses split by subgroup instead of by person. Cannot be changed after creation."
+            :description="$t('groups.useAliasesDescription')"
           >
             <USwitch
               v-model="form.useAliases"
@@ -48,12 +48,12 @@
             v-if="disabledAliases"
             class="text-xs text-muted -mt-2"
           >
-            Set at creation; cannot be changed.
+            {{ $t('groups.aliasCannotChange') }}
           </p>
         </div>
         <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 mt-6">
           <UButton
-            label="Back"
+            :label="$t('common.back')"
             variant="ghost"
             color="neutral"
             @click="emit('cancel')"

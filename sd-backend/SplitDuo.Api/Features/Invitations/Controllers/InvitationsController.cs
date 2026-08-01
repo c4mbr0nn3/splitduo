@@ -22,7 +22,7 @@ public class InvitationsController(
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-            return HandleResult(Result<SendInvitationResponseDto>.Unauthorized("User not authenticated"));
+            return HandleResult(NotAuthenticated<SendInvitationResponseDto>());
 
         var result = await invitationsService.SendInvitationAsync(groupId, currentUserId.Value, request);
 
@@ -37,7 +37,7 @@ public class InvitationsController(
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-            return HandleResult(Result<List<InvitationDto>>.Unauthorized("User not authenticated"));
+            return HandleResult(NotAuthenticated<List<InvitationDto>>());
 
         var result = await invitationsService.GetGroupInvitationsAsync(groupId, currentUserId.Value);
         return HandleResult(result);
@@ -49,7 +49,7 @@ public class InvitationsController(
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-            return HandleResult(Result<InvitationDto>.Unauthorized("User not authenticated"));
+            return HandleResult(NotAuthenticated<InvitationDto>());
 
         var result = await invitationsService.ResendInvitationAsync(groupId, invitationId, currentUserId.Value);
 
@@ -64,7 +64,7 @@ public class InvitationsController(
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-            return HandleResult(Result.Unauthorized("User not authenticated"));
+            return HandleResult(NotAuthenticated());
 
         var result = await invitationsService.RevokeInvitationAsync(groupId, invitationId, currentUserId.Value);
 

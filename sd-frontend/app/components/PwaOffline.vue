@@ -1,11 +1,12 @@
 <script setup>
+const { t } = useI18n()
 const isOffline = ref(false)
 let onlineTimeout = null
 
 const showBackOnlineToast = () => {
   const { showSuccess } = useNotifications()
   onlineTimeout = setTimeout(() => {
-    showSuccess('Back online')
+    showSuccess(t('pwa.backOnline'))
   }, 300)
 }
 
@@ -47,7 +48,7 @@ onBeforeUnmount(() => {
           class="i-lucide-wifi-off size-4"
           aria-hidden="true"
         />
-        <span>You're offline — some features may be unavailable</span>
+        <span>{{ $t('pwa.offline') }}</span>
       </div>
     </div>
   </ClientOnly>

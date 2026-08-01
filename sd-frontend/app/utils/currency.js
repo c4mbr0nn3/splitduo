@@ -68,7 +68,8 @@ export const rescaleMillis = (currentMillisList, targetMillis) => {
 export function formatAmount(amount, { fullPrecision = false } = {}) {
   const n = Number(amount) || 0
   const needs3 = fullPrecision && Math.round(n * 1000) % 10 !== 0
-  return new Intl.NumberFormat('en-US', {
+  const { $i18n } = useNuxtApp()
+  return new Intl.NumberFormat($i18n.locale.value, {
     minimumFractionDigits: 2,
     maximumFractionDigits: needs3 ? 3 : 2,
   }).format(n)
@@ -86,7 +87,8 @@ export function formatAmount(amount, { fullPrecision = false } = {}) {
 export function formatCurrency(amount, { currency = 'EUR', fullPrecision = false } = {}) {
   const n = Number(amount) || 0
   const needs3 = fullPrecision && Math.round(n * 1000) % 10 !== 0
-  return new Intl.NumberFormat('en-US', {
+  const { $i18n } = useNuxtApp()
+  return new Intl.NumberFormat($i18n.locale.value, {
     style: 'currency',
     currency,
     minimumFractionDigits: 2,

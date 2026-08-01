@@ -1,17 +1,17 @@
 <template>
   <div class="space-y-4">
-    <UFormField label="Email Address">
+    <UFormField :label="$t('groups.emailAddress')">
       <div class="flex gap-2">
         <UInput
           v-model="email"
           type="email"
-          placeholder="user@example.com"
+          :placeholder="$t('groups.emailPlaceholder')"
           class="w-full"
           @keydown.enter.prevent="onInvite"
         />
         <UButton
           icon="i-lucide-send"
-          label="Invite"
+          :label="$t('groups.invite')"
           :loading="isLoading"
           :disabled="!isValidEmail"
           @click="onInvite"

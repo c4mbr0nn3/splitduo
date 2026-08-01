@@ -8,6 +8,7 @@
 </template>
 
 <script setup>
+const { t } = useI18n()
 const props = defineProps({
   groupId: {
     type: String,
@@ -19,8 +20,8 @@ const route = useRoute()
 const router = useRouter()
 
 const items = [
-  { label: 'Expenses', icon: 'i-lucide-receipt', value: 'expenses' },
-  { label: 'Stats', icon: 'i-lucide-bar-chart-3', value: 'stats' },
+  { label: t('expenses.title'), icon: 'i-lucide-receipt', value: 'expenses' },
+  { label: t('stats.title'), icon: 'i-lucide-bar-chart-3', value: 'stats' },
 ]
 
 const activeTab = computed({

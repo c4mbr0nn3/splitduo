@@ -3,9 +3,9 @@
     <div class="w-full max-w-md">
       <UCard>
         <UAuthForm
-          title="Welcome Back"
+          :title="$t('auth.welcomeBack')"
           :fields="fields"
-          :submit="{ label: 'Login', loading: isLoading }"
+          :submit="{ label: $t('auth.login'), loading: isLoading }"
           @submit="onSubmit"
         />
         <template #footer>
@@ -14,7 +14,7 @@
               to="/forgot-password"
               class="text-sm text-muted hover:text-primary transition-colors"
             >
-              Forgot your password?
+              {{ $t('auth.forgotPassword') }}
             </NuxtLink>
           </div>
         </template>
@@ -24,8 +24,10 @@
 </template>
 
 <script setup>
+const { t } = useI18n()
+
 useHead({
-  title: 'Login',
+  title: computed(() => t('auth.login')),
 })
 
 definePageMeta({
@@ -38,24 +40,24 @@ definePageMeta({
   }),
 })
 
-const fields = [
+const fields = computed(() => [
   {
     name: 'email',
     type: 'email',
-    label: 'Email',
-    placeholder: 'Enter your email',
+    label: t('auth.email'),
+    placeholder: t('auth.enterEmail'),
     required: true,
     size: 'lg',
   },
   {
     name: 'password',
     type: 'password',
-    label: 'Password',
-    placeholder: 'Enter your password',
+    label: t('auth.password'),
+    placeholder: t('auth.enterPassword'),
     required: true,
     size: 'lg',
   },
-]
+])
 
 const { login, isLoading } = useAuth()
 const { showError, showSuccess } = useNotifications()
@@ -63,7 +65,7 @@ const { showError, showSuccess } = useNotifications()
 async function onSubmit(event) {
   const { data } = event
   if (!data.email || !data.password) {
-    showError('Please fill in all fields')
+    showError(t('auth.fillAllFields'))
     return
   }
 
@@ -78,16 +80,16 @@ async function onSubmit(event) {
         await navigateTo('/auth/verify')
       }
       else {
-        showSuccess('Login successful! Redirecting...')
+        showSuccess(t('auth.loginSuccessful'))
         await navigateTo('/dashboard')
       }
     }
     else {
-      showError(result.error || 'Login failed')
+      showError(result.error || t('auth.loginFailed'))
     }
   }
   catch (error) {
-    showError(error.message || 'An unexpected error occurred')
+    showError(error.message || t('auth.unexpectedError'))
   }
 }
 </script>

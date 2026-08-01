@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Domain.Enums;
+using SplitDuo.Core.Localization;
 using SplitDuo.Core.Persistence;
 
 namespace SplitDuo.Api.Features.Common.Services;
@@ -12,6 +13,7 @@ public interface IUserContextService
     bool IsAuthenticated();
     GlobalRole? GetCurrentUserGlobalRole();
     bool IsSystemAdmin();
+    string GetCurrentUserLanguage();
 }
 
 public class UserContextService(
@@ -51,5 +53,13 @@ public class UserContextService(
     public bool IsSystemAdmin()
     {
         return GetCurrentUserGlobalRole() == GlobalRole.SystemAdmin;
+    }
+
+    public string GetCurrentUserLanguage()
+    {
+        var langClaim = httpContextAccessor.HttpContext?.User
+            .FindFirst("lang")?.Value;
+
+        return SupportedLanguages.Normalize(langClaim);
     }
 }

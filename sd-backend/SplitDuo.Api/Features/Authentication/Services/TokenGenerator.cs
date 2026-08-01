@@ -35,7 +35,8 @@ public class TokenGenerator(IOptions<JwtOptions> jwtOptions, TimeProvider timePr
                 new Claim("firstName", user.FirstName),
                 new Claim("lastName", user.LastName),
                 new Claim("role", user.GlobalRoleId.ToString()),
-                new Claim("security_stamp", user.SecurityStamp)
+                new Claim("security_stamp", user.SecurityStamp),
+                new Claim("lang", user.Settings.UiLanguage ?? "en")
             ]),
             Expires = timeProvider.GetUtcNow().UtcDateTime.AddMinutes(_jwtOptions.Expires),
             Issuer = _jwtOptions.Issuer,

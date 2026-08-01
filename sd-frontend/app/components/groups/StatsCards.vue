@@ -14,7 +14,7 @@
           </div>
           <div>
             <p class="text-sm text-muted">
-              Total Expenses
+              {{ $t('stats.totalExpenses') }}
             </p>
             <p class="font-bold text-xl text-primary sd-tabular">
               {{ totalExpenses || 0 }}
@@ -31,7 +31,7 @@
           </div>
           <div>
             <p class="text-sm text-muted">
-              Group Total
+              {{ $t('stats.groupTotal') }}
             </p>
             <p class="font-bold text-xl text-success sd-tabular">
               {{ formatAmount(groupTotal) }} €
@@ -56,7 +56,7 @@
         </div>
         <div>
           <p class="text-sm text-muted">
-            Settle up
+            {{ $t('stats.settleUp') }}
           </p>
           <p
             class="font-bold text-xl sd-tabular"

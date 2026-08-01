@@ -1,5 +1,6 @@
 export default function use2FA() {
   const api = useApi()
+  const { t } = useI18n()
   const { showError, showSuccess } = useNotifications()
   const isLoading = ref(false)
 
@@ -13,7 +14,7 @@ export default function use2FA() {
       }
     }
     catch (error) {
-      showError('Failed to initiate 2FA setup')
+      showError(t('toasts.2fa.initiateFailed'))
       throw error
     }
     finally {
@@ -27,12 +28,12 @@ export default function use2FA() {
     try {
       const response = await api.post('/2fa/setup/verify', { code })
       if (response.success) {
-        showSuccess('Two-factor authentication enabled')
+        showSuccess(t('toasts.2fa.enabled'))
         return true
       }
     }
     catch (error) {
-      showError('Invalid verification code')
+      showError(t('toasts.2fa.invalidCode'))
       throw error
     }
     finally {
@@ -46,12 +47,12 @@ export default function use2FA() {
     try {
       const response = await api.post('/2fa/disable', { password })
       if (response.success) {
-        showSuccess('Two-factor authentication disabled')
+        showSuccess(t('toasts.2fa.disabled'))
         return true
       }
     }
     catch (error) {
-      showError('Failed to disable 2FA. Check your password and try again.')
+      showError(t('toasts.2fa.disableFailed'))
       throw error
     }
     finally {
@@ -69,7 +70,7 @@ export default function use2FA() {
       }
     }
     catch (error) {
-      showError('Failed to generate backup codes')
+      showError(t('toasts.2fa.backupCodesFailed'))
       throw error
     }
     finally {

@@ -20,14 +20,16 @@
 <script setup>
 import { parseDate, getLocalTimeZone, DateFormatter } from '@internationalized/date'
 
+const { t, locale } = useI18n()
+
 const props = defineProps({
-  placeholder: { type: String, default: 'Select date' },
+  placeholder: { type: String, default: null },
   size: { type: String, default: 'md' },
 })
 
 const modelValue = defineModel({ type: String, default: null })
 
-const df = new DateFormatter('en-GB', { dateStyle: 'medium' })
+const df = computed(() => new DateFormatter(locale.value, { dateStyle: 'medium' }))
 
 const calendarValue = computed({
   get: () => (modelValue.value ? parseDate(modelValue.value) : undefined),
@@ -36,7 +38,7 @@ const calendarValue = computed({
 
 const displayLabel = computed(() =>
   modelValue.value
-    ? df.format(parseDate(modelValue.value).toDate(getLocalTimeZone()))
-    : props.placeholder,
+    ? df.value.format(parseDate(modelValue.value).toDate(getLocalTimeZone()))
+    : (props.placeholder || t('common.selectDate')),
 )
 </script>

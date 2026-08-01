@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -47,7 +48,8 @@ public static class NotificationTestExtensions
             throw new InvalidOperationException(
                 $"No enqueued notification found for {toEmail}");
 
-        var match = Regex.Match(bodies[0], @"[?&]token=([^""&]+)");
+        var decoded = WebUtility.HtmlDecode(bodies[0]);
+        var match = Regex.Match(decoded, @"[?&]token=([^""&]+)");
         if (!match.Success)
             throw new InvalidOperationException(
                 $"No token query parameter found in notification body for {toEmail}");

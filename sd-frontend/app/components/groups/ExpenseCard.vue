@@ -69,6 +69,8 @@
 </template>
 
 <script setup>
+const { t } = useI18n()
+
 const props = defineProps({
   expense: {
     type: Object,
@@ -121,7 +123,7 @@ const youOwe = computed(() => {
 })
 
 const payerName = computed(() => {
-  if (props.expense.paidByUserId === props.currentUser?.id) return 'you'
+  if (props.expense.paidByUserId === props.currentUser?.id) return t('expenses.you')
   return `${props.expense.paidByUser.firstName} ${props.expense.paidByUser.lastName}`
 })
 
@@ -135,20 +137,20 @@ const splitCount = computed(() => {
 })
 
 const splitLabel = computed(() => {
-  if (!isAliasSplit.value) return `${splitCount.value} people`
+  if (!isAliasSplit.value) return t('expenses.peopleCount', { count: splitCount.value })
   const names = props.expense.aliasSplits.map(s => s.aliasName).join(', ')
-  return `Split among: ${names}`
+  return t('expenses.splitAmong', { names })
 })
 
 const emit = defineEmits(['expense-deleted'])
 
 const confirmDeleteExpense = async () => {
   const confirmed = await modal.error({
-    title: 'Delete Expense',
-    subtitle: 'This action cannot be undone.',
-    content: 'The expense will be permanently deleted. Are you sure you want to delete this expense?',
-    confirmText: 'Delete Expense',
-    cancelText: 'Cancel',
+    title: t('expenses.deleteTitle'),
+    subtitle: t('expenses.deleteConfirm'),
+    content: t('expenses.deleteContent'),
+    confirmText: t('expenses.deleteButton'),
+    cancelText: t('common.cancel'),
   })
 
   if (confirmed) {
@@ -178,7 +180,7 @@ const navigateToEdit = () => {
 
 const dropdownItems = computed(() => [
   {
-    label: 'Edit',
+    label: t('expenses.edit'),
     icon: 'i-lucide-edit-2',
     color: 'info',
     onSelect: navigateToEdit,
@@ -187,7 +189,7 @@ const dropdownItems = computed(() => [
     type: 'separator',
   },
   {
-    label: 'Delete',
+    label: t('expenses.delete'),
     icon: 'i-lucide-trash-2',
     color: 'error',
     onSelect: confirmDeleteExpense,

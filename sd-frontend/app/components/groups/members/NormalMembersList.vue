@@ -11,7 +11,7 @@
             class="size-5 text-secondary shrink-0"
           />
           <h4 class="text-base font-semibold text-highlighted">
-            Members
+            {{ $t('members.title') }}
           </h4>
         </div>
 
@@ -48,7 +48,7 @@
     >
       <USeparator />
       <h3 class="text-sm font-medium text-muted">
-        Pending Invitations
+        {{ $t('members.pendingInvitations') }}
       </h3>
       <GroupsMembersPendingInvitationCard
         v-for="invitation in pendingInvitations"
@@ -63,6 +63,8 @@
 </template>
 
 <script setup>
+const { t } = useI18n()
+
 const props = defineProps({
   members: {
     type: Array,
@@ -100,7 +102,7 @@ const getRoleItems = (member) => {
 
   if (member.role === 'member') {
     items.push({
-      label: 'Promote to Admin',
+      label: t('members.promoteToAdmin'),
       icon: 'i-lucide-arrow-up-circle',
       color: 'success',
       onSelect: () => confirmRoleChange(member, 'admin'),
@@ -108,7 +110,7 @@ const getRoleItems = (member) => {
   }
   else if (member.role === 'admin') {
     items.push({
-      label: 'Demote to Member',
+      label: t('members.demoteToMember'),
       icon: 'i-lucide-arrow-down-circle',
       color: 'warning',
       onSelect: () => confirmRoleChange(member, 'member'),
@@ -123,12 +125,12 @@ const confirmRoleChange = async (member, newRole) => {
   const firstName = member.firstName || member.fullName || ''
 
   const confirmed = await modal.warning({
-    title: isPromote ? 'Promote to Admin' : 'Demote to Member',
+    title: isPromote ? t('members.promoteConfirmTitle') : t('members.demoteConfirmTitle'),
     content: isPromote
-      ? `${firstName} will be able to edit group settings, manage members, and delete this group.`
-      : `${firstName} will no longer be able to manage this group.`,
-    confirmText: isPromote ? 'Promote' : 'Demote',
-    cancelText: 'Cancel',
+      ? t('members.promoteConfirmContent', { name: firstName })
+      : t('members.demoteConfirmContent', { name: firstName }),
+    confirmText: isPromote ? t('members.promote') : t('members.demote'),
+    cancelText: t('common.cancel'),
   })
 
   if (!confirmed) return

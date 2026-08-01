@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+    <xsd:element name="root" msdata:IsDataSet="true"/>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="FileAlreadyImported" xml:space="preserve"><value>This file has already been imported</value></data>
+  <data name="NoDuplicateFileFound" xml:space="preserve"><value>No duplicate file found</value></data>
+  <data name="UserMappingInvalid" xml:space="preserve"><value>User mapping for '{0}' maps to invalid or non-member user ID '{1}'</value></data>
+  <data name="CategoryMappingInvalid" xml:space="preserve"><value>Category mapping for ID '{0}' maps to invalid category '{1}'</value></data>
+  <data name="PaymentModeMappingInvalid" xml:space="preserve"><value>Payment mode mapping for ID '{0}' maps to invalid payment mode '{1}'</value></data>
+  <data name="AliasMappingInvalid" xml:space="preserve"><value>Alias mapping for '{0}' maps to invalid or non-group alias ID '{1}'</value></data>
+</root>

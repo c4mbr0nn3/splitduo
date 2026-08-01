@@ -1,7 +1,7 @@
 <template>
   <GroupsGroupForm
-    title="Edit Group"
-    submit-label="Update"
+    :title="$t('groups.editTitle')"
+    :submit-label="$t('groups.editSubmit')"
     :initial-data="initialData"
     :loading="isLoading"
     disabled-aliases
@@ -11,6 +11,7 @@
 </template>
 
 <script setup>
+const { t } = useI18n()
 const route = useRoute()
 const groupId = route.params.id
 
@@ -47,7 +48,7 @@ onMounted(async () => {
 })
 
 useHead({
-  title: computed(() => `Edit ${currentGroup.value?.name || 'Group'}`),
+  title: computed(() => `${t('groups.editTitle')} - ${currentGroup.value?.name || ''}`),
 })
 
 definePageMeta({

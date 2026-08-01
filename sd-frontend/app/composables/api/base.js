@@ -4,6 +4,7 @@ let _refreshPromise = null
 export default function useApi() {
   const config = useRuntimeConfig()
   const { getToken } = useAuthToken()
+  const nuxtApp = useNuxtApp()
 
   const apiConfig = {
     baseURL: import.meta.dev ? 'http://localhost:8080/api/v1' : config.public.apiBaseUrl,
@@ -17,15 +18,19 @@ export default function useApi() {
       : {}
   }
 
-  const fetchOnce = (endpoint, options) =>
-    $fetch.raw(`${apiConfig.baseURL}${endpoint}`, {
+  const fetchOnce = (endpoint, options) => {
+    // Resolve current locale for Accept-Language header via $i18n (works in plugin + component context)
+    const locale = nuxtApp.$i18n?.locale?.value || 'en'
+    return $fetch.raw(`${apiConfig.baseURL}${endpoint}`, {
       headers: {
         // 'Content-Type': 'application/json',
+        'Accept-Language': locale,
         ...getAuthHeaders(),
         ...(options.headers || {}),
       },
       ...options,
     })
+  }
 
   // Base request function with error handling — returns raw response
   const requestRaw = async (endpoint, options = {}) => {

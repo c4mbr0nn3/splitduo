@@ -3,6 +3,7 @@ const receiptImageUrl = ref(null)
 export default function useReceiptScan() {
   const api = useApi()
   const router = useRouter()
+  const { t } = useI18n()
   const { showError } = useNotifications()
   const isScanning = ref(false)
 
@@ -58,7 +59,7 @@ export default function useReceiptScan() {
       router.push({ path: '/expenses/add', query })
     }
     catch {
-      showError('Failed to scan receipt. Please try again.')
+      showError(t('toasts.receipts.scanFailed'))
     }
     finally {
       isScanning.value = false

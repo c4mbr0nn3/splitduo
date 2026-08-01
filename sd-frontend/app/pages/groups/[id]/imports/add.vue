@@ -51,7 +51,7 @@
           :items="importTypeOptions"
           option-attribute="label"
           value-attribute="value"
-          placeholder="Select import type"
+          :placeholder="$t('imports.selectImportType')"
           class="w-full"
         />
         <UBadge
@@ -66,7 +66,7 @@
           v-model="selectedFile"
           :accept="acceptedFileTypes"
           :multiple="false"
-          label="Drag & drop a file here or click to select"
+          :label="$t('imports.dragDrop')"
           :description="fileFormatDescription"
           layout="list"
         />
@@ -97,10 +97,10 @@
             size="48"
           />
           <h3 class="text-lg font-semibold mb-2">
-            Import in Progress
+            {{ $t('imports.importInProgress') }}
           </h3>
           <p class="text-muted">
-            Your data is being imported. This may take a few moments...
+            {{ $t('imports.importInProgressDescription') }}
           </p>
         </div>
       </div>
@@ -111,7 +111,7 @@
       <!-- Back Button -->
       <UButton
         v-if="currentStep !== 'upload'"
-        label="Back"
+        :label="$t('imports.back')"
         variant="ghost"
         icon="i-lucide-arrow-left"
         @click="onBack"
@@ -121,14 +121,14 @@
       <!-- Action Buttons -->
       <div class="flex items-center gap-3">
         <UButton
-          label="Cancel"
+          :label="$t('imports.cancel')"
           variant="ghost"
           :disabled="isAnalyzing || isImporting"
           @click="onCancel"
         />
         <UButton
           v-if="currentStep === 'upload'"
-          label="Analyze File"
+          :label="$t('imports.analyzeFile')"
           icon="i-lucide-search"
           :loading="isAnalyzing"
           :disabled="!canAnalyze"
@@ -136,7 +136,7 @@
         />
         <UButton
           v-else-if="currentStep === 'analysis'"
-          label="Next"
+          :label="$t('imports.next')"
           icon="i-lucide-arrow-right-circle"
           @click="currentStep = 'configure'"
         />
@@ -146,6 +146,7 @@
 </template>
 
 <script setup>
+const { t } = useI18n()
 const route = useRoute()
 const groupId = route.params.id
 
@@ -161,9 +162,9 @@ const currentStep = ref('upload') // 'upload', 'analysis', 'configure', 'importi
 const isAliasMode = computed(() => !!group.value?.useAliases)
 
 const steps = computed(() => [
-  { id: 'upload', label: '1. Upload', active: currentStep.value === 'upload', done: currentStep.value !== 'upload' },
-  { id: 'configure', label: '2. Configure', active: currentStep.value === 'configure' || currentStep.value === 'analysis', done: currentStep.value === 'importing' },
-  { id: 'importing', label: '3. Import', active: currentStep.value === 'importing', done: false },
+  { id: 'upload', label: t('imports.upload'), active: currentStep.value === 'upload', done: currentStep.value !== 'upload' },
+  { id: 'configure', label: t('imports.configureStep'), active: currentStep.value === 'configure' || currentStep.value === 'analysis', done: currentStep.value === 'importing' },
+  { id: 'importing', label: t('imports.importStep'), active: currentStep.value === 'importing', done: false },
 ])
 
 const importTypeOptions = [
@@ -180,18 +181,18 @@ const acceptedFileTypes = computed(() => {
 
 const fileFormatDescription = computed(() => {
   if (selectedImportType.value === 1) {
-    return 'Upload a Cospend .csv file (max 10MB)'
+    return t('imports.cospendFormat')
   }
   if (selectedImportType.value === 2) {
-    return 'Upload a SplitDuo .csv file with columns: Date, Title, Description, Amount, PaidByEmail, Category, PaymentMode, Owers (max 10MB)'
+    return t('imports.splitDuoFormat')
   }
   if (selectedImportType.value === 3) {
-    return 'Upload a Splitwise .csv export file (max 10MB)'
+    return t('imports.splitwiseFormat')
   }
   if (selectedImportType.value === 4) {
-    return 'Upload a SplitDuo Alias .csv file (aliases, members, expenses sections) — max 10MB'
+    return t('imports.splitDuoAliasFormat')
   }
-  return 'Upload a file (max 10MB)'
+  return t('imports.genericFormat')
 })
 
 const canAnalyze = computed(() => {
@@ -205,7 +206,7 @@ const clearFile = () => {
 const validateFile = (file) => {
   // Validate file size (10MB limit)
   if (file.size > 10 * 1024 * 1024) {
-    showError('File size must be less than 10MB')
+    showError(t('imports.fileSizeError'))
     clearFile()
     return false
   }
@@ -215,7 +216,7 @@ const validateFile = (file) => {
   const expectedExtension = 'csv' // Both Cospend and SplitDuo use CSV format
 
   if (extension !== expectedExtension) {
-    showError(`Please select a ${expectedExtension.toUpperCase()} file for ${getImportTypeLabel()} import`)
+    showError(t('imports.fileTypeError', { type: expectedExtension.toUpperCase(), importType: getImportTypeLabel() }))
     clearFile()
     return false
   }
@@ -234,7 +235,7 @@ const onAnalyze = async () => {
   if (!canAnalyze.value) return
 
   if (!selectedFile.value) {
-    showError('Please select a file first')
+    showError(t('imports.selectFileFirst'))
     return
   }
 
@@ -283,26 +284,26 @@ const onCancel = () => {
 
 const getPageTitle = () => {
   switch (currentStep.value) {
-    case 'upload': return 'Add Import'
-    case 'analysis': return 'Analysis Results'
-    case 'configure': return 'Configure Mappings'
-    case 'importing': return 'Import in Progress'
-    default: return 'Add Import'
+    case 'upload': return t('imports.addImportTitle')
+    case 'analysis': return t('imports.analysisResults')
+    case 'configure': return t('imports.configureMappings')
+    case 'importing': return t('imports.importInProgress')
+    default: return t('imports.addImportTitle')
   }
 }
 
 const getPageDescription = () => {
   switch (currentStep.value) {
-    case 'upload': return `Import expenses from a file to ${group.value?.name}`
-    case 'analysis': return 'Review what was found in your import file'
-    case 'configure': return 'Configure how to map import data to your group'
-    case 'importing': return 'Your import is being processed...'
-    default: return `Import expenses from a file to ${group.value?.name}`
+    case 'upload': return t('imports.importExpensesFrom', { name: group.value?.name })
+    case 'analysis': return t('imports.reviewWhatWasFound')
+    case 'configure': return t('imports.configureHowToMap')
+    case 'importing': return t('imports.yourImportIsProcessing')
+    default: return t('imports.importExpensesFrom', { name: group.value?.name })
   }
 }
 
 const getImportTypeLabel = () => {
-  return importTypeOptions.find(opt => opt.value === selectedImportType.value)?.label || 'Unknown'
+  return importTypeOptions.find(opt => opt.value === selectedImportType.value)?.label || t('imports.unknown')
 }
 
 // Watch alias mode and force SplitDuoAlias import type
@@ -363,17 +364,17 @@ const loadExistingImport = async (importGuid) => {
       currentStep.value = 'configure' // Skip to configuration step
     }
     else {
-      showError('Import not found or not ready for configuration')
+      showError(t('imports.importNotReady'))
     }
   }
   catch (error) {
     console.error('Failed to load existing import:', error)
-    showError('Failed to load import')
+    showError(t('imports.failedToLoadImport'))
   }
 }
 
 useHead({
-  title: computed(() => `Add Import - ${group.value?.name || 'Group'}`),
+  title: computed(() => `${t('imports.addImportTitle')} - ${group.value?.name || ''}`),
 })
 
 definePageMeta({

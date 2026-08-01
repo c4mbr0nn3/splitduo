@@ -1,5 +1,6 @@
 export default function useBalances(groupId) {
   const api = useApi()
+  const { t } = useI18n()
   const { showError } = useNotifications()
   const { fetchGroup, currentGroup } = useGroups()
 
@@ -24,7 +25,7 @@ export default function useBalances(groupId) {
       }
     }
     catch (error) {
-      showError('Failed to load balances')
+      showError(t('toasts.balances.loadFailed'))
       throw error
     }
     finally {
@@ -44,7 +45,7 @@ export default function useBalances(groupId) {
       }
     }
     catch (error) {
-      showError('Failed to load balance summary')
+      showError(t('toasts.balances.summaryLoadFailed'))
       throw error
     }
     finally {
@@ -63,7 +64,7 @@ export default function useBalances(groupId) {
       }
     }
     catch (error) {
-      showError('Failed to load group stats')
+      showError(t('toasts.balances.statsLoadFailed'))
       throw error
     }
     finally {

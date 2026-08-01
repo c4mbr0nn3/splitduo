@@ -3,7 +3,7 @@
     <UCard>
       <template #header>
         <UiCardHeader
-          title="Invite User"
+          :title="$t('groups.inviteUserTitle')"
           :subtitle="group?.name"
           :back-to="`/groups/${groupId}/members`"
         />
@@ -11,7 +11,7 @@
 
       <UiLoadingSpinner
         v-if="groupLoading"
-        text="Loading group details..."
+        :text="$t('groups.loadingGroupDetails')"
       />
 
       <GroupsInviteUsersForm
@@ -24,6 +24,7 @@
 </template>
 
 <script setup>
+const { t } = useI18n()
 const route = useRoute()
 const groupId = route.params.id
 
@@ -42,7 +43,7 @@ onMounted(async () => {
 })
 
 useHead({
-  title: computed(() => `Invite User - ${group.value?.name || 'Group'}`),
+  title: computed(() => `${t('groups.inviteUserTitle')} - ${group.value?.name || ''}`),
 })
 
 definePageMeta({

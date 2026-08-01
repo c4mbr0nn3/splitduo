@@ -24,7 +24,7 @@ public class GroupsController(
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-            return HandleResult(Result<List<GroupDto>>.Unauthorized("User not authenticated"));
+            return HandleResult(NotAuthenticated<List<GroupDto>>());
 
         var result = await groupsService.GetUserGroupsAsync(currentUserId.Value, limit);
         return HandleResult(result, "User groups retrieved successfully");
@@ -37,7 +37,7 @@ public class GroupsController(
 
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-            return HandleResult(Result<GroupDto>.Unauthorized("User not authenticated"));
+            return HandleResult(NotAuthenticated<GroupDto>());
 
         var result = await groupsService.CreateGroupAsync(currentUserId.Value, request);
 
@@ -52,7 +52,7 @@ public class GroupsController(
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-            return HandleResult(Result<GroupDto>.Unauthorized("User not authenticated"));
+            return HandleResult(NotAuthenticated<GroupDto>());
 
         var result = await groupsService.GetGroupAsync(groupId, currentUserId.Value);
         return HandleResult(result, "Group retrieved successfully");
@@ -64,7 +64,7 @@ public class GroupsController(
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-            return HandleResult(Result<GroupDto>.Unauthorized("User not authenticated"));
+            return HandleResult(NotAuthenticated<GroupDto>());
 
         var result = await groupsService.UpdateGroupAsync(groupId, currentUserId.Value, request);
 
@@ -81,7 +81,7 @@ public class GroupsController(
 
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-            return HandleResult(Result.Unauthorized("User not authenticated"));
+            return HandleResult(NotAuthenticated());
 
         var result = await groupsService.DeleteGroupAsync(groupId, currentUserId.Value);
 
@@ -96,7 +96,7 @@ public class GroupsController(
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-            return HandleResult(Result<GroupStatsDto>.Unauthorized("User not authenticated"));
+            return HandleResult(NotAuthenticated<GroupStatsDto>());
 
         var result = await balancesService.GetGroupStatsAsync(groupId, currentUserId.Value);
         return HandleResult(result, "Group stats retrieved successfully");
@@ -107,7 +107,7 @@ public class GroupsController(
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-            return HandleResult(Result<List<GroupMemberDto>>.Unauthorized("User not authenticated"));
+            return HandleResult(NotAuthenticated<List<GroupMemberDto>>());
 
         var result = await groupsService.GetGroupMembersAsync(groupId, currentUserId.Value);
         return HandleResult(result, "Group members retrieved successfully");
@@ -119,7 +119,7 @@ public class GroupsController(
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-            return HandleResult(Result<GroupMemberDto>.Unauthorized("User not authenticated"));
+            return HandleResult(NotAuthenticated<GroupMemberDto>());
 
         var result = await groupsService.AddGroupMemberAsync(groupId, currentUserId.Value, request);
 
@@ -134,7 +134,7 @@ public class GroupsController(
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-            return HandleResult(Result.Unauthorized("User not authenticated"));
+            return HandleResult(NotAuthenticated());
 
         var result = await groupsService.RemoveGroupMemberAsync(groupId, userId, currentUserId.Value);
 
@@ -150,7 +150,7 @@ public class GroupsController(
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-            return HandleResult(Result<GroupMemberDto>.Unauthorized("User not authenticated"));
+            return HandleResult(NotAuthenticated<GroupMemberDto>());
 
         var result = await groupsService.ChangeMemberRoleAsync(groupId, userId, currentUserId.Value, request);
 

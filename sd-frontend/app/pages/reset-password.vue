@@ -1,4 +1,5 @@
 <script setup>
+const { t } = useI18n()
 const route = useRoute()
 const api = useApi()
 const { showSuccess, showError } = useNotifications()
@@ -22,19 +23,19 @@ const passwordValidationError = computed(() => {
   const password = passwordForm.value.newPassword
   const errors = []
 
-  if (password.length < 8) errors.push('at least 8 characters')
-  if (!/[A-Z]/.test(password)) errors.push('one uppercase letter')
-  if (!/[a-z]/.test(password)) errors.push('one lowercase letter')
-  if (!/[0-9]/.test(password)) errors.push('one digit')
-  if (!/[!@#$%^&*()_+\-=[\]{}|;:,.<>?]/.test(password)) errors.push('one special character')
+  if (password.length < 8) errors.push(t('auth.atLeast8Chars'))
+  if (!/[A-Z]/.test(password)) errors.push(t('auth.oneUppercase'))
+  if (!/[a-z]/.test(password)) errors.push(t('auth.oneLowercase'))
+  if (!/[0-9]/.test(password)) errors.push(t('auth.oneDigit'))
+  if (!/[!@#$%^&*()_+\-=[\]{}|;:,.<>?]/.test(password)) errors.push(t('auth.oneSpecialChar'))
 
-  return errors.length > 0 ? `Password must contain ${errors.join(', ')}` : null
+  return errors.length > 0 ? t('auth.passwordMustContain', { errors: errors.join(', ') }) : null
 })
 
 const confirmPasswordError = computed(() => {
   if (!passwordForm.value.confirmPassword) return null
   if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
-    return 'Passwords do not match'
+    return t('auth.passwordsDoNotMatch')
   }
   return null
 })
@@ -52,7 +53,7 @@ const validateToken = async () => {
   if (!email.value || !token.value) {
     isValidating.value = false
     isTokenValid.value = false
-    showError('Invalid or missing reset token')
+    showError(t('auth.invalidResetToken'))
     return
   }
 
@@ -66,7 +67,7 @@ const validateToken = async () => {
   }
   catch (error) {
     isTokenValid.value = false
-    const errorMessage = error?.data?.error?.message || 'Invalid or expired reset token'
+    const errorMessage = error?.data?.error?.message || t('auth.invalidExpiredToken')
     showError(errorMessage)
   }
   finally {
@@ -88,7 +89,7 @@ const handlePasswordReset = async () => {
     })
 
     resetSuccess.value = true
-    showSuccess('Password reset successful! Redirecting to login...')
+    showSuccess(t('auth.passwordResetSuccessful'))
 
     // Redirect to login after 2 seconds
     setTimeout(() => {
@@ -96,7 +97,7 @@ const handlePasswordReset = async () => {
     }, 2000)
   }
   catch (error) {
-    const errorMessage = error?.data?.error?.message || 'Failed to reset password'
+    const errorMessage = error?.data?.error?.message || t('auth.failedToResetPassword')
     showError(errorMessage)
   }
   finally {
@@ -109,7 +110,7 @@ onMounted(() => {
 })
 
 useHead({
-  title: 'Reset Password',
+  title: computed(() => t('auth.resetPassword')),
 })
 
 definePageMeta({
@@ -122,8 +123,8 @@ definePageMeta({
     <UCard class="w-full max-w-md sd-surface">
       <template #header>
         <UiCardHeader
-          title="Reset Your Password"
-          subtitle="Create a new password for your account"
+          :title="$t('auth.resetYourPassword')"
+          :subtitle="$t('auth.createNewPassword')"
         />
       </template>
 
@@ -134,7 +135,7 @@ definePageMeta({
       >
         <USkeleton class="h-8 w-8 rounded-full" />
         <p class="text-sm text-muted">
-          Validating reset token...
+          {{ $t('auth.validatingResetToken') }}
         </p>
       </div>
 
@@ -152,13 +153,13 @@ definePageMeta({
 
         <div class="text-center space-y-2">
           <h4 class="text-lg font-semibold">
-            Invalid or Expired Link
+            {{ $t('auth.invalidOrExpiredLink') }}
           </h4>
           <p class="text-sm text-muted">
-            This password reset link is invalid or has expired.
+            {{ $t('auth.resetLinkExpired') }}
           </p>
           <p class="text-sm text-muted">
-            Reset links expire after 1 hour for security.
+            {{ $t('auth.resetLinkExpiry') }}
           </p>
         </div>
 
@@ -168,7 +169,7 @@ definePageMeta({
               size="lg"
               class="w-full"
             >
-              Request New Link
+              {{ $t('auth.requestNewLink') }}
             </UButton>
           </NuxtLink>
 
@@ -176,7 +177,7 @@ definePageMeta({
             to="/"
             class="text-center text-sm text-muted hover:text-primary transition-colors"
           >
-            Back to Login
+            {{ $t('auth.backToLogin') }}
           </NuxtLink>
         </div>
       </div>
@@ -195,13 +196,13 @@ definePageMeta({
 
         <div class="text-center space-y-2">
           <h4 class="text-lg font-semibold">
-            Password Reset Successful!
+            {{ $t('auth.passwordResetSuccessful') }}
           </h4>
           <p class="text-sm text-muted">
-            Your password has been updated successfully.
+            {{ $t('auth.passwordUpdated') }}
           </p>
           <p class="text-sm text-muted">
-            Redirecting to login...
+            {{ $t('auth.redirectingToLogin') }}
           </p>
         </div>
       </div>
@@ -217,7 +218,7 @@ definePageMeta({
           @submit.prevent="handlePasswordReset"
         >
           <UFormField
-            label="New Password"
+            :label="$t('auth.newPassword')"
             name="newPassword"
             required
             :error="passwordValidationError"
@@ -225,7 +226,7 @@ definePageMeta({
             <UInput
               v-model="passwordForm.newPassword"
               type="password"
-              placeholder="Enter new password"
+              :placeholder="$t('auth.enterNewPassword')"
               autocomplete="new-password"
               required
               class="w-full"
@@ -233,13 +234,13 @@ definePageMeta({
             />
             <template #help>
               <p class="text-xs text-muted mt-1">
-                Must be at least 8 characters with uppercase, lowercase, digit, and special character
+                {{ $t('auth.passwordRequirements') }}
               </p>
             </template>
           </UFormField>
 
           <UFormField
-            label="Confirm New Password"
+            :label="$t('auth.confirmNewPassword')"
             name="confirmPassword"
             required
             :error="confirmPasswordError"
@@ -247,7 +248,7 @@ definePageMeta({
             <UInput
               v-model="passwordForm.confirmPassword"
               type="password"
-              placeholder="Confirm new password"
+              :placeholder="$t('auth.confirmNewPasswordPlaceholder')"
               autocomplete="new-password"
               required
               class="w-full"
@@ -263,14 +264,14 @@ definePageMeta({
               :loading="isResetting"
               :disabled="isResetting || !isPasswordFormValid"
             >
-              Reset Password
+              {{ $t('auth.resetPassword') }}
             </UButton>
 
             <NuxtLink
               to="/"
               class="text-center text-sm text-muted hover:text-primary transition-colors"
             >
-              Back to Login
+              {{ $t('auth.backToLogin') }}
             </NuxtLink>
           </div>
         </UForm>

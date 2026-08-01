@@ -2,13 +2,13 @@
   <div class="py-6 sm:py-8">
     <UiLoadingSpinner
       v-if="pageLoading"
-      text="Loading members..."
+      :text="$t('groups.loadingMembers')"
     />
 
     <UiEmptyState
       v-else-if="loadError"
       icon="i-lucide-users"
-      title="Unable to load members"
+      :title="$t('groups.unableToLoadMembers')"
     >
       <template #action>
         <UButton
@@ -17,7 +17,7 @@
           size="sm"
           @click="retryLoad"
         >
-          Retry
+          {{ $t('groups.retry') }}
         </UButton>
       </template>
     </UiEmptyState>
@@ -29,7 +29,7 @@
       <template #header>
         <div class="flex items-center justify-between gap-3">
           <UiCardHeader
-            title="Members"
+            :title="$t('groups.membersTitle')"
             :subtitle="group?.name"
             :back-to="`/groups/${groupId}`"
           />
@@ -38,13 +38,13 @@
               v-if="isGroupAdmin"
               to="invite"
               icon="i-lucide-user-plus"
-              label="Invite"
+              :label="$t('groups.invite')"
               class="hidden sm:inline-flex"
             />
             <UButton
               v-if="isGroupAdmin && group?.useAliases"
               icon="i-lucide-plus"
-              label="Create Alias"
+              :label="$t('groups.createAlias')"
               variant="outline"
               class="hidden sm:inline-flex"
               @click="openCreateModal"
@@ -90,14 +90,14 @@
           <UButton
             v-if="group?.useAliases"
             icon="i-lucide-plus"
-            label="Create Alias"
+            :label="$t('groups.createAlias')"
             variant="outline"
             class="w-full"
             @click="openCreateModal"
           />
           <UButton
             icon="i-lucide-user-plus"
-            label="Invite User"
+            :label="$t('groups.inviteUser')"
             class="w-full"
             @click="navigateToInvite"
           />
@@ -112,7 +112,7 @@
       :dismissible="!aliasLoading"
     >
       <template #header>
-        <UiCardHeader title="Create Alias" />
+        <UiCardHeader :title="$t('groups.createAlias')" />
       </template>
       <template #body>
         <UForm
@@ -121,13 +121,13 @@
           @submit="onCreate"
         >
           <UFormField
-            label="Alias Name"
+            :label="$t('groups.aliasName')"
             name="name"
             required
           >
             <UInput
               v-model="createForm.name"
-              placeholder="e.g. Couple A"
+              :placeholder="$t('groups.aliasNamePlaceholder')"
               required
               class="w-full"
             />
@@ -143,14 +143,14 @@
             :disabled="aliasLoading"
             @click="isCreateModalOpen = false"
           >
-            Cancel
+            {{ $t('common.cancel') }}
           </UButton>
           <UButton
             :loading="aliasLoading"
             :disabled="!createForm.name || aliasLoading"
             @click="onCreate"
           >
-            Create Alias
+            {{ $t('groups.createAlias') }}
           </UButton>
         </div>
       </template>
@@ -163,7 +163,7 @@
       :dismissible="!aliasLoading"
     >
       <template #header>
-        <UiCardHeader title="Rename Alias" />
+        <UiCardHeader :title="$t('groups.renameAlias')" />
       </template>
       <template #body>
         <UForm
@@ -172,13 +172,13 @@
           @submit="onRename"
         >
           <UFormField
-            label="Alias Name"
+            :label="$t('groups.aliasName')"
             name="name"
             required
           >
             <UInput
               v-model="renameForm.name"
-              placeholder="Enter alias name"
+              :placeholder="$t('groups.enterAliasName')"
               required
               class="w-full"
             />
@@ -194,14 +194,14 @@
             :disabled="aliasLoading"
             @click="isRenameModalOpen = false"
           >
-            Cancel
+            {{ $t('common.cancel') }}
           </UButton>
           <UButton
             :loading="aliasLoading"
             :disabled="!renameForm.name || aliasLoading"
             @click="onRename"
           >
-            Save
+            {{ $t('common.save') }}
           </UButton>
         </div>
       </template>
@@ -210,6 +210,7 @@
 </template>
 
 <script setup>
+const { t } = useI18n()
 const route = useRoute()
 const groupId = route.params.id
 
@@ -267,11 +268,11 @@ const modal = useModal()
 
 const onRevoke = async (invitation) => {
   const confirmed = await modal.warning({
-    title: 'Revoke invitation',
-    subtitle: 'This cannot be undone.',
-    content: `Revoke the invitation for '${invitation.email}'?`,
-    confirmText: 'Revoke',
-    cancelText: 'Cancel',
+    title: t('groups.revokeInvitation'),
+    subtitle: t('groups.revokeInvitationSubtitle'),
+    content: t('groups.revokeInvitationContent', { email: invitation.email }),
+    confirmText: t('groups.revoke'),
+    cancelText: t('common.cancel'),
   })
 
   if (!confirmed) return
@@ -430,11 +431,11 @@ const onRename = async () => {
 
 const onDelete = async (alias) => {
   const confirmed = await modal.error({
-    title: 'Delete Alias',
-    subtitle: 'This action cannot be undone.',
-    content: `The alias '${alias.name}' will be removed and its members will become individual singleton aliases.`,
-    confirmText: 'Delete Alias',
-    cancelText: 'Cancel',
+    title: t('groups.deleteAlias'),
+    subtitle: t('groups.deleteAliasConfirm'),
+    content: t('groups.deleteAliasContent', { name: alias.name }),
+    confirmText: t('groups.deleteAliasButton'),
+    cancelText: t('common.cancel'),
   })
 
   if (!confirmed) return
@@ -462,11 +463,11 @@ const onAssignMember = async (alias, userId) => {
 
 const onRemoveMember = async (alias, userId) => {
   const confirmed = await modal.warning({
-    title: 'Remove Member',
-    subtitle: 'This action cannot be undone.',
-    content: 'This member will be moved to a new singleton alias.',
-    confirmText: 'Remove',
-    cancelText: 'Cancel',
+    title: t('groups.removeMember'),
+    subtitle: t('groups.removeMemberConfirm'),
+    content: t('groups.removeMemberContent'),
+    confirmText: t('groups.remove'),
+    cancelText: t('common.cancel'),
   })
 
   if (!confirmed) return
@@ -481,7 +482,7 @@ const onRemoveMember = async (alias, userId) => {
 }
 
 useHead({
-  title: computed(() => `Members - ${group.value?.name || 'Group'}`),
+  title: computed(() => `${t('groups.membersTitle')} - ${group.value?.name || t('groups.title')}`),
 })
 
 definePageMeta({

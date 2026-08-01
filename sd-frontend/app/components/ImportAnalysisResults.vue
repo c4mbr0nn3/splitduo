@@ -7,7 +7,7 @@
           class="text-primary"
         />
         <h3 class="text-lg font-semibold text-primary">
-          Analysis Results
+          {{ $t('imports.analysisResults') }}
         </h3>
       </div>
     </template>
@@ -20,21 +20,23 @@
         icon="i-lucide-info"
       >
         <template #title>
-          File Analysis Complete
+          {{ $t('imports.fileAnalysisComplete') }}
         </template>
         <template #description>
-          Found {{ getTotalItems() }} items to configure:
-          {{ analysisResults.aliases?.length || 0 }} aliases,
-          {{ analysisResults.members?.length || 0 }} users,
-          {{ analysisResults.categories?.length || 0 }} categories,
-          {{ analysisResults.paymentModes?.length || 0 }} payment modes
+          {{ $t('imports.foundItems', {
+            total: getTotalItems(),
+            aliases: analysisResults.aliases?.length || 0,
+            members: analysisResults.members?.length || 0,
+            categories: analysisResults.categories?.length || 0,
+            paymentModes: analysisResults.paymentModes?.length || 0,
+          }) }}
         </template>
       </UAlert>
 
       <!-- Aliases Section -->
       <div v-if="analysisResults.aliases?.length">
         <h4 class="text-sm font-medium text-highlighted mb-3">
-          Aliases Found ({{ analysisResults.aliases.length }})
+          {{ $t('imports.aliasesFound', { count: analysisResults.aliases.length }) }}
         </h4>
         <div class="grid gap-2">
           <UCard
@@ -70,7 +72,7 @@
       <!-- Users/Members Section -->
       <div v-if="analysisResults.members?.length">
         <h4 class="text-sm font-medium text-highlighted mb-3">
-          Users Found ({{ analysisResults.members.length }})
+          {{ $t('imports.usersFound', { count: analysisResults.members.length }) }}
         </h4>
         <div class="grid gap-2">
           <UCard
@@ -103,7 +105,7 @@
       <!-- Categories Section -->
       <div v-if="analysisResults.categories?.length">
         <h4 class="text-sm font-medium text-highlighted mb-3">
-          Categories Found ({{ analysisResults.categories.length }})
+          {{ $t('imports.categoriesFound', { count: analysisResults.categories.length }) }}
         </h4>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
           <UCard
@@ -119,7 +121,7 @@
                   class="text-muted"
                   size="16"
                 />
-                <span class="font-medium">Category {{ category.key }}</span>
+                <span class="font-medium">{{ $t('imports.category', { key: category.key }) }}</span>
               </div>
               <UBadge
                 :label="category.value"
@@ -134,7 +136,7 @@
       <!-- Payment Modes Section -->
       <div v-if="analysisResults.paymentModes?.length">
         <h4 class="text-sm font-medium text-highlighted mb-3">
-          Payment Modes Found ({{ analysisResults.paymentModes.length }})
+          {{ $t('imports.paymentModesFound', { count: analysisResults.paymentModes.length }) }}
         </h4>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
           <UCard
@@ -150,7 +152,7 @@
                   class="text-muted"
                   size="16"
                 />
-                <span class="font-medium">Mode {{ paymentMode.key }}</span>
+                <span class="font-medium">{{ $t('imports.mode', { key: paymentMode.key }) }}</span>
               </div>
               <UBadge
                 :label="paymentMode.value"
@@ -170,17 +172,17 @@
         icon="i-lucide-triangle-alert"
       >
         <template #title>
-          No Data Found
+          {{ $t('imports.noDataFound') }}
         </template>
         <template #description>
-          The file appears to be empty or in an unexpected format. Please check your file and try again.
+          {{ $t('imports.noDataDescription') }}
         </template>
       </UAlert>
     </div>
 
     <template #footer>
       <div class="text-xs text-muted">
-        Next: Configure how these items should be mapped to your SplitDuo group
+        {{ $t('imports.nextStep') }}
       </div>
     </template>
   </UCard>

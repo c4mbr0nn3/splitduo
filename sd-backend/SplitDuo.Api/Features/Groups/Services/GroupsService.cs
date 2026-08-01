@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using SplitDuo.Api.Features.Aliases.Services;
 using SplitDuo.Api.Features.Common.Dto;
 using SplitDuo.Api.Features.Groups.Dto;
@@ -7,6 +8,7 @@ using SplitDuo.Core.Domain.Email;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Domain.Enums;
 using SplitDuo.Core.Dto.Imports;
+using SplitDuo.Core.Localization;
 using SplitDuo.Core.Persistence;
 using SplitDuo.Core.Services;
 
@@ -42,7 +44,8 @@ public class GroupsService(
     IUnitOfWork unitOfWork,
     INotificationService notificationService,
     IEmailTemplateProvider emailTemplateProvider,
-    TimeProvider timeProvider) : IGroupsService
+    TimeProvider timeProvider,
+    IStringLocalizer<GroupsService> loc) : IGroupsService
 {
     public async Task<Result<List<GroupDto>>> GetUserGroupsAsync(Guid currentUserId, int? limit = null)
     {
@@ -51,7 +54,7 @@ public class GroupsService(
             .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
 
         if (user == null)
-            return Result<List<GroupDto>>.Unauthorized("User not found");
+            return Result<List<GroupDto>>.Unauthorized(loc["UserNotFound"]);
 
         var allGroups = await unitOfWork.GroupMembers
             .AsNoTracking()
@@ -233,7 +236,7 @@ public class GroupsService(
             .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
 
         if (user == null)
-            return Result<GroupDto>.Unauthorized("User not found");
+            return Result<GroupDto>.Unauthorized(loc["UserNotFound"]);
 
         var group = new Group
         {
@@ -291,27 +294,27 @@ public class GroupsService(
     public async Task<Result<GroupDto>> GetGroupAsync(string groupId, Guid currentUserId)
     {
         if (!Guid.TryParse(groupId, out var groupGuid))
-            return Result<GroupDto>.BadRequest("Invalid group ID format");
+            return Result<GroupDto>.BadRequest(loc["InvalidGroupIdFormat"]);
 
         var user = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
 
         if (user == null)
-            return Result<GroupDto>.Unauthorized("User not found");
+            return Result<GroupDto>.Unauthorized(loc["UserNotFound"]);
 
         var group = await unitOfWork.Groups
             .Include(g => g.CreatedByUser)
             .FirstOrDefaultAsync(g => g.Guid == groupGuid && g.DeletedAt == null);
 
         if (group == null)
-            return Result<GroupDto>.NotFound("Group not found");
+            return Result<GroupDto>.NotFound(loc["GroupNotFound"]);
 
         // Check if user is member of the group
         var isMember = await unitOfWork.GroupMembers
             .AnyAsync(gm => gm.GroupId == group.Id && gm.UserId == user.Id && gm.DeletedAt == null);
 
         if (!isMember)
-            return Result<GroupDto>.Forbidden("Access to this group is not allowed");
+            return Result<GroupDto>.Forbidden(loc["AccessNotAllowed"]);
 
         var memberCount = await unitOfWork.GroupMembers
             .CountAsync(gm => gm.GroupId == group.Id && gm.DeletedAt == null);
@@ -337,30 +340,30 @@ public class GroupsService(
         UpdateGroupRequestDto request)
     {
         if (!Guid.TryParse(groupId, out var groupGuid))
-            return Result<GroupDto>.BadRequest("Invalid group ID format");
+            return Result<GroupDto>.BadRequest(loc["InvalidGroupIdFormat"]);
 
         var user = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
 
         if (user == null)
-            return Result<GroupDto>.Unauthorized("User not found");
+            return Result<GroupDto>.Unauthorized(loc["UserNotFound"]);
 
         var group = await unitOfWork.Groups
             .Include(g => g.CreatedByUser)
             .FirstOrDefaultAsync(g => g.Guid == groupGuid && g.DeletedAt == null);
 
         if (group == null)
-            return Result<GroupDto>.NotFound("Group not found");
+            return Result<GroupDto>.NotFound(loc["GroupNotFound"]);
 
         // Check if user is admin of the group
         var groupMember = await unitOfWork.GroupMembers
             .FirstOrDefaultAsync(gm => gm.GroupId == group.Id && gm.UserId == user.Id && gm.DeletedAt == null);
 
         if (groupMember == null)
-            return Result<GroupDto>.Forbidden("Access to this group is not allowed");
+            return Result<GroupDto>.Forbidden(loc["AccessNotAllowed"]);
 
         if (groupMember.Role != GroupRole.Admin)
-            return Result<GroupDto>.Forbidden("Only group administrators can update group information");
+            return Result<GroupDto>.Forbidden(loc["OnlyAdminsCanUpdateGroup"]);
 
         // Update group properties
         // UseAliases is immutable — the DTO (UpdateGroupRequestDto) intentionally has no
@@ -394,29 +397,29 @@ public class GroupsService(
     public async Task<Result> DeleteGroupAsync(string groupId, Guid currentUserId)
     {
         if (!Guid.TryParse(groupId, out var groupGuid))
-            return Result.BadRequest("Invalid group ID format");
+            return Result.BadRequest(loc["InvalidGroupIdFormat"]);
 
         var user = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
 
         if (user == null)
-            return Result.Unauthorized("User not found");
+            return Result.Unauthorized(loc["UserNotFound"]);
 
         var group = await unitOfWork.Groups
             .FirstOrDefaultAsync(g => g.Guid == groupGuid && g.DeletedAt == null);
 
         if (group == null)
-            return Result.NotFound("Group not found");
+            return Result.NotFound(loc["GroupNotFound"]);
 
         // Check if user is admin of the group
         var groupMember = await unitOfWork.GroupMembers
             .FirstOrDefaultAsync(gm => gm.GroupId == group.Id && gm.UserId == user.Id && gm.DeletedAt == null);
 
         if (groupMember == null)
-            return Result.Forbidden("Access to this group is not allowed");
+            return Result.Forbidden(loc["AccessNotAllowed"]);
 
         if (groupMember.Role != GroupRole.Admin)
-            return Result.Forbidden("Only group administrators can delete the group");
+            return Result.Forbidden(loc["OnlyAdminsCanDeleteGroup"]);
 
         // Soft delete the group
         group.DeletedAt = timeProvider.GetUtcNow().ToUnixTimeSeconds();
@@ -433,12 +436,14 @@ public class GroupsService(
 
             if (member.UserId == user.Id) continue;
 
+            // Use the recipient's UiLanguage for the email (AC-005).
+            var memberLanguage = SupportedLanguages.Normalize(member.User.Settings.UiLanguage);
             await notificationService.EnqueueAsync(emailTemplateProvider.Render(new GroupDeletedModel
             {
                 To = member.User.Email, RecipientFirstName = member.User.FirstName,
                 DeletedByFirstName = user.FirstName, DeletedByLastName = user.LastName,
                 GroupName = group.Name
-            }));
+            }, memberLanguage));
         }
 
         return Result.Success();
@@ -447,26 +452,26 @@ public class GroupsService(
     public async Task<Result<List<GroupMemberDto>>> GetGroupMembersAsync(string groupId, Guid currentUserId)
     {
         if (!Guid.TryParse(groupId, out var groupGuid))
-            return Result<List<GroupMemberDto>>.BadRequest("Invalid group ID format");
+            return Result<List<GroupMemberDto>>.BadRequest(loc["InvalidGroupIdFormat"]);
 
         var user = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
 
         if (user == null)
-            return Result<List<GroupMemberDto>>.Unauthorized("User not found");
+            return Result<List<GroupMemberDto>>.Unauthorized(loc["UserNotFound"]);
 
         var group = await unitOfWork.Groups
             .FirstOrDefaultAsync(g => g.Guid == groupGuid && g.DeletedAt == null);
 
         if (group == null)
-            return Result<List<GroupMemberDto>>.NotFound("Group not found");
+            return Result<List<GroupMemberDto>>.NotFound(loc["GroupNotFound"]);
 
         // Check if user is member of the group
         var isMember = await unitOfWork.GroupMembers
             .AnyAsync(gm => gm.GroupId == group.Id && gm.UserId == user.Id && gm.DeletedAt == null);
 
         if (!isMember)
-            return Result<List<GroupMemberDto>>.Forbidden("Access to this group is not allowed");
+            return Result<List<GroupMemberDto>>.Forbidden(loc["AccessNotAllowed"]);
 
         var members = await unitOfWork.GroupMembers
             .Where(gm => gm.GroupId == group.Id && gm.DeletedAt == null)
@@ -497,43 +502,43 @@ public class GroupsService(
         AddGroupMemberRequestDto request)
     {
         if (!Guid.TryParse(groupId, out var groupGuid))
-            return Result<GroupMemberDto>.BadRequest("Invalid group ID format");
+            return Result<GroupMemberDto>.BadRequest(loc["InvalidGroupIdFormat"]);
 
         var currentUser = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
 
         if (currentUser == null)
-            return Result<GroupMemberDto>.Unauthorized("User not found");
+            return Result<GroupMemberDto>.Unauthorized(loc["UserNotFound"]);
 
         var group = await unitOfWork.Groups
             .FirstOrDefaultAsync(g => g.Guid == groupGuid && g.DeletedAt == null);
 
         if (group == null)
-            return Result<GroupMemberDto>.NotFound("Group not found");
+            return Result<GroupMemberDto>.NotFound(loc["GroupNotFound"]);
 
         // Check if current user is admin of the group
         var currentUserMembership = await unitOfWork.GroupMembers
             .FirstOrDefaultAsync(gm => gm.GroupId == group.Id && gm.UserId == currentUser.Id && gm.DeletedAt == null);
 
         if (currentUserMembership == null)
-            return Result<GroupMemberDto>.Forbidden("Access to this group is not allowed");
+            return Result<GroupMemberDto>.Forbidden(loc["AccessNotAllowed"]);
 
         if (currentUserMembership.Role != GroupRole.Admin)
-            return Result<GroupMemberDto>.Forbidden("Only group administrators can add members");
+            return Result<GroupMemberDto>.Forbidden(loc["OnlyAdminsCanAddMembers"]);
 
         // Find user to be added
         var userToAdd = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Email == request.UserEmail && u.DeletedAt == null);
 
         if (userToAdd == null)
-            return Result<GroupMemberDto>.NotFound("User with this email not found");
+            return Result<GroupMemberDto>.NotFound(loc["UserWithEmailNotFound"]);
 
         // Check if user is already a member
         var existingMembership = await unitOfWork.GroupMembers
             .FirstOrDefaultAsync(gm => gm.GroupId == group.Id && gm.UserId == userToAdd.Id && gm.DeletedAt == null);
 
         if (existingMembership != null)
-            return Result<GroupMemberDto>.Conflict("User is already a member of this group");
+            return Result<GroupMemberDto>.Conflict(loc["UserAlreadyMember"]);
 
         // Parse role
         if (!Enum.TryParse<GroupRole>(request.Role, true, out var role))
@@ -589,47 +594,47 @@ public class GroupsService(
     public async Task<Result> RemoveGroupMemberAsync(string groupId, string userId, Guid currentUserId)
     {
         if (!Guid.TryParse(groupId, out var groupGuid))
-            return Result.BadRequest("Invalid group ID format");
+            return Result.BadRequest(loc["InvalidGroupIdFormat"]);
 
         if (!Guid.TryParse(userId, out var userGuid))
-            return Result.BadRequest("Invalid user ID format");
+            return Result.BadRequest(loc["InvalidUserIdFormat"]);
 
         var currentUser = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
 
         if (currentUser == null)
-            return Result.Unauthorized("User not found");
+            return Result.Unauthorized(loc["UserNotFound"]);
 
         var group = await unitOfWork.Groups
             .FirstOrDefaultAsync(g => g.Guid == groupGuid && g.DeletedAt == null);
 
         if (group == null)
-            return Result.NotFound("Group not found");
+            return Result.NotFound(loc["GroupNotFound"]);
 
         var userToRemove = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == userGuid && u.DeletedAt == null);
 
         if (userToRemove == null)
-            return Result.NotFound("User to remove not found");
+            return Result.NotFound(loc["UserToRemoveNotFound"]);
 
         // Check if current user is admin of the group or removing themselves
         var currentUserMembership = await unitOfWork.GroupMembers
             .FirstOrDefaultAsync(gm => gm.GroupId == group.Id && gm.UserId == currentUser.Id && gm.DeletedAt == null);
 
         if (currentUserMembership == null)
-            return Result.Forbidden("Access to this group is not allowed");
+            return Result.Forbidden(loc["AccessNotAllowed"]);
 
         var membershipToRemove = await unitOfWork.GroupMembers
             .FirstOrDefaultAsync(gm => gm.GroupId == group.Id && gm.UserId == userToRemove.Id && gm.DeletedAt == null);
 
         if (membershipToRemove == null)
-            return Result.NotFound("User is not a member of this group");
+            return Result.NotFound(loc["UserNotMemberOfGroup"]);
 
         // Allow user to remove themselves or admin to remove any member
         var canRemove = currentUser.Id == userToRemove.Id || currentUserMembership.Role == GroupRole.Admin;
 
         if (!canRemove)
-            return Result.Forbidden("You can only remove yourself or, as an admin, remove other members");
+            return Result.Forbidden(loc["RemoveMemberNotAllowed"]);
 
         // Don't allow removing the only admin
         if (membershipToRemove.Role == GroupRole.Admin)
@@ -638,7 +643,7 @@ public class GroupsService(
                 .CountAsync(gm => gm.GroupId == group.Id && gm.RoleId == (int)GroupRole.Admin && gm.DeletedAt == null);
 
             if (adminCount <= 1)
-                return Result.Conflict("Cannot remove the only administrator of the group");
+                return Result.Conflict(loc["CannotRemoveOnlyAdmin"]);
         }
 
         // Soft delete the membership
@@ -670,12 +675,14 @@ public class GroupsService(
         // Notify the removed user only if it's not a self-removal
         if (currentUser.Id != userToRemove.Id)
         {
+            // Use the removed user's UiLanguage for the email (AC-005).
+            var removedUserLanguage = SupportedLanguages.Normalize(userToRemove.Settings.UiLanguage);
             await notificationService.EnqueueAsync(emailTemplateProvider.Render(new GroupMemberRemovedModel
             {
                 To = userToRemove.Email, RecipientFirstName = userToRemove.FirstName,
                 RemovedByFirstName = currentUser.FirstName, RemovedByLastName = currentUser.LastName,
                 GroupName = group.Name
-            }));
+            }, removedUserLanguage));
         }
 
         return Result.Success();
@@ -685,57 +692,57 @@ public class GroupsService(
         Guid currentUserId, UpdateGroupMemberRoleRequestDto request)
     {
         if (!Guid.TryParse(groupId, out var groupGuid))
-            return Result<GroupMemberDto>.BadRequest("Invalid group ID format");
+            return Result<GroupMemberDto>.BadRequest(loc["InvalidGroupIdFormat"]);
 
         if (!Guid.TryParse(userId, out var userGuid))
-            return Result<GroupMemberDto>.BadRequest("Invalid user ID format");
+            return Result<GroupMemberDto>.BadRequest(loc["InvalidUserIdFormat"]);
 
         if (!Enum.TryParse<GroupRole>(request.Role, true, out var newRole))
-            return Result<GroupMemberDto>.BadRequest("Invalid role. Must be 'admin' or 'member'.");
+            return Result<GroupMemberDto>.BadRequest(loc["InvalidRoleValue"]);
 
         var currentUser = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
 
         if (currentUser == null)
-            return Result<GroupMemberDto>.Unauthorized("User not found");
+            return Result<GroupMemberDto>.Unauthorized(loc["UserNotFound"]);
 
         var group = await unitOfWork.Groups
             .FirstOrDefaultAsync(g => g.Guid == groupGuid && g.DeletedAt == null);
 
         if (group == null)
-            return Result<GroupMemberDto>.NotFound("Group not found");
+            return Result<GroupMemberDto>.NotFound(loc["GroupNotFound"]);
 
         // Check if caller is a member of the group
         var callerMember = await unitOfWork.GroupMembers
             .FirstOrDefaultAsync(gm => gm.GroupId == group.Id && gm.UserId == currentUser.Id && gm.DeletedAt == null);
 
         if (callerMember == null)
-            return Result<GroupMemberDto>.Forbidden("Access to this group is not allowed");
+            return Result<GroupMemberDto>.Forbidden(loc["AccessNotAllowed"]);
 
         if (callerMember.Role != GroupRole.Admin)
-            return Result<GroupMemberDto>.Forbidden("Only group administrators can change member roles");
+            return Result<GroupMemberDto>.Forbidden(loc["OnlyAdminsCanChangeRoles"]);
 
         // Find target user
         var targetUser = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == userGuid && u.DeletedAt == null);
 
         if (targetUser == null)
-            return Result<GroupMemberDto>.NotFound("User not found");
+            return Result<GroupMemberDto>.NotFound(loc["UserNotFound"]);
 
         // Find target's membership
         var targetMember = await unitOfWork.GroupMembers
             .FirstOrDefaultAsync(gm => gm.GroupId == group.Id && gm.UserId == targetUser.Id && gm.DeletedAt == null);
 
         if (targetMember == null)
-            return Result<GroupMemberDto>.NotFound("User is not a member of this group");
+            return Result<GroupMemberDto>.NotFound(loc["UserNotMemberOfGroup"]);
 
         // Cannot change own role
         if (targetMember.UserId == callerMember.UserId)
-            return Result<GroupMemberDto>.Forbidden("You cannot change your own role");
+            return Result<GroupMemberDto>.Forbidden(loc["CannotChangeOwnRole"]);
 
         // Already has this role
         if (targetMember.Role == newRole)
-            return Result<GroupMemberDto>.BadRequest("User already has this role");
+            return Result<GroupMemberDto>.BadRequest(loc["UserAlreadyHasRole"]);
 
         // Last-admin protection when demoting
         if (newRole == GroupRole.Member && targetMember.Role == GroupRole.Admin)
@@ -744,7 +751,7 @@ public class GroupsService(
                 .CountAsync(gm => gm.GroupId == group.Id && gm.RoleId == (int)GroupRole.Admin && gm.DeletedAt == null);
 
             if (adminCount <= 1)
-                return Result<GroupMemberDto>.Conflict("Cannot demote the only administrator of the group");
+                return Result<GroupMemberDto>.Conflict(loc["CannotDemoteOnlyAdmin"]);
         }
 
         targetMember.Role = newRole;
@@ -774,26 +781,26 @@ public class GroupsService(
         int limit = 20)
     {
         if (!Guid.TryParse(groupId, out var groupGuid))
-            return Result<PaginatedResponseDto<ImportStatusDto>>.BadRequest("Invalid group ID format");
+            return Result<PaginatedResponseDto<ImportStatusDto>>.BadRequest(loc["InvalidGroupIdFormat"]);
 
         var user = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
 
         if (user == null)
-            return Result<PaginatedResponseDto<ImportStatusDto>>.Unauthorized("User not found");
+            return Result<PaginatedResponseDto<ImportStatusDto>>.Unauthorized(loc["UserNotFound"]);
 
         var group = await unitOfWork.Groups
             .FirstOrDefaultAsync(g => g.Guid == groupGuid && g.DeletedAt == null);
 
         if (group == null)
-            return Result<PaginatedResponseDto<ImportStatusDto>>.NotFound("Group not found");
+            return Result<PaginatedResponseDto<ImportStatusDto>>.NotFound(loc["GroupNotFound"]);
 
         // Check if user is member of the group
         var isMember = await unitOfWork.GroupMembers
             .AnyAsync(gm => gm.GroupId == group.Id && gm.UserId == user.Id && gm.DeletedAt == null);
 
         if (!isMember)
-            return Result<PaginatedResponseDto<ImportStatusDto>>.Forbidden("Access to this group is not allowed");
+            return Result<PaginatedResponseDto<ImportStatusDto>>.Forbidden(loc["AccessNotAllowed"]);
 
         // Get total count
         var totalCount = await unitOfWork.Imports
@@ -832,21 +839,21 @@ public class GroupsService(
             .Include(i => i.User)
             .FirstOrDefaultAsync(i => i.Guid == importId);
         if (import == null)
-            return Result<ImportStatusDto>.NotFound("Import not found");
+            return Result<ImportStatusDto>.NotFound(loc["ImportNotFound"]);
 
         var user = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
         if (user == null)
-            return Result<ImportStatusDto>.Unauthorized("User not found");
+            return Result<ImportStatusDto>.Unauthorized(loc["UserNotFound"]);
 
         var isMember = await unitOfWork.GroupMembers
             .AnyAsync(gm => gm.GroupId == import.GroupId && gm.UserId == user.Id && gm.DeletedAt == null);
         if (!isMember)
-            return Result<ImportStatusDto>.Forbidden("Access to this group is not allowed");
+            return Result<ImportStatusDto>.Forbidden(loc["AccessNotAllowed"]);
 
         var isImportOwner = import.UserId == user.Id;
         if (!isImportOwner)
-            return Result<ImportStatusDto>.Forbidden("You can only view the status of your own imports");
+            return Result<ImportStatusDto>.Forbidden(loc["OnlyOwnImports"]);
 
         var result = new ImportStatusDto(import);
         return Result<ImportStatusDto>.Success(result);

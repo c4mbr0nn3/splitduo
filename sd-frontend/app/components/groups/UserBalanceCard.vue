@@ -18,7 +18,7 @@
         </div>
         <div>
           <p class="text-sm text-muted">
-            {{ isAliasMode ? `Your Alias (${balance.aliasName || '—'})` : 'Your Net Balance' }}
+            {{ isAliasMode ? $t('stats.yourAlias', { name: balance.aliasName || '—' }) : $t('stats.yourNetBalance') }}
           </p>
           <p
             class="font-bold text-2xl"
@@ -33,7 +33,7 @@
     <div class="grid grid-cols-2 gap-4 pt-4">
       <div class="text-center">
         <p class="text-xs text-dimmed mb-1">
-          {{ isAliasMode ? 'Alias Paid' : 'You Paid' }}
+          {{ isAliasMode ? $t('stats.aliasPaid') : $t('stats.youPaid') }}
         </p>
         <p class="font-semibold text-success">
           {{ formatAmount(balance.totalPaid) }} €
@@ -41,7 +41,7 @@
       </div>
       <div class="text-center">
         <p class="text-xs text-dimmed mb-1">
-          {{ isAliasMode ? 'Alias Owes' : 'You Owe' }}
+          {{ isAliasMode ? $t('stats.aliasOwes') : $t('stats.youOwe') }}
         </p>
         <p class="font-semibold text-warning">
           {{ formatAmount(balance.totalOwed) }} €

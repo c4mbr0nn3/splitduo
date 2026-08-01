@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+    <xsd:element name="root" msdata:IsDataSet="true"/>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="InvalidGroupIdFormat" xml:space="preserve"><value>Invalid group ID format</value></data>
+  <data name="InvalidExpenseIdFormat" xml:space="preserve"><value>Invalid expense ID format</value></data>
+  <data name="InvalidPaidByUserIdFormat" xml:space="preserve"><value>Invalid paid by user ID format</value></data>
+  <data name="InvalidExpenseDateFormat" xml:space="preserve"><value>Invalid expense date format</value></data>
+  <data name="UserNotAuthenticated" xml:space="preserve"><value>User not authenticated</value></data>
+  <data name="GroupNotFound" xml:space="preserve"><value>Group not found</value></data>
+  <data name="AccessNotAllowed" xml:space="preserve"><value>Access to this group is not allowed</value></data>
+  <data name="PaidByUserNotFound" xml:space="preserve"><value>Paid by user not found</value></data>
+  <data name="PaidByUserNotMember" xml:space="preserve"><value>Paid by user is not a member of this group</value></data>
+  <data name="InvalidExpenseCategory" xml:space="preserve"><value>Invalid expense category</value></data>
+  <data name="InvalidExpensePaymentMode" xml:space="preserve"><value>Invalid expense payment mode</value></data>
+  <data name="AliasSetupNotFinalized" xml:space="preserve"><value>Alias setup must be finalized before creating expenses</value></data>
+  <data name="AliasSplitRequired" xml:space="preserve"><value>At least one alias split is required for alias-mode groups</value></data>
+  <data name="DuplicateAliasesInSplits" xml:space="preserve"><value>Duplicate aliases found in splits: {0}</value></data>
+  <data name="InvalidAliasIdInSplit" xml:space="preserve"><value>Invalid alias ID format in split: {0}</value></data>
+  <data name="AliasNotFoundInSplit" xml:space="preserve"><value>Alias not found or is deleted: {0}</value></data>
+  <data name="AliasNotInGroup" xml:space="preserve"><value>Alias {0} does not belong to this group</value></data>
+  <data name="SplitAmountMustBePositive" xml:space="preserve"><value>Split amount must be greater than zero</value></data>
+  <data name="SplitAmountsDoNotSum" xml:space="preserve"><value>Split amounts ({0:F2}) do not sum up to expense amount ({1:F2})</value></data>
+  <data name="ExpenseSplitRequired" xml:space="preserve"><value>At least one expense split is required</value></data>
+  <data name="DuplicateUsersInSplits" xml:space="preserve"><value>Duplicate users found in splits: {0}</value></data>
+  <data name="InvalidUserIdInSplit" xml:space="preserve"><value>Invalid user ID format in split: {0}</value></data>
+  <data name="UserNotFoundInSplit" xml:space="preserve"><value>User not found in split: {0}</value></data>
+  <data name="UserNotMemberInSplit" xml:space="preserve"><value>User {0} {1} is not a member of this group</value></data>
+  <data name="ExpenseNotFound" xml:space="preserve"><value>Expense not found</value></data>
+  <data name="CannotChangeSplitTypeToUser" xml:space="preserve"><value>Cannot change an alias-split expense to user splits</value></data>
+  <data name="CannotChangeSplitTypeToAlias" xml:space="preserve"><value>Cannot change a user-split expense to alias splits</value></data>
+</root>

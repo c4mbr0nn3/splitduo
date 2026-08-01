@@ -5,10 +5,10 @@
         <template #header>
           <div class="text-center space-y-1">
             <h1 class="text-xl font-semibold">
-              Two-Factor Verification
+              {{ $t('auth.twoFactorVerification') }}
             </h1>
             <p class="text-sm text-muted">
-              Enter your verification code to continue
+              {{ $t('auth.enterVerificationCode') }}
             </p>
           </div>
         </template>
@@ -21,7 +21,7 @@
           <template #totp>
             <div class="flex flex-col items-center space-y-4 pt-3">
               <p class="text-sm text-muted">
-                Enter the 6-digit code from your authenticator app.
+                {{ $t('auth.enter6DigitCode') }}
               </p>
               <UPinInput
                 v-model="totpCode"
@@ -39,7 +39,7 @@
                 :disabled="totpCode.length < 6"
                 @click="verify('totp', totpCode.join(''))"
               >
-                Verify
+                {{ $t('auth.verify') }}
               </UButton>
             </div>
           </template>
@@ -47,11 +47,11 @@
           <template #backup>
             <div class="flex flex-col items-center space-y-4 pt-3">
               <p class="text-sm text-muted">
-                Enter one of your emergency backup codes.
+                {{ $t('auth.enterBackupCode') }}
               </p>
               <UInput
                 v-model="backupCode"
-                placeholder="xxxx-yyyyy"
+                :placeholder="$t('auth.backupCodePlaceholder')"
                 class="w-full pb-3"
                 :disabled="isLoading"
               />
@@ -61,7 +61,7 @@
                 :disabled="!backupCode"
                 @click="verify('backup', backupCode)"
               >
-                Verify
+                {{ $t('auth.verify') }}
               </UButton>
             </div>
           </template>
@@ -73,7 +73,7 @@
           to="/"
           class="text-sm text-muted hover:text-primary transition-colors"
         >
-          Back to login
+          {{ $t('auth.backToLogin') }}
         </NuxtLink>
       </div>
     </div>
@@ -81,7 +81,8 @@
 </template>
 
 <script setup>
-useHead({ title: 'Verify Identity' })
+const { t } = useI18n()
+useHead({ title: computed(() => t('auth.twoFactorVerification')) })
 
 definePageMeta({
   layout: 'auth',
@@ -98,10 +99,10 @@ onMounted(() => {
   }
 })
 
-const tabs = [
-  { label: 'Authenticator App', slot: 'totp' },
-  { label: 'Backup Code', slot: 'backup' },
-]
+const tabs = computed(() => [
+  { label: t('auth.authenticatorApp'), slot: 'totp' },
+  { label: t('auth.backupCode'), slot: 'backup' },
+])
 const activeTab = ref('0')
 
 const totpCode = ref([])
@@ -131,16 +132,16 @@ const verify = async (codeType, code) => {
 
     if (response.success && response.data) {
       completeTwoFactorLogin(response.data)
-      showSuccess('Login successful! Redirecting...')
+      showSuccess(t('auth.loginSuccessfulRedirect'))
       await navigateTo('/dashboard')
     }
     else {
-      showError(response.error?.message || 'Verification failed')
+      showError(response.error?.message || t('auth.verificationFailed'))
       resetCode(codeType)
     }
   }
   catch (error) {
-    showError(error.message || 'Verification failed')
+    showError(error.message || t('auth.verificationFailed'))
     resetCode(codeType)
   }
   finally {

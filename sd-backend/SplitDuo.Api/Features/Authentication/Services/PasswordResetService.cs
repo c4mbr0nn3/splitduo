@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using SplitDuo.Api.Features.Authentication.Dto;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Email;
 using SplitDuo.Core.Domain.Entities;
+using SplitDuo.Core.Localization;
 using SplitDuo.Core.Persistence;
 using SplitDuo.Core.Services;
 
@@ -23,7 +25,8 @@ public class PasswordResetService(
     IAuthenticationService authenticationService,
     INotificationService notificationService,
     IEmailTemplateProvider emailTemplateProvider,
-    TimeProvider timeProvider) : IPasswordResetService
+    TimeProvider timeProvider,
+    IStringLocalizer<PasswordResetService> loc) : IPasswordResetService
 {
     public async Task<Result> InitiatePasswordResetAsync(string email)
     {
@@ -63,10 +66,14 @@ public class PasswordResetService(
         unitOfWork.TwoFactorTokens.Add(resetTokenEntity);
 
         // Send password reset email
+        // Use the user's UiLanguage for the email language (AC-005).
+        // This is an unauthenticated flow, but we have the user record so we prefer
+        // their saved language over the request culture (see spec §9.4).
+        var userLanguage = SupportedLanguages.Normalize(user.Settings.UiLanguage);
         await notificationService.EnqueueAsync(emailTemplateProvider.Render(new PasswordResetModel
         {
             To = user.Email, FirstName = user.FirstName, ResetToken = resetToken
-        }));
+        }, userLanguage));
 
         return Result.Success();
     }
@@ -77,7 +84,7 @@ public class PasswordResetService(
             .FirstOrDefaultAsync(u => u.Email == email && u.DeletedAt == null);
 
         if (user == null)
-            return Result<bool>.BadRequest("Invalid email or token");
+            return Result<bool>.BadRequest(loc["InvalidEmailOrToken"]);
 
         var hashedToken = HashUtils.Sha256Base64(token);
         var resetToken = await unitOfWork.TwoFactorTokens
@@ -88,17 +95,17 @@ public class PasswordResetService(
                 t.UsedAt == null);
 
         if (resetToken == null)
-            return Result<bool>.BadRequest("Invalid or expired reset token");
+            return Result<bool>.BadRequest(loc["InvalidOrExpiredResetToken"]);
 
         var currentTimestamp = timeProvider.GetUtcNow().ToUnixTimeSeconds();
 
         // Check if token is expired
         if (resetToken.ExpiresAt < currentTimestamp)
-            return Result<bool>.BadRequest("Reset token has expired");
+            return Result<bool>.BadRequest(loc["ResetTokenExpired"]);
 
         // Check if max attempts reached
         if (resetToken.Attempts >= resetToken.MaxAttempts)
-            return Result<bool>.BadRequest("Maximum validation attempts exceeded");
+            return Result<bool>.BadRequest(loc["MaxValidationAttemptsExceeded"]);
 
         // Increment attempts
         resetToken.Attempts++;
@@ -112,7 +119,7 @@ public class PasswordResetService(
             .FirstOrDefaultAsync(u => u.Email == request.Email && u.DeletedAt == null);
 
         if (user == null)
-            return Result.BadRequest("Invalid email or token");
+            return Result.BadRequest(loc["InvalidEmailOrToken"]);
 
         var hashedToken = HashUtils.Sha256Base64(request.Token);
         var resetToken = await unitOfWork.TwoFactorTokens
@@ -123,17 +130,17 @@ public class PasswordResetService(
                 t.UsedAt == null);
 
         if (resetToken == null)
-            return Result.BadRequest("Invalid or expired reset token");
+            return Result.BadRequest(loc["InvalidOrExpiredResetToken"]);
 
         var currentTimestamp = timeProvider.GetUtcNow().ToUnixTimeSeconds();
 
         // Check if token is expired
         if (resetToken.ExpiresAt < currentTimestamp)
-            return Result.BadRequest("Reset token has expired");
+            return Result.BadRequest(loc["ResetTokenExpired"]);
 
         // Check if max attempts reached
         if (resetToken.Attempts >= resetToken.MaxAttempts)
-            return Result.BadRequest("Maximum validation attempts exceeded");
+            return Result.BadRequest(loc["MaxValidationAttemptsExceeded"]);
 
         // Mark token as used
         resetToken.UsedAt = currentTimestamp;
@@ -152,10 +159,12 @@ public class PasswordResetService(
         await authenticationService.RevokeAllUserTokensAsync(user.Id, "Password reset");
 
         // Send password reset success email
+        // Use the user's UiLanguage for the email language (AC-005).
+        var userLanguage = SupportedLanguages.Normalize(user.Settings.UiLanguage);
         await notificationService.EnqueueAsync(emailTemplateProvider.Render(new PasswordResetSuccessModel
         {
             To = user.Email, FirstName = user.FirstName
-        }));
+        }, userLanguage));
 
         return Result.Success();
     }

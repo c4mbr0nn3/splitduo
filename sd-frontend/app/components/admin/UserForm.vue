@@ -11,38 +11,38 @@
       >
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField
-            label="First Name"
+            :label="$t('admin.firstName')"
             name="firstName"
             required
           >
             <UInput
               v-model="form.firstName"
-              placeholder="Enter first name"
+              :placeholder="$t('admin.enterFirstName')"
               required
               size="lg"
               class="w-full"
             />
           </UFormField>
           <UFormField
-            label="Last Name"
+            :label="$t('admin.lastName')"
             name="lastName"
           >
             <UInput
               v-model="form.lastName"
-              placeholder="Enter last name (optional)"
+              :placeholder="$t('admin.enterLastName')"
               size="lg"
               class="w-full"
             />
           </UFormField>
           <UFormField
-            label="Email"
+            :label="$t('admin.email')"
             name="email"
             required
           >
             <UInput
               v-model="form.email"
               type="email"
-              placeholder="Enter email address"
+              :placeholder="$t('admin.enterEmail')"
               required
               size="lg"
               class="w-full"
@@ -50,14 +50,14 @@
           </UFormField>
 
           <UFormField
-            label="Role"
+            :label="$t('admin.role')"
             name="globalRoleId"
             required
           >
             <USelect
               v-model="form.globalRoleId"
               :items="roleOptions"
-              placeholder="Select role"
+              :placeholder="$t('admin.selectRole')"
               size="lg"
               class="w-full"
             />
@@ -65,7 +65,7 @@
         </div>
         <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 mt-6">
           <UButton
-            label="Back"
+            :label="$t('admin.back')"
             variant="ghost"
             color="neutral"
             @click="emit('cancel')"

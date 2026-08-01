@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Entities;
@@ -19,7 +20,8 @@ public class EmailNotificationService(
     ILogger<EmailNotificationService> logger,
     ISmtpService smtpService,
     IUnitOfWork unitOfWork,
-    TimeProvider timeProvider) : INotificationService
+    TimeProvider timeProvider,
+    IStringLocalizer<EmailNotificationService> loc) : INotificationService
 {
     private const int MaxRetryCount = 3;
     private const int PruneThresholdDays = 30;
@@ -88,7 +90,7 @@ public class EmailNotificationService(
                 logger.LogError("Max retry count reached for email to {Email}. Giving up.", notification.To);
             }
 
-            return Result.InternalServerError("Failed to send email due to unexpected error");
+            return Result.InternalServerError(loc["EmailSendFailed"]);
         }
     }
 
@@ -107,7 +109,7 @@ public class EmailNotificationService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Exception occurred while enqueuing email notification to {Email}", notification.To);
-            return Result.InternalServerError("Failed to enqueue email notification");
+            return Result.InternalServerError(loc["EmailEnqueueFailed"]);
         }
     }
 
@@ -124,7 +126,7 @@ public class EmailNotificationService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Exception occurred while pruning notification {Id}", notification.Id);
-            return Result.InternalServerError("Failed to prune email notification");
+            return Result.InternalServerError(loc["EmailPruneFailed"]);
         }
     }
 }

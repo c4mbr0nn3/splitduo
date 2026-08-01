@@ -3,8 +3,8 @@
     <UCard>
       <template #header>
         <UiCardHeader
-          :title="group?.name || 'Group Imports'"
-          subtitle="Manage your group imports and view import history"
+          :title="group?.name || $t('imports.title')"
+          :subtitle="$t('imports.subtitle')"
           :back-to="`/groups/${groupId}`"
         />
       </template>
@@ -12,10 +12,10 @@
       <div>
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-semibold text-primary">
-            Imports
+            {{ $t('imports.imports') }}
           </h3>
           <UButton
-            label="Add Import"
+            :label="$t('imports.addImport')"
             icon="i-lucide-upload"
             size="sm"
             @click="navigateTo(`/groups/${groupId}/imports/add`)"
@@ -23,7 +23,7 @@
         </div>
         <UiLoadingSpinner
           v-if="isLoading"
-          text="Loading imports..."
+          :text="$t('common.loading')"
         />
         <div v-else-if="imports.length">
           <div class="space-y-4">
@@ -54,22 +54,22 @@
                   </div>
                   <div class="grid grid-cols-1 md:grid-cols-4 gap-2 text-sm text-muted">
                     <div>
-                      <span class="font-medium">Records:</span>
+                      <span class="font-medium">{{ $t('imports.records') }}</span>
                       {{ importItem.recordsCount }}
                     </div>
                     <div>
-                      <span class="font-medium">Import Date:</span>
+                      <span class="font-medium">{{ $t('imports.importDate') }}</span>
                       {{ formatDateString(importItem.importDate) }}
                     </div>
                     <div v-if="importItem.duration">
-                      <span class="font-medium">Duration:</span>
+                      <span class="font-medium">{{ $t('imports.duration') }}</span>
                       {{ formatDuration(importItem.duration) }}
                     </div>
                   </div>
                   <UAlert
                     v-if="importItem.errorDetails && importItem.importStatusId === 4"
                     color="error"
-                    title="Import Failed"
+                    :title="$t('imports.importFailed')"
                     :description="importItem.errorDetails"
                     variant="subtle"
                     icon="i-lucide-triangle-alert"
@@ -78,15 +78,15 @@
                   <UAlert
                     v-if="importItem.importStatusId === 5"
                     color="warning"
-                    title="Configuration Required"
-                    description="File analysis is complete. Click 'Configure' to set up mappings and continue with the import."
+                    :title="$t('imports.configurationRequired')"
+                    :description="$t('imports.configurationDescription')"
                     variant="subtle"
                     icon="i-lucide-settings"
                     class="mt-4"
                   >
                     <template #actions>
                       <UButton
-                        label="Configure"
+                        :label="$t('imports.configure')"
                         color="warning"
                         variant="outline"
                         size="xs"
@@ -103,8 +103,8 @@
         <UiEmptyState
           v-else
           icon="i-lucide-file-text"
-          title="No imports found"
-          subtitle="Start by importing your data to see import history here"
+          :title="$t('imports.noImportsFound')"
+          :subtitle="$t('imports.noImportsSubtitle')"
         />
       </div>
 
@@ -126,6 +126,7 @@
 </template>
 
 <script setup>
+const { t } = useI18n()
 const route = useRoute()
 const groupId = route.params.id
 
@@ -136,13 +137,13 @@ const group = computed(() => currentGroup.value)
 const currentPage = ref(1)
 
 // Import status mapping (based on backend ImportStatus enum)
-const importStatusMap = {
-  1: { label: 'Pending', color: 'neutral', variant: 'soft' },
-  2: { label: 'Processing', color: 'info', variant: 'soft' },
-  3: { label: 'Completed', color: 'success', variant: 'soft' },
-  4: { label: 'Failed', color: 'error', variant: 'soft' },
-  5: { label: 'Analysis Complete', color: 'warning', variant: 'soft' },
-}
+const importStatusMap = computed(() => ({
+  1: { label: t('imports.pending'), color: 'neutral', variant: 'soft' },
+  2: { label: t('imports.processing'), color: 'info', variant: 'soft' },
+  3: { label: t('imports.completed'), color: 'success', variant: 'soft' },
+  4: { label: t('imports.failed'), color: 'error', variant: 'soft' },
+  5: { label: t('imports.analysisComplete'), color: 'warning', variant: 'soft' },
+}))
 
 // Import type mapping (based on backend ImportType enum)
 const importTypeMap = {
@@ -152,19 +153,19 @@ const importTypeMap = {
 }
 
 const getStatusLabel = (statusId) => {
-  return importStatusMap[statusId]?.label || 'Unknown'
+  return importStatusMap.value[statusId]?.label || t('imports.unknown')
 }
 
 const getStatusColor = (statusId) => {
-  return importStatusMap[statusId]?.color || 'neutral'
+  return importStatusMap.value[statusId]?.color || 'neutral'
 }
 
 const getStatusVariant = (statusId) => {
-  return importStatusMap[statusId]?.variant || 'soft'
+  return importStatusMap.value[statusId]?.variant || 'soft'
 }
 
 const getImportTypeLabel = (typeId) => {
-  return importTypeMap[typeId] || 'Unknown'
+  return importTypeMap[typeId] || t('imports.unknown')
 }
 
 const continueImport = (importItem) => {
@@ -187,7 +188,7 @@ onMounted(async () => {
 })
 
 useHead({
-  title: computed(() => `${group.value?.name || 'Group'} - Imports`),
+  title: computed(() => `${group.value?.name || ''} - ${t('imports.imports')}`),
 })
 
 definePageMeta({

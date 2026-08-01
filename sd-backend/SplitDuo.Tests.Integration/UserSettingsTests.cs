@@ -42,9 +42,9 @@ public class UserSettingsTests : IntegrationTest
         }, ct);
 
         response.EnsureSuccessStatusCode();
-        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserSettingsDto>>(ct);
-        Assert.Equal("dark", body!.Data!.Theme);
-        Assert.Equal("en", body.Data.UiLanguage); // unchanged
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UpdateUserSettingsResponseDto>>(ct);
+        Assert.Equal("dark", body!.Data!.Settings.Theme);
+        Assert.Equal("en", body.Data.Settings.UiLanguage); // unchanged
     }
 
     [Fact]
@@ -73,8 +73,8 @@ public class UserSettingsTests : IntegrationTest
         }, ct);
 
         response.EnsureSuccessStatusCode();
-        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserSettingsDto>>(ct);
-        Assert.Equal("en", body!.Data!.UiLanguage);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UpdateUserSettingsResponseDto>>(ct);
+        Assert.Equal("en", body!.Data!.Settings.UiLanguage);
     }
 
     [Fact]
@@ -90,9 +90,9 @@ public class UserSettingsTests : IntegrationTest
         }, ct);
 
         response.EnsureSuccessStatusCode();
-        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserSettingsDto>>(ct);
-        Assert.Equal("dark", body!.Data!.Theme);
-        Assert.Equal("en", body.Data.UiLanguage);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UpdateUserSettingsResponseDto>>(ct);
+        Assert.Equal("dark", body!.Data!.Settings.Theme);
+        Assert.Equal("en", body.Data.Settings.UiLanguage);
     }
 
     #endregion
@@ -121,7 +121,7 @@ public class UserSettingsTests : IntegrationTest
 
         var response = await client.PutAsJsonAsync("/api/v1/users/me/settings", new
         {
-            uiLanguage = "fr", // only "en" accepted in v1
+            uiLanguage = "xx", // not a supported language code
         }, ct);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -169,8 +169,8 @@ public class UserSettingsTests : IntegrationTest
         var response = await client.PutAsJsonAsync("/api/v1/users/me/settings", new { }, ct);
 
         response.EnsureSuccessStatusCode();
-        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserSettingsDto>>(ct);
-        Assert.Equal("dark", body!.Data!.Theme); // unchanged from previous PUT
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UpdateUserSettingsResponseDto>>(ct);
+        Assert.Equal("dark", body!.Data!.Settings.Theme); // unchanged from previous PUT
     }
 
     #endregion

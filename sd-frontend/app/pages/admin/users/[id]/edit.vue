@@ -1,7 +1,7 @@
 <template>
   <AdminUserForm
-    title="Edit User"
-    submit-label="Update"
+    :title="$t('admin.editUser')"
+    :submit-label="$t('admin.update')"
     :initial-data="initialData"
     :loading="isLoading"
     :is-edit="true"
@@ -11,6 +11,7 @@
 </template>
 
 <script setup>
+const { t } = useI18n()
 const route = useRoute()
 const { goBack } = useSmartBack('/admin/users')
 const userId = route.params.id
@@ -52,7 +53,7 @@ onMounted(async () => {
 })
 
 useHead({
-  title: computed(() => `Edit ${currentUser.value?.firstName || 'User'}`),
+  title: computed(() => `${t('admin.editUser')} - ${currentUser.value?.firstName || ''}`),
 })
 
 definePageMeta({

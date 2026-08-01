@@ -2,7 +2,7 @@
   <div class="py-6 sm:py-8">
     <UiCardHeader
       size="lg"
-      title="Dashboard"
+      :title="$t('dashboard.title')"
       class="mb-6"
     />
 
@@ -12,7 +12,7 @@
       :ui="{ body: 'p-4 sm:p-5 space-y-3' }"
     >
       <p class="text-xs font-medium text-muted uppercase tracking-wide">
-        Quick Actions
+        {{ $t('dashboard.quickActions') }}
       </p>
       <UButton
         v-for="(action, index) in quickActions"
@@ -68,13 +68,13 @@
         <template #header>
           <div class="flex items-center justify-between">
             <h2 class="text-lg font-semibold">
-              Recent Groups
+              {{ $t('dashboard.recentGroups') }}
             </h2>
             <UButton
               size="sm"
               variant="outline"
               color="neutral"
-              label="View All"
+              :label="$t('dashboard.viewAll')"
               @click="viewAllGroups"
             />
           </div>
@@ -93,12 +93,12 @@
         <UiEmptyState
           v-else-if="groups.length === 0"
           icon="i-lucide-users"
-          title="No groups yet"
-          subtitle="Get started by creating your first group"
+          :title="$t('dashboard.noGroupsTitle')"
+          :subtitle="$t('dashboard.noGroupsSubtitle')"
         >
           <template #action>
             <UButton
-              label="Create Your First Group"
+              :label="$t('dashboard.createFirstGroup')"
               @click="createFirstGroup"
             />
           </template>
@@ -124,7 +124,7 @@
         :ui="{ body: 'p-4 sm:p-5 space-y-3' }"
       >
         <p class="text-xs font-medium text-muted uppercase tracking-wide">
-          Quick Actions
+          {{ $t('dashboard.quickActions') }}
         </p>
         <UButton
           v-for="(action, index) in quickActions"
@@ -146,6 +146,8 @@
 <script setup>
 import { useMediaQuery } from '@vueuse/core'
 
+const { t } = useI18n()
+
 const { groups, fetchGroups } = useGroups()
 const { userStats, fetchUserStats } = useUsers()
 
@@ -157,24 +159,24 @@ const netBalanceColor = computed(() => netBalance.value > 0 ? 'green' : netBalan
 
 const statCards = computed(() => [
   {
-    stats: { label: 'Total Groups', value: userStats.value?.totalGroups },
+    stats: { label: t('dashboard.totalGroups'), value: userStats.value?.totalGroups },
     icon: 'i-lucide-users',
     color: 'teal',
   },
   {
-    stats: { label: 'You Owe', value: userStats.value?.youOwe, color: 'red' },
+    stats: { label: t('dashboard.youOwe'), value: userStats.value?.youOwe, color: 'red' },
     type: 'currency',
     icon: 'i-lucide-trending-down',
     color: 'red',
   },
   {
-    stats: { label: 'You\'re Owed', value: userStats.value?.youreOwed, color: 'green' },
+    stats: { label: t('dashboard.youreOwed'), value: userStats.value?.youreOwed, color: 'green' },
     type: 'currency',
     icon: 'i-lucide-trending-up',
     color: 'green',
   },
   {
-    stats: { label: 'Net Balance', value: netBalance.value, color: netBalanceColor.value },
+    stats: { label: t('dashboard.netBalance'), value: netBalance.value, color: netBalanceColor.value },
     type: 'currency',
     icon: netBalance.value >= 0 ? 'i-lucide-trending-up' : 'i-lucide-trending-down',
     color: netBalanceColor.value,
@@ -205,23 +207,23 @@ const viewAllGroups = () => {
   navigateTo('/groups')
 }
 
-const quickActions = [
+const quickActions = computed(() => [
   {
     id: 'create-group',
-    label: 'Create New Group',
+    label: t('dashboard.createNewGroup'),
     icon: 'i-lucide-plus',
     to: '/groups/add',
   },
   {
     id: 'add-expense',
-    label: 'Add Expense',
+    label: t('dashboard.addExpense'),
     icon: 'i-lucide-receipt',
     to: '/expenses/add',
   },
-]
+])
 
 useHead({
-  title: 'Dashboard',
+  title: computed(() => t('dashboard.title')),
 })
 
 definePageMeta({
