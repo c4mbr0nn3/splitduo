@@ -55,7 +55,7 @@ export default defineNuxtConfig({
       const { checkLocaleParity } = await import(new URL('./scripts/check-locale-parity.mjs', import.meta.url).href)
       const result = checkLocaleParity()
       if (!result.ok) {
-        const lines = result.errors.flatMap(e => {
+        const lines = result.errors.flatMap((e) => {
           const out = [`\n  ${e.file}:`]
           if (e.missing.length) out.push(`    Missing keys: ${e.missing.join(', ')}`)
           if (e.extra.length) out.push(`    Extra keys:   ${e.extra.join(', ')}`)
