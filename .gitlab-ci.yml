@@ -6,12 +6,13 @@
 
 stages:
   - verify
-  - build
   - test
+  - build
   - release
 
 include:
   - local: ci/verify.yml
   - local: ci/build.yml
   - local: ci/integration-tests.yml
+  - local: ci/coverage.yml
   - local: ci/release.yml

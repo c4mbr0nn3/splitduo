@@ -53,9 +53,8 @@ unit-tests:
         -reporttypes:"Cobertura;TextSummary"
     - echo "----- coverage summary -----"
     - sed -n "/Summary/,/^$/p" coverage/Summary.txt
-    - mv coverage/Cobertura.xml "$CI_PROJECT_DIR/coverage.xml"
-    - mv SplitDuo.Tests.Unit/test-results.xml "$CI_PROJECT_DIR/junit-results.xml"
-  coverage: '/Line coverage: (\d+\.?\d*)%/'
+    - mv coverage/Cobertura.xml "$CI_PROJECT_DIR/coverage-unit.xml"
+    - mv SplitDuo.Tests.Unit/test-results.xml "$CI_PROJECT_DIR/junit-results-unit.xml"
   rules:
     - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+.*$/
       when: on_success
@@ -69,7 +68,7 @@ unit-tests:
     when: always
     expire_in: 30 days
     reports:
-      junit: junit-results.xml
+      junit: junit-results-unit.xml
       coverage_report:
         coverage_format: cobertura
-        path: coverage.xml
+        path: coverage-unit.xml
