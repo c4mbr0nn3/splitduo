@@ -4,6 +4,15 @@ All notable changes to SplitDuo will be documented in this file.
 
 Generated with [git-cliff](https://git-cliff.org) from Conventional Commits.
 
+## [1.9.2] - 2026-08-01
+
+### Bug Fixes
+
+- *(docker)* Enable globalization in alpine runtime for en/it cultures
+
+### Build System
+
+- *(verify)* Skip lint and unit-tests on release commits to main
 ## [1.9.1] - 2026-08-01
 
 ### Bug Fixes
