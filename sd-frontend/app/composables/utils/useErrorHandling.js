@@ -1,10 +1,12 @@
 export default function useErrorHandling() {
+  const { t } = useI18n()
   const { showError } = useNotifications()
 
-  const handleApiError = (error, defaultMessage = 'An error occurred') => {
+  const handleApiError = (error, defaultMessage) => {
     const message = error?.data?.error?.message
       || error?.message
       || defaultMessage
+      || t('toasts.errors.default')
 
     showError(message)
   }
@@ -12,18 +14,18 @@ export default function useErrorHandling() {
   const handleValidationErrors = (errors) => {
     if (Array.isArray(errors)) {
       errors.forEach((error) => {
-        showError(`${error.field}: ${error.message}`)
+        showError(t('toasts.errors.validationError', { field: error.field, message: error.message }))
       })
     }
   }
 
   const handleAuthError = (error) => {
     if (error.statusCode === 401) {
-      showError('Authentication required. Please log in.')
+      showError(t('toasts.errors.authRequired'))
       navigateTo('/')
     }
     else if (error.statusCode === 403) {
-      showError('Access denied. You do not have permission.')
+      showError(t('toasts.errors.accessDenied'))
     }
     else {
       handleApiError(error)

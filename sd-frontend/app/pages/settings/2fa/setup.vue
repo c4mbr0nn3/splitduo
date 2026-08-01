@@ -3,8 +3,8 @@
     <UCard class="w-full max-w-2xl">
       <template #header>
         <UiCardHeader
-          title="Two-Factor Authentication"
-          subtitle="Add an extra layer of security to your account"
+          :title="$t('twoFactor.title')"
+          :subtitle="$t('twoFactor.subtitle')"
           back-to="/profile"
         />
       </template>
@@ -19,7 +19,7 @@
               class="size-5 shrink-0"
             />
             <span class="text-sm text-muted">
-              {{ user?.twoFactorEnabled ? '2FA is active on your account' : '2FA is not set up' }}
+              {{ user?.twoFactorEnabled ? $t('twoFactor.active') : $t('twoFactor.notSetUp') }}
             </span>
           </div>
 
@@ -30,7 +30,7 @@
             variant="outline"
             @click="view = 'disabling'"
           >
-            Disable 2FA
+            {{ $t('twoFactor.disable') }}
           </UButton>
           <UButton
             v-else
@@ -38,7 +38,7 @@
             :loading="isLoading"
             @click="startSetup"
           >
-            Set up authenticator
+            {{ $t('twoFactor.setUpAuthenticator') }}
           </UButton>
         </div>
       </div>
@@ -51,12 +51,12 @@
         <UCard>
           <template #header>
             <h2 class="text-lg font-semibold">
-              Step 1: Scan QR code
+              {{ $t('twoFactor.step1ScanQR') }}
             </h2>
           </template>
           <div class="space-y-4">
             <p class="text-sm text-muted">
-              Scan this QR code with your authenticator app (e.g. Google Authenticator, Authy).
+              {{ $t('twoFactor.scanQRDescription') }}
             </p>
 
             <!-- QR code — rendered from uqr SVG string -->
@@ -68,7 +68,7 @@
 
             <div class="space-y-1">
               <p class="text-xs text-muted">
-                Or enter the secret key manually:
+                {{ $t('twoFactor.enterSecretManually') }}
               </p>
               <div class="flex gap-2">
                 <UInput
@@ -89,12 +89,12 @@
         <UCard>
           <template #header>
             <h2 class="text-lg font-semibold">
-              Step 2: Save backup codes
+              {{ $t('twoFactor.step2SaveBackupCodes') }}
             </h2>
           </template>
           <div class="space-y-4">
             <p class="text-sm text-muted">
-              Save these backup codes in a safe place. Each can only be used once.
+              {{ $t('twoFactor.saveBackupCodesDescription') }}
             </p>
 
             <div class="grid grid-cols-2 gap-2">
@@ -109,7 +109,7 @@
 
             <UCheckbox
               v-model="savedCodes"
-              label="I have saved these backup codes"
+              :label="$t('twoFactor.savedCodes')"
             />
 
             <UButton
@@ -117,7 +117,7 @@
               :disabled="!savedCodes"
               @click="view = 'verifying'"
             >
-              Continue
+              {{ $t('twoFactor.continue') }}
             </UButton>
           </div>
         </UCard>
@@ -128,12 +128,12 @@
         <UCard>
           <template #header>
             <h2 class="text-lg font-semibold">
-              Step 3: Verify your authenticator
+              {{ $t('twoFactor.step3Verify') }}
             </h2>
           </template>
           <div class="space-y-4">
             <p class="text-sm text-muted">
-              Enter the 6-digit code from your authenticator app to confirm setup.
+              {{ $t('twoFactor.verifyDescription') }}
             </p>
 
             <UPinInput
@@ -151,7 +151,7 @@
                 class="flex-1"
                 @click="view = 'enrolling'"
               >
-                Back
+                {{ $t('twoFactor.back') }}
               </UButton>
               <UButton
                 class="flex-1"
@@ -159,7 +159,7 @@
                 :disabled="verifyCode.length < 6"
                 @click="confirmSetup"
               >
-                Enable 2FA
+                {{ $t('twoFactor.enable2FA') }}
               </UButton>
             </div>
           </div>
@@ -171,18 +171,18 @@
         <UCard>
           <template #header>
             <h2 class="text-lg font-semibold">
-              Disable Two-Factor Authentication
+              {{ $t('twoFactor.disableTitle') }}
             </h2>
           </template>
           <div class="space-y-4">
             <p class="text-sm text-muted">
-              Enter your current password to disable 2FA.
+              {{ $t('twoFactor.disableDescription') }}
             </p>
 
             <UInput
               v-model="disablePassword"
               type="password"
-              placeholder="Current password"
+              :placeholder="$t('twoFactor.currentPasswordPlaceholder')"
               :disabled="isLoading"
               class="w-full"
             />
@@ -193,7 +193,7 @@
                 class="flex-1"
                 @click="view = 'status'"
               >
-                Cancel
+                {{ $t('twoFactor.cancel') }}
               </UButton>
               <UButton
                 color="error"
@@ -202,7 +202,7 @@
                 :disabled="!disablePassword"
                 @click="confirmDisable"
               >
-                Disable 2FA
+                {{ $t('twoFactor.disable2FA') }}
               </UButton>
             </div>
           </div>
@@ -213,7 +213,8 @@
 </template>
 
 <script setup>
-useHead({ title: '2FA Setup' })
+const { t } = useI18n()
+useHead({ title: computed(() => t('twoFactor.title')) })
 
 definePageMeta({
   layout: 'default',
@@ -269,11 +270,11 @@ const modal = useModal()
 
 const confirmDisable = async () => {
   const confirmed = await modal.error({
-    title: 'Disable two-factor authentication',
-    subtitle: 'This weakens your account security.',
-    content: 'Two-factor authentication will be disabled for your account. You will no longer be prompted for a 2FA code during login. Are you sure you want to continue?',
-    confirmText: 'Disable',
-    cancelText: 'Cancel',
+    title: t('twoFactor.disableConfirmTitle'),
+    subtitle: t('twoFactor.disableConfirmSubtitle'),
+    content: t('twoFactor.disableConfirmContent'),
+    confirmText: t('twoFactor.disableConfirmButton'),
+    cancelText: t('common.cancel'),
   })
 
   if (!confirmed) return

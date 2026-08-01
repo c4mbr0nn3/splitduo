@@ -1,7 +1,7 @@
 <template>
   <GroupsGroupForm
-    title="Create Group"
-    submit-label="Create"
+    :title="$t('groups.createTitle')"
+    :submit-label="$t('groups.createSubmit')"
     :loading="isLoading"
     @submit="onSubmit"
     @cancel="onCancel"
@@ -9,6 +9,7 @@
 </template>
 
 <script setup>
+const { t } = useI18n()
 const { createGroup, isLoading } = useGroups()
 
 async function onSubmit(formData) {
@@ -30,7 +31,7 @@ function onCancel() {
 }
 
 useHead({
-  title: 'Create Group',
+  title: computed(() => t('groups.createTitle')),
 })
 
 definePageMeta({

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Enums;
@@ -15,7 +16,10 @@ public interface IImportValidatorService
     Task<Result> ValidateMappingConfigurationAsync(ImportMappingDto mappings, int groupId);
 }
 
-public class ImportValidatorServiceService(ILogger<ImportValidatorServiceService> logger, IUnitOfWork unitOfWork)
+public class ImportValidatorServiceService(
+    ILogger<ImportValidatorServiceService> logger,
+    IUnitOfWork unitOfWork,
+    IStringLocalizer<ImportValidatorServiceService> loc)
     : IImportValidatorService
 {
     public async Task<Result> IsValidImportAsync(IFormFile file, int groupId)
@@ -27,7 +31,7 @@ public class ImportValidatorServiceService(ILogger<ImportValidatorServiceService
         var isDuplicateResult = await IsDuplicateFileAsync(hash, groupId);
 
         return isDuplicateResult.IsSuccess
-            ? Result.Conflict("This file has already been imported")
+            ? Result.Conflict(loc["FileAlreadyImported"])
             : Result.Success();
     }
 
@@ -35,7 +39,7 @@ public class ImportValidatorServiceService(ILogger<ImportValidatorServiceService
     {
         var any = await unitOfWork.Imports
             .AnyAsync(i => i.GroupId == groupId && i.FileHash == fileHash);
-        return any ? Result.Success() : Result.NotFound("No duplicate file found");
+        return any ? Result.Success() : Result.NotFound(loc["NoDuplicateFileFound"]);
     }
 
     public async Task<Result> ValidateMappingConfigurationAsync(ImportMappingDto mappings, int groupId)
@@ -51,7 +55,7 @@ public class ImportValidatorServiceService(ILogger<ImportValidatorServiceService
             if (Guid.TryParse(userMapping.Value, out var userGuid) && groupMemberIds.Contains(userGuid)) continue;
 
             var message =
-                $"User mapping for '{userMapping.Key}' maps to invalid or non-member user ID '{userMapping.Value}'";
+                string.Format(loc["UserMappingInvalid"], userMapping.Key, userMapping.Value);
             logger.LogWarning("User mapping error: {Message}", message);
             return Result.BadRequest(message);
         }
@@ -61,7 +65,7 @@ public class ImportValidatorServiceService(ILogger<ImportValidatorServiceService
         {
             if (validCategories.Contains(categoryMapping.Value)) continue;
             var message =
-                $"Category mapping for ID '{categoryMapping.Key}' maps to invalid category '{categoryMapping.Value}'";
+                string.Format(loc["CategoryMappingInvalid"], categoryMapping.Key, categoryMapping.Value);
             logger.LogWarning("Category mapping error: {Message}", message);
             return Result.BadRequest(message);
         }
@@ -71,7 +75,7 @@ public class ImportValidatorServiceService(ILogger<ImportValidatorServiceService
         {
             if (validPaymentModes.Contains(paymentModeMapping.Value)) continue;
             var message =
-                $"Payment mode mapping for ID '{paymentModeMapping.Key}' maps to invalid payment mode '{paymentModeMapping.Value}'";
+                string.Format(loc["PaymentModeMappingInvalid"], paymentModeMapping.Key, paymentModeMapping.Value);
             logger.LogWarning("Payment mode mapping error: {Message}", message);
             return Result.BadRequest(message);
         }
@@ -88,7 +92,7 @@ public class ImportValidatorServiceService(ILogger<ImportValidatorServiceService
                 }
 
                 var message =
-                    $"Alias mapping for '{aliasMapping.Key}' maps to invalid or non-group alias ID '{aliasMapping.Value}'";
+                    string.Format(loc["AliasMappingInvalid"], aliasMapping.Key, aliasMapping.Value);
                 logger.LogWarning("Alias mapping error: {Message}", message);
                 return Result.BadRequest(message);
             }

@@ -2,7 +2,7 @@
   <div>
     <UiLoadingSpinner
       v-if="isLoadingStats"
-      text="Loading stats..."
+      :text="$t('stats.loading')"
     />
     <div
       v-else-if="groupStats"
@@ -37,7 +37,7 @@
           class="lg:col-span-1"
         >
           <h3 class="text-lg font-semibold text-primary mb-3">
-            {{ isAliasMode ? 'Alias Balances' : 'Member Balances' }}
+            {{ isAliasMode ? $t('stats.aliasBalances') : $t('stats.memberBalances') }}
           </h3>
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
             <template
@@ -65,8 +65,8 @@
     <UiEmptyState
       v-else
       icon="i-lucide-bar-chart-3"
-      title="No stats available"
-      subtitle="Add some expenses to see group stats"
+      :title="$t('stats.noStatsAvailable')"
+      :subtitle="$t('stats.noStatsSubtitle')"
     />
   </div>
 </template>

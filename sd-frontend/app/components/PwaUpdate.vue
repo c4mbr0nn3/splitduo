@@ -17,7 +17,7 @@ const updateApp = async () => {
         color="primary"
         size="lg"
         class="rounded-full shadow-[var(--sd-card-shadow)] hover:shadow-[var(--sd-card-shadow-hover)] transition-shadow"
-        label="Update Available"
+        :label="$t('pwa.updateAvailable')"
         @click="updateApp"
       />
     </div>

@@ -1,27 +1,28 @@
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Localization;
 
 namespace SplitDuo.Core.Common;
 
 public static class FileUtils
 {
-    public static Result CheckExtensionAndSize(IFormFile file)
+    public static Result CheckExtensionAndSize(IFormFile file, IStringLocalizer? loc = null)
     {
         if (file.Length == 0)
         {
-            return Result.BadRequest("File is empty");
+            return Result.BadRequest(loc?["FileEmpty"] ?? "File is empty");
         }
 
         // Check file extension
         var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
         if (extension != ".csv")
         {
-            return Result.BadRequest("Only CSV files are allowed");
+            return Result.BadRequest(loc?["OnlyCsvAllowed"] ?? "Only CSV files are allowed");
         }
 
         // Check file size (e.g., max 10MB)
         const long maxFileSize = 10 * 1024 * 1024; // 10MB
         return file.Length > maxFileSize
-            ? Result.BadRequest("File size exceeds the maximum allowed size of 10MB")
+            ? Result.BadRequest(loc?["FileSizeExceeded"] ?? "File size exceeds the maximum allowed size of 10MB")
             : Result.Success();
     }
 

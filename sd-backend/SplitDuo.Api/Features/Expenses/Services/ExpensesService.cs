@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using SplitDuo.Api.Features.Common.Dto;
 using SplitDuo.Api.Features.Expenses.Dto;
 using SplitDuo.Core.Common;
@@ -24,13 +25,14 @@ public interface IExpensesService
 
 public class ExpensesService(
     IUnitOfWork unitOfWork,
-    TimeProvider timeProvider) : IExpensesService
+    TimeProvider timeProvider,
+    IStringLocalizer<ExpensesService> loc) : IExpensesService
 {
     public async Task<Result<PaginatedResponseDto<ExpenseDto>>> GetGroupExpensesAsync(
         string groupId, Guid currentUserId, int page, int limit, ExpenseFilterOptions filters)
     {
         if (!Guid.TryParse(groupId, out var groupGuid))
-            return Result<PaginatedResponseDto<ExpenseDto>>.BadRequest("Invalid group ID format");
+            return Result<PaginatedResponseDto<ExpenseDto>>.BadRequest(loc["InvalidGroupIdFormat"]);
 
         // Validate page and limit
         if (page < 1) page = 1;
@@ -40,20 +42,20 @@ public class ExpensesService(
             .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
 
         if (currentUser == null)
-            return Result<PaginatedResponseDto<ExpenseDto>>.Unauthorized("User not authenticated");
+            return Result<PaginatedResponseDto<ExpenseDto>>.Unauthorized(loc["UserNotAuthenticated"]);
 
         var group = await unitOfWork.Groups
             .FirstOrDefaultAsync(g => g.Guid == groupGuid && g.DeletedAt == null);
 
         if (group == null)
-            return Result<PaginatedResponseDto<ExpenseDto>>.NotFound("Group not found");
+            return Result<PaginatedResponseDto<ExpenseDto>>.NotFound(loc["GroupNotFound"]);
 
         // Check if user is member of the group
         var isMember = await unitOfWork.GroupMembers
             .AnyAsync(gm => gm.GroupId == group.Id && gm.UserId == currentUser.Id && gm.DeletedAt == null);
 
         if (!isMember)
-            return Result<PaginatedResponseDto<ExpenseDto>>.Forbidden("Access to this group is not allowed");
+            return Result<PaginatedResponseDto<ExpenseDto>>.Forbidden(loc["AccessNotAllowed"]);
 
         // Build query
         var query = unitOfWork.Expenses
@@ -156,59 +158,59 @@ public class ExpensesService(
         CreateExpenseRequestDto request)
     {
         if (!Guid.TryParse(groupId, out var groupGuid))
-            return Result<ExpenseDto>.BadRequest("Invalid group ID format");
+            return Result<ExpenseDto>.BadRequest(loc["InvalidGroupIdFormat"]);
 
         if (!Guid.TryParse(request.PaidByUserId, out var paidByUserGuid))
-            return Result<ExpenseDto>.BadRequest("Invalid paid by user ID format");
+            return Result<ExpenseDto>.BadRequest(loc["InvalidPaidByUserIdFormat"]);
 
         if (!DateOnly.TryParse(request.ExpenseDate, out var expenseDate))
-            return Result<ExpenseDto>.BadRequest("Invalid expense date format");
+            return Result<ExpenseDto>.BadRequest(loc["InvalidExpenseDateFormat"]);
 
         var currentUser = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
 
         if (currentUser == null)
-            return Result<ExpenseDto>.Unauthorized("User not authenticated");
+            return Result<ExpenseDto>.Unauthorized(loc["UserNotAuthenticated"]);
 
         var group = await unitOfWork.Groups
             .FirstOrDefaultAsync(g => g.Guid == groupGuid && g.DeletedAt == null);
 
         if (group == null)
-            return Result<ExpenseDto>.NotFound("Group not found");
+            return Result<ExpenseDto>.NotFound(loc["GroupNotFound"]);
 
         // Check if current user is member of the group
         var isMember = await unitOfWork.GroupMembers
             .AnyAsync(gm => gm.GroupId == group.Id && gm.UserId == currentUser.Id && gm.DeletedAt == null);
 
         if (!isMember)
-            return Result<ExpenseDto>.Forbidden("Access to this group is not allowed");
+            return Result<ExpenseDto>.Forbidden(loc["AccessNotAllowed"]);
 
         // Find the user who paid
         var paidByUser = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == paidByUserGuid && u.DeletedAt == null);
 
         if (paidByUser == null)
-            return Result<ExpenseDto>.NotFound("Paid by user not found");
+            return Result<ExpenseDto>.NotFound(loc["PaidByUserNotFound"]);
 
         // Check if paid by user is member of the group
         var isPaidByUserMember = await unitOfWork.GroupMembers
             .AnyAsync(gm => gm.GroupId == group.Id && gm.UserId == paidByUser.Id && gm.DeletedAt == null);
 
         if (!isPaidByUserMember)
-            return Result<ExpenseDto>.BadRequest("Paid by user is not a member of this group");
+            return Result<ExpenseDto>.BadRequest(loc["PaidByUserNotMember"]);
 
         // Parse and validate category
         if (!Enum.TryParse(request.CategoryId.ToString(), true, out ExpenseCategory category) ||
             !Enum.IsDefined(category))
         {
-            return Result<ExpenseDto>.BadRequest("Invalid expense category");
+            return Result<ExpenseDto>.BadRequest(loc["InvalidExpenseCategory"]);
         }
 
         // Parse and validate payment mode
         if (!Enum.TryParse(request.PaymentModeId.ToString(), true, out PaymentMode paymentMode) ||
             !Enum.IsDefined(paymentMode))
         {
-            return Result<ExpenseDto>.BadRequest("Invalid expense payment mode");
+            return Result<ExpenseDto>.BadRequest(loc["InvalidExpensePaymentMode"]);
         }
 
         // Branch on alias mode vs individual mode
@@ -218,18 +220,18 @@ public class ExpensesService(
 
             // Reject if alias setup is not finalized
             if (!group.AliasSetupFinalized)
-                return Result<ExpenseDto>.Conflict("Alias setup must be finalized before creating expenses");
+                return Result<ExpenseDto>.Conflict(loc["AliasSetupNotFinalized"]);
 
             // Validate AliasSplits is non-null and non-empty
             if (request.AliasSplits == null || request.AliasSplits.Count == 0)
-                return Result<ExpenseDto>.BadRequest("At least one alias split is required for alias-mode groups");
+                return Result<ExpenseDto>.BadRequest(loc["AliasSplitRequired"]);
 
             // Check for duplicate AliasId in splits
             var aliasIds = request.AliasSplits.Select(s => s.AliasId).ToList();
             var duplicateAliases = aliasIds.GroupBy(id => id).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
             if (duplicateAliases.Any())
                 return Result<ExpenseDto>.BadRequest(
-                    $"Duplicate aliases found in splits: {string.Join(", ", duplicateAliases)}");
+                    string.Format(loc["DuplicateAliasesInSplits"], string.Join(", ", duplicateAliases)));
 
             var totalSplitAmount = 0m;
             var validatedAliases = new Dictionary<Guid, Alias>();
@@ -237,20 +239,23 @@ public class ExpensesService(
             foreach (var split in request.AliasSplits)
             {
                 if (!Guid.TryParse(split.AliasId, out var aliasGuid))
-                    return Result<ExpenseDto>.BadRequest($"Invalid alias ID format in split: {split.AliasId}");
+                    return Result<ExpenseDto>.BadRequest(
+                        string.Format(loc["InvalidAliasIdInSplit"], split.AliasId));
 
                 var alias = await unitOfWork.Aliases
                     .FirstOrDefaultAsync(a => a.Guid == aliasGuid && a.DeletedAt == null);
 
                 if (alias == null)
-                    return Result<ExpenseDto>.BadRequest($"Alias not found or is deleted: {split.AliasId}");
+                    return Result<ExpenseDto>.BadRequest(
+                        string.Format(loc["AliasNotFoundInSplit"], split.AliasId));
 
                 if (alias.GroupId != group.Id)
-                    return Result<ExpenseDto>.BadRequest($"Alias {split.AliasId} does not belong to this group");
+                    return Result<ExpenseDto>.BadRequest(
+                        string.Format(loc["AliasNotInGroup"], split.AliasId));
 
                 // Validate split amount
                 if (split.SplitAmount <= 0)
-                    return Result<ExpenseDto>.BadRequest("Split amount must be greater than zero");
+                    return Result<ExpenseDto>.BadRequest(loc["SplitAmountMustBePositive"]);
 
                 validatedAliases[aliasGuid] = alias;
                 totalSplitAmount += split.SplitAmount;
@@ -260,7 +265,7 @@ public class ExpensesService(
             var difference = Math.Abs(totalSplitAmount - request.Amount);
             if (difference > 0.001m)
                 return Result<ExpenseDto>.BadRequest(
-                    $"Split amounts ({totalSplitAmount:F2}) do not sum up to expense amount ({request.Amount:F2})");
+                    string.Format(loc["SplitAmountsDoNotSum"], totalSplitAmount, request.Amount));
 
             // Look up the payer's current alias to set PaidByAliasId
             var payerMembership = await unitOfWork.GroupMembers
@@ -317,14 +322,14 @@ public class ExpensesService(
 
             // Validate splits
             if (request.Splits == null || request.Splits.Count == 0)
-                return Result<ExpenseDto>.BadRequest("At least one expense split is required");
+                return Result<ExpenseDto>.BadRequest(loc["ExpenseSplitRequired"]);
 
             // Check for duplicate users in splits
             var userIds = request.Splits.Select(s => s.UserId).ToList();
             var duplicateUsers = userIds.GroupBy(id => id).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
             if (duplicateUsers.Any())
                 return Result<ExpenseDto>.BadRequest(
-                    $"Duplicate users found in splits: {string.Join(", ", duplicateUsers)}");
+                    string.Format(loc["DuplicateUsersInSplits"], string.Join(", ", duplicateUsers)));
 
             var splitUsers = new List<User>();
             var totalSplitAmount = 0m;
@@ -332,13 +337,15 @@ public class ExpensesService(
             foreach (var split in request.Splits)
             {
                 if (!Guid.TryParse(split.UserId, out var splitUserGuid))
-                    return Result<ExpenseDto>.BadRequest($"Invalid user ID format in split: {split.UserId}");
+                    return Result<ExpenseDto>.BadRequest(
+                        string.Format(loc["InvalidUserIdInSplit"], split.UserId));
 
                 var splitUser = await unitOfWork.Users
                     .FirstOrDefaultAsync(u => u.Guid == splitUserGuid && u.DeletedAt == null);
 
                 if (splitUser == null)
-                    return Result<ExpenseDto>.BadRequest($"User not found in split: {split.UserId}");
+                    return Result<ExpenseDto>.BadRequest(
+                        string.Format(loc["UserNotFoundInSplit"], split.UserId));
 
                 // Check if split user is member of the group
                 var isSplitUserMember = await unitOfWork.GroupMembers
@@ -346,13 +353,13 @@ public class ExpensesService(
 
                 if (!isSplitUserMember)
                     return Result<ExpenseDto>.BadRequest(
-                        $"User {splitUser.FirstName} {splitUser.LastName} is not a member of this group");
+                        string.Format(loc["UserNotMemberInSplit"], splitUser.FirstName, splitUser.LastName));
 
                 splitUsers.Add(splitUser);
 
                 // Validate split amount
                 if (split.SplitAmount <= 0)
-                    return Result<ExpenseDto>.BadRequest("Split amount must be greater than zero");
+                    return Result<ExpenseDto>.BadRequest(loc["SplitAmountMustBePositive"]);
 
                 totalSplitAmount += split.SplitAmount;
             }
@@ -361,7 +368,7 @@ public class ExpensesService(
             var diff = Math.Abs(totalSplitAmount - request.Amount);
             if (diff > 0.001m)
                 return Result<ExpenseDto>.BadRequest(
-                    $"Split amounts ({totalSplitAmount:F2}) do not sum up to expense amount ({request.Amount:F2})");
+                    string.Format(loc["SplitAmountsDoNotSum"], totalSplitAmount, request.Amount));
 
             // Create expense
             var expense = new Expense
@@ -413,29 +420,29 @@ public class ExpensesService(
     public async Task<Result<ExpenseDto>> GetExpenseAsync(string groupId, string expenseId, Guid currentUserId)
     {
         if (!Guid.TryParse(groupId, out var groupGuid))
-            return Result<ExpenseDto>.BadRequest("Invalid group ID format");
+            return Result<ExpenseDto>.BadRequest(loc["InvalidGroupIdFormat"]);
 
         if (!Guid.TryParse(expenseId, out var expenseGuid))
-            return Result<ExpenseDto>.BadRequest("Invalid expense ID format");
+            return Result<ExpenseDto>.BadRequest(loc["InvalidExpenseIdFormat"]);
 
         var currentUser = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
 
         if (currentUser == null)
-            return Result<ExpenseDto>.Unauthorized("User not authenticated");
+            return Result<ExpenseDto>.Unauthorized(loc["UserNotAuthenticated"]);
 
         var group = await unitOfWork.Groups
             .FirstOrDefaultAsync(g => g.Guid == groupGuid && g.DeletedAt == null);
 
         if (group == null)
-            return Result<ExpenseDto>.NotFound("Group not found");
+            return Result<ExpenseDto>.NotFound(loc["GroupNotFound"]);
 
         // Check if user is member of the group
         var isMember = await unitOfWork.GroupMembers
             .AnyAsync(gm => gm.GroupId == group.Id && gm.UserId == currentUser.Id && gm.DeletedAt == null);
 
         if (!isMember)
-            return Result<ExpenseDto>.Forbidden("Access to this group is not allowed");
+            return Result<ExpenseDto>.Forbidden(loc["AccessNotAllowed"]);
 
         var expense = await unitOfWork.Expenses
             .Include(e => e.PaidByUser)
@@ -443,7 +450,7 @@ public class ExpensesService(
             .FirstOrDefaultAsync(e => e.Guid == expenseGuid && e.GroupId == group.Id && e.DeletedAt == null);
 
         if (expense == null)
-            return Result<ExpenseDto>.NotFound("Expense not found");
+            return Result<ExpenseDto>.NotFound(loc["ExpenseNotFound"]);
 
         // Load splits
         var splits = await unitOfWork.ExpenseSplits
@@ -470,29 +477,29 @@ public class ExpensesService(
         UpdateExpenseRequestDto request)
     {
         if (!Guid.TryParse(groupId, out var groupGuid))
-            return Result<ExpenseDto>.BadRequest("Invalid group ID format");
+            return Result<ExpenseDto>.BadRequest(loc["InvalidGroupIdFormat"]);
 
         if (!Guid.TryParse(expenseId, out var expenseGuid))
-            return Result<ExpenseDto>.BadRequest("Invalid expense ID format");
+            return Result<ExpenseDto>.BadRequest(loc["InvalidExpenseIdFormat"]);
 
         var currentUser = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
 
         if (currentUser == null)
-            return Result<ExpenseDto>.Unauthorized("User not authenticated");
+            return Result<ExpenseDto>.Unauthorized(loc["UserNotAuthenticated"]);
 
         var group = await unitOfWork.Groups
             .FirstOrDefaultAsync(g => g.Guid == groupGuid && g.DeletedAt == null);
 
         if (group == null)
-            return Result<ExpenseDto>.NotFound("Group not found");
+            return Result<ExpenseDto>.NotFound(loc["GroupNotFound"]);
 
         // Check if user is member of the group
         var isMember = await unitOfWork.GroupMembers
             .AnyAsync(gm => gm.GroupId == group.Id && gm.UserId == currentUser.Id && gm.DeletedAt == null);
 
         if (!isMember)
-            return Result<ExpenseDto>.Forbidden("Access to this group is not allowed");
+            return Result<ExpenseDto>.Forbidden(loc["AccessNotAllowed"]);
 
         var expense = await unitOfWork.Expenses
             .Include(e => e.PaidByUser)
@@ -500,7 +507,7 @@ public class ExpensesService(
             .FirstOrDefaultAsync(e => e.Guid == expenseGuid && e.GroupId == group.Id && e.DeletedAt == null);
 
         if (expense == null)
-            return Result<ExpenseDto>.NotFound("Expense not found");
+            return Result<ExpenseDto>.NotFound(loc["ExpenseNotFound"]);
 
         // Update basic properties
         if (!string.IsNullOrWhiteSpace(request.Title))
@@ -515,7 +522,7 @@ public class ExpensesService(
         if (!string.IsNullOrWhiteSpace(request.ExpenseDate))
         {
             if (!DateOnly.TryParse(request.ExpenseDate, out var expenseDate))
-                return Result<ExpenseDto>.BadRequest("Invalid expense date format");
+                return Result<ExpenseDto>.BadRequest(loc["InvalidExpenseDateFormat"]);
 
             expense.ExpenseDate = expenseDate;
         }
@@ -526,7 +533,7 @@ public class ExpensesService(
             if (!Enum.TryParse(request.CategoryId.Value.ToString(), true, out ExpenseCategory category) ||
                 !Enum.IsDefined(category))
             {
-                return Result<ExpenseDto>.BadRequest("Invalid expense category");
+                return Result<ExpenseDto>.BadRequest(loc["InvalidExpenseCategory"]);
             }
 
             expense.Category = category;
@@ -538,7 +545,7 @@ public class ExpensesService(
             if (!Enum.TryParse(request.PaymentModeId.Value.ToString(), true, out PaymentMode paymentMode) ||
                 !Enum.IsDefined(paymentMode))
             {
-                return Result<ExpenseDto>.BadRequest("Invalid expense payment mode");
+                return Result<ExpenseDto>.BadRequest(loc["InvalidExpensePaymentMode"]);
             }
 
             expense.PaymentMode = paymentMode;
@@ -547,20 +554,20 @@ public class ExpensesService(
         if (!string.IsNullOrWhiteSpace(request.PaidByUserId))
         {
             if (!Guid.TryParse(request.PaidByUserId, out var paidByUserGuid))
-                return Result<ExpenseDto>.BadRequest("Invalid paid by user ID format");
+                return Result<ExpenseDto>.BadRequest(loc["InvalidPaidByUserIdFormat"]);
 
             var paidByUser = await unitOfWork.Users
                 .FirstOrDefaultAsync(u => u.Guid == paidByUserGuid && u.DeletedAt == null);
 
             if (paidByUser == null)
-                return Result<ExpenseDto>.NotFound("Paid by user not found");
+                return Result<ExpenseDto>.NotFound(loc["PaidByUserNotFound"]);
 
             // Check if paid by user is member of the group
             var isPaidByUserMember = await unitOfWork.GroupMembers
                 .AnyAsync(gm => gm.GroupId == group.Id && gm.UserId == paidByUser.Id && gm.DeletedAt == null);
 
             if (!isPaidByUserMember)
-                return Result<ExpenseDto>.BadRequest("Paid by user is not a member of this group");
+                return Result<ExpenseDto>.BadRequest(loc["PaidByUserNotMember"]);
 
             expense.PaidBy = paidByUser.Id;
             expense.PaidByUser = paidByUser;
@@ -584,10 +591,10 @@ public class ExpensesService(
 
         // Block switching split type (user ↔ alias)
         if (hasExistingAliasSplits && request.Splits is { Count: > 0 })
-            return Result<ExpenseDto>.Conflict("Cannot change an alias-split expense to user splits");
+            return Result<ExpenseDto>.Conflict(loc["CannotChangeSplitTypeToUser"]);
 
         if (!hasExistingAliasSplits && request.AliasSplits is { Count: > 0 })
-            return Result<ExpenseDto>.Conflict("Cannot change a user-split expense to alias splits");
+            return Result<ExpenseDto>.Conflict(loc["CannotChangeSplitTypeToAlias"]);
 
         // Update alias splits if provided (alias-mode)
         if (request.AliasSplits is { Count: > 0 })
@@ -604,26 +611,29 @@ public class ExpensesService(
             var duplicateAliases = aliasIds.GroupBy(id => id).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
             if (duplicateAliases.Count > 0)
                 return Result<ExpenseDto>.BadRequest(
-                    $"Duplicate aliases found in splits: {string.Join(", ", duplicateAliases)}");
+                    string.Format(loc["DuplicateAliasesInSplits"], string.Join(", ", duplicateAliases)));
 
             var totalSplitAmount = 0m;
 
             foreach (var split in request.AliasSplits)
             {
                 if (!Guid.TryParse(split.AliasId, out var aliasGuid))
-                    return Result<ExpenseDto>.BadRequest($"Invalid alias ID format in split: {split.AliasId}");
+                    return Result<ExpenseDto>.BadRequest(
+                        string.Format(loc["InvalidAliasIdInSplit"], split.AliasId));
 
                 var alias = await unitOfWork.Aliases
                     .FirstOrDefaultAsync(a => a.Guid == aliasGuid && a.DeletedAt == null);
 
                 if (alias == null)
-                    return Result<ExpenseDto>.BadRequest($"Alias not found or is deleted: {split.AliasId}");
+                    return Result<ExpenseDto>.BadRequest(
+                        string.Format(loc["AliasNotFoundInSplit"], split.AliasId));
 
                 if (alias.GroupId != group.Id)
-                    return Result<ExpenseDto>.BadRequest($"Alias {split.AliasId} does not belong to this group");
+                    return Result<ExpenseDto>.BadRequest(
+                        string.Format(loc["AliasNotInGroup"], split.AliasId));
 
                 if (split.SplitAmount <= 0)
-                    return Result<ExpenseDto>.BadRequest("Split amount must be greater than zero");
+                    return Result<ExpenseDto>.BadRequest(loc["SplitAmountMustBePositive"]);
 
                 totalSplitAmount += split.SplitAmount;
             }
@@ -631,7 +641,7 @@ public class ExpensesService(
             var diff = Math.Abs(totalSplitAmount - expense.Amount);
             if (diff > 0.001m)
                 return Result<ExpenseDto>.BadRequest(
-                    $"Split amounts ({totalSplitAmount:F2}) do not sum up to expense amount ({expense.Amount:F2})");
+                    string.Format(loc["SplitAmountsDoNotSum"], totalSplitAmount, expense.Amount));
 
             // Create new alias splits
             foreach (var split in request.AliasSplits)
@@ -666,7 +676,7 @@ public class ExpensesService(
             var duplicateUsers = userIds.GroupBy(id => id).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
             if (duplicateUsers.Count > 0)
                 return Result<ExpenseDto>.BadRequest(
-                    $"Duplicate users found in splits: {string.Join(", ", duplicateUsers)}");
+                    string.Format(loc["DuplicateUsersInSplits"], string.Join(", ", duplicateUsers)));
 
             var splitUsersByUserId = new Dictionary<int, User>();
             var totalSplitAmount = 0m;
@@ -674,25 +684,27 @@ public class ExpensesService(
             foreach (var split in request.Splits)
             {
                 if (!Guid.TryParse(split.UserId, out var splitUserGuid))
-                    return Result<ExpenseDto>.BadRequest($"Invalid user ID format in split: {split.UserId}");
+                    return Result<ExpenseDto>.BadRequest(
+                        string.Format(loc["InvalidUserIdInSplit"], split.UserId));
 
                 var splitUser = await unitOfWork.Users
                     .FirstOrDefaultAsync(u => u.Guid == splitUserGuid && u.DeletedAt == null);
 
                 if (splitUser == null)
-                    return Result<ExpenseDto>.BadRequest($"User not found in split: {split.UserId}");
+                    return Result<ExpenseDto>.BadRequest(
+                        string.Format(loc["UserNotFoundInSplit"], split.UserId));
 
                 var isSplitUserMember = await unitOfWork.GroupMembers
                     .AnyAsync(gm => gm.GroupId == group.Id && gm.UserId == splitUser.Id && gm.DeletedAt == null);
 
                 if (!isSplitUserMember)
                     return Result<ExpenseDto>.BadRequest(
-                        $"User {splitUser.FirstName} {splitUser.LastName} is not a member of this group");
+                        string.Format(loc["UserNotMemberInSplit"], splitUser.FirstName, splitUser.LastName));
 
                 splitUsersByUserId[splitUser.Id] = splitUser;
 
                 if (split.SplitAmount <= 0)
-                    return Result<ExpenseDto>.BadRequest("Split amount must be greater than zero");
+                    return Result<ExpenseDto>.BadRequest(loc["SplitAmountMustBePositive"]);
 
                 totalSplitAmount += split.SplitAmount;
             }
@@ -700,7 +712,7 @@ public class ExpensesService(
             var diff = Math.Abs(totalSplitAmount - expense.Amount);
             if (diff > 0.001m)
                 return Result<ExpenseDto>.BadRequest(
-                    $"Split amounts ({totalSplitAmount:F2}) do not sum up to expense amount ({expense.Amount:F2})");
+                    string.Format(loc["SplitAmountsDoNotSum"], totalSplitAmount, expense.Amount));
 
             foreach (var split in request.Splits)
             {
@@ -728,35 +740,35 @@ public class ExpensesService(
     public async Task<Result> DeleteExpenseAsync(string groupId, string expenseId, Guid currentUserId)
     {
         if (!Guid.TryParse(groupId, out var groupGuid))
-            return Result.BadRequest("Invalid group ID format");
+            return Result.BadRequest(loc["InvalidGroupIdFormat"]);
 
         if (!Guid.TryParse(expenseId, out var expenseGuid))
-            return Result.BadRequest("Invalid expense ID format");
+            return Result.BadRequest(loc["InvalidExpenseIdFormat"]);
 
         var currentUser = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
 
         if (currentUser == null)
-            return Result.Unauthorized("User not authenticated");
+            return Result.Unauthorized(loc["UserNotAuthenticated"]);
 
         var group = await unitOfWork.Groups
             .FirstOrDefaultAsync(g => g.Guid == groupGuid && g.DeletedAt == null);
 
         if (group == null)
-            return Result.NotFound("Group not found");
+            return Result.NotFound(loc["GroupNotFound"]);
 
         // Check if user is member of the group
         var isMember = await unitOfWork.GroupMembers
             .AnyAsync(gm => gm.GroupId == group.Id && gm.UserId == currentUser.Id && gm.DeletedAt == null);
 
         if (!isMember)
-            return Result.Forbidden("Access to this group is not allowed");
+            return Result.Forbidden(loc["AccessNotAllowed"]);
 
         var expense = await unitOfWork.Expenses
             .FirstOrDefaultAsync(e => e.Guid == expenseGuid && e.GroupId == group.Id && e.DeletedAt == null);
 
         if (expense == null)
-            return Result.NotFound("Expense not found");
+            return Result.NotFound(loc["ExpenseNotFound"]);
 
         // Soft delete the expense
         expense.DeletedAt = timeProvider.GetUtcNow().ToUnixTimeSeconds();

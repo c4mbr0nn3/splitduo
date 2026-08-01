@@ -1,5 +1,6 @@
 export default function useGroups() {
   const api = useApi()
+  const { t } = useI18n()
   const { showError, showSuccess } = useNotifications()
 
   const groups = ref([])
@@ -16,7 +17,7 @@ export default function useGroups() {
       }
     }
     catch (error) {
-      showError('Failed to load groups')
+      showError(t('toasts.groups.loadFailed'))
       throw error
     }
     finally {
@@ -31,12 +32,12 @@ export default function useGroups() {
       const response = await api.post('/groups', groupData)
       if (response.success && response.data) {
         groups.value.push(response.data)
-        showSuccess('Group created successfully')
+        showSuccess(t('toasts.groups.created'))
         return response.data
       }
     }
     catch (error) {
-      showError('Failed to create group')
+      showError(t('toasts.groups.createFailed'))
       throw error
     }
     finally {
@@ -55,7 +56,7 @@ export default function useGroups() {
       }
     }
     catch (error) {
-      showError('Failed to load group details')
+      showError(t('toasts.groups.detailsLoadFailed'))
       throw error
     }
     finally {
@@ -81,12 +82,12 @@ export default function useGroups() {
         if (currentGroup.value?.id === groupId) {
           currentGroup.value = response.data
         }
-        showSuccess('Group updated successfully')
+        showSuccess(t('toasts.groups.updated'))
         return response.data
       }
     }
     catch (error) {
-      showError('Failed to update group')
+      showError(t('toasts.groups.updateFailed'))
       throw error
     }
     finally {
@@ -103,10 +104,10 @@ export default function useGroups() {
       if (currentGroup.value?.id === groupId) {
         currentGroup.value = null
       }
-      showSuccess('Group deleted successfully')
+      showSuccess(t('toasts.groups.deleted'))
     }
     catch (error) {
-      showError('Failed to delete group')
+      showError(t('toasts.groups.deleteFailed'))
       throw error
     }
     finally {
@@ -123,7 +124,7 @@ export default function useGroups() {
       }
     }
     catch (error) {
-      showError('Failed to load group members')
+      showError(t('toasts.groups.membersLoadFailed'))
       throw error
     }
   }
@@ -133,12 +134,12 @@ export default function useGroups() {
     try {
       const response = await api.post(`/groups/${groupId}/members`, memberData)
       if (response.success && response.data) {
-        showSuccess('Member added successfully')
+        showSuccess(t('toasts.groups.memberAdded'))
         return response.data
       }
     }
     catch (error) {
-      showError('Failed to add member')
+      showError(t('toasts.groups.memberAddFailed'))
       throw error
     }
   }
@@ -147,10 +148,10 @@ export default function useGroups() {
   const removeGroupMember = async (groupId, userId) => {
     try {
       await api.delete(`/groups/${groupId}/members/${userId}`)
-      showSuccess('Member removed successfully')
+      showSuccess(t('toasts.groups.memberRemoved'))
     }
     catch (error) {
-      showError('Failed to remove member')
+      showError(t('toasts.groups.memberRemoveFailed'))
       throw error
     }
   }
@@ -160,12 +161,12 @@ export default function useGroups() {
     try {
       const response = await api.put(`/groups/${groupId}/members/${userId}/role`, { role })
       if (response.success && response.data) {
-        showSuccess('Member role updated successfully')
+        showSuccess(t('toasts.groups.memberRoleUpdated'))
         return response.data
       }
     }
     catch (error) {
-      showError('Failed to update member role')
+      showError(t('toasts.groups.memberRoleUpdateFailed'))
       throw error
     }
   }

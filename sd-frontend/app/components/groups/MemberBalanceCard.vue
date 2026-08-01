@@ -21,7 +21,7 @@
     <div class="grid grid-cols-2 gap-4 text-center mt-3">
       <div>
         <p class="text-xs text-dimmed mb-1">
-          Paid
+          {{ $t('stats.paid') }}
         </p>
         <p class="font-semibold text-success sd-tabular">
           {{ formatAmount(balance.totalPaid) }} €
@@ -29,7 +29,7 @@
       </div>
       <div>
         <p class="text-xs text-dimmed mb-1">
-          Owes
+          {{ $t('stats.owes') }}
         </p>
         <p class="font-semibold text-warning sd-tabular">
           {{ formatAmount(balance.totalOwed) }} €

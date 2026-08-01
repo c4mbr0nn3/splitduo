@@ -42,7 +42,7 @@ public class UsersController(
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-            return HandleResult(Result<UserDto>.Unauthorized("User not authenticated"));
+            return HandleResult(NotAuthenticated<UserDto>());
 
         var result = await usersService.GetUserAsync(currentUserId.Value.ToString());
         return HandleResult(result, "Current user retrieved successfully");
@@ -53,7 +53,7 @@ public class UsersController(
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-            return HandleResult(Result<UserStatsDto>.Unauthorized("User not authenticated"));
+            return HandleResult(NotAuthenticated<UserStatsDto>());
 
         var result = await usersService.GetCurrentUserStatsAsync(currentUserId.Value.ToString());
         return HandleResult(result, "Current user stats retrieved successfully");
@@ -64,7 +64,7 @@ public class UsersController(
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-            return HandleResult(Result<List<ImportStatusDto>>.Unauthorized("User not authenticated"));
+            return HandleResult(NotAuthenticated<List<ImportStatusDto>>());
 
         var result = await usersService.GetCurrentUserImports(currentUserId.Value.ToString());
         return HandleResult(result);
@@ -75,7 +75,7 @@ public class UsersController(
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-            return HandleResult(Result<UserDto>.Unauthorized("User not authenticated"));
+            return HandleResult(NotAuthenticated<UserDto>());
 
         var result = await usersService.UpdateCurrentUserAsync(currentUserId.Value, request);
 
@@ -86,12 +86,12 @@ public class UsersController(
     }
 
     [HttpPut("me/settings")]
-    public async Task<ActionResult<ApiResponseDto<UserSettingsDto>>> UpdateCurrentUserSettings(
+    public async Task<ActionResult<ApiResponseDto<UpdateUserSettingsResponseDto>>> UpdateCurrentUserSettings(
         [FromBody] UpdateUserSettingsRequestDto request)
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-            return HandleResult(Result<UserSettingsDto>.Unauthorized("User not authenticated"));
+            return HandleResult(NotAuthenticated<UpdateUserSettingsResponseDto>());
 
         var result = await usersService.UpdateCurrentUserSettingsAsync(currentUserId.Value, request);
 
@@ -109,7 +109,7 @@ public class UsersController(
 
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-            return HandleResult(Result.Unauthorized("User not authenticated"));
+            return HandleResult(NotAuthenticated());
 
         var result = await usersService.ChangeCurrentUserPasswordAsync(currentUserId.Value, request);
 

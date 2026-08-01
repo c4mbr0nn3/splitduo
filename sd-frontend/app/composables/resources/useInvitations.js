@@ -1,5 +1,6 @@
 export default function useInvitations() {
   const api = useApi()
+  const { t } = useI18n()
   const { showError, showSuccess } = useNotifications()
 
   const invitations = ref([])
@@ -12,16 +13,16 @@ export default function useInvitations() {
       const response = await api.post(`/groups/${groupId}/invitations`, { email })
       if (response.success && response.data) {
         if (response.data.type === 'member_added') {
-          showSuccess('User added to group')
+          showSuccess(t('toasts.invitations.memberAdded'))
         }
         else {
-          showSuccess('Invitation sent')
+          showSuccess(t('toasts.invitations.sent'))
         }
         return response.data
       }
     }
     catch (error) {
-      const message = error.data?.error?.message || 'Failed to send invitation'
+      const message = error.data?.error?.message || t('toasts.invitations.sendFailed')
       showError(message)
       throw error
     }
@@ -39,7 +40,7 @@ export default function useInvitations() {
       }
     }
     catch (error) {
-      showError('Failed to load invitations')
+      showError(t('toasts.invitations.loadFailed'))
       throw error
     }
   }
@@ -53,12 +54,12 @@ export default function useInvitations() {
         if (index !== -1) {
           invitations.value[index] = response.data
         }
-        showSuccess('Invitation resent')
+        showSuccess(t('toasts.invitations.resent'))
         return response.data
       }
     }
     catch (error) {
-      showError('Failed to resend invitation')
+      showError(t('toasts.invitations.resendFailed'))
       throw error
     }
     finally {
@@ -71,10 +72,10 @@ export default function useInvitations() {
     try {
       await api.delete(`/groups/${groupId}/invitations/${invitationId}`)
       invitations.value = invitations.value.filter(i => i.id !== invitationId)
-      showSuccess('Invitation revoked')
+      showSuccess(t('toasts.invitations.revoked'))
     }
     catch (error) {
-      showError('Failed to revoke invitation')
+      showError(t('toasts.invitations.revokeFailed'))
       throw error
     }
     finally {
@@ -100,12 +101,12 @@ export default function useInvitations() {
     try {
       const response = await api.post('/invitations/accept', data)
       if (response.success) {
-        showSuccess('Account created successfully')
+        showSuccess(t('toasts.invitations.accountCreated'))
         return response
       }
     }
     catch (error) {
-      const message = error.data?.error?.message || 'Failed to create account'
+      const message = error.data?.error?.message || t('toasts.invitations.accountCreateFailed')
       showError(message)
       throw error
     }
@@ -124,7 +125,7 @@ export default function useInvitations() {
       }
     }
     catch (error) {
-      showError('Failed to load pending invitations')
+      showError(t('toasts.invitations.pendingLoadFailed'))
       throw error
     }
     finally {

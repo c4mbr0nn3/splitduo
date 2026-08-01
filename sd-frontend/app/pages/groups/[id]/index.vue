@@ -2,13 +2,13 @@
   <div class="py-6 sm:py-8">
     <UiLoadingSpinner
       v-if="isLoading"
-      text="Loading group..."
+      :text="$t('groups.loadingGroup')"
     />
 
     <UiEmptyState
       v-else-if="loadError"
       icon="i-lucide-users"
-      title="Unable to load group"
+      :title="$t('groups.unableToLoad')"
     >
       <template #action>
         <UButton
@@ -17,14 +17,14 @@
           size="sm"
           @click="retryLoad"
         >
-          Retry
+          {{ $t('groups.retry') }}
         </UButton>
       </template>
     </UiEmptyState>
 
     <template v-else>
       <UiCardHeader
-        title="Group Details"
+        :title="$t('groups.groupDetails')"
         back-to="/groups"
         class="mb-6"
       />
@@ -64,6 +64,7 @@
 </template>
 
 <script setup>
+const { t } = useI18n()
 const route = useRoute()
 const groupId = route.params.id
 const { currentGroup, fetchGroup, isLoading } = useGroups()
@@ -108,7 +109,7 @@ onMounted(async () => {
 })
 
 useHead({
-  title: computed(() => group.value?.name || 'Group'),
+  title: computed(() => group.value?.name || t('groups.title')),
 })
 
 definePageMeta({

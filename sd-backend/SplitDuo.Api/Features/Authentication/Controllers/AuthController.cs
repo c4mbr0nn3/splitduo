@@ -89,7 +89,7 @@ public class AuthController(
 
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-            return HandleResult(Result.Unauthorized("User not authenticated"));
+            return HandleResult(NotAuthenticated());
 
         var result = await authenticationService.RevokeRefreshTokenAsync(request.RefreshToken, currentUserId.Value);
 

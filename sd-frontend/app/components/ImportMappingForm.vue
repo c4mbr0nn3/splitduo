@@ -7,7 +7,7 @@
           class="text-primary"
         />
         <h3 class="text-lg font-semibold text-primary">
-          Configure Mappings
+          {{ $t('imports.configureMappings') }}
         </h3>
       </div>
     </template>
@@ -22,8 +22,8 @@
       <!-- User Mappings Section -->
       <div v-if="analysisResults.members?.length">
         <UFormField
-          label="User Mappings"
-          description="Map each user from your import file to an existing group member"
+          :label="$t('imports.userMappings')"
+          :description="$t('imports.userMappingsDescription')"
           class="mb-4"
         >
           <div class="space-y-3">
@@ -50,7 +50,7 @@
                 <USelect
                   v-model="mappingState.userMappings[member.key]"
                   :items="groupMemberOptions"
-                  placeholder="Select group member..."
+                  :placeholder="$t('imports.selectGroupMember')"
                   :loading="loadingGroupData"
                   class="w-full"
                 />
@@ -63,8 +63,8 @@
       <!-- Alias Mappings Section -->
       <div v-if="analysisResults.aliases?.length">
         <UFormField
-          label="Alias Mappings"
-          description="Map each alias from your import file to an existing group alias"
+          :label="$t('imports.aliasMappings')"
+          :description="$t('imports.aliasMappingsDescription')"
           class="mb-4"
         >
           <div class="space-y-3">
@@ -89,7 +89,7 @@
                 <USelect
                   v-model="mappingState.aliasMappings[alias.key]"
                   :items="aliasOptions"
-                  placeholder="Select group alias..."
+                  :placeholder="$t('imports.selectGroupAlias')"
                   :loading="loadingGroupData"
                   class="w-full"
                 />
@@ -102,8 +102,8 @@
       <!-- Category Mappings Section -->
       <div v-if="analysisResults.categories?.length">
         <UFormField
-          label="Category Mappings"
-          description="Map each category from your import file to a SplitDuo category"
+          :label="$t('imports.categoryMappings')"
+          :description="$t('imports.categoryMappingsDescription')"
           class="mb-4"
         >
           <div class="space-y-3">
@@ -130,7 +130,7 @@
                   :items="categories"
                   value-key="id"
                   label-key="name"
-                  placeholder="Select category..."
+                  :placeholder="$t('imports.selectCategory')"
                   :loading="loadingGroupData"
                   class="w-full"
                 />
@@ -143,8 +143,8 @@
       <!-- Payment Mode Mappings Section -->
       <div v-if="analysisResults.paymentModes?.length">
         <UFormField
-          label="Payment Mode Mappings"
-          description="Map each payment mode from your import file to a SplitDuo payment mode"
+          :label="$t('imports.paymentModeMappings')"
+          :description="$t('imports.paymentModeMappingsDescription')"
           class="mb-4"
         >
           <div class="space-y-3">
@@ -171,7 +171,7 @@
                   :items="paymentModes"
                   value-key="id"
                   label-key="name"
-                  placeholder="Select payment mode..."
+                  :placeholder="$t('imports.selectPaymentMode')"
                   :loading="loadingGroupData"
                   class="w-full"
                 />
@@ -189,10 +189,10 @@
         icon="i-lucide-triangle-alert"
       >
         <template #title>
-          Missing Required Mappings
+          {{ $t('imports.missingRequiredMappings') }}
         </template>
         <template #description>
-          Please configure all mappings before proceeding with the import.
+          {{ $t('imports.configureAllMappings') }}
         </template>
       </UAlert>
 
@@ -204,7 +204,7 @@
           :loading="isImporting"
           :disabled="hasValidationErrors || isImporting"
         >
-          Start Import
+          {{ $t('imports.startImport') }}
         </UButton>
       </div>
     </UForm>
@@ -212,6 +212,7 @@
 </template>
 
 <script setup>
+const { t } = useI18n()
 const props = defineProps({
   analysisResults: {
     type: Object,
@@ -280,28 +281,28 @@ const validate = () => {
   // User mapping validation - all required
   props.analysisResults.members?.forEach((member) => {
     if (!mappingState.userMappings[member.key]) {
-      errors.push({ name: `userMappings.${member.key}`, message: 'User mapping is required' })
+      errors.push({ name: `userMappings.${member.key}`, message: t('imports.userMappings') + ' ' + t('common.required') })
     }
   })
 
   // Alias mapping validation - all required
   props.analysisResults.aliases?.forEach((alias) => {
     if (!mappingState.aliasMappings[alias.key]) {
-      errors.push({ name: `aliasMappings.${alias.key}`, message: 'Alias mapping is required' })
+      errors.push({ name: `aliasMappings.${alias.key}`, message: t('imports.aliasMappings') + ' ' + t('common.required') })
     }
   })
 
   // Category mapping validation - all required
   props.analysisResults.categories?.forEach((category) => {
     if (!mappingState.categoryMappings[parseInt(category.key)]) {
-      errors.push({ name: `categoryMappings.${category.key}`, message: 'Category mapping is required' })
+      errors.push({ name: `categoryMappings.${category.key}`, message: t('imports.categoryMappings') + ' ' + t('common.required') })
     }
   })
 
   // Payment mode mapping validation - all required
   props.analysisResults.paymentModes?.forEach((paymentMode) => {
     if (!mappingState.paymentModeMappings[parseInt(paymentMode.key)]) {
-      errors.push({ name: `paymentModeMappings.${paymentMode.key}`, message: 'Payment mode mapping is required' })
+      errors.push({ name: `paymentModeMappings.${paymentMode.key}`, message: t('imports.paymentModeMappings') + ' ' + t('common.required') })
     }
   })
 
@@ -347,7 +348,7 @@ const loadGroupData = async () => {
     if (gm && gm.length > 0) {
       groupMemberOptions.value = gm.map(member => ({
         value: member.user.id,
-        label: `${member.user.firstName} (${member.user.email || 'No email'})`,
+        label: `${member.user.firstName} (${member.user.email || t('imports.noEmail')})`,
       }))
     }
     else {
@@ -367,7 +368,7 @@ const loadGroupData = async () => {
   }
   catch (error) {
     console.error('Failed to load group data:', error)
-    showError('Failed to load group data')
+    showError(t('imports.failedToLoadImport'))
   }
   finally {
     loadingGroupData.value = false

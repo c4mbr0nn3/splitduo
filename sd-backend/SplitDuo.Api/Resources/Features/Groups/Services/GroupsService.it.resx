@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+    <xsd:element name="root" msdata:IsDataSet="true"/>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="InvalidGroupIdFormat" xml:space="preserve"><value>Formato ID gruppo non valido</value></data>
+  <data name="UserNotFound" xml:space="preserve"><value>Utente non trovato</value></data>
+  <data name="GroupNotFound" xml:space="preserve"><value>Gruppo non trovato</value></data>
+  <data name="AccessNotAllowed" xml:space="preserve"><value>Accesso a questo gruppo non consentito</value></data>
+  <data name="OnlyAdminsCanUpdateGroup" xml:space="preserve"><value>Solo gli amministratori del gruppo possono aggiornare le informazioni del gruppo</value></data>
+  <data name="OnlyAdminsCanDeleteGroup" xml:space="preserve"><value>Solo gli amministratori del gruppo possono eliminare il gruppo</value></data>
+  <data name="OnlyAdminsCanAddMembers" xml:space="preserve"><value>Solo gli amministratori del gruppo possono aggiungere membri</value></data>
+  <data name="UserWithEmailNotFound" xml:space="preserve"><value>Utente con questa email non trovato</value></data>
+  <data name="UserAlreadyMember" xml:space="preserve"><value>L'utente è già membro di questo gruppo</value></data>
+  <data name="InvalidUserIdFormat" xml:space="preserve"><value>Formato ID utente non valido</value></data>
+  <data name="UserToRemoveNotFound" xml:space="preserve"><value>Utente da rimuovere non trovato</value></data>
+  <data name="UserNotMemberOfGroup" xml:space="preserve"><value>L'utente non è membro di questo gruppo</value></data>
+  <data name="RemoveMemberNotAllowed" xml:space="preserve"><value>Puoi rimuovere solo te stesso o, come amministratore, rimuovere altri membri</value></data>
+  <data name="CannotRemoveOnlyAdmin" xml:space="preserve"><value>Impossibile rimuovere l'unico amministratore del gruppo</value></data>
+  <data name="OnlyAdminsCanChangeRoles" xml:space="preserve"><value>Solo gli amministratori del gruppo possono cambiare i ruoli dei membri</value></data>
+  <data name="CannotChangeOwnRole" xml:space="preserve"><value>Non puoi cambiare il tuo ruolo</value></data>
+  <data name="UserAlreadyHasRole" xml:space="preserve"><value>L'utente ha già questo ruolo</value></data>
+  <data name="CannotDemoteOnlyAdmin" xml:space="preserve"><value>Impossibile declassare l'unico amministratore del gruppo</value></data>
+  <data name="InvalidRoleValue" xml:space="preserve"><value>Ruolo non valido. Deve essere 'admin' o 'member'.</value></data>
+  <data name="ImportNotFound" xml:space="preserve"><value>Importazione non trovata</value></data>
+  <data name="OnlyOwnImports" xml:space="preserve"><value>Puoi visualizzare solo lo stato delle tue importazioni</value></data>
+</root>

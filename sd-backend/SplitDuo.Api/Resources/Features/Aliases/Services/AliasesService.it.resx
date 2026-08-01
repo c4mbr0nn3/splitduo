@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+    <xsd:element name="root" msdata:IsDataSet="true"/>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="InvalidGroupIdFormat" xml:space="preserve"><value>Formato ID gruppo non valido</value></data>
+  <data name="UserNotFound" xml:space="preserve"><value>Utente non trovato</value></data>
+  <data name="GroupNotFound" xml:space="preserve"><value>Gruppo non trovato</value></data>
+  <data name="AccessNotAllowed" xml:space="preserve"><value>Accesso a questo gruppo non consentito</value></data>
+  <data name="OnlyAdminsCanManageAliases" xml:space="preserve"><value>Solo gli amministratori del gruppo possono gestire gli alias</value></data>
+  <data name="AliasModeNotEnabled" xml:space="preserve"><value>La modalità alias non è abilitata per questo gruppo</value></data>
+  <data name="AliasNameAlreadyExists" xml:space="preserve"><value>Un alias con questo nome esiste già nel gruppo</value></data>
+  <data name="InvalidAliasIdFormat" xml:space="preserve"><value>Formato ID alias non valido</value></data>
+  <data name="AliasNotFound" xml:space="preserve"><value>Alias non trovato</value></data>
+  <data name="InvalidUserIdFormat" xml:space="preserve"><value>Formato ID utente non valido</value></data>
+  <data name="UserNotMemberOfGroup" xml:space="preserve"><value>L'utente non è membro di questo gruppo</value></data>
+  <data name="OnlyAdminsCanFinalizeAliasSetup" xml:space="preserve"><value>Solo gli amministratori del gruppo possono finalizzare la configurazione degli alias</value></data>
+  <data name="AliasSetupAlreadyFinalized" xml:space="preserve"><value>La configurazione degli alias è già stata finalizzata</value></data>
+  <data name="MultiPersonAliasRequired" xml:space="preserve"><value>È richiesto almeno un alias multi-persona prima di finalizzare</value></data>
+</root>

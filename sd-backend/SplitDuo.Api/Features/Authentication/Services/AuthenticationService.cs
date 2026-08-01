@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using SplitDuo.Api.Features.Authentication.Dto;
@@ -30,7 +31,8 @@ public class AuthenticationService(
     ITwoFactorService twoFactorService,
     ILogger<AuthenticationService> logger,
     ITokenGenerator tokenGenerator,
-    TimeProvider timeProvider) : IAuthenticationService
+    TimeProvider timeProvider,
+    IStringLocalizer<AuthenticationService> loc) : IAuthenticationService
 {
     private readonly JwtOptions _jwtOptions = jwtOptions.Value;
 
@@ -40,11 +42,11 @@ public class AuthenticationService(
             .FirstOrDefaultAsync(u => u.Email == request.Email && u.DeletedAt == null);
 
         if (user == null)
-            return Result<AuthResponseDto>.Unauthorized("Invalid email or password");
+            return Result<AuthResponseDto>.Unauthorized(loc["InvalidCredentials"]);
 
         // Check account lockout
         if (user.LockoutEnd.HasValue && user.LockoutEnd.Value > timeProvider.GetUtcNow().ToUnixTimeSeconds())
-            return Result<AuthResponseDto>.Unauthorized("Account temporarily locked. Try again later.");
+            return Result<AuthResponseDto>.Unauthorized(loc["AccountLocked"]);
 
         var verificationResult = passwordHasher.VerifyHashedPassword(
             user, user.PasswordHash, request.Password);
@@ -54,7 +56,7 @@ public class AuthenticationService(
             user.FailedLoginAttempts++;
             if (user.FailedLoginAttempts >= 5)
                 user.LockoutEnd = timeProvider.GetUtcNow().AddMinutes(15).ToUnixTimeSeconds();
-            return Result<AuthResponseDto>.Unauthorized("Invalid email or password");
+            return Result<AuthResponseDto>.Unauthorized(loc["InvalidCredentials"]);
         }
 
         // Reset lockout on successful login
@@ -96,23 +98,23 @@ public class AuthenticationService(
         }
         catch
         {
-            return Result<AuthResponseDto>.Unauthorized("Invalid or expired challenge token");
+            return Result<AuthResponseDto>.Unauthorized(loc["InvalidChallengeToken"]);
         }
 
         if (principal.FindFirst("purpose")?.Value != "2fa_challenge")
-            return Result<AuthResponseDto>.Unauthorized("Invalid challenge token");
+            return Result<AuthResponseDto>.Unauthorized(loc["InvalidChallengeTokenPurpose"]);
 
         if (!Guid.TryParse(principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value, out var userGuid))
-            return Result<AuthResponseDto>.Unauthorized("Invalid challenge token");
+            return Result<AuthResponseDto>.Unauthorized(loc["InvalidChallengeTokenPurpose"]);
 
         var user = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == userGuid && u.DeletedAt == null);
 
         if (user == null)
-            return Result<AuthResponseDto>.NotFound("User not found");
+            return Result<AuthResponseDto>.NotFound(loc["UserNotFound"]);
 
         if (!user.TwoFactorEnabled)
-            return Result<AuthResponseDto>.BadRequest("Two-factor authentication is not enabled for this user");
+            return Result<AuthResponseDto>.BadRequest(loc["TwoFactorNotEnabled"]);
 
         var isValidCode = false;
 
@@ -131,11 +133,11 @@ public class AuthenticationService(
                 break;
 
             default:
-                return Result<AuthResponseDto>.BadRequest("Invalid code type");
+                return Result<AuthResponseDto>.BadRequest(loc["InvalidCodeType"]);
         }
 
         if (!isValidCode)
-            return Result<AuthResponseDto>.Unauthorized("Invalid verification code");
+            return Result<AuthResponseDto>.Unauthorized(loc["InvalidVerificationCode"]);
 
         return await CompleteLoginAsync(user);
     }
@@ -207,7 +209,7 @@ public class AuthenticationService(
 
             if (string.IsNullOrEmpty(jwtIdClaim) || string.IsNullOrEmpty(userIdClaim) ||
                 !Guid.TryParse(userIdClaim, out var userId))
-                return Result<AuthResponseDto>.Unauthorized("Invalid token");
+                return Result<AuthResponseDto>.Unauthorized(loc["InvalidToken"]);
 
             // 2. Validate the refresh token exists and is active
             var refreshTokenHash = HashUtils.Sha256Base64(request.RefreshToken);
@@ -215,19 +217,19 @@ public class AuthenticationService(
                 .FirstOrDefaultAsync(rt => rt.TokenHash == refreshTokenHash && rt.JwtId == jwtIdClaim);
 
             if (storedRefreshToken == null)
-                return Result<AuthResponseDto>.Unauthorized("Invalid refresh token");
+                return Result<AuthResponseDto>.Unauthorized(loc["InvalidRefreshToken"]);
 
             // 3. Get user details first
             var user = await unitOfWork.Users.FirstOrDefaultAsync(u => u.Guid == userId && u.DeletedAt == null);
             if (user == null)
-                return Result<AuthResponseDto>.NotFound("User not found");
+                return Result<AuthResponseDto>.NotFound(loc["UserNotFound"]);
 
             // Verify security stamp
             var tokenSecurityStamp = principal.FindFirst("security_stamp")?.Value;
             if (string.IsNullOrEmpty(tokenSecurityStamp) || tokenSecurityStamp != user.SecurityStamp)
             {
                 await RevokeTokenChainAsync(user.Id, storedRefreshToken.FamilyId, "Security stamp mismatch");
-                return Result<AuthResponseDto>.Unauthorized("Token is no longer valid");
+                return Result<AuthResponseDto>.Unauthorized(loc["TokenNoLongerValid"]);
             }
 
             var now = timeProvider.GetUtcNow().ToUnixTimeSeconds();
@@ -242,7 +244,7 @@ public class AuthenticationService(
                 {
                     // If token is revoked or expired outside grace window, revoke the chain (security measure)
                     await RevokeTokenChainAsync(user.Id, storedRefreshToken.FamilyId, "Refresh token reuse detected");
-                    return Result<AuthResponseDto>.Unauthorized("Refresh token is no longer valid");
+                    return Result<AuthResponseDto>.Unauthorized(loc["RefreshTokenNoLongerValid"]);
                 }
                 // Grace window: treat consumed token as valid, continue to issue new tokens
             }
@@ -286,24 +288,24 @@ public class AuthenticationService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error during token refresh");
-            return Result<AuthResponseDto>.Unauthorized("Invalid token");
+            return Result<AuthResponseDto>.Unauthorized(loc["InvalidToken"]);
         }
     }
 
     public async Task<Result> RevokeRefreshTokenAsync(string refreshToken, Guid userGuid)
     {
         var user = await unitOfWork.Users.FirstOrDefaultAsync(u => u.Guid == userGuid && u.DeletedAt == null);
-        if (user == null) return Result.NotFound("User not found");
+        if (user == null) return Result.NotFound(loc["UserNotFound"]);
 
         var refreshTokenHash = HashUtils.Sha256Base64(refreshToken);
         var storedRefreshToken = await unitOfWork.RefreshTokens
             .FirstOrDefaultAsync(rt => rt.TokenHash == refreshTokenHash && rt.UserId == user.Id);
 
         if (storedRefreshToken == null)
-            return Result.NotFound("Refresh token not found");
+            return Result.NotFound(loc["RefreshTokenNotFound"]);
 
         if (storedRefreshToken.IsRevoked)
-            return Result.BadRequest("Refresh token already revoked");
+            return Result.BadRequest(loc["RefreshTokenAlreadyRevoked"]);
 
         storedRefreshToken.RevokedAt = timeProvider.GetUtcNow().ToUnixTimeSeconds();
         storedRefreshToken.RevokedReason = "User logout";

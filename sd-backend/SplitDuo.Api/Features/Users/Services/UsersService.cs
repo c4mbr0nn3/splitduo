@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using SplitDuo.Api.Features.Authentication.Services;
 using SplitDuo.Api.Features.Common.Services;
 using SplitDuo.Api.Features.Users.Dto;
@@ -8,6 +9,7 @@ using SplitDuo.Core.Domain.Email;
 using SplitDuo.Core.Domain.Enums;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Dto.Imports;
+using SplitDuo.Core.Localization;
 using SplitDuo.Core.Persistence;
 using SplitDuo.Core.Services;
 
@@ -20,7 +22,7 @@ public interface IUsersService
     Task<Result<UserStatsDto>> GetCurrentUserStatsAsync(string currentUserId);
     Task<Result<UserDto>> UpdateCurrentUserAsync(Guid currentUserId, UpdateUserRequestDto request);
     Task<Result> ChangeCurrentUserPasswordAsync(Guid currentUserId, ChangePasswordRequestDto request);
-    Task<Result<UserSettingsDto>> UpdateCurrentUserSettingsAsync(Guid userGuid, UpdateUserSettingsRequestDto request);
+    Task<Result<UpdateUserSettingsResponseDto>> UpdateCurrentUserSettingsAsync(Guid userGuid, UpdateUserSettingsRequestDto request);
     Task<Result<UserDto>> GetUserAsync(string userId);
     Task<Result<UserDto>> UpdateUserAsync(string userId, UpdateUserRequestDto request);
     Task<Result> DeleteUserAsync(string userId);
@@ -34,7 +36,9 @@ public class UsersService(
     INotificationService notificationService,
     IEmailTemplateProvider emailTemplateProvider,
     ILogger<UsersService> logger,
-    TimeProvider timeProvider) : IUsersService
+    TimeProvider timeProvider,
+    IStringLocalizer<UsersService> loc,
+    ITokenGenerator tokenGenerator) : IUsersService
 {
     public async Task<Result<List<UserDto>>> GetUsersAsync()
     {
@@ -55,7 +59,7 @@ public class UsersService(
 
         var user = userResult.Value;
 
-        if (user == null) return Result<List<ImportStatusDto>>.NotFound("User not found");
+        if (user == null) return Result<List<ImportStatusDto>>.NotFound(loc["UserNotFound"]);
 
         var imports = await unitOfWork.Imports
             .Where(i => i.UserId == user.OriginalId)
@@ -75,7 +79,7 @@ public class UsersService(
 
         var user = userResult.Value;
 
-        if (user == null) return Result<UserStatsDto>.NotFound("User not found");
+        if (user == null) return Result<UserStatsDto>.NotFound(loc["UserNotFound"]);
 
         var userGroupIds = await unitOfWork.GroupMembers
             .Where(gm => gm.UserId == user.OriginalId)
@@ -125,7 +129,7 @@ public class UsersService(
             .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
 
         if (user == null)
-            return Result<UserDto>.NotFound("User not found");
+            return Result<UserDto>.NotFound(loc["UserNotFound"]);
 
         if (!string.IsNullOrWhiteSpace(request.Email) && request.Email != user.Email)
         {
@@ -133,7 +137,7 @@ public class UsersService(
                 .FirstOrDefaultAsync(u => u.Email == request.Email && u.Id != user.Id);
 
             if (existingUser != null)
-                return Result<UserDto>.Conflict("User with this email already exists");
+                return Result<UserDto>.Conflict(loc["EmailAlreadyExists"]);
 
             user.Email = request.Email;
         }
@@ -147,21 +151,40 @@ public class UsersService(
         return Result<UserDto>.Success(new UserDto(user));
     }
 
-    public async Task<Result<UserSettingsDto>> UpdateCurrentUserSettingsAsync(Guid userGuid, UpdateUserSettingsRequestDto request)
+    public async Task<Result<UpdateUserSettingsResponseDto>> UpdateCurrentUserSettingsAsync(Guid userGuid, UpdateUserSettingsRequestDto request)
     {
         var user = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == userGuid && u.DeletedAt == null);
 
         if (user == null)
-            return Result<UserSettingsDto>.NotFound("User not found");
+            return Result<UpdateUserSettingsResponseDto>.NotFound(loc["UserNotFound"]);
+
+        var oldLanguage = user.Settings.UiLanguage;
 
         if (request.Theme != null)
             user.Settings.Theme = request.Theme;
 
         if (request.UiLanguage != null)
-            user.Settings.UiLanguage = request.UiLanguage;
+        {
+            if (!SupportedLanguages.IsSupported(request.UiLanguage))
+                return Result<UpdateUserSettingsResponseDto>.BadRequest(loc["UnsupportedLanguage"]);
 
-        return Result<UserSettingsDto>.Success(new UserSettingsDto(user.Settings));
+            user.Settings.UiLanguage = request.UiLanguage;
+        }
+
+        var response = new UpdateUserSettingsResponseDto
+        {
+            Settings = new UserSettingsDto(user.Settings)
+        };
+
+        // If uiLanguage changed, re-issue the JWT so the lang claim is updated (REQ-006, REQ-009)
+        if (request.UiLanguage != null && request.UiLanguage != oldLanguage)
+        {
+            var jwtId = Guid.CreateVersion7().ToString();
+            response.Token = tokenGenerator.GenerateJwtToken(user, jwtId);
+        }
+
+        return Result<UpdateUserSettingsResponseDto>.Success(response);
     }
 
     public async Task<Result> ChangeCurrentUserPasswordAsync(Guid currentUserId, ChangePasswordRequestDto request)
@@ -170,13 +193,13 @@ public class UsersService(
             .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
 
         if (user == null)
-            return Result.NotFound("User not found");
+            return Result.NotFound(loc["UserNotFound"]);
 
         var verificationResult = passwordHasher.VerifyHashedPassword(
             user, user.PasswordHash, request.CurrentPassword);
 
         if (verificationResult == PasswordVerificationResult.Failed)
-            return Result.Unauthorized("Current password is incorrect");
+            return Result.Unauthorized(loc["CurrentPasswordIncorrect"]);
 
         user.PasswordHash = passwordHasher.HashPassword(user, request.NewPassword);
 
@@ -190,8 +213,9 @@ public class UsersService(
         }
 
         // Send password change notification email
+        var language = userContextService.GetCurrentUserLanguage();
         var emailResult = await notificationService.EnqueueAsync(emailTemplateProvider.Render(new PasswordChangedModel
-            { To = user.Email, FirstName = user.FirstName }));
+            { To = user.Email, FirstName = user.FirstName }, language));
 
         if (emailResult.IsFailure)
         {
@@ -209,44 +233,44 @@ public class UsersService(
     public async Task<Result<UserDto>> GetUserAsync(string userId)
     {
         if (!Guid.TryParse(userId, out var userGuid))
-            return Result<UserDto>.BadRequest("Invalid user ID format");
+            return Result<UserDto>.BadRequest(loc["InvalidUserIdFormat"]);
 
         var currentUserId = userContextService.GetCurrentUserId();
         var isSystemAdmin = userContextService.IsSystemAdmin();
 
         if (currentUserId == null)
-            return Result<UserDto>.Unauthorized("User not authenticated");
+            return Result<UserDto>.Unauthorized(loc["UserNotAuthenticated"]);
 
         if (!isSystemAdmin && currentUserId != userGuid)
-            return Result<UserDto>.Forbidden("You can only access your own user data");
+            return Result<UserDto>.Forbidden(loc["OnlyOwnUserData"]);
 
         var user = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == userGuid && u.DeletedAt == null);
 
         return user == null
-            ? Result<UserDto>.NotFound("User not found")
+            ? Result<UserDto>.NotFound(loc["UserNotFound"])
             : Result<UserDto>.Success(new UserDto(user));
     }
 
     public async Task<Result<UserDto>> UpdateUserAsync(string userId, UpdateUserRequestDto request)
     {
         if (!Guid.TryParse(userId, out var userGuid))
-            return Result<UserDto>.BadRequest("Invalid user ID format");
+            return Result<UserDto>.BadRequest(loc["InvalidUserIdFormat"]);
 
         var currentUserId = userContextService.GetCurrentUserId();
         var isSystemAdmin = userContextService.IsSystemAdmin();
 
         if (currentUserId == null)
-            return Result<UserDto>.Unauthorized("User not authenticated");
+            return Result<UserDto>.Unauthorized(loc["UserNotAuthenticated"]);
 
         if (!isSystemAdmin && currentUserId != userGuid)
-            return Result<UserDto>.Forbidden("You can only update your own user data");
+            return Result<UserDto>.Forbidden(loc["OnlyOwnUserUpdate"]);
 
         var user = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == userGuid && u.DeletedAt == null);
 
         if (user == null)
-            return Result<UserDto>.NotFound("User not found");
+            return Result<UserDto>.NotFound(loc["UserNotFound"]);
 
         if (!string.IsNullOrWhiteSpace(request.Email) && request.Email != user.Email)
         {
@@ -254,7 +278,7 @@ public class UsersService(
                 .FirstOrDefaultAsync(u => u.Email == request.Email && u.Id != user.Id);
 
             if (existingUser != null)
-                return Result<UserDto>.Conflict("User with this email already exists");
+                return Result<UserDto>.Conflict(loc["EmailAlreadyExists"]);
 
             user.Email = request.Email;
         }
@@ -268,23 +292,23 @@ public class UsersService(
         if (!request.GlobalRole.HasValue) return Result<UserDto>.Success(new UserDto(user));
 
         if (!Enum.IsDefined(request.GlobalRole.Value))
-            return Result<UserDto>.BadRequest("Invalid role value");
+            return Result<UserDto>.BadRequest(loc["InvalidRoleValue"]);
 
         if (!isSystemAdmin)
-            return Result<UserDto>.Forbidden("Only system administrators can modify user roles");
+            return Result<UserDto>.Forbidden(loc["OnlyAdminsCanModifyRoles"]);
 
         if (user.GlobalRole == request.GlobalRole.Value)
-            return Result<UserDto>.BadRequest("User already has this role");
+            return Result<UserDto>.BadRequest(loc["UserAlreadyHasRole"]);
 
         if (request.GlobalRole.Value == GlobalRole.BaseUser && currentUserId == userGuid)
-            return Result<UserDto>.Forbidden("You cannot change your own role");
+            return Result<UserDto>.Forbidden(loc["CannotChangeOwnRole"]);
 
         if (request.GlobalRole.Value == GlobalRole.BaseUser && user.GlobalRole == GlobalRole.SystemAdmin)
         {
             var adminCount = await unitOfWork.Users
                 .CountAsync(u => u.GlobalRoleId == (int)GlobalRole.SystemAdmin && u.DeletedAt == null);
             if (adminCount <= 1)
-                return Result<UserDto>.Conflict("Cannot demote the only system administrator");
+                return Result<UserDto>.Conflict(loc["CannotDemoteOnlyAdmin"]);
         }
 
         user.GlobalRole = request.GlobalRole.Value;
@@ -295,13 +319,13 @@ public class UsersService(
     public async Task<Result> DeleteUserAsync(string userId)
     {
         if (!Guid.TryParse(userId, out var userGuid))
-            return Result.BadRequest("Invalid user ID format");
+            return Result.BadRequest(loc["InvalidUserIdFormat"]);
 
         var user = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == userGuid && u.DeletedAt == null);
 
         if (user == null)
-            return Result.NotFound("User not found");
+            return Result.NotFound(loc["UserNotFound"]);
 
         user.DeletedAt = timeProvider.GetUtcNow().ToUnixTimeSeconds();
 

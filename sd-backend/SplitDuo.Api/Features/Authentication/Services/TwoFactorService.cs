@@ -3,8 +3,10 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 using OtpNet;
+using SplitDuo.Api.Features.Common.Services;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Email;
 using SplitDuo.Core.Domain.Entities;
@@ -31,7 +33,9 @@ public class TwoFactorService(
     IEmailTemplateProvider emailTemplateProvider,
     IOptions<JwtOptions> jwtOptions,
     IPasswordHasher<User> passwordHasher,
-    TimeProvider timeProvider) : ITwoFactorService
+    TimeProvider timeProvider,
+    IStringLocalizer<TwoFactorService> loc,
+    IUserContextService userContextService) : ITwoFactorService
 {
     private readonly byte[] _encryptionKey =
         SHA256.HashData(Encoding.UTF8.GetBytes("totp:" + jwtOptions.Value.SecretKey));
@@ -42,10 +46,10 @@ public class TwoFactorService(
             .FirstOrDefaultAsync(u => u.Guid == userGuid && u.DeletedAt == null);
 
         if (user == null)
-            return Result<TwoFactorSetupDto>.NotFound("User not found");
+            return Result<TwoFactorSetupDto>.NotFound(loc["UserNotFound"]);
 
         if (user.TwoFactorEnabled)
-            return Result<TwoFactorSetupDto>.BadRequest("Two-factor authentication is already enabled");
+            return Result<TwoFactorSetupDto>.BadRequest(loc["TwoFactorAlreadyEnabled"]);
 
         var secret = GenerateTotpSecret();
         var qrCodeUri = GenerateQrCodeUri(user.Email, secret);
@@ -71,25 +75,26 @@ public class TwoFactorService(
             .FirstOrDefaultAsync(u => u.Guid == userGuid && u.DeletedAt == null);
 
         if (user == null)
-            return Result.NotFound("User not found");
+            return Result.NotFound(loc["UserNotFound"]);
 
         if (user.TwoFactorEnabled)
-            return Result.BadRequest("Two-factor authentication is already enabled");
+            return Result.BadRequest(loc["TwoFactorAlreadyEnabled"]);
 
         if (string.IsNullOrEmpty(user.TotpSecret))
-            return Result.BadRequest("Two-factor setup not initiated");
+            return Result.BadRequest(loc["TwoFactorSetupNotInitiated"]);
 
         var plainSecret = DecryptTotpSecret(user.TotpSecret, _encryptionKey);
         var totp = new Totp(Base32Encoding.ToBytes(plainSecret));
         if (!totp.VerifyTotp(request.Code, out _, new VerificationWindow(1, 1)))
-            return Result.BadRequest("Invalid verification code");
+            return Result.BadRequest(loc["InvalidVerificationCode"]);
 
         // Enable 2FA
         user.TwoFactorEnabled = true;
 
         // Send confirmation notification
+        var language = userContextService.GetCurrentUserLanguage();
         await notificationService.EnqueueAsync(emailTemplateProvider.Render(new TwoFactorEnabledModel
-            { To = user.Email, FirstName = user.FirstName }));
+            { To = user.Email, FirstName = user.FirstName }, language));
 
         return Result.Success();
     }
@@ -100,16 +105,16 @@ public class TwoFactorService(
             .FirstOrDefaultAsync(u => u.Guid == userGuid && u.DeletedAt == null);
 
         if (user == null)
-            return Result.NotFound("User not found");
+            return Result.NotFound(loc["UserNotFound"]);
 
         if (!user.TwoFactorEnabled)
-            return Result.BadRequest("Two-factor authentication is not enabled");
+            return Result.BadRequest(loc["TwoFactorNotEnabled"]);
 
         // Validate current password for security
         var verificationResult = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
 
         if (verificationResult == PasswordVerificationResult.Failed)
-            return Result.Unauthorized("Invalid password");
+            return Result.Unauthorized(loc["InvalidPassword"]);
 
         // Disable 2FA
         user.TwoFactorEnabled = false;
@@ -128,8 +133,9 @@ public class TwoFactorService(
         }
 
         // Send notification
+        var language = userContextService.GetCurrentUserLanguage();
         await notificationService.EnqueueAsync(emailTemplateProvider.Render(new TwoFactorDisabledModel
-            { To = user.Email, FirstName = user.FirstName }));
+            { To = user.Email, FirstName = user.FirstName }, language));
 
         return Result.Success();
     }
@@ -140,10 +146,10 @@ public class TwoFactorService(
             .FirstOrDefaultAsync(u => u.Guid == userGuid && u.DeletedAt == null);
 
         if (user == null)
-            return Result<bool>.NotFound("User not found");
+            return Result<bool>.NotFound(loc["UserNotFound"]);
 
         if (!user.TwoFactorEnabled || string.IsNullOrEmpty(user.TotpSecret))
-            return Result<bool>.BadRequest("Two-factor authentication is not enabled");
+            return Result<bool>.BadRequest(loc["TwoFactorNotEnabled"]);
 
         var plainSecret = DecryptTotpSecret(user.TotpSecret, _encryptionKey);
         var totp = new Totp(Base32Encoding.ToBytes(plainSecret));
@@ -164,10 +170,10 @@ public class TwoFactorService(
             .FirstOrDefaultAsync(u => u.Guid == userGuid && u.DeletedAt == null);
 
         if (user == null)
-            return Result<bool>.NotFound("User not found");
+            return Result<bool>.NotFound(loc["UserNotFound"]);
 
         if (!user.TwoFactorEnabled || string.IsNullOrEmpty(user.BackupCodes))
-            return Result<bool>.BadRequest("Two-factor authentication is not enabled");
+            return Result<bool>.BadRequest(loc["TwoFactorNotEnabled"]);
 
         var backupCodesJson = JsonSerializer.Deserialize<string[]>(user.BackupCodes) ?? [];
         var hashedCode = HashUtils.Sha256Base64(code.ToLower());
@@ -188,10 +194,10 @@ public class TwoFactorService(
             .FirstOrDefaultAsync(u => u.Guid == userGuid && u.DeletedAt == null);
 
         if (user == null)
-            return Result<List<string>>.NotFound("User not found");
+            return Result<List<string>>.NotFound(loc["UserNotFound"]);
 
         if (!user.TwoFactorEnabled)
-            return Result<List<string>>.BadRequest("Two-factor authentication is not enabled");
+            return Result<List<string>>.BadRequest(loc["TwoFactorNotEnabled"]);
 
         var backupCodes = GenerateBackupCodes();
         user.BackupCodes = JsonSerializer.Serialize(backupCodes.Select(c => HashUtils.Sha256Base64(c.ToLower())));

@@ -2,8 +2,8 @@
   <div class="py-6 sm:py-8">
     <UiCardHeader
       size="lg"
-      title="Users"
-      subtitle="Manage platform users"
+      :title="$t('admin.users')"
+      :subtitle="$t('admin.subtitle')"
       class="mb-6"
     >
       <template #actions>
@@ -46,7 +46,7 @@
       <UInput
         v-model="searchInput"
         icon="i-lucide-search"
-        placeholder="Search users..."
+        :placeholder="$t('admin.search')"
         class="w-full sm:w-64 md:w-80"
       />
       <UButton
@@ -70,8 +70,8 @@
     <UiEmptyState
       v-else-if="filteredUsers.length === 0"
       icon="i-lucide-users"
-      title="No users found"
-      subtitle="No users match your search criteria or no users exist yet"
+      :title="$t('admin.noUsersFound')"
+      :subtitle="$t('admin.noUsersSubtitle')"
     />
 
     <!-- Users Grid -->
@@ -99,10 +99,10 @@
       <USeparator class="mb-8" />
       <div class="mb-6">
         <h2 class="text-xl font-bold text-primary">
-          Pending Invitations
+          {{ $t('admin.pendingInvitations') }}
         </h2>
         <p class="text-sm text-muted mt-1">
-          Users who have been invited but haven't registered yet
+          {{ $t('admin.pendingInvitationsSubtitle') }}
         </p>
       </div>
 
@@ -118,6 +118,8 @@
 </template>
 
 <script setup>
+const { t } = useI18n()
+
 definePageMeta({
   middleware: ['auth', 'admin'],
   layout: 'default',
@@ -167,19 +169,19 @@ const appVersion = computed(() => useRuntimeConfig().public.appVersion)
 
 // Stats objects for StatCard component
 const totalUsersStats = computed(() => ({
-  label: 'Total Users',
+  label: t('admin.totalUsers'),
   value: users.value.length,
   color: 'teal',
 }))
 
 const adminUsersStats = computed(() => ({
-  label: 'Admin Users',
+  label: t('admin.adminUsers'),
   value: adminUsers.value.length,
   color: 'rose',
 }))
 
 const regularUsersStats = computed(() => ({
-  label: 'Regular Users',
+  label: t('admin.regularUsers'),
   value: regularUsers.value.length,
   color: 'green',
 }))
@@ -235,6 +237,6 @@ onMounted(async () => {
 })
 
 useHead({
-  title: 'User Management',
+  title: computed(() => t('admin.userManagement')),
 })
 </script>

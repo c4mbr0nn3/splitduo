@@ -1,4 +1,13 @@
 <template>
+  <UButton
+    icon="i-lucide-scan"
+    size="sm"
+    variant="outline"
+    :loading="isScanning"
+    @click="fileInput.click()"
+  >
+    <span class="hidden sm:inline">{{ $t('expenses.scanReceipt') }}</span>
+  </UButton>
   <input
     ref="fileInput"
     type="file"
@@ -7,15 +16,6 @@
     class="hidden"
     @change="onFileSelected"
   >
-  <UButton
-    icon="i-lucide-scan"
-    size="sm"
-    variant="outline"
-    :loading="isScanning"
-    @click="fileInput.click()"
-  >
-    <span class="hidden sm:inline">Scan Receipt</span>
-  </UButton>
 </template>
 
 <script setup>

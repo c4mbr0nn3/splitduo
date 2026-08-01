@@ -1,6 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  modules: ['@vite-pwa/nuxt', '@nuxt/ui', '@nuxt/eslint'],
+  modules: ['@vite-pwa/nuxt', '@nuxt/ui', '@nuxt/eslint', '@nuxtjs/i18n'],
 
   ssr: false,
 
@@ -51,11 +51,41 @@ export default defineNuxtConfig({
     'prerender:routes'({ routes }) {
       routes.clear() // Do not generate any routes (except the defaults)
     },
+    'modules:done': async () => {
+      const { checkLocaleParity } = await import(new URL('./scripts/check-locale-parity.mjs', import.meta.url).href)
+      const result = checkLocaleParity()
+      if (!result.ok) {
+        const lines = result.errors.flatMap(e => {
+          const out = [`\n  ${e.file}:`]
+          if (e.missing.length) out.push(`    Missing keys: ${e.missing.join(', ')}`)
+          if (e.extra.length) out.push(`    Extra keys:   ${e.extra.join(', ')}`)
+          if (e.error) out.push(`    Error: ${e.error}`)
+          return out
+        })
+        throw new Error(`Locale key parity check failed:${lines.join('\n')}`)
+      }
+    },
   },
 
   eslint: {
     config: {
       stylistic: true,
+    },
+  },
+
+  i18n: {
+    strategy: 'no_prefix',
+    defaultLocale: 'en',
+    lazy: true,
+    langDir: 'locales',
+    locales: [
+      { code: 'en', file: 'en.json', name: 'English' },
+      { code: 'it', file: 'it.json', name: 'Italiano' },
+    ],
+    detectBrowserLanguage: {
+      useCookie: true,
+      cookieKey: 'i18n_redirected',
+      redirectOn: 'root',
     },
   },
 

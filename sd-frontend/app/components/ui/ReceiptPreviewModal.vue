@@ -1,7 +1,7 @@
 <template>
   <UModal
     v-model:open="isOpen"
-    title="Receipt Preview"
+    :title="$t('expenses.receiptPreview')"
   >
     <template #body>
       <div
@@ -20,12 +20,12 @@
       <div class="flex gap-2 w-full">
         <UButton
           :icon="zoomed ? 'i-lucide-zoom-out' : 'i-lucide-zoom-in'"
-          :label="zoomed ? 'Fit' : 'Zoom'"
+          :label="zoomed ? $t('expenses.fit') : $t('expenses.zoom')"
           variant="outline"
           @click="zoomed = !zoomed"
         />
         <UButton
-          label="Close"
+          :label="$t('expenses.close')"
           variant="outline"
           class="flex-1"
           @click="isOpen = false"

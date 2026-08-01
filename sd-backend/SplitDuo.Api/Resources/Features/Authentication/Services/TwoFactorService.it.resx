@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+    <xsd:element name="root" msdata:IsDataSet="true"/>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="UserNotFound" xml:space="preserve"><value>Utente non trovato</value></data>
+  <data name="TwoFactorAlreadyEnabled" xml:space="preserve"><value>L'autenticazione a due fattori è già abilitata</value></data>
+  <data name="TwoFactorSetupNotInitiated" xml:space="preserve"><value>Configurazione due fattori non avviata</value></data>
+  <data name="InvalidVerificationCode" xml:space="preserve"><value>Codice di verifica non valido</value></data>
+  <data name="TwoFactorNotEnabled" xml:space="preserve"><value>L'autenticazione a due fattori non è abilitata</value></data>
+  <data name="InvalidPassword" xml:space="preserve"><value>Password non valida</value></data>
+</root>

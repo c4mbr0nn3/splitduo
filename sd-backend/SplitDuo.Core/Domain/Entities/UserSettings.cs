@@ -13,7 +13,7 @@ public class UserSettings
     [MaxLength(16)]
     public string Theme { get; set; } = "auto";
 
-    /// <summary>ISO 639-1 code. Only "en" accepted in v1; widened when i18n lands.</summary>
+    /// <summary>ISO 639-1 code. Accepts "en" (default) or "it".</summary>
     [MaxLength(8)]
     public string UiLanguage { get; set; } = "en";
 }

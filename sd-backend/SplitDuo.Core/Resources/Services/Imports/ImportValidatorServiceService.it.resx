@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+    <xsd:element name="root" msdata:IsDataSet="true"/>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="FileAlreadyImported" xml:space="preserve"><value>Questo file è già stato importato</value></data>
+  <data name="NoDuplicateFileFound" xml:space="preserve"><value>Nessun file duplicato trovato</value></data>
+  <data name="UserMappingInvalid" xml:space="preserve"><value>La mappatura utente per '{0}' punta a un ID utente non valido o non membro '{1}'</value></data>
+  <data name="CategoryMappingInvalid" xml:space="preserve"><value>La mappatura della categoria per ID '{0}' punta a una categoria non valida '{1}'</value></data>
+  <data name="PaymentModeMappingInvalid" xml:space="preserve"><value>La mappatura della modalità di pagamento per ID '{0}' punta a una modalità di pagamento non valida '{1}'</value></data>
+  <data name="AliasMappingInvalid" xml:space="preserve"><value>La mappatura alias per '{0}' punta a un ID alias non valido o non appartenente al gruppo '{1}'</value></data>
+</root>

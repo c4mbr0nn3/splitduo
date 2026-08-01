@@ -1,5 +1,6 @@
 export default function useImportExport(groupId) {
   const api = useApi()
+  const { t } = useI18n()
   const { showError, showSuccess } = useNotifications()
 
   const groupIdRef = toRef(groupId)
@@ -38,7 +39,7 @@ export default function useImportExport(groupId) {
       }
       catch (error) {
         console.error(`Failed to parse ${fieldName}:`, error)
-        showError(`Invalid ${fieldName} format received from server`)
+        showError(t('toasts.imports.invalidFormat', { fieldName }))
         return null
       }
     }
@@ -78,7 +79,7 @@ export default function useImportExport(groupId) {
       }
     }
     catch (error) {
-      showError('Failed to load imports')
+      showError(t('toasts.imports.loadFailed'))
       throw error
     }
     finally {
@@ -109,12 +110,12 @@ export default function useImportExport(groupId) {
           'analysis results',
         )
 
-        showSuccess('File analyzed successfully')
+        showSuccess(t('toasts.imports.analyzed'))
         return response.data
       }
     }
     catch (error) {
-      showError('Failed to analyze file')
+      showError(t('toasts.imports.analyzeFailed'))
       throw error
     }
     finally {
@@ -142,7 +143,7 @@ export default function useImportExport(groupId) {
       )
 
       if (response.success && response.data) {
-        showSuccess('Import started successfully')
+        showSuccess(t('toasts.imports.started'))
         // Clear state after successful import trigger
         analysisResults.value = null
         currentImport.value = null
@@ -150,7 +151,7 @@ export default function useImportExport(groupId) {
       }
     }
     catch (error) {
-      showError('Failed to start import')
+      showError(t('toasts.imports.startFailed'))
       throw error
     }
     finally {
@@ -174,12 +175,12 @@ export default function useImportExport(groupId) {
       )
 
       if (response.success && response.data) {
-        showSuccess('Data imported successfully')
+        showSuccess(t('toasts.imports.imported'))
         return response.data
       }
     }
     catch (error) {
-      showError('Failed to import data')
+      showError(t('toasts.imports.importFailed'))
       throw error
     }
     finally {
@@ -215,10 +216,10 @@ export default function useImportExport(groupId) {
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
 
-      showSuccess('Data exported successfully')
+      showSuccess(t('toasts.imports.exported'))
     }
     catch (error) {
-      showError('Failed to export data')
+      showError(t('toasts.imports.exportFailed'))
       throw error
     }
     finally {

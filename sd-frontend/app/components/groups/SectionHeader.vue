@@ -3,7 +3,7 @@
     <div class="flex items-start justify-between gap-3">
       <div class="min-w-0">
         <h1 class="text-xl font-semibold text-highlighted truncate max-w-[16rem] sm:max-w-none">
-          {{ group?.name || 'Group Details' }}
+          {{ group?.name || $t('groups.groupDetails') }}
         </h1>
       </div>
       <div class="flex items-center gap-2 shrink-0">
@@ -30,7 +30,7 @@
         variant="soft"
         icon="i-lucide-users"
         size="xs"
-        :label="`${group.memberCount} member${group.memberCount === 1 ? '' : 's'}`"
+        :label="$t('groups.memberCount', { count: group.memberCount }, group.memberCount)"
         @click="navigateTo(`/groups/${group.id}/members`)"
       />
 
@@ -41,7 +41,7 @@
           color="neutral"
           icon="i-lucide-layers"
           size="xs"
-          :label="`${aliasCount} alias${aliasCount === 1 ? '' : 'es'}`"
+          :label="$t('groups.aliasCount', { count: aliasCount }, aliasCount)"
           @click="navigateTo(`/groups/${group.id}/members`)"
         />
         <UBadge
@@ -49,7 +49,7 @@
           color="warning"
           variant="soft"
           icon="i-lucide-alert-triangle"
-          label="Alias setup pending"
+          :label="$t('groups.aliasPending')"
         />
       </template>
     </div>
@@ -57,6 +57,7 @@
 </template>
 
 <script setup>
+const { t } = useI18n()
 const props = defineProps({
   group: {
     type: Object,
@@ -87,11 +88,11 @@ const confirmDeleteGroup = async () => {
   if (!props.group) return
 
   const confirmed = await modal.error({
-    title: 'Delete Group',
-    subtitle: 'This action cannot be undone.',
-    content: `The group '${props.group.name}' will be permanently deleted. Are you sure you want to delete this group?`,
-    confirmText: 'Delete Group',
-    cancelText: 'Cancel',
+    title: t('groups.deleteTitle'),
+    subtitle: t('groups.deleteConfirm'),
+    content: t('groups.deleteContent', { name: props.group.name }),
+    confirmText: t('groups.deleteButton'),
+    cancelText: t('common.cancel'),
   })
 
   if (confirmed) {

@@ -5,11 +5,11 @@
   >
     <div class="space-y-3">
       <div class="flex items-center justify-between">
-        <span class="text-primary font-semibold">Filters</span>
+        <span class="text-primary font-semibold">{{ $t('expenses.filterTitle') }}</span>
         <div class="flex items-center gap-1">
           <UButton
             icon="i-lucide-funnel-x"
-            label="Clear"
+            :label="$t('expenses.filterClear')"
             size="xs"
             variant="ghost"
             :color="activeFilterCount === 0 ? 'neutral' : 'error'"
@@ -17,7 +17,7 @@
             @click="$emit('clear')"
           />
           <UButton
-            label="Apply"
+            :label="$t('expenses.filterApply')"
             size="xs"
             :disabled="pendingFilterCount === 0"
             @click="$emit('apply')"
@@ -25,23 +25,23 @@
         </div>
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1">Search</label>
+        <label class="block text-sm font-medium mb-1">{{ $t('expenses.filterSearch') }}</label>
         <UInput
           v-model="filters.search"
-          placeholder="Search title or description..."
+          :placeholder="$t('expenses.filterSearchPlaceholder')"
           class="w-full"
         />
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1">From</label>
+        <label class="block text-sm font-medium mb-1">{{ $t('expenses.filterFrom') }}</label>
         <UiInputDate v-model="filters.startDate" />
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1">To</label>
+        <label class="block text-sm font-medium mb-1">{{ $t('expenses.filterTo') }}</label>
         <UiInputDate v-model="filters.endDate" />
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1">Category</label>
+        <label class="block text-sm font-medium mb-1">{{ $t('expenses.filterCategory') }}</label>
         <USelect
           v-model="filters.category"
           :items="categoryOptions"
@@ -49,7 +49,7 @@
         />
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1">Paid by</label>
+        <label class="block text-sm font-medium mb-1">{{ $t('expenses.filterPaidBy') }}</label>
         <USelect
           v-model="filters.userId"
           :items="memberOptions"

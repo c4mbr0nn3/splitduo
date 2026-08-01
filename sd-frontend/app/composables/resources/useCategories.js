@@ -6,6 +6,7 @@ let fetchPromise = null
 
 export default function useCategories() {
   const api = useApi()
+  const { t } = useI18n()
   const { showError } = useNotifications()
 
   // Get available categories (singleton with auto-initialization)
@@ -30,7 +31,7 @@ export default function useCategories() {
         }
       }
       catch (error) {
-        showError('Failed to load categories')
+        showError(t('toasts.categories.loadFailed'))
         throw error
       }
       finally {

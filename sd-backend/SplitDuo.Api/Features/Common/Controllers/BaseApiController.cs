@@ -1,5 +1,6 @@
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 using SplitDuo.Api.Features.Common.Dto;
 using SplitDuo.Api.Features.Common.Services;
 using SplitDuo.Core.Common;
@@ -12,9 +13,13 @@ namespace SplitDuo.Api.Features.Common.Controllers;
 public abstract class BaseApiController : ControllerBase
 {
     private IUserContextService? _userContextService;
+    private IStringLocalizer? _localizer;
 
     private IUserContextService UserContextService =>
         _userContextService ??= HttpContext.RequestServices.GetRequiredService<IUserContextService>();
+
+    private IStringLocalizer Localizer =>
+        _localizer ??= HttpContext.RequestServices.GetRequiredService<IStringLocalizer<BaseApiController>>();
 
     protected Guid? GetCurrentUserId() => UserContextService.GetCurrentUserId();
 
@@ -25,6 +30,12 @@ public abstract class BaseApiController : ControllerBase
     protected GlobalRole? GetCurrentUserGlobalRole() => UserContextService.GetCurrentUserGlobalRole();
 
     protected bool IsCurrentUserSystemAdmin() => UserContextService.IsSystemAdmin();
+
+    protected Result<T> NotAuthenticated<T>() =>
+        Result<T>.Unauthorized(Localizer["UserNotAuthenticated"]);
+
+    protected Result NotAuthenticated() =>
+        Result.Unauthorized(Localizer["UserNotAuthenticated"]);
 
     protected ActionResult<ApiResponseDto<T>> HandleResult<T>(Result<T> result, string? successMessage = null)
     {

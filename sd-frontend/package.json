@@ -9,7 +9,8 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
-    "lint:fix": "eslint --fix ."
+    "lint:fix": "eslint --fix .",
+    "check:locales": "node -e \"import('./scripts/check-locale-parity.mjs').then(m => { const r = m.checkLocaleParity(); if (r.ok) { console.log('Locale key parity: OK'); process.exit(0); } else { for (const e of r.errors) { console.error('\\n' + e.file + ':'); if (e.missing.length) console.error('  Missing keys: ' + e.missing.join(', ')); if (e.extra.length) console.error('  Extra keys:   ' + e.extra.join(', ')); if (e.error) console.error('  Error: ' + e.error); } process.exit(1); } })\""
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.118",
@@ -22,6 +23,7 @@
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.16.0",
+    "@nuxtjs/i18n": "^10.6.0",
     "@vite-pwa/nuxt": "^1.1.1",
     "eslint": "^10.7.0"
   },

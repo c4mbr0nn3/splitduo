@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+    <xsd:element name="root" msdata:IsDataSet="true"/>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="InvalidGroupIdFormat" xml:space="preserve"><value>Formato ID gruppo non valido</value></data>
+  <data name="UserNotFound" xml:space="preserve"><value>Utente non trovato</value></data>
+  <data name="GroupNotFound" xml:space="preserve"><value>Gruppo non trovato</value></data>
+  <data name="AccessNotAllowed" xml:space="preserve"><value>Accesso a questo gruppo non consentito</value></data>
+  <data name="OnlyAdminsCanInvite" xml:space="preserve"><value>Solo gli amministratori del gruppo possono invitare membri</value></data>
+  <data name="UserAlreadyMember" xml:space="preserve"><value>L'utente è già membro di questo gruppo</value></data>
+  <data name="InvitationAlreadyPending" xml:space="preserve"><value>Un invito per questa email è già in sospeso</value></data>
+  <data name="InvalidInvitationIdFormat" xml:space="preserve"><value>Formato ID invito non valido</value></data>
+  <data name="OnlyAdminsCanResend" xml:space="preserve"><value>Solo gli amministratori del gruppo possono reinviare gli inviti</value></data>
+  <data name="InvitationNotFound" xml:space="preserve"><value>Invito non trovato</value></data>
+  <data name="OnlyAdminsCanRevoke" xml:space="preserve"><value>Solo gli amministratori del gruppo possono revocare gli inviti</value></data>
+  <data name="InvitationInvalidOrExpired" xml:space="preserve"><value>Questo link di invito non è valido o è scaduto.</value></data>
+  <data name="InvitationNoLongerValid" xml:space="preserve"><value>Questo link di invito non è più valido.</value></data>
+  <data name="InvitationAlreadyAccepted" xml:space="preserve"><value>Questo invito è già stato accettato.</value></data>
+  <data name="InvitationExpired" xml:space="preserve"><value>Questo link di invito è scaduto.</value></data>
+  <data name="AccountAlreadyExists" xml:space="preserve"><value>Un account con questa email esiste già. Effettua il login.</value></data>
+</root>

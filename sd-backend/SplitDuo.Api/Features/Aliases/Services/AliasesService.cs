@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using SplitDuo.Api.Features.Aliases.Dto;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Entities;
@@ -9,31 +10,32 @@ namespace SplitDuo.Api.Features.Aliases.Services;
 
 public class AliasesService(
     IUnitOfWork unitOfWork,
-    TimeProvider timeProvider) : IAliasesService
+    TimeProvider timeProvider,
+    IStringLocalizer<AliasesService> loc) : IAliasesService
 {
     public async Task<Result<List<AliasDto>>> ListAliasesAsync(string groupId, Guid currentUserId)
     {
         if (!Guid.TryParse(groupId, out var groupGuid))
-            return Result<List<AliasDto>>.BadRequest("Invalid group ID format");
+            return Result<List<AliasDto>>.BadRequest(loc["InvalidGroupIdFormat"]);
 
         var user = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
 
         if (user == null)
-            return Result<List<AliasDto>>.Unauthorized("User not found");
+            return Result<List<AliasDto>>.Unauthorized(loc["UserNotFound"]);
 
         var group = await unitOfWork.Groups
             .FirstOrDefaultAsync(g => g.Guid == groupGuid && g.DeletedAt == null);
 
         if (group == null)
-            return Result<List<AliasDto>>.NotFound("Group not found");
+            return Result<List<AliasDto>>.NotFound(loc["GroupNotFound"]);
 
         // Membership check — any member can view aliases
         var isMember = await unitOfWork.GroupMembers
             .AnyAsync(gm => gm.GroupId == group.Id && gm.UserId == user.Id && gm.DeletedAt == null);
 
         if (!isMember)
-            return Result<List<AliasDto>>.Forbidden("Access to this group is not allowed");
+            return Result<List<AliasDto>>.Forbidden(loc["AccessNotAllowed"]);
 
         var aliases = await unitOfWork.Aliases
             .Where(a => a.GroupId == group.Id && a.DeletedAt == null)
@@ -49,40 +51,40 @@ public class AliasesService(
     public async Task<Result<AliasDto>> CreateAliasAsync(string groupId, Guid currentUserId, CreateAliasRequestDto request)
     {
         if (!Guid.TryParse(groupId, out var groupGuid))
-            return Result<AliasDto>.BadRequest("Invalid group ID format");
+            return Result<AliasDto>.BadRequest(loc["InvalidGroupIdFormat"]);
 
         var user = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
 
         if (user == null)
-            return Result<AliasDto>.Unauthorized("User not found");
+            return Result<AliasDto>.Unauthorized(loc["UserNotFound"]);
 
         var group = await unitOfWork.Groups
             .FirstOrDefaultAsync(g => g.Guid == groupGuid && g.DeletedAt == null);
 
         if (group == null)
-            return Result<AliasDto>.NotFound("Group not found");
+            return Result<AliasDto>.NotFound(loc["GroupNotFound"]);
 
         // Admin check
         var currentUserMembership = await unitOfWork.GroupMembers
             .FirstOrDefaultAsync(gm => gm.GroupId == group.Id && gm.UserId == user.Id && gm.DeletedAt == null);
 
         if (currentUserMembership == null)
-            return Result<AliasDto>.Forbidden("Access to this group is not allowed");
+            return Result<AliasDto>.Forbidden(loc["AccessNotAllowed"]);
 
         if (currentUserMembership.Role != GroupRole.Admin)
-            return Result<AliasDto>.Forbidden("Only group administrators can manage aliases");
+            return Result<AliasDto>.Forbidden(loc["OnlyAdminsCanManageAliases"]);
 
         // Reject if alias mode is not enabled
         if (!group.UseAliases)
-            return Result<AliasDto>.Conflict("Alias mode is not enabled for this group");
+            return Result<AliasDto>.Conflict(loc["AliasModeNotEnabled"]);
 
         // Validate name uniqueness among non-deleted aliases in the group
         var nameExists = await unitOfWork.Aliases
             .AnyAsync(a => a.GroupId == group.Id && a.DeletedAt == null && a.Name == request.Name);
 
         if (nameExists)
-            return Result<AliasDto>.Conflict("An alias with this name already exists in the group");
+            return Result<AliasDto>.Conflict(loc["AliasNameAlreadyExists"]);
 
         var alias = new Alias
         {
@@ -103,13 +105,13 @@ public class AliasesService(
     public async Task<Result<AliasDto>> UpdateAliasAsync(string aliasId, Guid currentUserId, UpdateAliasRequestDto request)
     {
         if (!Guid.TryParse(aliasId, out var aliasGuid))
-            return Result<AliasDto>.BadRequest("Invalid alias ID format");
+            return Result<AliasDto>.BadRequest(loc["InvalidAliasIdFormat"]);
 
         var user = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
 
         if (user == null)
-            return Result<AliasDto>.Unauthorized("User not found");
+            return Result<AliasDto>.Unauthorized(loc["UserNotFound"]);
 
         var alias = await unitOfWork.Aliases
             .Include(a => a.Group)
@@ -118,21 +120,21 @@ public class AliasesService(
             .FirstOrDefaultAsync(a => a.Guid == aliasGuid && a.DeletedAt == null);
 
         if (alias == null)
-            return Result<AliasDto>.NotFound("Alias not found");
+            return Result<AliasDto>.NotFound(loc["AliasNotFound"]);
 
         // Admin check
         var currentUserMembership = await unitOfWork.GroupMembers
             .FirstOrDefaultAsync(gm => gm.GroupId == alias.GroupId && gm.UserId == user.Id && gm.DeletedAt == null);
 
         if (currentUserMembership == null)
-            return Result<AliasDto>.Forbidden("Access to this group is not allowed");
+            return Result<AliasDto>.Forbidden(loc["AccessNotAllowed"]);
 
         if (currentUserMembership.Role != GroupRole.Admin)
-            return Result<AliasDto>.Forbidden("Only group administrators can manage aliases");
+            return Result<AliasDto>.Forbidden(loc["OnlyAdminsCanManageAliases"]);
 
         // Reject if group not alias-mode
         if (!alias.Group.UseAliases)
-            return Result<AliasDto>.Conflict("Alias mode is not enabled for this group");
+            return Result<AliasDto>.Conflict(loc["AliasModeNotEnabled"]);
 
         // If name provided, validate uniqueness among non-deleted aliases in the same group (excluding self)
         if (!string.IsNullOrWhiteSpace(request.Name))
@@ -141,7 +143,7 @@ public class AliasesService(
                 .AnyAsync(a => a.GroupId == alias.GroupId && a.DeletedAt == null && a.Name == request.Name && a.Id != alias.Id);
 
             if (nameExists)
-                return Result<AliasDto>.Conflict("An alias with this name already exists in the group");
+                return Result<AliasDto>.Conflict(loc["AliasNameAlreadyExists"]);
 
             alias.Name = request.Name;
             // Rename promotes singleton to named (AC-013)
@@ -155,13 +157,13 @@ public class AliasesService(
     public async Task<Result> DeleteAliasAsync(string aliasId, Guid currentUserId)
     {
         if (!Guid.TryParse(aliasId, out var aliasGuid))
-            return Result.BadRequest("Invalid alias ID format");
+            return Result.BadRequest(loc["InvalidAliasIdFormat"]);
 
         var user = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
 
         if (user == null)
-            return Result.Unauthorized("User not found");
+            return Result.Unauthorized(loc["UserNotFound"]);
 
         var alias = await unitOfWork.Aliases
             .Include(a => a.Group)
@@ -170,21 +172,21 @@ public class AliasesService(
             .FirstOrDefaultAsync(a => a.Guid == aliasGuid && a.DeletedAt == null);
 
         if (alias == null)
-            return Result.NotFound("Alias not found");
+            return Result.NotFound(loc["AliasNotFound"]);
 
         // Admin check
         var currentUserMembership = await unitOfWork.GroupMembers
             .FirstOrDefaultAsync(gm => gm.GroupId == alias.GroupId && gm.UserId == user.Id && gm.DeletedAt == null);
 
         if (currentUserMembership == null)
-            return Result.Forbidden("Access to this group is not allowed");
+            return Result.Forbidden(loc["AccessNotAllowed"]);
 
         if (currentUserMembership.Role != GroupRole.Admin)
-            return Result.Forbidden("Only group administrators can manage aliases");
+            return Result.Forbidden(loc["OnlyAdminsCanManageAliases"]);
 
         // Reject if group not alias-mode
         if (!alias.Group.UseAliases)
-            return Result.Conflict("Alias mode is not enabled for this group");
+            return Result.Conflict(loc["AliasModeNotEnabled"]);
 
         // For each current member of the alias (non-deleted GroupMembers), create a new singleton alias
         // and reassign the member to it. Uses navigation so EF fixup assigns the FK on save
@@ -217,13 +219,13 @@ public class AliasesService(
     public async Task<Result<AliasDto>> AssignMemberAsync(string aliasId, Guid currentUserId, AssignAliasMemberRequestDto request)
     {
         if (!Guid.TryParse(aliasId, out var aliasGuid))
-            return Result<AliasDto>.BadRequest("Invalid alias ID format");
+            return Result<AliasDto>.BadRequest(loc["InvalidAliasIdFormat"]);
 
         var user = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
 
         if (user == null)
-            return Result<AliasDto>.Unauthorized("User not found");
+            return Result<AliasDto>.Unauthorized(loc["UserNotFound"]);
 
         var alias = await unitOfWork.Aliases
             .Include(a => a.Group)
@@ -232,41 +234,41 @@ public class AliasesService(
             .FirstOrDefaultAsync(a => a.Guid == aliasGuid && a.DeletedAt == null);
 
         if (alias == null)
-            return Result<AliasDto>.NotFound("Alias not found");
+            return Result<AliasDto>.NotFound(loc["AliasNotFound"]);
 
         // Admin check
         var currentUserMembership = await unitOfWork.GroupMembers
             .FirstOrDefaultAsync(gm => gm.GroupId == alias.GroupId && gm.UserId == user.Id && gm.DeletedAt == null);
 
         if (currentUserMembership == null)
-            return Result<AliasDto>.Forbidden("Access to this group is not allowed");
+            return Result<AliasDto>.Forbidden(loc["AccessNotAllowed"]);
 
         if (currentUserMembership.Role != GroupRole.Admin)
-            return Result<AliasDto>.Forbidden("Only group administrators can manage aliases");
+            return Result<AliasDto>.Forbidden(loc["OnlyAdminsCanManageAliases"]);
 
         // Reject if group not alias-mode
         if (!alias.Group.UseAliases)
-            return Result<AliasDto>.Conflict("Alias mode is not enabled for this group");
+            return Result<AliasDto>.Conflict(loc["AliasModeNotEnabled"]);
 
         // Reject if alias is soft-deleted (already handled by query filter above, but double-check)
         if (alias.DeletedAt != null)
-            return Result<AliasDto>.NotFound("Alias not found");
+            return Result<AliasDto>.NotFound(loc["AliasNotFound"]);
 
         // Find the GroupMember by userId (Guid) within the same group
         if (!Guid.TryParse(request.UserId, out var memberUserGuid))
-            return Result<AliasDto>.BadRequest("Invalid user ID format");
+            return Result<AliasDto>.BadRequest(loc["InvalidUserIdFormat"]);
 
         var memberUser = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == memberUserGuid && u.DeletedAt == null);
 
         if (memberUser == null)
-            return Result<AliasDto>.NotFound("User not found");
+            return Result<AliasDto>.NotFound(loc["UserNotFound"]);
 
         var groupMember = await unitOfWork.GroupMembers
             .FirstOrDefaultAsync(gm => gm.GroupId == alias.GroupId && gm.UserId == memberUser.Id && gm.DeletedAt == null);
 
         if (groupMember == null)
-            return Result<AliasDto>.NotFound("User is not a member of this group");
+            return Result<AliasDto>.NotFound(loc["UserNotMemberOfGroup"]);
 
         // Set the member's AliasId to this alias
         groupMember.AliasId = alias.Id;
@@ -288,16 +290,16 @@ public class AliasesService(
     public async Task<Result> RemoveMemberAsync(string aliasId, string userId, Guid currentUserId)
     {
         if (!Guid.TryParse(aliasId, out var aliasGuid))
-            return Result.BadRequest("Invalid alias ID format");
+            return Result.BadRequest(loc["InvalidAliasIdFormat"]);
 
         if (!Guid.TryParse(userId, out var userGuid))
-            return Result.BadRequest("Invalid user ID format");
+            return Result.BadRequest(loc["InvalidUserIdFormat"]);
 
         var user = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
 
         if (user == null)
-            return Result.Unauthorized("User not found");
+            return Result.Unauthorized(loc["UserNotFound"]);
 
         var alias = await unitOfWork.Aliases
             .Include(a => a.Group)
@@ -306,34 +308,34 @@ public class AliasesService(
             .FirstOrDefaultAsync(a => a.Guid == aliasGuid && a.DeletedAt == null);
 
         if (alias == null)
-            return Result.NotFound("Alias not found");
+            return Result.NotFound(loc["AliasNotFound"]);
 
         // Admin check
         var currentUserMembership = await unitOfWork.GroupMembers
             .FirstOrDefaultAsync(gm => gm.GroupId == alias.GroupId && gm.UserId == user.Id && gm.DeletedAt == null);
 
         if (currentUserMembership == null)
-            return Result.Forbidden("Access to this group is not allowed");
+            return Result.Forbidden(loc["AccessNotAllowed"]);
 
         if (currentUserMembership.Role != GroupRole.Admin)
-            return Result.Forbidden("Only group administrators can manage aliases");
+            return Result.Forbidden(loc["OnlyAdminsCanManageAliases"]);
 
         // Reject if group not alias-mode
         if (!alias.Group.UseAliases)
-            return Result.Conflict("Alias mode is not enabled for this group");
+            return Result.Conflict(loc["AliasModeNotEnabled"]);
 
         // Find the GroupMember
         var memberUser = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == userGuid && u.DeletedAt == null);
 
         if (memberUser == null)
-            return Result.NotFound("User not found");
+            return Result.NotFound(loc["UserNotFound"]);
 
         var groupMember = await unitOfWork.GroupMembers
             .FirstOrDefaultAsync(gm => gm.GroupId == alias.GroupId && gm.UserId == memberUser.Id && gm.DeletedAt == null);
 
         if (groupMember == null)
-            return Result.NotFound("User is not a member of this group");
+            return Result.NotFound(loc["UserNotMemberOfGroup"]);
 
         // If the member is in this alias, create a new singleton alias and reassign.
         // Uses navigation so EF fixup assigns the FK on save
@@ -372,37 +374,37 @@ public class AliasesService(
     public async Task<Result> FinalizeAliasSetupAsync(string groupId, Guid currentUserId)
     {
         if (!Guid.TryParse(groupId, out var groupGuid))
-            return Result.BadRequest("Invalid group ID format");
+            return Result.BadRequest(loc["InvalidGroupIdFormat"]);
 
         var user = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
 
         if (user == null)
-            return Result.Unauthorized("User not found");
+            return Result.Unauthorized(loc["UserNotFound"]);
 
         var group = await unitOfWork.Groups
             .FirstOrDefaultAsync(g => g.Guid == groupGuid && g.DeletedAt == null);
 
         if (group == null)
-            return Result.NotFound("Group not found");
+            return Result.NotFound(loc["GroupNotFound"]);
 
         // Membership + admin check
         var currentUserMembership = await unitOfWork.GroupMembers
             .FirstOrDefaultAsync(gm => gm.GroupId == group.Id && gm.UserId == user.Id && gm.DeletedAt == null);
 
         if (currentUserMembership == null)
-            return Result.Forbidden("Access to this group is not allowed");
+            return Result.Forbidden(loc["AccessNotAllowed"]);
 
         if (currentUserMembership.Role != GroupRole.Admin)
-            return Result.Forbidden("Only group administrators can finalize alias setup");
+            return Result.Forbidden(loc["OnlyAdminsCanFinalizeAliasSetup"]);
 
         // Reject if alias mode is not enabled
         if (!group.UseAliases)
-            return Result.Conflict("Alias mode is not enabled for this group");
+            return Result.Conflict(loc["AliasModeNotEnabled"]);
 
         // Reject if already finalized
         if (group.AliasSetupFinalized)
-            return Result.Conflict("Alias setup is already finalized");
+            return Result.Conflict(loc["AliasSetupAlreadyFinalized"]);
 
         // Count non-deleted aliases with ≥2 non-deleted members
         var hasMultiPersonAlias = await unitOfWork.Aliases
@@ -411,7 +413,7 @@ public class AliasesService(
                 .Count(gm => gm.GroupId == a.GroupId && gm.AliasId == a.Id && gm.DeletedAt == null) >= 2);
 
         if (!hasMultiPersonAlias)
-            return Result.Conflict("At least one multi-person alias is required before finalizing");
+            return Result.Conflict(loc["MultiPersonAliasRequired"]);
 
         group.AliasSetupFinalized = true;
 

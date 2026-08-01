@@ -24,21 +24,21 @@
       >
         <UiEmptyState
           icon="i-lucide-bar-chart-3"
-          title="No summary available"
-          subtitle="Add some expenses to see your balance"
+          :title="$t('expenses.noSummaryAvailable')"
+          :subtitle="$t('expenses.noSummarySubtitle')"
         />
       </UCard>
     </div>
     <div>
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-semibold text-primary">
-          Expenses
+          {{ $t('expenses.title') }}
         </h3>
         <div class="flex items-center gap-2">
           <UButton
             class="md:hidden"
             icon="i-lucide-filter"
-            :label="activeFilterCount ? `Filters (${activeFilterCount})` : 'Filters'"
+            :label="activeFilterCount ? $t('expenses.filtersCount', { count: activeFilterCount }) : $t('expenses.filters')"
             size="sm"
             variant="outline"
             @click="mobileFiltersOpen = !mobileFiltersOpen"
@@ -51,7 +51,7 @@
             size="sm"
             @click="addExpense"
           >
-            <span class="hidden sm:inline">Add Expense</span>
+            <span class="hidden sm:inline">{{ $t('expenses.addExpense') }}</span>
           </UButton>
         </div>
       </div>
@@ -90,8 +90,8 @@
           <UiEmptyState
             v-else
             icon="i-lucide-receipt"
-            title="No expenses found"
-            subtitle="Start adding expenses to track your group spending"
+            :title="$t('expenses.noExpensesFound')"
+            :subtitle="$t('expenses.noExpensesSubtitle')"
           />
         </div>
       </div>
@@ -111,6 +111,7 @@
 </template>
 
 <script setup>
+const { t } = useI18n()
 const props = defineProps({
   groupId: { type: String, required: true },
 })
@@ -197,8 +198,8 @@ const mySuggestion = computed(() => {
     if (!s) return null
     return {
       label: s.fromAliasId === aliasId
-        ? `Your alias (${s.fromAliasName}) owes ${s.toAliasName} ${formatAmount(s.amount)} €`
-        : `${s.fromAliasName} owes your alias (${s.toAliasName}) ${formatAmount(s.amount)} €`,
+        ? `${t('stats.yourAlias', { name: s.fromAliasName })} ${t('stats.owes')} ${s.toAliasName} ${formatAmount(s.amount)} €`
+        : `${s.fromAliasName} ${t('stats.owes')} ${t('stats.yourAlias', { name: s.toAliasName })} ${formatAmount(s.amount)} €`,
       isOwed: s.toAliasId === aliasId,
     }
   }
@@ -211,22 +212,22 @@ const mySuggestion = computed(() => {
   const to = userMap.value[s.toUserId]
   return {
     label: s.fromUserId === id
-      ? `You owe ${to?.firstName || 'someone'} ${formatAmount(s.amount)} €`
-      : `${from?.firstName || 'someone'} owes you ${formatAmount(s.amount)} €`,
+      ? `${t('stats.youOwe')} ${to?.firstName || 'someone'} ${formatAmount(s.amount)} €`
+      : `${from?.firstName || 'someone'} ${t('stats.owes')} ${t('stats.you')} ${formatAmount(s.amount)} €`,
     isOwed: s.toUserId === id,
   }
 })
 
 const categoryOptions = computed(() => [
-  { value: null, label: 'All categories' },
+  { value: null, label: t('expenses.allCategories') },
   ...categories.value.map(c => ({ value: c.name, label: c.name })),
 ])
 
 const memberOptions = computed(() => {
-  if (!summary.value?.balances) return [{ value: null, label: 'All members' }]
+  if (!summary.value?.balances) return [{ value: null, label: t('expenses.allMembers') }]
   if (isAliasMode.value) {
     return [
-      { value: null, label: 'All aliases' },
+      { value: null, label: t('expenses.allAliases') },
       ...summary.value.balances.map(b => ({
         value: b.aliasId,
         label: b.aliasName,
@@ -234,7 +235,7 @@ const memberOptions = computed(() => {
     ]
   }
   return [
-    { value: null, label: 'All members' },
+    { value: null, label: t('expenses.allMembers') },
     ...summary.value.balances.map(b => ({
       value: b.userId,
       label: `${b.user.firstName} ${b.user.lastName}`,

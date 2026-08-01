@@ -9,14 +9,14 @@
           {{ invitation.email }}
         </p>
         <p class="text-sm text-muted">
-          Invited {{ formatDate(invitation.invitedAt) }}
+          {{ $t('members.invited', { date: formatDate(invitation.invitedAt) }) }}
         </p>
       </div>
       <div class="flex items-center justify-between sm:justify-start gap-3 shrink-0">
         <UBadge
           variant="soft"
           color="warning"
-          label="Pending"
+          :label="$t('members.pending')"
           icon="i-lucide-clock"
         />
         <div class="flex items-center gap-2 sm:gap-3">

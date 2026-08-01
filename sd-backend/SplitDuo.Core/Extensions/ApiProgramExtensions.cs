@@ -67,12 +67,14 @@ public static class ApiProgramExtensions
             builder.Services.ConfigureOptions<JwtBearerOptionsSetup>();
             builder.Services.ConfigureOptions<SmtpOptionsSetup>();
             builder.Services.ConfigureOptions<AiOptionsSetup>();
+            builder.Services.ConfigureOptions<RequestLocalizationOptionsSetup>();
         }
 
         private void ConfigureServices()
         {
             builder.Services.AddSingleton(TimeProvider.System);
             builder.Services.AddHttpContextAccessor();
+            builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 
             builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
             builder.Services.AddProblemDetails();

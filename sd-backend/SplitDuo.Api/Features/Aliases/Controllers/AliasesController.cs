@@ -21,7 +21,7 @@ public class AliasesController(
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-            return HandleResult(Result<List<AliasDto>>.Unauthorized("User not authenticated"));
+            return HandleResult(NotAuthenticated<List<AliasDto>>());
 
         var result = await aliasesService.ListAliasesAsync(groupId, currentUserId.Value);
         return HandleResult(result, "Aliases retrieved successfully");
@@ -33,7 +33,7 @@ public class AliasesController(
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-            return HandleResult(Result<AliasDto>.Unauthorized("User not authenticated"));
+            return HandleResult(NotAuthenticated<AliasDto>());
 
         var result = await aliasesService.CreateAliasAsync(groupId, currentUserId.Value, request);
 
@@ -48,7 +48,7 @@ public class AliasesController(
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-            return HandleResult(Result.Unauthorized("User not authenticated"));
+            return HandleResult(NotAuthenticated());
 
         var result = await aliasesService.FinalizeAliasSetupAsync(groupId, currentUserId.Value);
 
@@ -64,7 +64,7 @@ public class AliasesController(
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-            return HandleResult(Result<AliasDto>.Unauthorized("User not authenticated"));
+            return HandleResult(NotAuthenticated<AliasDto>());
 
         var result = await aliasesService.UpdateAliasAsync(aliasId, currentUserId.Value, request);
 
@@ -79,7 +79,7 @@ public class AliasesController(
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-            return HandleResult(Result.Unauthorized("User not authenticated"));
+            return HandleResult(NotAuthenticated());
 
         var result = await aliasesService.DeleteAliasAsync(aliasId, currentUserId.Value);
 
@@ -95,7 +95,7 @@ public class AliasesController(
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-            return HandleResult(Result<AliasDto>.Unauthorized("User not authenticated"));
+            return HandleResult(NotAuthenticated<AliasDto>());
 
         var result = await aliasesService.AssignMemberAsync(aliasId, currentUserId.Value, request);
 
@@ -110,7 +110,7 @@ public class AliasesController(
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
-            return HandleResult(Result.Unauthorized("User not authenticated"));
+            return HandleResult(NotAuthenticated());
 
         var result = await aliasesService.RemoveMemberAsync(aliasId, userId, currentUserId.Value);
 

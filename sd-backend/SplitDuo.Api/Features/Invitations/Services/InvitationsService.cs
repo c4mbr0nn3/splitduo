@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using SplitDuo.Api.Features.Common.Dto;
 using SplitDuo.Api.Features.Groups.Dto;
 using SplitDuo.Api.Features.Invitations.Dto;
@@ -9,6 +10,7 @@ using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Email;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Domain.Enums;
+using SplitDuo.Core.Localization;
 using SplitDuo.Core.Persistence;
 using SplitDuo.Core.Services;
 
@@ -37,7 +39,8 @@ public class InvitationsService(
     INotificationService notificationService,
     IEmailTemplateProvider emailTemplateProvider,
     IPasswordHasher<User> passwordHasher,
-    TimeProvider timeProvider) : IInvitationsService
+    TimeProvider timeProvider,
+    IStringLocalizer<InvitationsService> loc) : IInvitationsService
 {
     private const int TokenExpirationHours = 48;
 
@@ -45,28 +48,28 @@ public class InvitationsService(
         SendInvitationRequestDto request)
     {
         if (!Guid.TryParse(groupId, out var groupGuid))
-            return Result<SendInvitationResponseDto>.BadRequest("Invalid group ID format");
+            return Result<SendInvitationResponseDto>.BadRequest(loc["InvalidGroupIdFormat"]);
 
         var currentUser = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
 
         if (currentUser == null)
-            return Result<SendInvitationResponseDto>.Unauthorized("User not found");
+            return Result<SendInvitationResponseDto>.Unauthorized(loc["UserNotFound"]);
 
         var group = await unitOfWork.Groups
             .FirstOrDefaultAsync(g => g.Guid == groupGuid && g.DeletedAt == null);
 
         if (group == null)
-            return Result<SendInvitationResponseDto>.NotFound("Group not found");
+            return Result<SendInvitationResponseDto>.NotFound(loc["GroupNotFound"]);
 
         var currentUserMembership = await unitOfWork.GroupMembers
             .FirstOrDefaultAsync(gm => gm.GroupId == group.Id && gm.UserId == currentUser.Id && gm.DeletedAt == null);
 
         if (currentUserMembership == null)
-            return Result<SendInvitationResponseDto>.Forbidden("Access to this group is not allowed");
+            return Result<SendInvitationResponseDto>.Forbidden(loc["AccessNotAllowed"]);
 
         if (currentUserMembership.Role != GroupRole.Admin)
-            return Result<SendInvitationResponseDto>.Forbidden("Only group administrators can invite members");
+            return Result<SendInvitationResponseDto>.Forbidden(loc["OnlyAdminsCanInvite"]);
 
         var email = request.Email.ToLowerInvariant();
 
@@ -82,7 +85,7 @@ public class InvitationsService(
                     gm.GroupId == group.Id && gm.UserId == existingUser.Id && gm.DeletedAt == null);
 
             if (existingMembership != null)
-                return Result<SendInvitationResponseDto>.Conflict("User is already a member of this group");
+                return Result<SendInvitationResponseDto>.Conflict(loc["UserAlreadyMember"]);
 
             // Add existing user directly
             var groupMember = new GroupMember
@@ -94,13 +97,14 @@ public class InvitationsService(
 
             unitOfWork.GroupMembers.Add(groupMember);
 
-            // Send notification email
+            // Send notification email — use the existing user's UiLanguage (AC-005).
+            var existingUserLanguage = SupportedLanguages.Normalize(existingUser.Settings.UiLanguage);
             await notificationService.EnqueueAsync(emailTemplateProvider.Render(new GroupMemberAddedModel
             {
                 To = existingUser.Email, RecipientFirstName = existingUser.FirstName,
                 AddedByFirstName = currentUser.FirstName, AddedByLastName = currentUser.LastName,
                 GroupName = group.Name, GroupGuid = group.Guid
-            }));
+            }, existingUserLanguage));
 
             return Result<SendInvitationResponseDto>.Success(new SendInvitationResponseDto
             {
@@ -133,7 +137,7 @@ public class InvitationsService(
                 it.ExpiresAt > now);
 
         if (existingInvitation != null)
-            return Result<SendInvitationResponseDto>.Conflict("An invitation for this email is already pending");
+            return Result<SendInvitationResponseDto>.Conflict(loc["InvitationAlreadyPending"]);
 
         // Create invitation token
         var rawToken = GenerateToken();
@@ -148,13 +152,13 @@ public class InvitationsService(
 
         unitOfWork.InvitationTokens.Add(invitationToken);
 
-        // Send invitation email
+        // Send invitation email — use English as default for new users with no account (spec §9.4)
         await notificationService.EnqueueAsync(emailTemplateProvider.Render(new GroupInvitationModel
         {
             To = email, GroupName = group.Name,
             InviterFirstName = currentUser.FirstName, InviterLastName = currentUser.LastName,
             RawToken = rawToken
-        }));
+        }, "en"));
 
         return Result<SendInvitationResponseDto>.Success(new SendInvitationResponseDto
         {
@@ -180,28 +184,28 @@ public class InvitationsService(
     public async Task<Result<List<InvitationDto>>> GetGroupInvitationsAsync(string groupId, Guid currentUserId)
     {
         if (!Guid.TryParse(groupId, out var groupGuid))
-            return Result<List<InvitationDto>>.BadRequest("Invalid group ID format");
+            return Result<List<InvitationDto>>.BadRequest(loc["InvalidGroupIdFormat"]);
 
         var currentUser = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
 
         if (currentUser == null)
-            return Result<List<InvitationDto>>.Unauthorized("User not found");
+            return Result<List<InvitationDto>>.Unauthorized(loc["UserNotFound"]);
 
         var group = await unitOfWork.Groups
             .FirstOrDefaultAsync(g => g.Guid == groupGuid && g.DeletedAt == null);
 
         if (group == null)
-            return Result<List<InvitationDto>>.NotFound("Group not found");
+            return Result<List<InvitationDto>>.NotFound(loc["GroupNotFound"]);
 
         var currentUserMembership = await unitOfWork.GroupMembers
             .FirstOrDefaultAsync(gm => gm.GroupId == group.Id && gm.UserId == currentUser.Id && gm.DeletedAt == null);
 
         if (currentUserMembership == null)
-            return Result<List<InvitationDto>>.Forbidden("Access to this group is not allowed");
+            return Result<List<InvitationDto>>.Forbidden(loc["AccessNotAllowed"]);
 
         if (currentUserMembership.Role != GroupRole.Admin)
-            return Result<List<InvitationDto>>.Forbidden("Only group administrators can view invitations");
+            return Result<List<InvitationDto>>.Forbidden(loc["OnlyAdminsCanInvite"]);
 
         var now = timeProvider.GetUtcNow().ToUnixTimeSeconds();
         var invitations = await unitOfWork.InvitationTokens
@@ -237,31 +241,31 @@ public class InvitationsService(
         Guid currentUserId)
     {
         if (!Guid.TryParse(groupId, out var groupGuid))
-            return Result<InvitationDto>.BadRequest("Invalid group ID format");
+            return Result<InvitationDto>.BadRequest(loc["InvalidGroupIdFormat"]);
 
         if (!Guid.TryParse(invitationId, out var invitationGuid))
-            return Result<InvitationDto>.BadRequest("Invalid invitation ID format");
+            return Result<InvitationDto>.BadRequest(loc["InvalidInvitationIdFormat"]);
 
         var currentUser = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
 
         if (currentUser == null)
-            return Result<InvitationDto>.Unauthorized("User not found");
+            return Result<InvitationDto>.Unauthorized(loc["UserNotFound"]);
 
         var group = await unitOfWork.Groups
             .FirstOrDefaultAsync(g => g.Guid == groupGuid && g.DeletedAt == null);
 
         if (group == null)
-            return Result<InvitationDto>.NotFound("Group not found");
+            return Result<InvitationDto>.NotFound(loc["GroupNotFound"]);
 
         var currentUserMembership = await unitOfWork.GroupMembers
             .FirstOrDefaultAsync(gm => gm.GroupId == group.Id && gm.UserId == currentUser.Id && gm.DeletedAt == null);
 
         if (currentUserMembership == null)
-            return Result<InvitationDto>.Forbidden("Access to this group is not allowed");
+            return Result<InvitationDto>.Forbidden(loc["AccessNotAllowed"]);
 
         if (currentUserMembership.Role != GroupRole.Admin)
-            return Result<InvitationDto>.Forbidden("Only group administrators can resend invitations");
+            return Result<InvitationDto>.Forbidden(loc["OnlyAdminsCanResend"]);
 
         var oldInvitation = await unitOfWork.InvitationTokens
             .FirstOrDefaultAsync(it =>
@@ -271,7 +275,7 @@ public class InvitationsService(
                 it.RevokedAt == null);
 
         if (oldInvitation == null)
-            return Result<InvitationDto>.NotFound("Invitation not found");
+            return Result<InvitationDto>.NotFound(loc["InvitationNotFound"]);
 
         // Revoke old token
         oldInvitation.RevokedAt = timeProvider.GetUtcNow().ToUnixTimeSeconds();
@@ -289,13 +293,13 @@ public class InvitationsService(
 
         unitOfWork.InvitationTokens.Add(newInvitation);
 
-        // Send new email
+        // Send new email — use English as default for new users with no account (spec §9.4)
         await notificationService.EnqueueAsync(emailTemplateProvider.Render(new GroupInvitationModel
         {
             To = oldInvitation.Email, GroupName = group.Name,
             InviterFirstName = currentUser.FirstName, InviterLastName = currentUser.LastName,
             RawToken = rawToken
-        }));
+        }, "en"));
 
         return Result<InvitationDto>.Success(new InvitationDto
         {
@@ -317,31 +321,31 @@ public class InvitationsService(
     public async Task<Result> RevokeInvitationAsync(string groupId, string invitationId, Guid currentUserId)
     {
         if (!Guid.TryParse(groupId, out var groupGuid))
-            return Result.BadRequest("Invalid group ID format");
+            return Result.BadRequest(loc["InvalidGroupIdFormat"]);
 
         if (!Guid.TryParse(invitationId, out var invitationGuid))
-            return Result.BadRequest("Invalid invitation ID format");
+            return Result.BadRequest(loc["InvalidInvitationIdFormat"]);
 
         var currentUser = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
 
         if (currentUser == null)
-            return Result.Unauthorized("User not found");
+            return Result.Unauthorized(loc["UserNotFound"]);
 
         var group = await unitOfWork.Groups
             .FirstOrDefaultAsync(g => g.Guid == groupGuid && g.DeletedAt == null);
 
         if (group == null)
-            return Result.NotFound("Group not found");
+            return Result.NotFound(loc["GroupNotFound"]);
 
         var currentUserMembership = await unitOfWork.GroupMembers
             .FirstOrDefaultAsync(gm => gm.GroupId == group.Id && gm.UserId == currentUser.Id && gm.DeletedAt == null);
 
         if (currentUserMembership == null)
-            return Result.Forbidden("Access to this group is not allowed");
+            return Result.Forbidden(loc["AccessNotAllowed"]);
 
         if (currentUserMembership.Role != GroupRole.Admin)
-            return Result.Forbidden("Only group administrators can revoke invitations");
+            return Result.Forbidden(loc["OnlyAdminsCanRevoke"]);
 
         var invitation = await unitOfWork.InvitationTokens
             .FirstOrDefaultAsync(it =>
@@ -351,7 +355,7 @@ public class InvitationsService(
                 it.RevokedAt == null);
 
         if (invitation == null)
-            return Result.NotFound("Invitation not found");
+            return Result.NotFound(loc["InvitationNotFound"]);
 
         invitation.RevokedAt = timeProvider.GetUtcNow().ToUnixTimeSeconds();
 
@@ -369,19 +373,19 @@ public class InvitationsService(
 
         if (invitation == null)
             return Result<ValidateInvitationResponseDto>.BadRequest(
-                "This invitation link is invalid or has expired.");
+                loc["InvitationInvalidOrExpired"]);
 
         if (invitation.RevokedAt != null)
             return Result<ValidateInvitationResponseDto>.BadRequest(
-                "This invitation link is no longer valid.");
+                loc["InvitationNoLongerValid"]);
 
         if (invitation.AcceptedAt != null)
             return Result<ValidateInvitationResponseDto>.BadRequest(
-                "This invitation has already been accepted.");
+                loc["InvitationAlreadyAccepted"]);
 
         if (invitation.ExpiresAt < now)
             return Result<ValidateInvitationResponseDto>.BadRequest(
-                "This invitation link has expired.");
+                loc["InvitationExpired"]);
 
         return Result<ValidateInvitationResponseDto>.Success(new ValidateInvitationResponseDto
         {
@@ -400,23 +404,23 @@ public class InvitationsService(
             .FirstOrDefaultAsync(it => it.TokenHash == hashedToken);
 
         if (invitation == null)
-            return Result.BadRequest("This invitation link is invalid or has expired.");
+            return Result.BadRequest(loc["InvitationInvalidOrExpired"]);
 
         if (invitation.RevokedAt != null)
-            return Result.BadRequest("This invitation link is no longer valid.");
+            return Result.BadRequest(loc["InvitationNoLongerValid"]);
 
         if (invitation.AcceptedAt != null)
-            return Result.BadRequest("This invitation has already been accepted.");
+            return Result.BadRequest(loc["InvitationAlreadyAccepted"]);
 
         if (invitation.ExpiresAt < now)
-            return Result.BadRequest("This invitation link has expired.");
+            return Result.BadRequest(loc["InvitationExpired"]);
 
         // Check if email already has an account
         var existingUser = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Email == invitation.Email && u.DeletedAt == null);
 
         if (existingUser != null)
-            return Result.BadRequest("An account with this email already exists. Please log in.");
+            return Result.BadRequest(loc["AccountAlreadyExists"]);
 
         // Use transaction: need to save user first to get the generated Id,
         // then use that Id for GroupMember records
@@ -431,6 +435,7 @@ public class InvitationsService(
                 PasswordHash = passwordHasher.HashPassword(null!, request.Password),
                 GlobalRoleId = (int)GlobalRole.BaseUser
             };
+            user.Settings.UiLanguage = SupportedLanguages.Normalize(request.UiLanguage);
 
             unitOfWork.Users.Add(user);
             await unitOfWork.SaveChangesAsync();

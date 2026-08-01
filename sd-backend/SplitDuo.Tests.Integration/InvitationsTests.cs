@@ -245,7 +245,7 @@ public class InvitationsTests : IntegrationTest
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<List<InvitationDto>>>(ct);
-        Assert.Equal("Only group administrators can view invitations", body!.Error!.Message);
+        Assert.Equal("Only group administrators can invite members", body!.Error!.Message);
     }
 
     #endregion

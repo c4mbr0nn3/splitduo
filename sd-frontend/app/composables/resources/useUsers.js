@@ -1,5 +1,6 @@
 export default function useUsers() {
   const api = useApi()
+  const { t } = useI18n()
   const { showError, showSuccess } = useNotifications()
 
   const users = ref([])
@@ -18,7 +19,7 @@ export default function useUsers() {
       }
     }
     catch (error) {
-      showError('Failed to load users')
+      showError(t('toasts.users.loadFailed'))
       throw error
     }
     finally {
@@ -37,7 +38,7 @@ export default function useUsers() {
       }
     }
     catch (error) {
-      showError('Failed to load user profile')
+      showError(t('toasts.users.profileLoadFailed'))
       throw error
     }
     finally {
@@ -51,12 +52,12 @@ export default function useUsers() {
       const response = await api.put('/users/me', userData)
       if (response.success && response.data) {
         currentUser.value = response.data
-        showSuccess('Profile updated successfully')
+        showSuccess(t('toasts.users.profileUpdated'))
         return response.data
       }
     }
     catch (error) {
-      showError('Failed to update profile')
+      showError(t('toasts.users.profileUpdateFailed'))
       throw error
     }
   }
@@ -65,10 +66,10 @@ export default function useUsers() {
   const changePassword = async (passwordData) => {
     try {
       await api.put('/users/me/password', passwordData)
-      showSuccess('Password changed successfully')
+      showSuccess(t('toasts.users.passwordChanged'))
     }
     catch (error) {
-      showError('Failed to change password')
+      showError(t('toasts.users.passwordChangeFailed'))
       throw error
     }
   }
@@ -83,7 +84,7 @@ export default function useUsers() {
       }
     }
     catch (error) {
-      showError('Failed to load imports')
+      showError(t('toasts.users.importsLoadFailed'))
       throw error
     }
   }
@@ -98,7 +99,7 @@ export default function useUsers() {
       }
     }
     catch (error) {
-      showError('Failed to load user stats')
+      showError(t('toasts.users.statsLoadFailed'))
       throw error
     }
   }
@@ -112,7 +113,7 @@ export default function useUsers() {
       }
     }
     catch (error) {
-      showError('Failed to load user')
+      showError(t('toasts.users.loadOneFailed'))
       throw error
     }
   }
@@ -126,12 +127,12 @@ export default function useUsers() {
         if (index !== -1) {
           users.value[index] = response.data
         }
-        showSuccess('User updated successfully')
+        showSuccess(t('toasts.users.updated'))
         return response.data
       }
     }
     catch (error) {
-      showError('Failed to update user')
+      showError(t('toasts.users.updateFailed'))
       throw error
     }
   }
@@ -141,10 +142,10 @@ export default function useUsers() {
     try {
       await api.delete(`/users/${userId}`)
       users.value = users.value.filter(u => u.id !== userId)
-      showSuccess('User deleted successfully')
+      showSuccess(t('toasts.users.deleted'))
     }
     catch (error) {
-      showError('Failed to delete user')
+      showError(t('toasts.users.deleteFailed'))
       throw error
     }
   }
@@ -158,12 +159,12 @@ export default function useUsers() {
         if (index !== -1) {
           users.value[index] = response.data
         }
-        showSuccess('User role updated successfully')
+        showSuccess(t('toasts.users.roleUpdated'))
         return response.data
       }
     }
     catch (error) {
-      showError('Failed to update user role')
+      showError(t('toasts.users.roleUpdateFailed'))
       throw error
     }
   }
@@ -172,10 +173,10 @@ export default function useUsers() {
   const revokeUserTokens = async (userGuid) => {
     try {
       await api.post(`/auth/${userGuid}/revoke`)
-      showSuccess('User tokens revoked successfully')
+      showSuccess(t('toasts.users.tokensRevoked'))
     }
     catch (error) {
-      showError('Failed to revoke user tokens')
+      showError(t('toasts.users.tokensRevokeFailed'))
       throw error
     }
   }

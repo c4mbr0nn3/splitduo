@@ -10,6 +10,7 @@
 </template>
 
 <script setup>
+const { t } = useI18n()
 const props = defineProps({
   group: {
     type: Object,
@@ -52,17 +53,17 @@ const handleDelete = () => {
 
 const dropdownItems = computed(() => [
   {
-    label: 'Invite Users',
+    label: t('groups.inviteUsers'),
     icon: 'i-lucide-user-plus',
     onSelect: navigateToInvite,
   },
   {
-    label: 'Import File',
+    label: t('groups.importFile'),
     icon: 'i-lucide-upload',
     onSelect: navigateToImports,
   },
   {
-    label: 'Export to CSV',
+    label: t('groups.exportToCsv'),
     icon: 'i-lucide-download',
     onSelect: handleExport,
     disabled: props.isExporting,
@@ -71,7 +72,7 @@ const dropdownItems = computed(() => [
     type: 'separator',
   },
   {
-    label: 'Edit Group',
+    label: t('groups.editGroup'),
     icon: 'i-lucide-edit-2',
     color: 'info',
     onSelect: navigateToEdit,
@@ -80,7 +81,7 @@ const dropdownItems = computed(() => [
     type: 'separator',
   },
   {
-    label: 'Delete Group',
+    label: t('groups.deleteGroup'),
     icon: 'i-lucide-trash-2',
     color: 'error',
     disabled: props.isDeleting,

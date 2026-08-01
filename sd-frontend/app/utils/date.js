@@ -6,7 +6,8 @@
 export function formatDate(timestamp) {
   if (!timestamp) return 'Unknown'
   const date = new Date(timestamp * 1000) // Convert Unix timestamp to Date
-  return date.toLocaleDateString('en-US', {
+  const { $i18n } = useNuxtApp()
+  return date.toLocaleDateString($i18n.locale.value, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -21,7 +22,8 @@ export function formatDate(timestamp) {
 export function formatDateString(dateInput) {
   if (!dateInput) return 'Unknown'
   const date = new Date(dateInput)
-  return date.toLocaleDateString('en-US', {
+  const { $i18n } = useNuxtApp()
+  return date.toLocaleDateString($i18n.locale.value, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',

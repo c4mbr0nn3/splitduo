@@ -1,8 +1,8 @@
 <template>
   <ExpensesExpenseForm
     v-model="expenseFormData"
-    title="Edit Expense"
-    submit-label="Update Expense"
+    :title="$t('expenses.editExpense')"
+    :submit-label="$t('expenses.updateExpense')"
     :pre-selected-group-id="groupId"
     :loading="isUpdating"
     @submit="onSubmit"
@@ -11,6 +11,7 @@
 </template>
 
 <script setup>
+const { t } = useI18n()
 const route = useRoute()
 const groupId = route.params.id
 const expenseId = route.params.expenseId
@@ -99,7 +100,7 @@ onMounted(async () => {
 })
 
 useHead({
-  title: computed(() => `Edit ${currentExpense.value?.title || 'Expense'}`),
+  title: computed(() => `${t('expenses.editExpense')} - ${currentExpense.value?.title || ''}`),
 })
 
 definePageMeta({

@@ -1,4 +1,5 @@
 <script setup>
+const { t } = useI18n()
 const props = defineProps({
   open: {
     type: Boolean,
@@ -30,19 +31,19 @@ const passwordValidationError = computed(() => {
   const password = passwordForm.value.newPassword
   const errors = []
 
-  if (password.length < 8) errors.push('at least 8 characters')
-  if (!/[A-Z]/.test(password)) errors.push('one uppercase letter')
-  if (!/[a-z]/.test(password)) errors.push('one lowercase letter')
-  if (!/[0-9]/.test(password)) errors.push('one digit')
-  if (!/[!@#$%^&*()_+\-=[\]{}|;:,.<>?]/.test(password)) errors.push('one special character')
+  if (password.length < 8) errors.push(t('auth.atLeast8Chars'))
+  if (!/[A-Z]/.test(password)) errors.push(t('auth.oneUppercase'))
+  if (!/[a-z]/.test(password)) errors.push(t('auth.oneLowercase'))
+  if (!/[0-9]/.test(password)) errors.push(t('auth.oneDigit'))
+  if (!/[!@#$%^&*()_+\-=[\]{}|;:,.<>?]/.test(password)) errors.push(t('auth.oneSpecialChar'))
 
-  return errors.length > 0 ? `Password must contain ${errors.join(', ')}` : null
+  return errors.length > 0 ? t('auth.passwordMustContain', { errors: errors.join(', ') }) : null
 })
 
 const confirmPasswordError = computed(() => {
   if (!passwordForm.value.confirmPassword) return null
   if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
-    return 'Passwords do not match'
+    return t('auth.passwordsDoNotMatch')
   }
   return null
 })
@@ -84,7 +85,7 @@ const handlePasswordChange = async () => {
       confirmPassword: passwordForm.value.confirmPassword,
     })
 
-    showSuccess('Password changed successfully. All sessions have been logged out for security.')
+    showSuccess(t('changePassword.successMessage'))
     resetForm()
     isOpen.value = false
     emit('success')
@@ -97,7 +98,7 @@ const handlePasswordChange = async () => {
     }, 1500)
   }
   catch (error) {
-    const errorMessage = error?.data?.error?.message || error?.message || 'Failed to change password'
+    const errorMessage = error?.data?.error?.message || error?.message || t('changePassword.failedMessage')
     showError(errorMessage)
   }
   finally {
@@ -114,8 +115,8 @@ const handlePasswordChange = async () => {
   >
     <template #header>
       <UiCardHeader
-        title="Change Password"
-        subtitle="Update your account password"
+        :title="$t('changePassword.title')"
+        :subtitle="$t('changePassword.subtitle')"
       />
     </template>
 
@@ -126,14 +127,14 @@ const handlePasswordChange = async () => {
         @submit.prevent="handlePasswordChange"
       >
         <UFormField
-          label="Current Password"
+          :label="$t('changePassword.currentPassword')"
           name="currentPassword"
           required
         >
           <UInput
             v-model="passwordForm.currentPassword"
             type="password"
-            placeholder="Enter current password"
+            :placeholder="$t('changePassword.enterCurrentPassword')"
             autocomplete="current-password"
             required
             class="w-full"
@@ -142,7 +143,7 @@ const handlePasswordChange = async () => {
         </UFormField>
 
         <UFormField
-          label="New Password"
+          :label="$t('changePassword.newPassword')"
           name="newPassword"
           required
           :error="passwordValidationError"
@@ -150,7 +151,7 @@ const handlePasswordChange = async () => {
           <UInput
             v-model="passwordForm.newPassword"
             type="password"
-            placeholder="Enter new password"
+            :placeholder="$t('changePassword.enterNewPassword')"
             autocomplete="new-password"
             required
             class="w-full"
@@ -158,13 +159,13 @@ const handlePasswordChange = async () => {
           />
           <template #help>
             <p class="text-xs text-muted mt-1">
-              Must be at least 8 characters with uppercase, lowercase, digit, and special character
+              {{ $t('changePassword.passwordRequirements') }}
             </p>
           </template>
         </UFormField>
 
         <UFormField
-          label="Confirm New Password"
+          :label="$t('changePassword.confirmNewPassword')"
           name="confirmPassword"
           required
           :error="confirmPasswordError"
@@ -172,7 +173,7 @@ const handlePasswordChange = async () => {
           <UInput
             v-model="passwordForm.confirmPassword"
             type="password"
-            placeholder="Confirm new password"
+            :placeholder="$t('changePassword.confirmNewPasswordPlaceholder')"
             autocomplete="new-password"
             required
             class="w-full"
@@ -191,7 +192,7 @@ const handlePasswordChange = async () => {
           class="ml-auto"
           @click="closePasswordModal"
         >
-          Cancel
+          {{ $t('changePassword.cancel') }}
         </UButton>
         <UButton
           color="primary"
@@ -199,7 +200,7 @@ const handlePasswordChange = async () => {
           :disabled="isChangingPassword || !isPasswordFormValid"
           @click="handlePasswordChange"
         >
-          Change Password
+          {{ $t('changePassword.changePassword') }}
         </UButton>
       </div>
     </template>

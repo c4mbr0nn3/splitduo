@@ -1,4 +1,5 @@
 <script setup>
+const { t, locale } = useI18n()
 const route = useRoute()
 const { validateInvitationToken, acceptInvitation } = useInvitations()
 
@@ -34,18 +35,18 @@ const passwordValidationError = computed(() => {
   const rules = passwordRules.value
   if (!rules) return null
   const errors = []
-  if (!rules.length) errors.push('at least 8 characters')
-  if (!rules.uppercase) errors.push('one uppercase letter')
-  if (!rules.lowercase) errors.push('one lowercase letter')
-  if (!rules.digit) errors.push('one digit')
-  if (!rules.special) errors.push('one special character')
-  return errors.length > 0 ? `Password must contain ${errors.join(', ')}` : null
+  if (!rules.length) errors.push(t('auth.atLeast8Chars'))
+  if (!rules.uppercase) errors.push(t('auth.oneUppercase'))
+  if (!rules.lowercase) errors.push(t('auth.oneLowercase'))
+  if (!rules.digit) errors.push(t('auth.oneDigit'))
+  if (!rules.special) errors.push(t('auth.oneSpecialChar'))
+  return errors.length > 0 ? t('auth.passwordMustContain', { errors: errors.join(', ') }) : null
 })
 
 const confirmPasswordError = computed(() => {
   if (!form.value.confirmPassword) return null
   if (form.value.password !== form.value.confirmPassword) {
-    return 'Passwords do not match'
+    return t('auth.passwordsDoNotMatch')
   }
   return null
 })
@@ -93,6 +94,7 @@ const handleSubmit = async () => {
       lastName: form.value.lastName,
       password: form.value.password,
       confirmPassword: form.value.confirmPassword,
+      uiLanguage: locale.value,
     })
 
     acceptSuccess.value = true
@@ -114,7 +116,7 @@ onMounted(() => {
 })
 
 useHead({
-  title: 'Accept Invitation',
+  title: computed(() => t('auth.createAccount')),
 })
 
 definePageMeta({
@@ -127,8 +129,8 @@ definePageMeta({
     <UCard class="w-full max-w-md sd-surface">
       <template #header>
         <UiCardHeader
-          title="Create Your Account"
-          :subtitle="invitationData ? `Join ${invitationData.groupName} on SplitDuo` : 'SplitDuo'"
+          :title="$t('auth.createYourAccount')"
+          :subtitle="invitationData ? $t('auth.joinGroupOnSplitDuo', { groupName: invitationData.groupName }) : 'SplitDuo'"
         />
       </template>
 
@@ -139,7 +141,7 @@ definePageMeta({
       >
         <USkeleton class="h-8 w-8 rounded-full" />
         <p class="text-sm text-muted">
-          Validating invitation...
+          {{ $t('auth.validatingInvitation') }}
         </p>
       </div>
 
@@ -157,13 +159,13 @@ definePageMeta({
 
         <div class="text-center space-y-2">
           <h4 class="text-lg font-semibold">
-            Invalid or Expired Invitation
+            {{ $t('auth.invalidOrExpiredInvitation') }}
           </h4>
           <p class="text-sm text-muted">
-            This invitation link is invalid or has expired.
+            {{ $t('auth.invitationLinkExpired') }}
           </p>
           <p class="text-sm text-muted">
-            Please ask the group admin to send a new invitation.
+            {{ $t('auth.askAdminNewInvitation') }}
           </p>
         </div>
 
@@ -172,7 +174,7 @@ definePageMeta({
             to="/"
             class="text-sm text-muted hover:text-primary transition-colors"
           >
-            Go to Login
+            {{ $t('auth.goToLogin') }}
           </NuxtLink>
         </div>
       </div>
@@ -191,13 +193,13 @@ definePageMeta({
 
         <div class="text-center space-y-2">
           <h4 class="text-lg font-semibold">
-            Account Created!
+            {{ $t('auth.accountCreated') }}
           </h4>
           <p class="text-sm text-muted">
-            Your account has been created successfully.
+            {{ $t('auth.accountCreatedSuccess') }}
           </p>
           <p class="text-sm text-muted">
-            Redirecting to login...
+            {{ $t('auth.redirectingToLogin') }}
           </p>
         </div>
       </div>
@@ -213,7 +215,7 @@ definePageMeta({
           @submit.prevent="handleSubmit"
         >
           <UFormField
-            label="Email"
+            :label="$t('auth.email')"
             name="email"
           >
             <UInput
@@ -225,13 +227,13 @@ definePageMeta({
           </UFormField>
 
           <UFormField
-            label="First Name"
+            :label="$t('auth.firstName')"
             name="firstName"
             required
           >
             <UInput
               v-model="form.firstName"
-              placeholder="Enter your first name"
+              :placeholder="$t('auth.enterFirstName')"
               required
               class="w-full"
               :disabled="isSubmitting"
@@ -239,13 +241,13 @@ definePageMeta({
           </UFormField>
 
           <UFormField
-            label="Last Name"
+            :label="$t('auth.lastName')"
             name="lastName"
             required
           >
             <UInput
               v-model="form.lastName"
-              placeholder="Enter your last name"
+              :placeholder="$t('auth.enterLastName')"
               required
               class="w-full"
               :disabled="isSubmitting"
@@ -253,7 +255,7 @@ definePageMeta({
           </UFormField>
 
           <UFormField
-            label="Password"
+            :label="$t('auth.password')"
             name="password"
             required
             :error="passwordValidationError"
@@ -261,7 +263,7 @@ definePageMeta({
             <UInput
               v-model="form.password"
               type="password"
-              placeholder="Create a password"
+              :placeholder="$t('auth.createPassword')"
               autocomplete="new-password"
               required
               class="w-full"
@@ -273,26 +275,26 @@ definePageMeta({
             >
               <div class="text-xs mt-1 space-y-0.5">
                 <p :class="passwordRules.length ? 'text-success' : 'text-muted'">
-                  {{ passwordRules.length ? '\u2713' : '\u2022' }} At least 8 characters
+                  {{ passwordRules.length ? '\u2713' : '\u2022' }} {{ $t('auth.atLeast8Chars') }}
                 </p>
                 <p :class="passwordRules.uppercase ? 'text-success' : 'text-muted'">
-                  {{ passwordRules.uppercase ? '\u2713' : '\u2022' }} One uppercase letter
+                  {{ passwordRules.uppercase ? '\u2713' : '\u2022' }} {{ $t('auth.oneUppercase') }}
                 </p>
                 <p :class="passwordRules.lowercase ? 'text-success' : 'text-muted'">
-                  {{ passwordRules.lowercase ? '\u2713' : '\u2022' }} One lowercase letter
+                  {{ passwordRules.lowercase ? '\u2713' : '\u2022' }} {{ $t('auth.oneLowercase') }}
                 </p>
                 <p :class="passwordRules.digit ? 'text-success' : 'text-muted'">
-                  {{ passwordRules.digit ? '\u2713' : '\u2022' }} One digit
+                  {{ passwordRules.digit ? '\u2713' : '\u2022' }} {{ $t('auth.oneDigit') }}
                 </p>
                 <p :class="passwordRules.special ? 'text-success' : 'text-muted'">
-                  {{ passwordRules.special ? '\u2713' : '\u2022' }} One special character
+                  {{ passwordRules.special ? '\u2713' : '\u2022' }} {{ $t('auth.oneSpecialChar') }}
                 </p>
               </div>
             </template>
           </UFormField>
 
           <UFormField
-            label="Confirm Password"
+            :label="$t('auth.confirmPassword')"
             name="confirmPassword"
             required
             :error="confirmPasswordError"
@@ -300,7 +302,7 @@ definePageMeta({
             <UInput
               v-model="form.confirmPassword"
               type="password"
-              placeholder="Confirm your password"
+              :placeholder="$t('auth.confirmYourPassword')"
               autocomplete="new-password"
               required
               class="w-full"
@@ -316,14 +318,14 @@ definePageMeta({
               :loading="isSubmitting"
               :disabled="isSubmitting || !isFormValid"
             >
-              Create Account
+              {{ $t('auth.createAccount') }}
             </UButton>
 
             <NuxtLink
               to="/"
               class="text-center text-sm text-muted hover:text-primary transition-colors"
             >
-              Already have an account? Log in
+              {{ $t('auth.alreadyHaveAccount') }}
             </NuxtLink>
           </div>
         </UForm>

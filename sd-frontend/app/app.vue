@@ -1,5 +1,13 @@
+<script setup>
+import { en, it } from '@nuxt/ui/locale'
+
+const { locale } = useI18n()
+const uiLocales = { en, it }
+const uiLocale = computed(() => uiLocales[locale.value] ?? en)
+</script>
+
 <template>
-  <UApp>
+  <UApp :locale="uiLocale">
     <NuxtLoadingIndicator
       color="repeating-linear-gradient(to right, #14b8a6 0%, #5eead4 50%, #0d9488 100%)"
       :height="3"

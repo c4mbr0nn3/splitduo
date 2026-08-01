@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+    <xsd:element name="root" msdata:IsDataSet="true"/>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="UserNotFound" xml:space="preserve"><value>User not found</value></data>
+  <data name="EmailAlreadyExists" xml:space="preserve"><value>User with this email already exists</value></data>
+  <data name="UnsupportedLanguage" xml:space="preserve"><value>Unsupported language. Supported languages: en, it</value></data>
+  <data name="InvalidUserIdFormat" xml:space="preserve"><value>Invalid user ID format</value></data>
+  <data name="UserNotAuthenticated" xml:space="preserve"><value>User not authenticated</value></data>
+  <data name="OnlyOwnUserData" xml:space="preserve"><value>You can only access your own user data</value></data>
+  <data name="OnlyOwnUserUpdate" xml:space="preserve"><value>You can only update your own user data</value></data>
+  <data name="CurrentPasswordIncorrect" xml:space="preserve"><value>Current password is incorrect</value></data>
+  <data name="InvalidRoleValue" xml:space="preserve"><value>Invalid role value</value></data>
+  <data name="OnlyAdminsCanModifyRoles" xml:space="preserve"><value>Only system administrators can modify user roles</value></data>
+  <data name="UserAlreadyHasRole" xml:space="preserve"><value>User already has this role</value></data>
+  <data name="CannotChangeOwnRole" xml:space="preserve"><value>You cannot change your own role</value></data>
+  <data name="CannotDemoteOnlyAdmin" xml:space="preserve"><value>Cannot demote the only system administrator</value></data>
+</root>
