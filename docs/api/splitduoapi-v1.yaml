@@ -118,6 +118,35 @@ paths:
             text/json:
               schema:
                 $ref: "#/components/schemas/ApiResponseDtoOfListOfImportStatusDto"
+  /api/v1/users/me/settings:
+    put:
+      tags:
+        - Users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserSettingsRequestDto"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserSettingsRequestDto"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserSettingsRequestDto"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfUpdateUserSettingsResponseDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfUpdateUserSettingsResponseDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfUpdateUserSettingsResponseDto"
   /api/v1/users/me/password:
     put:
       tags:
@@ -727,6 +756,46 @@ paths:
       responses:
         "200":
           description: OK
+  /api/v1/groups/{groupId}/members/{userId}/role:
+    put:
+      tags:
+        - Groups
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateGroupMemberRoleRequestDto"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/UpdateGroupMemberRoleRequestDto"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/UpdateGroupMemberRoleRequestDto"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfGroupMemberDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfGroupMemberDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfGroupMemberDto"
   /api/v1/groups/{groupId}/export/csv:
     get:
       tags:
@@ -753,16 +822,6 @@ paths:
       responses:
         "200":
           description: OK
-          content:
-            text/plain:
-              schema:
-                $ref: "#/components/schemas/ApiResponseDtoOfListOfBalanceDto"
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponseDtoOfListOfBalanceDto"
-            text/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponseDtoOfListOfBalanceDto"
   /api/v1/groups/{groupId}/balances/summary:
     get:
       tags:
@@ -776,16 +835,6 @@ paths:
       responses:
         "200":
           description: OK
-          content:
-            text/plain:
-              schema:
-                $ref: "#/components/schemas/ApiResponseDtoOfBalanceSummaryDto"
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponseDtoOfBalanceSummaryDto"
-            text/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponseDtoOfBalanceSummaryDto"
   /api/v1/groups/{groupId}/expenses:
     get:
       tags:
@@ -1257,6 +1306,176 @@ paths:
             text/json:
               schema:
                 $ref: "#/components/schemas/ApiResponseDtoOfListOfstring"
+  /api/v1/groups/{groupId}/aliases:
+    get:
+      tags:
+        - Aliases
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfListOfAliasDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfListOfAliasDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfListOfAliasDto"
+    post:
+      tags:
+        - Aliases
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAliasRequestDto"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/CreateAliasRequestDto"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/CreateAliasRequestDto"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfAliasDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfAliasDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfAliasDto"
+  /api/v1/groups/{groupId}/aliases/finalize:
+    post:
+      tags:
+        - Aliases
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+  /api/v1/aliases/{aliasId}:
+    put:
+      tags:
+        - Aliases
+      parameters:
+        - name: aliasId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAliasRequestDto"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAliasRequestDto"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/UpdateAliasRequestDto"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfAliasDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfAliasDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfAliasDto"
+    delete:
+      tags:
+        - Aliases
+      parameters:
+        - name: aliasId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+  /api/v1/aliases/{aliasId}/members:
+    post:
+      tags:
+        - Aliases
+      parameters:
+        - name: aliasId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssignAliasMemberRequestDto"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/AssignAliasMemberRequestDto"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/AssignAliasMemberRequestDto"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfAliasDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfAliasDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfAliasDto"
+  /api/v1/aliases/{aliasId}/members/{userId}:
+    delete:
+      tags:
+        - Aliases
+      parameters:
+        - name: aliasId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
   /api/v1/ai/status:
     get:
       tags:
@@ -1297,6 +1516,10 @@ components:
           type: string
         confirmPassword:
           type: string
+        uiLanguage:
+          type:
+            - "null"
+            - string
     AddGroupMemberRequestDto:
       required:
         - userEmail
@@ -1311,6 +1534,33 @@ components:
       properties:
         enabled:
           type: boolean
+    AliasDto:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        groupId:
+          type: string
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserBasicInfoDto"
+        isSingleton:
+          type: boolean
+        createdAt:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int64
+        updatedAt:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int64
     ApiErrorDto:
       type: object
       properties:
@@ -1341,6 +1591,23 @@ components:
           oneOf:
             - type: "null"
             - $ref: "#/components/schemas/ApiErrorDto"
+    ApiResponseDtoOfAliasDto:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/AliasDto"
+        message:
+          type:
+            - "null"
+            - string
+        error:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/ApiErrorDto"
     ApiResponseDtoOfAuthResponseDto:
       type: object
       properties:
@@ -1350,23 +1617,6 @@ components:
           oneOf:
             - type: "null"
             - $ref: "#/components/schemas/AuthResponseDto"
-        message:
-          type:
-            - "null"
-            - string
-        error:
-          oneOf:
-            - type: "null"
-            - $ref: "#/components/schemas/ApiErrorDto"
-    ApiResponseDtoOfBalanceSummaryDto:
-      type: object
-      properties:
-        success:
-          type: boolean
-        data:
-          oneOf:
-            - type: "null"
-            - $ref: "#/components/schemas/BalanceSummaryDto"
         message:
           type:
             - "null"
@@ -1492,7 +1742,7 @@ components:
           oneOf:
             - type: "null"
             - $ref: "#/components/schemas/ApiErrorDto"
-    ApiResponseDtoOfListOfBalanceDto:
+    ApiResponseDtoOfListOfAliasDto:
       type: object
       properties:
         success:
@@ -1502,7 +1752,7 @@ components:
             - "null"
             - array
           items:
-            $ref: "#/components/schemas/BalanceDto"
+            $ref: "#/components/schemas/AliasDto"
         message:
           type:
             - "null"
@@ -1747,6 +1997,23 @@ components:
           oneOf:
             - type: "null"
             - $ref: "#/components/schemas/ApiErrorDto"
+    ApiResponseDtoOfUpdateUserSettingsResponseDto:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/UpdateUserSettingsResponseDto"
+        message:
+          type:
+            - "null"
+            - string
+        error:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/ApiErrorDto"
     ApiResponseDtoOfUserDto:
       type: object
       properties:
@@ -1798,6 +2065,13 @@ components:
           oneOf:
             - type: "null"
             - $ref: "#/components/schemas/ApiErrorDto"
+    AssignAliasMemberRequestDto:
+      required:
+        - userId
+      type: object
+      properties:
+        userId:
+          type: string
     AuthResponseDto:
       type: object
       properties:
@@ -1844,34 +2118,6 @@ components:
             - number
             - string
           format: double
-    BalanceSuggestionDto:
-      type: object
-      properties:
-        fromUserId:
-          type: string
-        toUserId:
-          type: string
-        amount:
-          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
-          type:
-            - number
-            - string
-          format: double
-        description:
-          type: string
-    BalanceSummaryDto:
-      type: object
-      properties:
-        groupId:
-          type: string
-        balances:
-          type: array
-          items:
-            $ref: "#/components/schemas/BalanceDto"
-        suggestions:
-          type: array
-          items:
-            $ref: "#/components/schemas/BalanceSuggestionDto"
     CategoryDto:
       type: object
       properties:
@@ -1920,6 +2166,28 @@ components:
           type: string
         confirmPassword:
           type: string
+    CreateAliasRequestDto:
+      required:
+        - name
+      type: object
+      properties:
+        name:
+          maxLength: 100
+          type: string
+    CreateExpenseAliasSplitDto:
+      required:
+        - aliasId
+        - splitAmount
+      type: object
+      properties:
+        aliasId:
+          type: string
+        splitAmount:
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+          format: double
     CreateExpenseRequestDto:
       required:
         - title
@@ -1962,6 +2230,12 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CreateExpenseSplitDto"
+        aliasSplits:
+          type:
+            - "null"
+            - array
+          items:
+            $ref: "#/components/schemas/CreateExpenseAliasSplitDto"
     CreateExpenseSplitDto:
       required:
         - userId
@@ -1988,6 +2262,8 @@ components:
           type:
             - "null"
             - string
+        useAliases:
+          type: boolean
     DisableTwoFactorDto:
       required:
         - password
@@ -1995,6 +2271,28 @@ components:
       properties:
         password:
           type: string
+    ExpenseAliasSplitDto:
+      type: object
+      properties:
+        id:
+          type: string
+        aliasId:
+          type: string
+        aliasName:
+          type: string
+        splitAmount:
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+          format: double
+        splitPercentage:
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - "null"
+            - number
+            - string
+          format: double
     ExpenseDto:
       type: object
       properties:
@@ -2036,6 +2334,12 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ExpenseSplitDto"
+        aliasSplits:
+          type:
+            - "null"
+            - array
+          items:
+            $ref: "#/components/schemas/ExpenseAliasSplitDto"
         createdAt:
           pattern: ^-?(?:0|[1-9]\d*)$
           type:
@@ -2116,6 +2420,10 @@ components:
             - number
             - string
           format: double
+        useAliases:
+          type: boolean
+        aliasSetupFinalized:
+          type: boolean
     GroupMemberDto:
       type: object
       properties:
@@ -2188,6 +2496,10 @@ components:
               - integer
               - string
             format: int32
+        aliasMappings:
+          type: object
+          additionalProperties:
+            type: string
     ImportStatusDto:
       type: object
       properties:
@@ -2529,6 +2841,14 @@ components:
           type: array
           items:
             type: string
+    UpdateAliasRequestDto:
+      type: object
+      properties:
+        name:
+          maxLength: 100
+          type:
+            - "null"
+            - string
     UpdateExpenseRequestDto:
       type: object
       properties:
@@ -2560,12 +2880,14 @@ components:
         categoryId:
           pattern: ^-?(?:0|[1-9]\d*)$
           type:
+            - "null"
             - integer
             - string
           format: int32
         paymentModeId:
           pattern: ^-?(?:0|[1-9]\d*)$
           type:
+            - "null"
             - integer
             - string
           format: int32
@@ -2575,6 +2897,12 @@ components:
             - array
           items:
             $ref: "#/components/schemas/UpdateExpenseSplitDto"
+        aliasSplits:
+          type:
+            - "null"
+            - array
+          items:
+            $ref: "#/components/schemas/CreateExpenseAliasSplitDto"
     UpdateExpenseSplitDto:
       required:
         - userId
@@ -2589,6 +2917,13 @@ components:
             - number
             - string
           format: double
+    UpdateGroupMemberRoleRequestDto:
+      required:
+        - role
+      type: object
+      properties:
+        role:
+          type: string
     UpdateGroupRequestDto:
       type: object
       properties:
@@ -2622,6 +2957,27 @@ components:
           oneOf:
             - type: "null"
             - $ref: "#/components/schemas/GlobalRole"
+    UpdateUserSettingsRequestDto:
+      type: object
+      properties:
+        theme:
+          pattern: ^(light|dark|auto)$
+          type:
+            - "null"
+            - string
+        uiLanguage:
+          type:
+            - "null"
+            - string
+    UpdateUserSettingsResponseDto:
+      type: object
+      properties:
+        settings:
+          $ref: "#/components/schemas/UserSettingsDto"
+        token:
+          type:
+            - "null"
+            - string
     UserBasicInfoDto:
       type: object
       properties:
@@ -2670,6 +3026,8 @@ components:
             - string
         twoFactorEnabled:
           type: boolean
+        settings:
+          $ref: "#/components/schemas/UserSettingsDto"
     UserInfoDto:
       type: object
       properties:
@@ -2683,6 +3041,13 @@ components:
           type:
             - "null"
             - string
+    UserSettingsDto:
+      type: object
+      properties:
+        theme:
+          type: string
+        uiLanguage:
+          type: string
     UserStatsDto:
       type: object
       properties:
@@ -2751,4 +3116,5 @@ tags:
   - name: Categories
   - name: Auth
   - name: TwoFactor
+  - name: Aliases
   - name: Ai
