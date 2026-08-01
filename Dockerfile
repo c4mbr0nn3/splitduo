@@ -45,6 +45,10 @@ COPY --from=backend-build /app/publish ./
 # Copy frontend build output to wwwroot for static file serving
 COPY --from=frontend-build /app/frontend/.output/public ./wwwroot
 
+# Install ICU for globalization support (Alpine ships in invariant mode by default;
+# the app uses request localization with en/it cultures and IStringLocalizer)
+RUN apk add --no-cache icu-libs icu-data-full
+
 # Create a non-root user
 RUN addgroup -g 1000 appuser && \
   adduser -u 1000 -G appuser -s /bin/sh -D appuser && \
@@ -57,6 +61,8 @@ EXPOSE 8080
 # Set environment variables
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
+# Override Alpine image's default invariant mode (icu-data-full installed above)
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 
 # Start the application
 ENTRYPOINT ["dotnet", "SplitDuo.Api.dll"]
