@@ -50,6 +50,16 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
+# Project-local scratch directory for intermediate files. Everything the
+# script writes stays inside the repo root and is removed on exit (normal
+# or error) via the trap below.
+SCRATCH_DIR="$(pwd)/.backfill-tmp"
+mkdir -p "$SCRATCH_DIR"
+cleanup() {
+    rm -rf "$SCRATCH_DIR"
+}
+trap cleanup EXIT INT TERM
+
 DRY_RUN=false
 NO_ASSET_LINK=false
 TARGET_GITLAB=false
@@ -279,13 +289,14 @@ create_github_release() {
     # Build JSON payload with python3 (json.dumps escapes newlines correctly;
     # capturing jq output in a shell variable strips backslash escaping, so
     # write to a file and use curl --data @file).
-    local payload_file
-    payload_file=$(mktemp)
+    local payload_file notes_file
+    payload_file="$SCRATCH_DIR/payload-${tag}.json"
+    notes_file="$SCRATCH_DIR/notes-${tag}.md"
     if command -v python3 >/dev/null 2>&1; then
-        printf '%s' "$description" > /tmp/opencode/sd_notes.md
+        printf '%s' "$description" > "$notes_file"
         python3 -c "
 import json
-notes = open('/tmp/opencode/sd_notes.md').read()
+notes = open('$notes_file').read()
 print(json.dumps({
     'tag_name': '$tag',
     'name': 'Release $tag',
@@ -295,7 +306,6 @@ print(json.dumps({
 " > "$payload_file"
     else
         echo -e "${RED}Error: python3 is required to build the GitHub payload.${NC}"
-        rm -f "$payload_file" /tmp/opencode/sd_notes.md
         return 2
     fi
 
@@ -308,10 +318,8 @@ print(json.dumps({
         --data @"$payload_file" \
         --request POST "$GITHUB_API_BASE") || {
         echo -e "${RED}✗${NC} [github] Failed $tag (curl error)"
-        rm -f "$payload_file" /tmp/opencode/sd_notes.md
         return 2
     }
-    rm -f "$payload_file" /tmp/opencode/sd_notes.md
     http_code=$(echo "$body" | tail -n1)
     body=$(echo "$body" | sed '$d')
 

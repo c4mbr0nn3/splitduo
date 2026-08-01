@@ -5,3 +5,6 @@
 
 # Dev tooling (git-cliff changelog generator)
 node_modules/
+
+# Backfill script scratch dir (scripts/backfill-releases.sh)
+.backfill-tmp/
