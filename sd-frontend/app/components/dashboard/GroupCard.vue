@@ -24,7 +24,7 @@
           color="neutral"
           icon="i-lucide-users"
           size="sm"
-          :label="$t('groups.memberCount', { count: group.memberCount }, group.memberCount)"
+          :label="$t('groups.memberCount', { count: group.memberCount }, Number(group.memberCount))"
         />
 
         <UBadge
@@ -64,26 +64,26 @@
   </UCard>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { Group } from '~/types/domain'
 import { formatCurrency } from '~/utils/currency'
 
 const { t } = useI18n()
 
-const props = defineProps({
-  group: {
-    type: Object,
-    required: true,
-  },
-})
+interface Props {
+  group: Group
+}
+const props = defineProps<Props>()
 
 const balanceColor = computed(() => {
-  if (props.group.netBalance > 0) return 'success'
-  if (props.group.netBalance < 0) return 'error'
+  const netBalance = Number(props.group.netBalance)
+  if (netBalance > 0) return 'success'
+  if (netBalance < 0) return 'error'
   return 'neutral'
 })
 
 const balanceLabel = computed(() => {
-  const balance = props.group.netBalance
+  const balance = Number(props.group.netBalance)
   if (balance > 0) return t('groups.owed', { amount: formatCurrency(balance) })
   if (balance < 0) return t('groups.owes', { amount: formatCurrency(Math.abs(balance)) })
   return t('groups.settled')

@@ -78,7 +78,9 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { Group } from '~/types/domain'
+
 const { t } = useI18n()
 
 const { groups, fetchGroups, isLoading: isLoadingGroups, deleteGroup: deleteGroupAPI } = useGroups()
@@ -110,7 +112,7 @@ const refreshGroups = async () => {
   try {
     await fetchGroups()
   }
-  catch (error) {
+  catch (error: unknown) {
     console.error('Failed to refresh groups:', error)
   }
 }
@@ -131,7 +133,7 @@ const createNewGroup = () => {
 }
 
 // Delete group handlers
-const confirmDeleteGroup = async (group) => {
+const confirmDeleteGroup = async (group: Group) => {
   const confirmed = await modal.error({
     title: t('groups.deleteTitle'),
     subtitle: t('groups.deleteConfirm'),
@@ -145,12 +147,12 @@ const confirmDeleteGroup = async (group) => {
   }
 }
 
-const deleteGroup = async (groupId) => {
+const deleteGroup = async (groupId: string) => {
   isDeletingGroup.value = true
   try {
     await deleteGroupAPI(groupId)
   }
-  catch (error) {
+  catch (error: unknown) {
     console.error('Failed to delete group:', error)
   }
   finally {

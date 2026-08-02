@@ -1,13 +1,15 @@
-<script setup>
+<script setup lang="ts">
+import type { ValidateInvitationResponse } from '~/types/domain'
+
 const { t, locale } = useI18n()
 const route = useRoute()
 const { validateInvitationToken, acceptInvitation } = useInvitations()
 
-const token = ref(route.query.token || '')
+const token = ref(typeof route.query.token === 'string' ? route.query.token : '')
 
 const isValidating = ref(true)
 const isTokenValid = ref(false)
-const invitationData = ref(null)
+const invitationData = ref<ValidateInvitationResponse | null>(null)
 const isSubmitting = ref(false)
 const acceptSuccess = ref(false)
 
@@ -31,24 +33,24 @@ const passwordRules = computed(() => {
 })
 
 const passwordValidationError = computed(() => {
-  if (!form.value.password) return null
+  if (!form.value.password) return undefined
   const rules = passwordRules.value
-  if (!rules) return null
+  if (!rules) return undefined
   const errors = []
   if (!rules.length) errors.push(t('auth.atLeast8Chars'))
   if (!rules.uppercase) errors.push(t('auth.oneUppercase'))
   if (!rules.lowercase) errors.push(t('auth.oneLowercase'))
   if (!rules.digit) errors.push(t('auth.oneDigit'))
   if (!rules.special) errors.push(t('auth.oneSpecialChar'))
-  return errors.length > 0 ? t('auth.passwordMustContain', { errors: errors.join(', ') }) : null
+  return errors.length > 0 ? t('auth.passwordMustContain', { errors: errors.join(', ') }) : undefined
 })
 
 const confirmPasswordError = computed(() => {
-  if (!form.value.confirmPassword) return null
+  if (!form.value.confirmPassword) return undefined
   if (form.value.password !== form.value.confirmPassword) {
     return t('auth.passwordsDoNotMatch')
   }
-  return null
+  return undefined
 })
 
 const isFormValid = computed(() => {
@@ -71,7 +73,7 @@ const validateToken = async () => {
 
   try {
     const data = await validateInvitationToken(token.value)
-    invitationData.value = data
+    invitationData.value = data ?? null
     isTokenValid.value = true
   }
   catch {

@@ -289,16 +289,14 @@ public class UsersService(
         if (request.LastName != null)
             user.LastName = request.LastName;
 
-        if (!request.GlobalRole.HasValue) return Result<UserDto>.Success(new UserDto(user));
+        if (!request.GlobalRole.HasValue || user.GlobalRole == request.GlobalRole.Value)
+            return Result<UserDto>.Success(new UserDto(user));
 
         if (!Enum.IsDefined(request.GlobalRole.Value))
             return Result<UserDto>.BadRequest(loc["InvalidRoleValue"]);
 
         if (!isSystemAdmin)
             return Result<UserDto>.Forbidden(loc["OnlyAdminsCanModifyRoles"]);
-
-        if (user.GlobalRole == request.GlobalRole.Value)
-            return Result<UserDto>.BadRequest(loc["UserAlreadyHasRole"]);
 
         if (request.GlobalRole.Value == GlobalRole.BaseUser && currentUserId == userGuid)
             return Result<UserDto>.Forbidden(loc["CannotChangeOwnRole"]);

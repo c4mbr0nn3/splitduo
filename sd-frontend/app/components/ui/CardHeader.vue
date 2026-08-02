@@ -28,33 +28,24 @@
   </div>
 </template>
 
-<script setup>
-const props = defineProps({
-  title: {
-    type: String,
-    required: true,
-  },
-  subtitle: {
-    type: String,
-    default: null,
-  },
-  backTo: {
-    type: String,
-    default: null,
-  },
-  variant: {
-    type: String,
-    default: 'default',
-    validator: value => ['default', 'centered'].includes(value),
-  },
-  size: {
-    type: String,
-    default: 'md',
-    validator: value => ['md', 'lg'].includes(value),
-  },
+<script setup lang="ts">
+interface Props {
+  title: string
+  subtitle?: string | null
+  backTo?: string | null
+  variant?: 'default' | 'centered'
+  size?: 'md' | 'lg'
+}
+const props = withDefaults(defineProps<Props>(), {
+  subtitle: null,
+  backTo: null,
+  variant: 'default',
+  size: 'md',
 })
 
-const emit = defineEmits(['back'])
+const emit = defineEmits<{
+  back: []
+}>()
 
 const getDefaultTitleClass = computed(() => {
   if (props.variant === 'centered') {
@@ -69,7 +60,7 @@ const getDefaultTitleClass = computed(() => {
   return 'text-lg font-semibold text-highlighted'
 })
 
-const { goBack } = useSmartBack(props.backTo)
+const { goBack } = useSmartBack(props.backTo ?? '')
 
 const handleBack = () => {
   if (props.backTo) {

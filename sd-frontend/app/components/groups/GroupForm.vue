@@ -69,45 +69,42 @@
   </div>
 </template>
 
-<script setup>
-const props = defineProps({
-  title: {
-    type: String,
-    required: true,
-  },
-  submitLabel: {
-    type: String,
-    required: true,
-  },
-  initialData: {
-    type: Object,
-    default: () => ({ name: '', description: '', useAliases: false }),
-  },
-  loading: {
-    type: Boolean,
-    default: false,
-  },
-  disabledAliases: {
-    type: Boolean,
-    default: false,
-  },
+<script setup lang="ts">
+interface GroupFormData {
+  name: string
+  description: string
+  useAliases: boolean
+}
+
+interface Props {
+  title: string
+  submitLabel: string
+  initialData?: GroupFormData
+  loading?: boolean
+  disabledAliases?: boolean
+}
+const props = withDefaults(defineProps<Props>(), {
+  initialData: () => ({ name: '', description: '', useAliases: false }),
+  loading: false,
+  disabledAliases: false,
 })
 
-const emit = defineEmits(['submit', 'cancel'])
+const emit = defineEmits<{
+  submit: [data: GroupFormData]
+  cancel: []
+}>()
 
-const form = ref({
+const form = ref<GroupFormData>({
   name: '',
   description: '',
   useAliases: false,
-  ...props.initialData,
 })
 
 watch(() => props.initialData, (newData) => {
   form.value = {
-    name: '',
-    description: '',
-    useAliases: false,
-    ...newData,
+    name: newData?.name ?? '',
+    description: newData?.description ?? '',
+    useAliases: newData?.useAliases ?? false,
   }
 }, { deep: true })
 

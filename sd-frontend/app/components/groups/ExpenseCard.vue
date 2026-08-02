@@ -68,33 +68,33 @@
   </UCard>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { Expense, User } from '~/types/domain'
+
 const { t } = useI18n()
 
-const props = defineProps({
-  expense: {
-    type: Object,
-    required: true,
-  },
-  currentUser: {
-    type: Object,
-    default: null,
-  },
+interface Props {
+  expense: Expense
+  currentUser?: User | null
+}
+const props = withDefaults(defineProps<Props>(), {
+  currentUser: null,
 })
 
 const { getCategoryName } = useCategories()
 const { getPaymentModeName } = usePaymentModes()
 const modal = useModal()
+const { deleteExpense: deleteExpenseApi } = useExpenses(props.expense.groupId)
 
 const isDeletingExpense = ref(false)
 
 // Computed properties for category and payment mode names
 const categoryName = computed(() => {
-  return getCategoryName(props.expense.categoryId)
+  return getCategoryName(Number(props.expense.categoryId))
 })
 
 const paymentModeName = computed(() => {
-  return getPaymentModeName(props.expense.paymentModeId)
+  return getPaymentModeName(Number(props.expense.paymentModeId))
 })
 
 const formattedDate = computed(() => {
@@ -102,7 +102,7 @@ const formattedDate = computed(() => {
 })
 
 const categoryColor = computed(() => {
-  const colors = {
+  const colors: Record<string, string> = {
     groceries: 'success',
     transportation: 'primary',
     utilities: 'warning',
@@ -115,7 +115,7 @@ const categoryColor = computed(() => {
     dining: 'warning',
     other: 'neutral',
   }
-  return colors[categoryName.value.toLowerCase()] || colors.other
+  return (colors[categoryName.value.toLowerCase()] || colors.other) as 'success' | 'error' | 'primary' | 'secondary' | 'info' | 'warning' | 'neutral'
 })
 
 const youOwe = computed(() => {
@@ -132,17 +132,19 @@ const isAliasSplit = computed(() => {
 })
 
 const splitCount = computed(() => {
-  if (isAliasSplit.value) return props.expense.aliasSplits.length
+  if (isAliasSplit.value) return (props.expense.aliasSplits || []).length
   return props.expense.splits?.length || 0
 })
 
 const splitLabel = computed(() => {
   if (!isAliasSplit.value) return t('expenses.peopleCount', { count: splitCount.value })
-  const names = props.expense.aliasSplits.map(s => s.aliasName).join(', ')
+  const names = (props.expense.aliasSplits || []).map(s => s.aliasName).join(', ')
   return t('expenses.splitAmong', { names })
 })
 
-const emit = defineEmits(['expense-deleted'])
+const emit = defineEmits<{
+  'expense-deleted': [expenseId: string]
+}>()
 
 const confirmDeleteExpense = async () => {
   const confirmed = await modal.error({
@@ -161,7 +163,6 @@ const confirmDeleteExpense = async () => {
 const deleteExpense = async () => {
   isDeletingExpense.value = true
   try {
-    const { deleteExpense: deleteExpenseApi } = useExpenses(props.expense.groupId)
     await deleteExpenseApi(props.expense.id)
     emit('expense-deleted', props.expense.id)
   }

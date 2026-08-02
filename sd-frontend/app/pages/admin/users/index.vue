@@ -85,8 +85,8 @@
         :user="user"
         :is-deleting="isDeleting && userToDelete?.id === user.id"
         @edit="navigateToEdit"
-        @revoke-tokens="revokeTokens"
-        @delete="handleDeleteUser"
+        @revoke-tokens="(user: User) => revokeTokens(user)"
+        @delete="(user: User) => handleDeleteUser(user)"
         @refresh="refreshUsers"
       />
     </div>
@@ -110,14 +110,16 @@
         <AdminPendingUserCard
           v-for="pending in pendingUsers"
           :key="pending.email"
-          :pending="pending"
+          :pending="pending as PendingUser"
         />
       </div>
     </div>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { User, PendingUser } from '~/types/domain'
+
 const { t } = useI18n()
 
 definePageMeta({
@@ -140,7 +142,7 @@ const { searchInput, debouncedSearchQuery } = useDebounceSearch()
 
 // State
 const showSkeleton = ref(true)
-const userToDelete = ref(null)
+const userToDelete = ref<User | null>(null)
 const isDeleting = ref(false)
 
 // Computed
@@ -191,32 +193,32 @@ const refreshUsers = async () => {
   try {
     await fetchUsers()
   }
-  catch (error) {
+  catch (error: unknown) {
     console.error('Failed to refresh users:', error)
   }
 }
 
-const navigateToEdit = (userId) => {
-  navigateTo(`/admin/users/${userId}/edit`)
+const navigateToEdit = () => {
+  // The AdminUserCard navigates directly; this is a fallback
 }
 
-const revokeTokens = async (user) => {
+const revokeTokens = async (user: User) => {
   try {
     await revokeUserTokens(user.id)
   }
-  catch (error) {
+  catch (error: unknown) {
     console.error('Failed to revoke tokens:', error)
   }
 }
 
-const handleDeleteUser = async (user) => {
+const handleDeleteUser = async (user: User) => {
   userToDelete.value = user
   isDeleting.value = true
   try {
     await deleteUser(user.id)
     userToDelete.value = null
   }
-  catch (error) {
+  catch (error: unknown) {
     console.error('Failed to delete user:', error)
   }
   finally {

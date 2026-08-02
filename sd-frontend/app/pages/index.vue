@@ -23,7 +23,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 const { t } = useI18n()
 
 useHead({
@@ -47,7 +47,7 @@ const fields = computed(() => [
     label: t('auth.email'),
     placeholder: t('auth.enterEmail'),
     required: true,
-    size: 'lg',
+    size: 'lg' as const,
   },
   {
     name: 'password',
@@ -55,24 +55,26 @@ const fields = computed(() => [
     label: t('auth.password'),
     placeholder: t('auth.enterPassword'),
     required: true,
-    size: 'lg',
+    size: 'lg' as const,
   },
 ])
 
 const { login, isLoading } = useAuth()
 const { showError, showSuccess } = useNotifications()
 
-async function onSubmit(event) {
+async function onSubmit(event: { data: Record<string, unknown> }) {
   const { data } = event
-  if (!data.email || !data.password) {
+  const email = String(data.email || '')
+  const password = String(data.password || '')
+  if (!email || !password) {
     showError(t('auth.fillAllFields'))
     return
   }
 
   try {
     const result = await login({
-      email: data.email,
-      password: data.password,
+      email,
+      password,
     })
 
     if (result.success) {
@@ -88,8 +90,8 @@ async function onSubmit(event) {
       showError(result.error || t('auth.loginFailed'))
     }
   }
-  catch (error) {
-    showError(error.message || t('auth.unexpectedError'))
+  catch (error: unknown) {
+    showError(error instanceof Error ? error.message : t('auth.unexpectedError'))
   }
 }
 </script>

@@ -16,7 +16,7 @@ See `sd-backend/CLAUDE.md` and `sd-frontend/CLAUDE.md` for detailed codebase doc
 ## Repo Layout
 
 - `sd-backend/` — .NET 10: `SplitDuo.Api` (controllers/DTOs) + `SplitDuo.Core` (entities/data/services) + test projects
-- `sd-frontend/` — Nuxt 4 SPA: Vue 3, Nuxt UI v4, TailwindCSS v4, plain JS (no TypeScript)
+- `sd-frontend/` — Nuxt 4 SPA: Vue 3, Nuxt UI v4, TailwindCSS v4, plain JS
 - `Dockerfile` — multi-stage: frontend `pnpm generate` → static files into backend `wwwroot` → single container on :8080
 - `docker-compose.yml` — app + PostgreSQL 17
 - `scripts/` — `bump-version.sh` (release orchestrator) and dev helpers
@@ -44,34 +44,80 @@ All others optional — see `sd-backend/SplitDuo.Core/Options/Setup/` for full l
 
 ## Rules
 
-### 1. Think Before Coding
-- State assumptions explicitly. If uncertain, ask.
-- If multiple interpretations exist, present them — don't pick silently.
-- If a simpler approach exists, say so. Push back when warranted.
-- If something is unclear, stop. Name what's confusing. Ask.
+### Core Rules
 
-### 2. Simplicity First
-- No features beyond what was asked. No abstractions for single-use code.
-- No speculative flexibility/configurability. No error handling for impossible scenarios.
-- If 200 lines could be 50, rewrite it.
+- If a task matches a skill, you MUST invoke it
+- Skills are located in `skills/<skill-name>/SKILL.md`
+- Never implement directly if a skill applies
+- Always follow the skill instructions exactly (do not partially apply them)
 
-### 3. Surgical Changes
-- Don't "improve" adjacent code, comments, or formatting.
-- Don't refactor things that aren't broken. Match existing style.
-- If you notice unrelated dead code, mention it — don't delete it.
-- Remove imports/variables/functions that YOUR changes made unused. Don't remove pre-existing dead code.
-- Every changed line should trace directly to the user's request.
+### Intent → Skill Mapping
 
-### 4. Goal-Driven Execution
-- Transform tasks into verifiable goals: "Add validation" → "Write tests for invalid inputs, then make them pass."
-- For multi-step tasks, state a plan: `1. [Step] → verify: [check]`
+The agent should automatically map user intent to skills:
 
-### 5. Commit Guidelines
+- Feature / new functionality → `spec-driven-development`, then `incremental-implementation`, `test-driven-development`
+- Planning / breakdown → `planning-and-task-breakdown`
+- Bug / failure / unexpected behavior → `debugging-and-error-recovery`
+- Code review → `code-review-and-quality`
+- Refactoring / simplification → `code-simplification`
+- API or interface design → `api-and-interface-design`
+- UI work → `frontend-ui-engineering`
+
+### Lifecycle Mapping (Implicit Commands)
+
+OpenCode does not support slash commands like `/spec` or `/plan`.
+
+Instead, the agent must internally follow this lifecycle:
+
+- DEFINE → `spec-driven-development`
+- PLAN → `planning-and-task-breakdown`
+- BUILD → `incremental-implementation` + `test-driven-development`
+- VERIFY → `debugging-and-error-recovery`
+- REVIEW → `code-review-and-quality`
+- SHIP → `shipping-and-launch`
+
+### Execution Model
+
+For every request:
+
+1. Determine if any skill applies (even 1% chance)
+2. Invoke the appropriate skill using the `skill` tool
+3. Follow the skill workflow strictly
+4. Only proceed to implementation after required steps (spec, plan, etc.) are complete
+
+### Anti-Rationalization
+
+The following thoughts are incorrect and must be ignored:
+
+- "This is too small for a skill"
+- "I can just quickly implement this"
+- "I’ll gather context first"
+
+Correct behavior:
+
+- Always check for and use skills first
+
+### Commit Guidelines
+
 - Conventional Commits, subject only: `type(scope): message` (≤72 chars, no trailing period)
 - Types: `feat`, `fix`, `refactor`, `docs`, `chore`, `style`, `perf`, `test`, `ci`, `build`
 - No body, no footer. **Never commit or push without explicit user approval.**
 
-### 6. Keep CLAUDE.md in Sync
+### Issue Guidelines
+
+- Use the template at `.gitlab/issue_templates/Default.md` (available in GitLab's "Open" dropdown)
+- Title: `type: concise description` (same types as commits)
+- Sections: **What** (1-3 sentences) → **Why** (1 sentence, omit if obvious) → **Scope** (bullets) → **Done when** (checklist)
+- Side project — keep it short. Delete sections that aren't needed. One-liners are fine.
+
+### GitLab MCP
+
+- The `gitlab` MCP server (`@zereight/mcp-gitlab`) is configured in `opencode.json` and authenticated via the `GITLAB_PERSONAL_ACCESS_TOKEN` env var (project access token, `api` scope)
+- Use GitLab MCP tools for issues, MRs, pipelines, branches, files, labels — not the CLI
+- MRs that close an issue use `Closes #<iid>` in the description; prefer squash-on-merge for feature branches
+
+### Keep CLAUDE.md in Sync
+
 - After implementing new conventions, patterns, composables, helpers, or reusable project guidelines, check `CLAUDE.md` (root + `sd-backend/` + `sd-frontend/`) and add a rule/hint if the change should be repeated by future work.
 - Only add a rule when the change establishes a reusable guideline — not for one-off feature code.
 - Keep entries brief: one line per rule, matching the existing style of the relevant section.

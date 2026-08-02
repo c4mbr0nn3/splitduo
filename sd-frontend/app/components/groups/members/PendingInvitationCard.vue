@@ -43,19 +43,20 @@
   </UCard>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { Invitation } from '~/types/domain'
 import { formatDate } from '~/utils/date'
 
-defineProps({
-  invitation: {
-    type: Object,
-    required: true,
-  },
-  invitationLoading: {
-    type: Boolean,
-    default: false,
-  },
+interface Props {
+  invitation: Invitation
+  invitationLoading?: boolean
+}
+withDefaults(defineProps<Props>(), {
+  invitationLoading: false,
 })
 
-defineEmits(['resend', 'revoke'])
+defineEmits<{
+  resend: [invitation: Invitation]
+  revoke: [invitation: Invitation]
+}>()
 </script>

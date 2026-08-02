@@ -33,6 +33,23 @@ lint:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: on_success
 
+typecheck:
+  stage: verify
+  image: node:22-alpine
+  before_script:
+    - corepack enable && corepack prepare pnpm@11.11.0 --activate
+  script:
+    - cd sd-frontend && pnpm install --frozen-lockfile && pnpm typecheck
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+.*$/
+      when: on_success
+    - if: '$CI_COMMIT_BRANCH == "main" && $CI_COMMIT_MESSAGE =~ /chore: bump version to \d+\.\d+\.\d+/'
+      when: never
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: on_success
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: on_success
+
 unit-tests:
   stage: verify
   image: mcr.microsoft.com/dotnet/sdk:10.0

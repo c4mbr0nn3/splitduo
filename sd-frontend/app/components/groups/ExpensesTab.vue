@@ -12,7 +12,7 @@
         />
         <GroupsStatsCards
           class="lg:col-span-3"
-          :total-expenses="expensePagination.total"
+          :total-expenses="Number(expensePagination.total)"
           :group-total="getGroupTotal()"
           :suggestion="mySuggestion"
           :is-alias-mode="isAliasMode"
@@ -96,13 +96,13 @@
         </div>
       </div>
     </div>
-    <template v-if="expensePagination.totalPages > 1">
+    <template v-if="Number(expensePagination.totalPages) > 1">
       <USeparator class="mt-4" />
       <div class="flex justify-center mt-4">
         <UPagination
           v-model:page="currentPage"
-          :items-per-page="expensePagination.limit"
-          :total="expensePagination.total"
+          :items-per-page="Number(expensePagination.limit)"
+          :total="Number(expensePagination.total)"
           :sibling-count="1"
         />
       </div>
@@ -110,16 +110,22 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { Expense, AliasBalance, NormalBalance, AliasSettlementSuggestion, BalanceSuggestion } from '~/types/domain'
+import type { ExpenseFilters } from '~/composables/resources/useExpenses'
+
 const { t } = useI18n()
-const props = defineProps({
-  groupId: { type: String, required: true },
-})
+
+interface Props {
+  groupId: string
+}
+const props = defineProps<Props>()
 
 const route = useRoute()
 const router = useRouter()
 const { user } = useAuth()
-const { expenses, fetchExpenses, pagination: expensePagination } = useExpenses(props.groupId)
+const { expenses: rawExpenses, fetchExpenses, pagination: expensePagination } = useExpenses(props.groupId)
+const expenses = computed(() => rawExpenses.value as unknown as Expense[])
 const { balanceSummary, fetchBalanceSummary, isAliasMode, fetchGroup } = useBalances(props.groupId)
 const { aliases, fetchAliases } = useAliases()
 const { categories } = useCategories()
@@ -128,17 +134,17 @@ const { isAiEnabled } = useAiStatus()
 const currentPage = ref(Number(route.query.page) || 1)
 const showSkeleton = ref(true)
 const mobileFiltersOpen = ref(false)
-const pendingFilters = ref({
-  startDate: route.query.startDate || null,
-  endDate: route.query.endDate || null,
-  category: route.query.category || null,
-  userId: route.query.userId || null,
-  search: route.query.search || null,
+const pendingFilters = ref<ExpenseFilters>({
+  startDate: typeof route.query.startDate === 'string' ? route.query.startDate : undefined,
+  endDate: typeof route.query.endDate === 'string' ? route.query.endDate : undefined,
+  category: typeof route.query.category === 'string' ? route.query.category : undefined,
+  userId: typeof route.query.userId === 'string' ? route.query.userId : undefined,
+  search: typeof route.query.search === 'string' ? route.query.search : undefined,
 })
-const activeFilters = ref({ ...pendingFilters.value })
+const activeFilters = ref<ExpenseFilters>({ ...pendingFilters.value })
 
-const buildQuery = (filters, page) => {
-  const q = { tab: 'expenses', page }
+const buildQuery = (filters: ExpenseFilters, page: number): Record<string, string | number> => {
+  const q: Record<string, string | number> = { tab: 'expenses', page }
   if (filters.startDate) q.startDate = filters.startDate
   if (filters.endDate) q.endDate = filters.endDate
   if (filters.category) q.category = filters.category
@@ -152,7 +158,7 @@ const summary = computed(() => balanceSummary.value)
 
 const currentUserAliasId = computed(() => {
   if (!isAliasMode.value || !user.value?.id) return null
-  const userAlias = aliases.value.find(a => a.members?.some(m => m.id === user.value.id))
+  const userAlias = aliases.value.find(a => a.members?.some(m => m.id === user.value!.id))
   return userAlias?.id || null
 })
 
@@ -162,30 +168,33 @@ const mySummary = computed(() => {
   if (isAliasMode.value) {
     const aliasId = currentUserAliasId.value
     if (!aliasId) return null
-    const my = summary.value.balances.find(el => el.aliasId === aliasId)
+    const aliasBalances = summary.value.balances as AliasBalance[]
+    const my = aliasBalances.find(el => el.aliasId === aliasId)
     return my
       ? {
-          balance: my.balance || 0,
-          totalPaid: my.totalPaid || 0,
-          totalOwed: my.totalOwed || 0,
+          balance: Number(my.balance) || 0,
+          totalPaid: Number(my.totalPaid) || 0,
+          totalOwed: Number(my.totalOwed) || 0,
           aliasName: my.aliasName,
         }
       : null
   }
 
-  const my = summary.value.balances.find(el => el.userId === user.value?.id)
+  const normalBalances = summary.value.balances as NormalBalance[]
+  const my = normalBalances.find(el => el.userId === user.value?.id)
   return my
     ? {
-        balance: my.balance || 0,
-        totalPaid: my.totalPaid || 0,
-        totalOwed: my.totalOwed || 0,
+        balance: Number(my.balance) || 0,
+        totalPaid: Number(my.totalPaid) || 0,
+        totalOwed: Number(my.totalOwed) || 0,
       }
     : null
 })
 
 const userMap = computed(() => {
-  if (!summary.value?.balances) return {}
-  return Object.fromEntries(summary.value.balances.map(b => [b.userId, b.user]))
+  if (!summary.value?.balances) return {} as Record<string, { firstName?: string, lastName?: string | null }>
+  const normalBalances = summary.value.balances as NormalBalance[]
+  return Object.fromEntries(normalBalances.map(b => [b.userId, b.user]))
 })
 
 const mySuggestion = computed(() => {
@@ -194,26 +203,28 @@ const mySuggestion = computed(() => {
   if (isAliasMode.value) {
     const aliasId = currentUserAliasId.value
     if (!aliasId) return null
-    const s = summary.value.suggestions.find(el => el.fromAliasId === aliasId || el.toAliasId === aliasId)
+    const aliasSuggestions = summary.value.suggestions as AliasSettlementSuggestion[]
+    const s = aliasSuggestions.find(el => el.fromAliasId === aliasId || el.toAliasId === aliasId)
     if (!s) return null
     return {
       label: s.fromAliasId === aliasId
-        ? `${t('stats.yourAlias', { name: s.fromAliasName })} ${t('stats.owes')} ${s.toAliasName} ${formatAmount(s.amount)} €`
-        : `${s.fromAliasName} ${t('stats.owes')} ${t('stats.yourAlias', { name: s.toAliasName })} ${formatAmount(s.amount)} €`,
+        ? `${t('stats.yourAlias', { name: s.fromAliasName })} ${t('stats.owes')} ${s.toAliasName} ${formatAmount(Number(s.amount))} €`
+        : `${s.fromAliasName} ${t('stats.owes')} ${t('stats.yourAlias', { name: s.toAliasName })} ${formatAmount(Number(s.amount))} €`,
       isOwed: s.toAliasId === aliasId,
     }
   }
 
   if (!user.value?.id) return null
   const id = user.value.id
-  const s = summary.value.suggestions.find(el => el.fromUserId === id || el.toUserId === id)
+  const normalSuggestions = summary.value.suggestions as BalanceSuggestion[]
+  const s = normalSuggestions.find(el => el.fromUserId === id || el.toUserId === id)
   if (!s) return null
   const from = userMap.value[s.fromUserId]
   const to = userMap.value[s.toUserId]
   return {
     label: s.fromUserId === id
-      ? `${t('stats.youOwe')} ${to?.firstName || 'someone'} ${formatAmount(s.amount)} €`
-      : `${from?.firstName || 'someone'} ${t('stats.owes')} ${t('stats.you')} ${formatAmount(s.amount)} €`,
+      ? `${t('stats.youOwe')} ${to?.firstName || 'someone'} ${formatAmount(Number(s.amount))} €`
+      : `${from?.firstName || 'someone'} ${t('stats.owes')} ${t('stats.you')} ${formatAmount(Number(s.amount))} €`,
     isOwed: s.toUserId === id,
   }
 })
@@ -226,17 +237,19 @@ const categoryOptions = computed(() => [
 const memberOptions = computed(() => {
   if (!summary.value?.balances) return [{ value: null, label: t('expenses.allMembers') }]
   if (isAliasMode.value) {
+    const aliasBalances = summary.value.balances as AliasBalance[]
     return [
       { value: null, label: t('expenses.allAliases') },
-      ...summary.value.balances.map(b => ({
+      ...aliasBalances.map(b => ({
         value: b.aliasId,
         label: b.aliasName,
       })),
     ]
   }
+  const normalBalances = summary.value.balances as NormalBalance[]
   return [
     { value: null, label: t('expenses.allMembers') },
-    ...summary.value.balances.map(b => ({
+    ...normalBalances.map(b => ({
       value: b.userId,
       label: `${b.user.firstName} ${b.user.lastName}`,
     })),
@@ -245,7 +258,8 @@ const memberOptions = computed(() => {
 
 const getGroupTotal = () => {
   if (!summary.value?.balances) return 0
-  return summary.value.balances.reduce((total, balance) => total + balance.totalPaid, 0)
+  const normalBalances = summary.value.balances as NormalBalance[]
+  return normalBalances.reduce((total, balance) => total + Number(balance.totalPaid), 0)
 }
 
 const addExpense = () => {
@@ -261,7 +275,7 @@ const applyFilters = async () => {
 }
 
 const clearFilters = async () => {
-  const empty = { startDate: null, endDate: null, category: null, userId: null, search: null }
+  const empty: ExpenseFilters = { startDate: undefined, endDate: undefined, category: undefined, userId: undefined, search: undefined }
   pendingFilters.value = { ...empty }
   activeFilters.value = { ...empty }
   currentPage.value = 1

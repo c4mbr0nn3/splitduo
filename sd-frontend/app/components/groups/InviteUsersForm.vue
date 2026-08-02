@@ -21,15 +21,17 @@
   </div>
 </template>
 
-<script setup>
-const props = defineProps({
-  groupId: {
-    type: String,
-    required: true,
-  },
-})
+<script setup lang="ts">
+import type { SendInvitationResponse } from '~/types/domain'
 
-const emit = defineEmits(['success'])
+interface Props {
+  groupId: string
+}
+const props = defineProps<Props>()
+
+const emit = defineEmits<{
+  success: [result: SendInvitationResponse | undefined]
+}>()
 
 const { sendInvitation, isLoading } = useInvitations()
 

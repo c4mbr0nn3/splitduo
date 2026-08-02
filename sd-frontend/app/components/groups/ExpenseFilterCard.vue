@@ -60,16 +60,33 @@
   </UCard>
 </template>
 
-<script setup>
-const filters = defineModel('filters', { type: Object, required: true })
+<script setup lang="ts">
+interface ExpenseFilters {
+  search?: string
+  startDate?: string
+  endDate?: string
+  category?: string
+  userId?: string
+}
 
-defineProps({
-  categoryOptions: { type: Array, required: true },
-  memberOptions: { type: Array, required: true },
-  activeFilterCount: { type: Number, default: 0 },
-})
+interface SelectOption {
+  value: string | null
+  label: string
+}
 
-defineEmits(['apply', 'clear'])
+const filters = defineModel<ExpenseFilters>('filters', { required: true })
+
+interface Props {
+  categoryOptions: SelectOption[]
+  memberOptions: SelectOption[]
+  activeFilterCount?: number
+}
+defineProps<Props>()
+
+defineEmits<{
+  apply: []
+  clear: []
+}>()
 
 const pendingFilterCount = computed(() =>
   Object.values(filters.value).filter(Boolean).length,

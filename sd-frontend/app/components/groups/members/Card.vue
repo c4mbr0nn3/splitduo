@@ -34,11 +34,19 @@
   </UCard>
 </template>
 
-<script setup>
-defineProps({
-  member: {
-    type: Object,
-    required: true,
-  },
-})
+<script setup lang="ts">
+interface FlattenedMember {
+  id: string
+  firstName?: string
+  lastName?: string | null
+  email?: string
+  fullName?: string | null
+  role: string
+  aliasName?: string
+}
+
+interface Props {
+  member: FlattenedMember
+}
+defineProps<Props>()
 </script>

@@ -33,13 +33,11 @@
       v-if="!isDesktop"
       dots
       class="mb-12"
-      :items="carouselItems"
+      :items="statCards"
       :ui="{ item: 'basis-full pe-2' }"
     >
       <template #default="{ item }">
-        <DashboardStatCardSkeleton v-if="showSkeleton" />
         <DashboardStatCard
-          v-else
           v-bind="item"
         />
       </template>
@@ -143,7 +141,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useMediaQuery } from '@vueuse/core'
 
 const { t } = useI18n()
@@ -154,23 +152,23 @@ const { userStats, fetchUserStats } = useUsers()
 const showSkeleton = ref(true)
 const isDesktop = useMediaQuery('(min-width: 640px)')
 
-const netBalance = computed(() => (userStats.value?.youreOwed || 0) - (userStats.value?.youOwe || 0))
+const netBalance = computed(() => Number(userStats.value?.youreOwed || 0) - Number(userStats.value?.youOwe || 0))
 const netBalanceColor = computed(() => netBalance.value > 0 ? 'green' : netBalance.value < 0 ? 'red' : 'teal')
 
 const statCards = computed(() => [
   {
-    stats: { label: t('dashboard.totalGroups'), value: userStats.value?.totalGroups },
+    stats: { label: t('dashboard.totalGroups'), value: userStats.value?.totalGroups ?? 0 },
     icon: 'i-lucide-users',
     color: 'teal',
   },
   {
-    stats: { label: t('dashboard.youOwe'), value: userStats.value?.youOwe, color: 'red' },
+    stats: { label: t('dashboard.youOwe'), value: userStats.value?.youOwe ?? 0, color: 'red' },
     type: 'currency',
     icon: 'i-lucide-trending-down',
     color: 'red',
   },
   {
-    stats: { label: t('dashboard.youreOwed'), value: userStats.value?.youreOwed, color: 'green' },
+    stats: { label: t('dashboard.youreOwed'), value: userStats.value?.youreOwed ?? 0, color: 'green' },
     type: 'currency',
     icon: 'i-lucide-trending-up',
     color: 'green',
@@ -183,15 +181,13 @@ const statCards = computed(() => [
   },
 ])
 
-const carouselItems = computed(() => (showSkeleton.value ? Array.from({ length: 4 }) : statCards.value))
-
 onMounted(async () => {
   try {
     await withMinDuration(async () => {
       await Promise.all([fetchGroups({ limit: 3 }), fetchUserStats()])
     })
   }
-  catch (error) {
+  catch (error: unknown) {
     console.error('Failed to fetch dashboard data:', error)
   }
   finally {

@@ -17,23 +17,15 @@
   </div>
 </template>
 
-<script setup>
-defineProps({
-  icon: {
-    type: String,
-    required: true,
-  },
-  title: {
-    type: String,
-    required: true,
-  },
-  subtitle: {
-    type: String,
-    default: null,
-  },
-  iconClass: {
-    type: String,
-    default: 'size-12 text-dimmed mx-auto',
-  },
+<script setup lang="ts">
+interface Props {
+  icon: string
+  title: string
+  subtitle?: string | null
+  iconClass?: string
+}
+withDefaults(defineProps<Props>(), {
+  subtitle: null,
+  iconClass: 'size-12 text-dimmed mx-auto',
 })
 </script>

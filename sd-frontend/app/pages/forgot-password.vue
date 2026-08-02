@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 const { t } = useI18n()
 const api = useApi()
 const { showSuccess } = useNotifications()
@@ -11,9 +11,9 @@ const form = ref({
 })
 
 const emailError = computed(() => {
-  if (!form.value.email) return null
+  if (!form.value.email) return undefined
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  return !emailRegex.test(form.value.email) ? t('auth.validEmailRequired') : null
+  return !emailRegex.test(form.value.email) ? t('auth.validEmailRequired') : undefined
 })
 
 const isFormValid = computed(() => {

@@ -192,57 +192,58 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { Alias, Group, Invitation } from '~/types/domain'
+
 const { t } = useI18n()
-const props = defineProps({
-  aliases: {
-    type: Array,
-    required: true,
-  },
-  members: {
-    type: Array,
-    required: true,
-  },
-  group: {
-    type: Object,
-    default: null,
-  },
-  isGroupAdmin: {
-    type: Boolean,
-    default: false,
-  },
-  currentUserId: {
-    type: String,
-    default: '',
-  },
-  groupId: {
-    type: String,
-    default: '',
-  },
-  aliasLoading: {
-    type: Boolean,
-    default: false,
-  },
-  pendingInvitations: {
-    type: Array,
-    default: () => [],
-  },
-  invitationLoading: {
-    type: Boolean,
-    default: false,
-  },
-  isFinalizing: {
-    type: Boolean,
-    default: false,
-  },
+
+interface FlattenedMember {
+  id: string
+  firstName?: string
+  lastName?: string | null
+  email?: string
+  fullName?: string | null
+  role: string
+}
+
+interface Props {
+  aliases: Alias[]
+  members: FlattenedMember[]
+  group?: Group | null
+  isGroupAdmin?: boolean
+  currentUserId?: string
+  groupId?: string
+  aliasLoading?: boolean
+  pendingInvitations?: Invitation[]
+  invitationLoading?: boolean
+  isFinalizing?: boolean
+}
+const props = withDefaults(defineProps<Props>(), {
+  group: null,
+  isGroupAdmin: false,
+  currentUserId: '',
+  groupId: '',
+  aliasLoading: false,
+  pendingInvitations: () => [],
+  invitationLoading: false,
+  isFinalizing: false,
 })
 
-const emit = defineEmits(['rename', 'delete', 'assign', 'remove', 'finalize', 'resend', 'revoke', 'refresh'])
+const emit = defineEmits<{
+  rename: [alias: Alias]
+  delete: [alias: Alias]
+  assign: [alias: Alias, userId: string]
+  remove: [alias: Alias, userId: string]
+  finalize: []
+  resend: [invitation: Invitation]
+  revoke: [invitation: Invitation]
+  refresh: []
+}>()
 
 const { changeMemberRole } = useGroups()
 const modal = useModal()
 
-const getRoleItems = (member) => {
+const getRoleItems = (member: FlattenedMember) => {
   const items = []
 
   if (member.role === 'member') {
@@ -265,7 +266,7 @@ const getRoleItems = (member) => {
   return items
 }
 
-const confirmRoleChange = async (member, newRole) => {
+const confirmRoleChange = async (member: FlattenedMember, newRole: string) => {
   const isPromote = newRole === 'admin'
   const firstName = member.firstName || member.fullName || ''
 
@@ -289,7 +290,7 @@ const confirmRoleChange = async (member, newRole) => {
   }
 }
 
-const selectedAssignee = reactive({})
+const selectedAssignee = reactive<Record<string, string | undefined>>({})
 
 const memberMap = computed(() => {
   const map = new Map()
@@ -300,9 +301,9 @@ const memberMap = computed(() => {
 })
 
 const aliasesWithMembers = computed(() => {
-  return props.aliases.map((alias) => {
-    const enriched = (alias.members || []).map((m) => {
-      const rich = memberMap.value.get(m.id)
+  return props.aliases.map((alias: Alias) => {
+    const enriched = (alias.members || []).map((m: { id?: string }) => {
+      const rich = m.id ? memberMap.value.get(m.id) : undefined
       return rich ? { ...m, ...rich } : m
     })
     return { ...alias, members: enriched }
@@ -326,10 +327,10 @@ const availableMembers = computed(() => {
     }))
 })
 
-const onAssign = (alias) => {
+const onAssign = (alias: Alias) => {
   const userId = selectedAssignee[alias.id]
   if (!userId) return
   emit('assign', alias, userId)
-  selectedAssignee[alias.id] = null
+  selectedAssignee[alias.id] = undefined
 }
 </script>

@@ -17,17 +17,21 @@
   </UPopover>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { parseDate, getLocalTimeZone, DateFormatter } from '@internationalized/date'
 
 const { t, locale } = useI18n()
 
-const props = defineProps({
-  placeholder: { type: String, default: null },
-  size: { type: String, default: 'md' },
+interface Props {
+  placeholder?: string | null
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+}
+const props = withDefaults(defineProps<Props>(), {
+  placeholder: null,
+  size: 'md',
 })
 
-const modelValue = defineModel({ type: String, default: null })
+const modelValue = defineModel<string | null>({ default: null })
 
 const df = computed(() => new DateFormatter(locale.value, { dateStyle: 'medium' }))
 

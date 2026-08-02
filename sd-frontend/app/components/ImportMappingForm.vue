@@ -20,7 +20,7 @@
       @submit="onSubmit"
     >
       <!-- User Mappings Section -->
-      <div v-if="analysisResults.members?.length">
+      <div v-if="analysisResults?.members?.length">
         <UFormField
           :label="$t('imports.userMappings')"
           :description="$t('imports.userMappingsDescription')"
@@ -28,7 +28,7 @@
         >
           <div class="space-y-3">
             <div
-              v-for="member in analysisResults.members"
+              v-for="member in analysisResults?.members"
               :key="member.key"
               class="grid grid-cols-1 md:grid-cols-2 gap-3 items-center p-3 border border-muted rounded-lg"
             >
@@ -61,7 +61,7 @@
       </div>
 
       <!-- Alias Mappings Section -->
-      <div v-if="analysisResults.aliases?.length">
+      <div v-if="analysisResults?.aliases?.length">
         <UFormField
           :label="$t('imports.aliasMappings')"
           :description="$t('imports.aliasMappingsDescription')"
@@ -69,7 +69,7 @@
         >
           <div class="space-y-3">
             <div
-              v-for="alias in analysisResults.aliases"
+              v-for="alias in analysisResults?.aliases"
               :key="alias.key"
               class="grid grid-cols-1 md:grid-cols-2 gap-3 items-center p-3 border border-muted rounded-lg"
             >
@@ -100,7 +100,7 @@
       </div>
 
       <!-- Category Mappings Section -->
-      <div v-if="analysisResults.categories?.length">
+      <div v-if="analysisResults?.categories?.length">
         <UFormField
           :label="$t('imports.categoryMappings')"
           :description="$t('imports.categoryMappingsDescription')"
@@ -108,7 +108,7 @@
         >
           <div class="space-y-3">
             <div
-              v-for="category in analysisResults.categories"
+              v-for="category in analysisResults?.categories"
               :key="category.key"
               class="grid grid-cols-1 md:grid-cols-2 gap-3 items-center p-3 border border-muted rounded-lg"
             >
@@ -126,8 +126,8 @@
               </div>
               <UFormField :name="`categoryMappings.${category.key}`">
                 <USelect
-                  v-model="mappingState.categoryMappings[category.key]"
-                  :items="categories"
+                  v-model="mappingState.categoryMappings[parseInt(category.key)]"
+                  :items="[...categories]"
                   value-key="id"
                   label-key="name"
                   :placeholder="$t('imports.selectCategory')"
@@ -141,7 +141,7 @@
       </div>
 
       <!-- Payment Mode Mappings Section -->
-      <div v-if="analysisResults.paymentModes?.length">
+      <div v-if="analysisResults?.paymentModes?.length">
         <UFormField
           :label="$t('imports.paymentModeMappings')"
           :description="$t('imports.paymentModeMappingsDescription')"
@@ -149,7 +149,7 @@
         >
           <div class="space-y-3">
             <div
-              v-for="paymentMode in analysisResults.paymentModes"
+              v-for="paymentMode in analysisResults?.paymentModes"
               :key="paymentMode.key"
               class="grid grid-cols-1 md:grid-cols-2 gap-3 items-center p-3 border border-muted rounded-lg"
             >
@@ -167,8 +167,8 @@
               </div>
               <UFormField :name="`paymentModeMappings.${paymentMode.key}`">
                 <USelect
-                  v-model="mappingState.paymentModeMappings[paymentMode.key]"
-                  :items="paymentModes"
+                  v-model="mappingState.paymentModeMappings[parseInt(paymentMode.key)]"
+                  :items="[...paymentModes]"
                   value-key="id"
                   label-key="name"
                   :placeholder="$t('imports.selectPaymentMode')"
@@ -211,24 +211,24 @@
   </UCard>
 </template>
 
-<script setup>
-const { t } = useI18n()
-const props = defineProps({
-  analysisResults: {
-    type: Object,
-    required: true,
-  },
-  groupId: {
-    type: String,
-    required: true,
-  },
-  isImporting: {
-    type: Boolean,
-    default: false,
-  },
-})
+<script setup lang="ts">
+import type { ImportAnalysis, GroupMember } from '~/types/domain'
 
-const emit = defineEmits(['submit'])
+const { t } = useI18n()
+const props = defineProps<{
+  analysisResults: ImportAnalysis | null
+  groupId: string
+  isImporting?: boolean
+}>()
+
+const emit = defineEmits<{
+  submit: [payload: {
+    userMappings: Record<string, string | undefined>
+    aliasMappings: Record<string, string | undefined>
+    categoryMappings: Record<number, number | undefined>
+    paymentModeMappings: Record<number, number | undefined>
+  }]
+}>()
 
 // Composables
 const { fetchGroupMembers } = useGroups()
@@ -238,13 +238,20 @@ const { paymentModes } = usePaymentModes()
 const { showError } = useNotifications()
 
 // State
-const form = ref(null)
+const form = ref<unknown>(null)
 const loadingGroupData = ref(false)
-const groupMemberOptions = ref([])
-const aliasOptions = ref([])
+const groupMemberOptions = ref<Array<{ value: string, label: string }>>([])
+const aliasOptions = ref<Array<{ value: string, label: string }>>([])
+
+interface MappingState {
+  userMappings: Record<string, string | undefined>
+  aliasMappings: Record<string, string | undefined>
+  categoryMappings: Record<number, number | undefined>
+  paymentModeMappings: Record<number, number | undefined>
+}
 
 // Initialize mapping state
-const mappingState = reactive({
+const mappingState = reactive<MappingState>({
   userMappings: {},
   aliasMappings: {},
   categoryMappings: {},
@@ -253,54 +260,64 @@ const mappingState = reactive({
 
 // Initialize mapping objects based on analysis results
 const initializeMappings = () => {
+  const results = props.analysisResults
+  if (!results) return
+
   // Initialize user mappings
-  props.analysisResults.members?.forEach((member) => {
-    mappingState.userMappings[member.key] = null
+  results.members?.forEach((member) => {
+    mappingState.userMappings[member.key] = undefined
   })
 
   // Initialize alias mappings
-  props.analysisResults.aliases?.forEach((alias) => {
-    mappingState.aliasMappings[alias.key] = null
+  results.aliases?.forEach((alias) => {
+    mappingState.aliasMappings[alias.key] = undefined
   })
 
   // Initialize category mappings (convert keys to numbers)
-  props.analysisResults.categories?.forEach((category) => {
-    mappingState.categoryMappings[parseInt(category.key)] = null
+  results.categories?.forEach((category) => {
+    mappingState.categoryMappings[parseInt(category.key)] = undefined
   })
 
   // Initialize payment mode mappings (convert keys to numbers)
-  props.analysisResults.paymentModes?.forEach((paymentMode) => {
-    mappingState.paymentModeMappings[parseInt(paymentMode.key)] = null
+  results.paymentModes?.forEach((paymentMode) => {
+    mappingState.paymentModeMappings[parseInt(paymentMode.key)] = undefined
   })
 }
 
 // Form validation
-const validate = () => {
-  const errors = []
+interface ValidationError {
+  name: string
+  message: string
+}
+
+const validate = (): ValidationError[] => {
+  const errors: ValidationError[] = []
+  const results = props.analysisResults
+  if (!results) return errors
 
   // User mapping validation - all required
-  props.analysisResults.members?.forEach((member) => {
+  results.members?.forEach((member) => {
     if (!mappingState.userMappings[member.key]) {
       errors.push({ name: `userMappings.${member.key}`, message: t('imports.userMappings') + ' ' + t('common.required') })
     }
   })
 
   // Alias mapping validation - all required
-  props.analysisResults.aliases?.forEach((alias) => {
+  results.aliases?.forEach((alias) => {
     if (!mappingState.aliasMappings[alias.key]) {
       errors.push({ name: `aliasMappings.${alias.key}`, message: t('imports.aliasMappings') + ' ' + t('common.required') })
     }
   })
 
   // Category mapping validation - all required
-  props.analysisResults.categories?.forEach((category) => {
+  results.categories?.forEach((category) => {
     if (!mappingState.categoryMappings[parseInt(category.key)]) {
       errors.push({ name: `categoryMappings.${category.key}`, message: t('imports.categoryMappings') + ' ' + t('common.required') })
     }
   })
 
   // Payment mode mapping validation - all required
-  props.analysisResults.paymentModes?.forEach((paymentMode) => {
+  results.paymentModes?.forEach((paymentMode) => {
     if (!mappingState.paymentModeMappings[parseInt(paymentMode.key)]) {
       errors.push({ name: `paymentModeMappings.${paymentMode.key}`, message: t('imports.paymentModeMappings') + ' ' + t('common.required') })
     }
@@ -311,23 +328,26 @@ const validate = () => {
 
 // Check if there are validation errors
 const hasValidationErrors = computed(() => {
+  const results = props.analysisResults
+  if (!results) return true
+
   // Check user mappings
-  const missingUserMappings = props.analysisResults.members?.some(member =>
+  const missingUserMappings = results.members?.some(member =>
     !mappingState.userMappings[member.key],
   )
 
   // Check alias mappings
-  const missingAliasMappings = props.analysisResults.aliases?.some(alias =>
+  const missingAliasMappings = results.aliases?.some(alias =>
     !mappingState.aliasMappings[alias.key],
   )
 
   // Check category mappings
-  const missingCategoryMappings = props.analysisResults.categories?.some(category =>
+  const missingCategoryMappings = results.categories?.some(category =>
     !mappingState.categoryMappings[parseInt(category.key)],
   )
 
   // Check payment mode mappings
-  const missingPaymentModeMappings = props.analysisResults.paymentModes?.some(paymentMode =>
+  const missingPaymentModeMappings = results.paymentModes?.some(paymentMode =>
     !mappingState.paymentModeMappings[parseInt(paymentMode.key)],
   )
 
@@ -340,14 +360,14 @@ const loadGroupData = async () => {
 
   loadingGroupData.value = true
   try {
-    let gm
+    let gm: GroupMember[] | undefined
     if (props.groupId) {
       gm = await fetchGroupMembers(props.groupId)
     }
 
     if (gm && gm.length > 0) {
       groupMemberOptions.value = gm.map(member => ({
-        value: member.user.id,
+        value: member.user.id ?? '',
         label: `${member.user.firstName} (${member.user.email || t('imports.noEmail')})`,
       }))
     }
@@ -366,7 +386,7 @@ const loadGroupData = async () => {
       aliasOptions.value = []
     }
   }
-  catch (error) {
+  catch (error: unknown) {
     console.error('Failed to load group data:', error)
     showError(t('imports.failedToLoadImport'))
   }
@@ -375,7 +395,7 @@ const loadGroupData = async () => {
   }
 }
 
-const getInitials = (name) => {
+const getInitials = (name: string): string => {
   return name
     .split(' ')
     .map(word => word.charAt(0))

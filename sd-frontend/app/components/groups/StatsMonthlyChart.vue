@@ -16,12 +16,15 @@
   </UCard>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { MonthlyStat } from '~/types/domain'
+
 const { t, locale } = useI18n()
 
-const props = defineProps({
-  monthlyBreakdown: { type: Array, required: true },
-})
+interface Props {
+  monthlyBreakdown: MonthlyStat[]
+}
+const props = defineProps<Props>()
 
 const { primaryColor, themeMode } = useChartTheme()
 
@@ -37,7 +40,7 @@ const series = computed(() => {
 const chartOptions = computed(() => ({
   xaxis: {
     categories: props.monthlyBreakdown.map(m =>
-      new Date(m.year, m.month - 1).toLocaleDateString(locale.value, { month: 'short', year: '2-digit' }),
+      new Date(Number(m.year), Number(m.month) - 1).toLocaleDateString(locale.value, { month: 'short', year: '2-digit' }),
     ),
     tickAmount: Math.min(props.monthlyBreakdown.length, 12),
     labels: { rotate: -45, hideOverlappingLabels: true, trim: true },
@@ -47,7 +50,7 @@ const chartOptions = computed(() => ({
   chart: { background: 'transparent', toolbar: { show: false } },
   dataLabels: { enabled: false },
   tooltip: {
-    y: { formatter: val => `€ ${val.toFixed(2)}` },
+    y: { formatter: (val: number) => `€ ${val.toFixed(2)}` },
   },
 }))
 </script>

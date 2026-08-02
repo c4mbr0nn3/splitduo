@@ -14,8 +14,8 @@
         <div class="space-y-4">
           <div class="flex items-center gap-3">
             <UIcon
-              :name="user.twoFactorEnabled ? 'i-lucide-shield-check' : 'i-lucide-shield-off'"
-              :class="user.twoFactorEnabled ? 'text-success' : 'text-error'"
+              :name="user?.twoFactorEnabled ? 'i-lucide-shield-check' : 'i-lucide-shield-off'"
+              :class="user?.twoFactorEnabled ? 'text-success' : 'text-error'"
               class="size-5 shrink-0"
             />
             <span class="text-sm text-muted">
@@ -212,7 +212,9 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { TwoFactorSetup } from '~/types/domain'
+
 const { t } = useI18n()
 useHead({ title: computed(() => t('twoFactor.title')) })
 
@@ -224,11 +226,13 @@ definePageMeta({
 const { user, initialize } = useAuth()
 const { initiateSetup, verifySetup, disable, isLoading } = use2FA()
 
-const view = ref('status')
-const setupData = ref(null)
-const qrSvg = ref(null)
+type View = 'status' | 'enrolling' | 'verifying' | 'disabling'
+
+const view = ref<View>('status')
+const setupData = ref<TwoFactorSetup | null>(null)
+const qrSvg = ref<string | null>(null)
 const savedCodes = ref(false)
-const verifyCode = ref([])
+const verifyCode = ref<number[]>([])
 const disablePassword = ref('')
 
 const startSetup = async () => {

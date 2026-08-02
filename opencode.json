@@ -10,6 +10,15 @@
       "type": "remote",
       "url": "https://ui.nuxt.com/mcp",
       "enabled": true
+    },
+    "gitlab": {
+      "type": "local",
+      "command": ["npx", "-y", "@zereight/mcp-gitlab"],
+      "enabled": true,
+      "environment": {
+        "GITLAB_PERSONAL_ACCESS_TOKEN": "{env:GITLAB_PERSONAL_ACCESS_TOKEN}",
+        "GITLAB_API_URL": "{env:GITLAB_API_URL}"
+      }
     }
   }
 }

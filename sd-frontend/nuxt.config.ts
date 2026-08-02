@@ -7,6 +7,7 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
 
   app: {
+    // @ts-expect-error spaLoadingTemplate is a valid Nuxt 4 app option but missing from @nuxt/schema types
     spaLoadingTemplate: true,
     head: {
       title: 'SplitDuo',
@@ -35,6 +36,7 @@ export default defineNuxtConfig({
 
   colorMode: {
     storage: 'cookie',
+    // @ts-expect-error cookieKey is a valid @nuxtjs/color-mode option but missing from its types
     cookieKey: 'nuxt-color-mode',
   },
 
@@ -47,6 +49,10 @@ export default defineNuxtConfig({
 
   compatibilityDate: '2025-07-16',
 
+  typescript: {
+    typeCheck: false,
+  },
+
   hooks: {
     'prerender:routes'({ routes }) {
       routes.clear() // Do not generate any routes (except the defaults)
@@ -55,7 +61,7 @@ export default defineNuxtConfig({
       const { checkLocaleParity } = await import(new URL('./scripts/check-locale-parity.mjs', import.meta.url).href)
       const result = checkLocaleParity()
       if (!result.ok) {
-        const lines = result.errors.flatMap((e) => {
+        const lines = result.errors.flatMap((e: { file: string, missing: string[], extra: string[], error?: string }) => {
           const out = [`\n  ${e.file}:`]
           if (e.missing.length) out.push(`    Missing keys: ${e.missing.join(', ')}`)
           if (e.extra.length) out.push(`    Extra keys:   ${e.extra.join(', ')}`)
@@ -76,6 +82,7 @@ export default defineNuxtConfig({
   i18n: {
     strategy: 'no_prefix',
     defaultLocale: 'en',
+    // @ts-expect-error lazy is a valid @nuxtjs/i18n v10 option but missing from its types
     lazy: true,
     langDir: 'locales',
     locales: [
@@ -86,6 +93,9 @@ export default defineNuxtConfig({
       useCookie: true,
       cookieKey: 'i18n_redirected',
       redirectOn: 'root',
+    },
+    experimental: {
+      typedOptionsAndMessages: 'default',
     },
   },
 

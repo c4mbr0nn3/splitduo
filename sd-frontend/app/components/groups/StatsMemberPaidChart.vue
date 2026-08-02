@@ -16,10 +16,13 @@
   </UCard>
 </template>
 
-<script setup>
-const props = defineProps({
-  balances: { type: Array, required: true },
-})
+<script setup lang="ts">
+import type { NormalBalance } from '~/types/domain'
+
+interface Props {
+  balances: NormalBalance[]
+}
+const props = defineProps<Props>()
 
 const { primaryColor, themeMode } = useChartTheme()
 
@@ -37,7 +40,7 @@ const chartOptions = computed(() => ({
   theme: { mode: themeMode.value },
   chart: { background: 'transparent', toolbar: { show: false } },
   tooltip: {
-    y: { formatter: val => `€ ${val.toFixed(2)}` },
+    y: { formatter: (val: number) => `€ ${val.toFixed(2)}` },
   },
 }))
 </script>

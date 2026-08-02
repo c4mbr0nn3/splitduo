@@ -21,3 +21,6 @@
     </div>
   </UCard>
 </template>
+
+<script setup lang="ts">
+</script>

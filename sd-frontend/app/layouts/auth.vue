@@ -5,3 +5,6 @@
     </UContainer>
   </UMain>
 </template>
+
+<script setup lang="ts">
+</script>

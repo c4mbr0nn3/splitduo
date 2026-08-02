@@ -4,7 +4,7 @@
     size="sm"
     variant="outline"
     :loading="isScanning"
-    @click="fileInput.click()"
+    @click="fileInput?.click()"
   >
     <span class="hidden sm:inline">{{ $t('expenses.scanReceipt') }}</span>
   </UButton>
@@ -18,21 +18,22 @@
   >
 </template>
 
-<script setup>
-const props = defineProps({
-  groupId: {
-    type: [String, Number],
-    default: null,
-  },
+<script setup lang="ts">
+interface Props {
+  groupId?: string | null
+}
+const props = withDefaults(defineProps<Props>(), {
+  groupId: null,
 })
 
 const { scanReceipt, isScanning } = useReceiptScan()
-const fileInput = ref(null)
+const fileInput = ref<HTMLInputElement | null>(null)
 
-const onFileSelected = async (event) => {
-  const file = event.target.files?.[0]
+const onFileSelected = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
   if (!file) return
   await scanReceipt(file, props.groupId)
-  event.target.value = ''
+  target.value = ''
 }
 </script>

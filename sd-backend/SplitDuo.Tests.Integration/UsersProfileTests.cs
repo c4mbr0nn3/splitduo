@@ -577,6 +577,218 @@ public class UsersProfileTests : IntegrationTest
 
     #endregion
 
+    #region PUT /users/{userId} (admin edit user)
+
+    [Fact]
+    public async Task UpdateUser_AdminEditsNameAndEmailWithUnchangedRole_Succeeds()
+    {
+        // Regression: the admin edit form always sends globalRole (required field).
+        // Editing only name/email must not 400 just because the role is unchanged.
+        var ct = TestContext.Current.CancellationToken;
+        var adminClient = await CreateAuthenticatedClientAsync();
+
+        var targetEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "editname@localhost");
+        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme");
+        var target = await targetClient.GetCurrentUserAsync();
+
+        var response = await adminClient.PutAsJsonAsync($"/api/v1/users/{target.Id}", new
+        {
+            firstName = "Edited",
+            lastName = "Name",
+            email = "editname@localhost",
+            globalRole = (int)GlobalRole.BaseUser, // unchanged from seeded role
+        }, ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserDto>>(ct);
+        Assert.Equal("Edited", body!.Data!.FirstName);
+        Assert.Equal("Name", body.Data.LastName);
+        Assert.Equal((int)GlobalRole.BaseUser, body.Data.GlobalRoleId);
+
+        // Verify persistence
+        var get = await adminClient.GetAsync($"/api/v1/users/{target.Id}", ct);
+        var getBody = await get.Content.ReadFromJsonAsync<ApiResponseDto<UserDto>>(ct);
+        Assert.Equal("Edited", getBody!.Data!.FirstName);
+        Assert.Equal("Name", getBody.Data.LastName);
+    }
+
+    [Fact]
+    public async Task UpdateUser_AdminEditsNameAndPromotesRole_Succeeds()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var adminClient = await CreateAuthenticatedClientAsync();
+
+        var targetEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "editandpromote@localhost");
+        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme");
+        var target = await targetClient.GetCurrentUserAsync();
+
+        var response = await adminClient.PutAsJsonAsync($"/api/v1/users/{target.Id}", new
+        {
+            firstName = "Promoted",
+            email = "editandpromote@localhost",
+            globalRole = (int)GlobalRole.SystemAdmin,
+        }, ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserDto>>(ct);
+        Assert.Equal("Promoted", body!.Data!.FirstName);
+        Assert.Equal((int)GlobalRole.SystemAdmin, body.Data.GlobalRoleId);
+    }
+
+    [Fact]
+    public async Task UpdateUser_AdminEditsNameAndDemotesRole_Succeeds()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var adminClient = await CreateAuthenticatedClientAsync();
+
+        // Seed a second admin so demotion is allowed (last-admin guard)
+        var targetEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "editanddemote@localhost");
+        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme");
+        var target = await targetClient.GetCurrentUserAsync();
+
+        await adminClient.PutAsJsonAsync($"/api/v1/users/{target.Id}", new
+        {
+            globalRole = (int)GlobalRole.SystemAdmin,
+        }, ct);
+
+        var response = await adminClient.PutAsJsonAsync($"/api/v1/users/{target.Id}", new
+        {
+            firstName = "Demoted",
+            email = "editanddemote@localhost",
+            globalRole = (int)GlobalRole.BaseUser,
+        }, ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserDto>>(ct);
+        Assert.Equal("Demoted", body!.Data!.FirstName);
+        Assert.Equal((int)GlobalRole.BaseUser, body.Data.GlobalRoleId);
+    }
+
+    [Fact]
+    public async Task UpdateUser_AdminEditsEmailToTaken_Returns409()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var adminClient = await CreateAuthenticatedClientAsync();
+
+        await TestDbSeeder.SeedUserAsync(Factory.Services, "taken@localhost");
+        var targetEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "editemail@localhost");
+        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme");
+        var target = await targetClient.GetCurrentUserAsync();
+
+        var response = await adminClient.PutAsJsonAsync($"/api/v1/users/{target.Id}", new
+        {
+            email = "taken@localhost",
+            globalRole = (int)GlobalRole.BaseUser,
+        }, ct);
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserDto>>(ct);
+        Assert.Equal("User with this email already exists", body!.Error!.Message);
+    }
+
+    [Fact]
+    public async Task UpdateUser_NonAdminEditingOtherUser_Returns403()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "noneditor@localhost");
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+        var admin = await (await CreateAuthenticatedClientAsync()).GetCurrentUserAsync();
+
+        var response = await memberClient.PutAsJsonAsync($"/api/v1/users/{admin.Id}", new
+        {
+            firstName = "Hacked",
+            globalRole = (int)GlobalRole.BaseUser,
+        }, ct);
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task UpdateUser_NonAdminEditingSelfName_Succeeds()
+    {
+        // Non-admins can edit their own name/email but not their role.
+        // Sending their own current role (unchanged) must be a no-op, not a 403.
+        var ct = TestContext.Current.CancellationToken;
+        var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "selfeditor@localhost");
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+        var member = await memberClient.GetCurrentUserAsync();
+
+        var response = await memberClient.PutAsJsonAsync($"/api/v1/users/{member.Id}", new
+        {
+            firstName = "SelfEdited",
+            globalRole = (int)GlobalRole.BaseUser, // unchanged — no-op, not forbidden
+        }, ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserDto>>(ct);
+        Assert.Equal("SelfEdited", body!.Data!.FirstName);
+    }
+
+    [Fact]
+    public async Task UpdateUser_NonAdminTryingToPromoteSelf_Returns403()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "selfpromoter@localhost");
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+        var member = await memberClient.GetCurrentUserAsync();
+
+        var response = await memberClient.PutAsJsonAsync($"/api/v1/users/{member.Id}", new
+        {
+            globalRole = (int)GlobalRole.SystemAdmin, // actual role change — non-admin forbidden
+        }, ct);
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<object>>(ct);
+        Assert.Equal("Only system administrators can modify user roles", body!.Error!.Message);
+    }
+
+    [Fact]
+    public async Task UpdateUser_InvalidGuid_Returns400()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var adminClient = await CreateAuthenticatedClientAsync();
+
+        var response = await adminClient.PutAsJsonAsync("/api/v1/users/not-a-guid", new
+        {
+            firstName = "X",
+        }, ct);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserDto>>(ct);
+        Assert.Equal("Invalid user ID format", body!.Error!.Message);
+    }
+
+    [Fact]
+    public async Task UpdateUser_Nonexistent_Returns404()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var adminClient = await CreateAuthenticatedClientAsync();
+
+        var response = await adminClient.PutAsJsonAsync($"/api/v1/users/{Guid.NewGuid()}", new
+        {
+            firstName = "Ghost",
+        }, ct);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserDto>>(ct);
+        Assert.Equal("User not found", body!.Error!.Message);
+    }
+
+    [Fact]
+    public async Task UpdateUser_Unauthenticated_Returns401()
+    {
+        var ct = TestContext.Current.CancellationToken;
+
+        var response = await Client.PutAsJsonAsync($"/api/v1/users/{Guid.NewGuid()}", new
+        {
+            firstName = "X",
+        }, ct);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    #endregion
+
     #region ChangeUserRole
 
     [Fact]
@@ -674,7 +886,7 @@ public class UsersProfileTests : IntegrationTest
     }
 
     [Fact]
-    public async Task ChangeUserRole_DuplicateRole_Returns400()
+    public async Task ChangeUserRole_SameRole_IsNoOp_Returns200()
     {
         var ct = TestContext.Current.CancellationToken;
         var adminClient = await CreateAuthenticatedClientAsync();
@@ -684,15 +896,22 @@ public class UsersProfileTests : IntegrationTest
         var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme");
         var target = await targetClient.GetCurrentUserAsync();
 
-        // Admin tries to set role to BaseUser (already is)
+        // Admin resubmits the user's current role — this is a no-op, not an error.
+        // The admin edit form always sends globalRole (required field), so an edit
+        // that only changes name/email must not 400 just because the role is unchanged.
         var response = await adminClient.PutAsJsonAsync($"/api/v1/users/{target.Id}", new
         {
-            globalRole = 1,
+            globalRole = (int)GlobalRole.BaseUser,
         }, ct);
 
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<object>>(ct);
-        Assert.Equal("User already has this role", body!.Error!.Message);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserDto>>(ct);
+        Assert.Equal((int)GlobalRole.BaseUser, body!.Data!.GlobalRoleId);
+
+        // Verify role is unchanged in persistence
+        var get = await adminClient.GetAsync($"/api/v1/users/{target.Id}", ct);
+        var getBody = await get.Content.ReadFromJsonAsync<ApiResponseDto<UserDto>>(ct);
+        Assert.Equal((int)GlobalRole.BaseUser, getBody!.Data!.GlobalRoleId);
     }
 
     [Fact]

@@ -35,19 +35,18 @@
   </UModal>
 </template>
 
-<script setup>
-const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    required: true,
-  },
-  imageUrl: {
-    type: String,
-    default: null,
-  },
+<script setup lang="ts">
+interface Props {
+  modelValue: boolean
+  imageUrl?: string | null
+}
+const props = withDefaults(defineProps<Props>(), {
+  imageUrl: null,
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits<{
+  'update:modelValue': [value: boolean]
+}>()
 
 const zoomed = ref(false)
 

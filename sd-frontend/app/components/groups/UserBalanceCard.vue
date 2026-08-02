@@ -8,11 +8,11 @@
       <div class="flex items-center gap-3">
         <div
           class="w-12 h-12 rounded-full flex items-center justify-center"
-          :class="balance.balance >= 0 ? 'bg-success/10' : 'bg-error/10'"
+          :class="Number(balance.balance) >= 0 ? 'bg-success/10' : 'bg-error/10'"
         >
           <UIcon
-            :name="balance.balance >= 0 ? 'i-lucide-trending-up' : 'i-lucide-trending-down'"
-            :class="balance.balance >= 0 ? 'text-success' : 'text-error'"
+            :name="Number(balance.balance) >= 0 ? 'i-lucide-trending-up' : 'i-lucide-trending-down'"
+            :class="Number(balance.balance) >= 0 ? 'text-success' : 'text-error'"
             class="w-6 h-6"
           />
         </div>
@@ -22,9 +22,9 @@
           </p>
           <p
             class="font-bold text-2xl"
-            :class="balance.balance >= 0 ? 'text-success' : 'text-error'"
+            :class="Number(balance.balance) >= 0 ? 'text-success' : 'text-error'"
           >
-            {{ balance.balance >= 0 ? '+' : '' }}{{ formatAmount(balance.balance) }} €
+            {{ Number(balance.balance) >= 0 ? '+' : '' }}{{ formatAmount(balance.balance) }} €
           </p>
         </div>
       </div>
@@ -51,15 +51,20 @@
   </UCard>
 </template>
 
-<script setup>
-defineProps({
-  balance: {
-    type: Object,
-    default: null,
-  },
-  isAliasMode: {
-    type: Boolean,
-    default: false,
-  },
+<script setup lang="ts">
+interface BalanceDisplay {
+  balance: number
+  totalPaid: number
+  totalOwed: number
+  aliasName?: string
+}
+
+interface Props {
+  balance?: BalanceDisplay | null
+  isAliasMode?: boolean
+}
+withDefaults(defineProps<Props>(), {
+  balance: null,
+  isAliasMode: false,
 })
 </script>

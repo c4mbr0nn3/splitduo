@@ -7,14 +7,13 @@
   />
 </template>
 
-<script setup>
+<script setup lang="ts">
 const { t } = useI18n()
-const props = defineProps({
-  groupId: {
-    type: String,
-    required: true,
-  },
-})
+
+interface Props {
+  groupId: string
+}
+const props = defineProps<Props>()
 
 const route = useRoute()
 const router = useRouter()

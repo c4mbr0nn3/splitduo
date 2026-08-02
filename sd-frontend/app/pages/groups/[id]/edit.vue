@@ -10,27 +10,33 @@
   />
 </template>
 
-<script setup>
+<script setup lang="ts">
+interface GroupFormData {
+  name: string
+  description: string
+  useAliases: boolean
+}
+
 const { t } = useI18n()
 const route = useRoute()
-const groupId = route.params.id
+const groupId = String(route.params.id)
 
 const { currentGroup, fetchGroup, updateGroup, isLoading } = useGroups()
 
-const initialData = computed(() => ({
+const initialData = computed<GroupFormData>(() => ({
   name: currentGroup.value?.name || '',
   description: currentGroup.value?.description || '',
   useAliases: currentGroup.value?.useAliases || false,
 }))
 
-async function onSubmit(formData) {
+async function onSubmit(formData: GroupFormData) {
   try {
     const updatedGroup = await updateGroup(groupId, formData)
     if (updatedGroup) {
       navigateTo(`/groups/${groupId}`)
     }
   }
-  catch (err) {
+  catch (err: unknown) {
     console.error('Error updating group:', err)
   }
 }

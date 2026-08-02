@@ -1,11 +1,11 @@
-<script setup>
+<script setup lang="ts">
 const { t } = useI18n()
 const route = useRoute()
 const api = useApi()
 const { showSuccess, showError } = useNotifications()
 
-const email = ref(route.query.email || '')
-const token = ref(route.query.token || '')
+const email = ref(typeof route.query.email === 'string' ? route.query.email : '')
+const token = ref(typeof route.query.token === 'string' ? route.query.token : '')
 
 const isValidating = ref(true)
 const isTokenValid = ref(false)
@@ -18,10 +18,10 @@ const passwordForm = ref({
 })
 
 const passwordValidationError = computed(() => {
-  if (!passwordForm.value.newPassword) return null
+  if (!passwordForm.value.newPassword) return undefined
 
   const password = passwordForm.value.newPassword
-  const errors = []
+  const errors: string[] = []
 
   if (password.length < 8) errors.push(t('auth.atLeast8Chars'))
   if (!/[A-Z]/.test(password)) errors.push(t('auth.oneUppercase'))
@@ -29,15 +29,15 @@ const passwordValidationError = computed(() => {
   if (!/[0-9]/.test(password)) errors.push(t('auth.oneDigit'))
   if (!/[!@#$%^&*()_+\-=[\]{}|;:,.<>?]/.test(password)) errors.push(t('auth.oneSpecialChar'))
 
-  return errors.length > 0 ? t('auth.passwordMustContain', { errors: errors.join(', ') }) : null
+  return errors.length > 0 ? t('auth.passwordMustContain', { errors: errors.join(', ') }) : undefined
 })
 
 const confirmPasswordError = computed(() => {
-  if (!passwordForm.value.confirmPassword) return null
+  if (!passwordForm.value.confirmPassword) return undefined
   if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
     return t('auth.passwordsDoNotMatch')
   }
-  return null
+  return undefined
 })
 
 const isPasswordFormValid = computed(() => {
@@ -65,10 +65,12 @@ const validateToken = async () => {
 
     isTokenValid.value = true
   }
-  catch (error) {
+  catch (error: unknown) {
     isTokenValid.value = false
-    const errorMessage = error?.data?.error?.message || t('auth.invalidExpiredToken')
-    showError(errorMessage)
+    const errorMessage = typeof error === 'object' && error !== null && 'data' in error
+      ? (error as { data?: { error?: { message?: string } } }).data?.error?.message
+      : undefined
+    showError(errorMessage || t('auth.invalidExpiredToken'))
   }
   finally {
     isValidating.value = false
@@ -96,9 +98,11 @@ const handlePasswordReset = async () => {
       navigateTo('/')
     }, 2000)
   }
-  catch (error) {
-    const errorMessage = error?.data?.error?.message || t('auth.failedToResetPassword')
-    showError(errorMessage)
+  catch (error: unknown) {
+    const errorMessage = typeof error === 'object' && error !== null && 'data' in error
+      ? (error as { data?: { error?: { message?: string } } }).data?.error?.message
+      : undefined
+    showError(errorMessage || t('auth.failedToResetPassword'))
   }
   finally {
     isResetting.value = false

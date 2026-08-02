@@ -35,9 +35,9 @@
       </div>
       <span
         class="font-bold text-lg shrink-0"
-        :class="balance.balance >= 0 ? 'text-success' : 'text-error'"
+        :class="Number(balance.balance) >= 0 ? 'text-success' : 'text-error'"
       >
-        {{ balance.balance >= 0 ? '+' : '' }}{{ formatAmount(balance.balance) }} €
+        {{ Number(balance.balance) >= 0 ? '+' : '' }}{{ formatAmount(balance.balance) }} €
       </span>
     </div>
     <div class="grid grid-cols-2 gap-4 text-center mt-3">
@@ -72,13 +72,13 @@
   </UCard>
 </template>
 
-<script setup>
-const props = defineProps({
-  balance: {
-    type: Object,
-    required: true,
-  },
-})
+<script setup lang="ts">
+import type { AliasBalance } from '~/types/domain'
+
+interface Props {
+  balance: AliasBalance
+}
+const props = defineProps<Props>()
 
 const visibleMembers = computed(() => {
   return props.balance.members?.slice(0, 3) || []

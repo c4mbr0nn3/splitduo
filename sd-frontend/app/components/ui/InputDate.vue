@@ -24,14 +24,17 @@
   </UInputDate>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { parseDate } from '@internationalized/date'
 
-defineProps({
-  size: { type: String, default: 'md' },
+interface Props {
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+}
+withDefaults(defineProps<Props>(), {
+  size: 'md',
 })
 
-const modelValue = defineModel({ type: String, default: null })
+const modelValue = defineModel<string | null>({ default: null })
 
 const inputDate = useTemplateRef('inputDate')
 

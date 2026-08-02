@@ -9,7 +9,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 const { fetchAiStatus } = useAiStatus()
 await fetchAiStatus()
 </script>

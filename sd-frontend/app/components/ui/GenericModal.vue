@@ -1,54 +1,27 @@
-<script setup>
-const props = defineProps({
-  title: {
-    type: String,
-    required: true,
-  },
-  subtitle: {
-    type: String,
-    default: '',
-  },
-  content: {
-    type: String,
-    default: '',
-  },
-  color: {
-    type: String,
-    default: 'primary',
-  },
-  icon: {
-    type: String,
-    default: '',
-  },
-  iconColor: {
-    type: String,
-    default: '',
-  },
-  confirmText: {
-    type: String,
-    default: 'Confirm',
-  },
-  cancelText: {
-    type: String,
-    default: 'Cancel',
-  },
-  confirmColor: {
-    type: String,
-    default: '',
-  },
-  cancelColor: {
-    type: String,
-    default: 'neutral',
-  },
-  loading: {
-    type: Boolean,
-    default: false,
-  },
+<script setup lang="ts">
+import type { ModalOptions } from '~/composables/ui/useModal'
+
+interface Props extends ModalOptions {
+  title: string
+}
+const props = withDefaults(defineProps<Props>(), {
+  subtitle: '',
+  content: '',
+  color: 'primary',
+  icon: '',
+  iconColor: '',
+  confirmText: 'Confirm',
+  cancelText: 'Cancel',
+  confirmColor: '',
+  cancelColor: 'neutral',
+  loading: false,
 })
 
-const emit = defineEmits(['close'])
+const emit = defineEmits<{
+  close: [value: boolean]
+}>()
 
-const isOpen = defineModel('open', { type: Boolean, default: true })
+const isOpen = defineModel<boolean>('open', { default: true })
 
 const isProcessing = ref(false)
 
