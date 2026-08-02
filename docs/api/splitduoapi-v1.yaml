@@ -822,6 +822,16 @@ paths:
       responses:
         "200":
           description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfListOfAliasBalanceDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfListOfAliasBalanceDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfListOfAliasBalanceDto"
   /api/v1/groups/{groupId}/balances/summary:
     get:
       tags:
@@ -835,6 +845,16 @@ paths:
       responses:
         "200":
           description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfAliasBalanceSummaryDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfAliasBalanceSummaryDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfAliasBalanceSummaryDto"
   /api/v1/groups/{groupId}/expenses:
     get:
       tags:
@@ -1253,13 +1273,13 @@ paths:
           content:
             text/plain:
               schema:
-                $ref: "#/components/schemas/ApiResponseDtoOfObject"
+                $ref: "#/components/schemas/ApiResponseDtoOfEmptyDto"
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponseDtoOfObject"
+                $ref: "#/components/schemas/ApiResponseDtoOfEmptyDto"
             text/json:
               schema:
-                $ref: "#/components/schemas/ApiResponseDtoOfObject"
+                $ref: "#/components/schemas/ApiResponseDtoOfEmptyDto"
   /api/v1/2fa/disable:
     post:
       tags:
@@ -1282,13 +1302,13 @@ paths:
           content:
             text/plain:
               schema:
-                $ref: "#/components/schemas/ApiResponseDtoOfObject"
+                $ref: "#/components/schemas/ApiResponseDtoOfEmptyDto"
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponseDtoOfObject"
+                $ref: "#/components/schemas/ApiResponseDtoOfEmptyDto"
             text/json:
               schema:
-                $ref: "#/components/schemas/ApiResponseDtoOfObject"
+                $ref: "#/components/schemas/ApiResponseDtoOfEmptyDto"
   /api/v1/2fa/backup-codes/generate:
     post:
       tags:
@@ -1534,6 +1554,50 @@ components:
       properties:
         enabled:
           type: boolean
+    AliasBalanceDto:
+      type: object
+      properties:
+        aliasId:
+          type: string
+        aliasName:
+          type: string
+        balance:
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+          format: double
+        totalPaid:
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+          format: double
+        totalOwed:
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+          format: double
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserBasicInfoDto"
+        isSingleton:
+          type: boolean
+    AliasBalanceSummaryDto:
+      type: object
+      properties:
+        groupId:
+          type: string
+        balances:
+          type: array
+          items:
+            $ref: "#/components/schemas/AliasBalanceDto"
+        suggestions:
+          type: array
+          items:
+            $ref: "#/components/schemas/AliasSettlementSuggestionDto"
     AliasDto:
       type: object
       properties:
@@ -1561,6 +1625,25 @@ components:
             - integer
             - string
           format: int64
+    AliasSettlementSuggestionDto:
+      type: object
+      properties:
+        fromAliasId:
+          type: string
+        toAliasId:
+          type: string
+        fromAliasName:
+          type: string
+        toAliasName:
+          type: string
+        amount:
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+          format: double
+        description:
+          type: string
     ApiErrorDto:
       type: object
       properties:
@@ -1583,6 +1666,23 @@ components:
           oneOf:
             - type: "null"
             - $ref: "#/components/schemas/AiStatusDto"
+        message:
+          type:
+            - "null"
+            - string
+        error:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/ApiErrorDto"
+    ApiResponseDtoOfAliasBalanceSummaryDto:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/AliasBalanceSummaryDto"
         message:
           type:
             - "null"
@@ -1632,6 +1732,23 @@ components:
           type: boolean
         data:
           type: boolean
+        message:
+          type:
+            - "null"
+            - string
+        error:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/ApiErrorDto"
+    ApiResponseDtoOfEmptyDto:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/EmptyDto"
         message:
           type:
             - "null"
@@ -1734,6 +1851,25 @@ components:
           oneOf:
             - type: "null"
             - $ref: "#/components/schemas/InvitationDto"
+        message:
+          type:
+            - "null"
+            - string
+        error:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/ApiErrorDto"
+    ApiResponseDtoOfListOfAliasBalanceDto:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type:
+            - "null"
+            - array
+          items:
+            $ref: "#/components/schemas/AliasBalanceDto"
         message:
           type:
             - "null"
@@ -1924,20 +2060,6 @@ components:
             - array
           items:
             $ref: "#/components/schemas/UserDto"
-        message:
-          type:
-            - "null"
-            - string
-        error:
-          oneOf:
-            - type: "null"
-            - $ref: "#/components/schemas/ApiErrorDto"
-    ApiResponseDtoOfObject:
-      type: object
-      properties:
-        success:
-          type: boolean
-        data: {}
         message:
           type:
             - "null"
@@ -2271,6 +2393,8 @@ components:
       properties:
         password:
           type: string
+    EmptyDto:
+      type: object
     ExpenseAliasSplitDto:
       type: object
       properties:

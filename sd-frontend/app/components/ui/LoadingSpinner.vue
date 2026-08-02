@@ -13,23 +13,17 @@
   </div>
 </template>
 
-<script setup>
-defineProps({
-  icon: {
-    type: String,
-    default: 'i-lucide-loader-2',
-  },
-  text: {
-    type: String,
-    default: null,
-  },
-  containerClass: {
-    type: String,
-    default: 'flex justify-center py-8',
-  },
-  spinnerClass: {
-    type: String,
-    default: 'w-6 h-6 animate-spin text-muted',
-  },
+<script setup lang="ts">
+interface Props {
+  icon?: string
+  text?: string | null
+  containerClass?: string
+  spinnerClass?: string
+}
+withDefaults(defineProps<Props>(), {
+  icon: 'i-lucide-loader-2',
+  text: null,
+  containerClass: 'flex justify-center py-8',
+  spinnerClass: 'w-6 h-6 animate-spin text-muted',
 })
 </script>

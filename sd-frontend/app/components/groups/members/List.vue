@@ -1,13 +1,19 @@
-<script setup>
-defineProps({
-  members: {
-    type: Array,
-    required: true,
-  },
-  isLoading: {
-    type: Boolean,
-    default: false,
-  },
+<script setup lang="ts">
+interface FlattenedMember {
+  id: string
+  firstName?: string
+  lastName?: string | null
+  email?: string
+  fullName?: string | null
+  role: string
+}
+
+interface Props {
+  members: FlattenedMember[]
+  isLoading?: boolean
+}
+withDefaults(defineProps<Props>(), {
+  isLoading: false,
 })
 </script>
 

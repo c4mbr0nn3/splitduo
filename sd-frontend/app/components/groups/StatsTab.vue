@@ -9,8 +9,8 @@
       class="space-y-6"
     >
       <GroupsStatsCards
-        :total-expenses="groupStats.totalExpenses"
-        :group-total="groupStats.totalAmount"
+        :total-expenses="Number(groupStats.totalExpenses)"
+        :group-total="Number(groupStats.totalAmount)"
         :is-alias-mode="isAliasMode"
       />
 
@@ -18,11 +18,11 @@
         <GroupsStatsMonthlyChart
           v-if="groupStats.monthlyBreakdown?.length"
           class="lg:col-span-2"
-          :monthly-breakdown="groupStats.monthlyBreakdown"
+          :monthly-breakdown="groupStats.monthlyBreakdown as MonthlyStat[]"
         />
         <GroupsStatsCategoryChart
           v-if="groupStats.categoryBreakdown?.length"
-          :category-breakdown="groupStats.categoryBreakdown"
+          :category-breakdown="groupStats.categoryBreakdown as CategoryStat[]"
         />
       </div>
 
@@ -30,7 +30,7 @@
         <GroupsStatsMemberPaidChart
           v-if="groupStats.balances?.length"
           class="lg:col-span-2"
-          :balances="groupStats.balances"
+          :balances="groupStats.balances as NormalBalance[]"
         />
         <div
           v-if="groupStats.balances?.length"
@@ -45,8 +45,8 @@
             >
               <GroupsAliasBalanceCard
                 v-for="balance in groupStats.balances"
-                :key="balance.aliasId"
-                :balance="balance"
+                :key="(balance as AliasBalance).aliasId"
+                :balance="balance as AliasBalance"
               />
             </template>
             <template
@@ -54,8 +54,8 @@
             >
               <GroupsMemberBalanceCard
                 v-for="balance in groupStats.balances"
-                :key="balance.userId"
-                :balance="balance"
+                :key="(balance as NormalBalance).userId"
+                :balance="balance as NormalBalance"
               />
             </template>
           </div>
@@ -71,10 +71,13 @@
   </div>
 </template>
 
-<script setup>
-const props = defineProps({
-  groupId: { type: String, required: true },
-})
+<script setup lang="ts">
+import type { AliasBalance, NormalBalance, CategoryStat, MonthlyStat } from '~/types/domain'
+
+interface Props {
+  groupId: string
+}
+const props = defineProps<Props>()
 
 const { groupStats, fetchGroupStats, isLoading: isLoadingStats, isAliasMode } = useBalances(props.groupId)
 

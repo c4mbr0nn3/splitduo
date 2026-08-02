@@ -63,10 +63,10 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 const { t } = useI18n()
 const route = useRoute()
-const groupId = route.params.id
+const groupId = String(route.params.id)
 const { currentGroup, fetchGroup, isLoading } = useGroups()
 const { aliases, fetchAliases } = useAliases()
 const { exportToCsv, isExporting } = useImportExport(groupId)
@@ -80,7 +80,7 @@ const handleExport = async () => {
   try {
     await exportToCsv()
   }
-  catch (error) {
+  catch (error: unknown) {
     console.error('Failed to export group data:', error)
   }
 }

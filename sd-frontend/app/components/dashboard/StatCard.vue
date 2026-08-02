@@ -34,24 +34,22 @@
   </UCard>
 </template>
 
-<script setup>
-const props = defineProps({
-  stats: {
-    type: Object,
-    required: true,
-  },
-  icon: {
-    type: String,
-    required: true,
-  },
-  color: {
-    type: String,
-    default: 'neutral',
-  },
-  type: {
-    type: String,
-    default: 'base',
-  },
+<script setup lang="ts">
+interface StatData {
+  label: string
+  value: number | string
+  color?: string
+}
+
+interface Props {
+  stats: StatData
+  icon: string
+  color?: string
+  type?: string
+}
+const props = withDefaults(defineProps<Props>(), {
+  color: 'neutral',
+  type: 'base',
 })
 
 const statsLabel = computed(() => props.stats.label)
@@ -62,7 +60,7 @@ const numericValue = computed(() => {
 })
 
 const tone = computed(() => props.stats.color || props.color)
-const toneMap = {
+const toneMap: Record<string, { tint: string, text: string }> = {
   neutral: { tint: 'bg-muted/10', text: 'text-muted' },
   teal: { tint: 'bg-primary/10', text: 'text-primary' },
   primary: { tint: 'bg-primary/10', text: 'text-primary' },
@@ -72,7 +70,13 @@ const toneMap = {
   error: { tint: 'bg-error/10', text: 'text-error' },
   yellow: { tint: 'bg-warning/10', text: 'text-warning' },
   warning: { tint: 'bg-warning/10', text: 'text-warning' },
+  rose: { tint: 'bg-secondary/10', text: 'text-secondary' },
+  secondary: { tint: 'bg-secondary/10', text: 'text-secondary' },
+  info: { tint: 'bg-info/10', text: 'text-info' },
 }
-const iconTint = computed(() => (toneMap[tone.value] || toneMap.neutral).tint)
-const iconText = computed(() => (toneMap[tone.value] || toneMap.neutral).text)
+function getTone(key: string) {
+  return toneMap[key] ?? toneMap.neutral!
+}
+const iconTint = computed(() => getTone(tone.value).tint)
+const iconText = computed(() => getTone(tone.value).text)
 </script>

@@ -13,9 +13,9 @@
       </div>
       <span
         class="font-bold text-lg"
-        :class="balance.balance >= 0 ? 'text-success' : 'text-error'"
+        :class="Number(balance.balance) >= 0 ? 'text-success' : 'text-error'"
       >
-        {{ balance.balance >= 0 ? '+' : '' }}{{ formatAmount(balance.balance) }} €
+        {{ Number(balance.balance) >= 0 ? '+' : '' }}{{ formatAmount(balance.balance) }} €
       </span>
     </div>
     <div class="grid grid-cols-2 gap-4 text-center mt-3">
@@ -39,11 +39,11 @@
   </UCard>
 </template>
 
-<script setup>
-defineProps({
-  balance: {
-    type: Object,
-    required: true,
-  },
-})
+<script setup lang="ts">
+import type { NormalBalance } from '~/types/domain'
+
+interface Props {
+  balance: NormalBalance
+}
+defineProps<Props>()
 </script>

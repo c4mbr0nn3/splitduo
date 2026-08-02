@@ -62,42 +62,46 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { Invitation } from '~/types/domain'
+
 const { t } = useI18n()
 
-const props = defineProps({
-  members: {
-    type: Array,
-    required: true,
-  },
-  isGroupAdmin: {
-    type: Boolean,
-    default: false,
-  },
-  currentUserId: {
-    type: String,
-    default: '',
-  },
-  groupId: {
-    type: String,
-    default: '',
-  },
-  pendingInvitations: {
-    type: Array,
-    default: () => [],
-  },
-  invitationLoading: {
-    type: Boolean,
-    default: false,
-  },
+interface FlattenedMember {
+  id: string
+  firstName?: string
+  lastName?: string | null
+  email?: string
+  fullName?: string | null
+  role: string
+}
+
+interface Props {
+  members: FlattenedMember[]
+  isGroupAdmin?: boolean
+  currentUserId?: string
+  groupId?: string
+  pendingInvitations?: Invitation[]
+  invitationLoading?: boolean
+}
+const props = withDefaults(defineProps<Props>(), {
+  isGroupAdmin: false,
+  currentUserId: '',
+  groupId: '',
+  pendingInvitations: () => [],
+  invitationLoading: false,
 })
 
-const emit = defineEmits(['resend', 'revoke', 'refresh'])
+const emit = defineEmits<{
+  resend: [invitation: Invitation]
+  revoke: [invitation: Invitation]
+  refresh: []
+}>()
 
 const { changeMemberRole } = useGroups()
 const modal = useModal()
 
-const getRoleItems = (member) => {
+const getRoleItems = (member: FlattenedMember) => {
   const items = []
 
   if (member.role === 'member') {
@@ -120,7 +124,7 @@ const getRoleItems = (member) => {
   return items
 }
 
-const confirmRoleChange = async (member, newRole) => {
+const confirmRoleChange = async (member: FlattenedMember, newRole: string) => {
   const isPromote = newRole === 'admin'
   const firstName = member.firstName || member.fullName || ''
 

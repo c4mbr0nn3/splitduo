@@ -42,7 +42,7 @@ public class TwoFactorController(
     }
 
     [HttpPost("setup/verify")]
-    public async Task<ActionResult<ApiResponseDto<object>>> VerifySetup([FromBody] VerifyTwoFactorSetupDto request)
+    public async Task<ActionResult<ApiResponseDto<EmptyDto>>> VerifySetup([FromBody] VerifyTwoFactorSetupDto request)
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
@@ -67,7 +67,7 @@ public class TwoFactorController(
     }
 
     [HttpPost("disable")]
-    public async Task<ActionResult<ApiResponseDto<object>>> Disable([FromBody] DisableTwoFactorDto request)
+    public async Task<ActionResult<ApiResponseDto<EmptyDto>>> Disable([FromBody] DisableTwoFactorDto request)
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)

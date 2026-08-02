@@ -1,7 +1,7 @@
-<script setup>
+<script setup lang="ts">
 const { t } = useI18n()
 const isOffline = ref(false)
-let onlineTimeout = null
+let onlineTimeout: ReturnType<typeof setTimeout> | null = null
 
 const showBackOnlineToast = () => {
   const { showSuccess } = useNotifications()

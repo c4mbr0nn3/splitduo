@@ -16,10 +16,13 @@
   </UCard>
 </template>
 
-<script setup>
-const props = defineProps({
-  categoryBreakdown: { type: Array, required: true },
-})
+<script setup lang="ts">
+import type { CategoryStat } from '~/types/domain'
+
+interface Props {
+  categoryBreakdown: CategoryStat[]
+}
+const props = defineProps<Props>()
 
 const { palette, themeMode } = useChartTheme()
 
@@ -32,7 +35,7 @@ const chartOptions = computed(() => ({
   chart: { background: 'transparent' },
   dataLabels: { enabled: false },
   tooltip: {
-    y: { formatter: val => `€ ${val.toFixed(2)}` },
+    y: { formatter: (val: number) => `€ ${val.toFixed(2)}` },
   },
   legend: { position: 'bottom' },
 }))

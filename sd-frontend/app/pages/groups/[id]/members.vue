@@ -209,10 +209,20 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { Invitation, Alias } from '~/types/domain'
+
+interface MemberWithRole {
+  id: string
+  email: string
+  firstName: string
+  lastName?: string | null
+  role: string
+}
+
 const { t } = useI18n()
 const route = useRoute()
-const groupId = route.params.id
+const groupId = String(route.params.id)
 
 const { user } = useAuth()
 const { currentGroup, fetchGroup, fetchGroupMembers, isLoading } = useGroups()
@@ -233,8 +243,8 @@ const NormalMembersList = defineAsyncComponent(() => import('~/components/groups
 const AliasMembersList = defineAsyncComponent(() => import('~/components/groups/members/AliasMembersList.vue'))
 
 const group = computed(() => currentGroup.value)
-const members = ref([])
-const pendingInvitations = ref([])
+const members = ref<MemberWithRole[]>([])
+const pendingInvitations = ref<Invitation[]>([])
 const pageLoading = ref(true)
 const loadError = ref(false)
 const isFinalizing = ref(false)
@@ -251,7 +261,7 @@ const navigateToInvite = () => {
   navigateTo(`/groups/${groupId}/invite`)
 }
 
-const onResend = async (invitation) => {
+const onResend = async (invitation: Invitation) => {
   try {
     const updated = await resendInvitation(groupId, invitation.id)
     const index = pendingInvitations.value.findIndex(i => i.id === invitation.id)
@@ -266,7 +276,7 @@ const onResend = async (invitation) => {
 
 const modal = useModal()
 
-const onRevoke = async (invitation) => {
+const onRevoke = async (invitation: Invitation) => {
   const confirmed = await modal.warning({
     title: t('groups.revokeInvitation'),
     subtitle: t('groups.revokeInvitationSubtitle'),
@@ -289,14 +299,22 @@ const onRevoke = async (invitation) => {
 const loadGroupMembers = async () => {
   try {
     const data = await fetchGroupMembers(groupId)
-    members.value = data.map((item) => {
-      return {
-        ...item.user,
-        role: item.role || 'member',
-      }
-    })
+    if (data) {
+      members.value = data.map((item) => {
+        return {
+          id: item.user?.id || '',
+          email: item.user?.email || '',
+          firstName: item.user?.firstName || '',
+          lastName: item.user?.lastName,
+          role: item.role || 'member',
+        }
+      })
+    }
+    else {
+      members.value = []
+    }
   }
-  catch (error) {
+  catch (error: unknown) {
     console.error('Failed to load group members:', error)
     members.value = []
   }
@@ -383,7 +401,7 @@ const onFinalize = async () => {
 }
 
 const isCreateModalOpen = ref(false)
-const createForm = ref({ name: '' })
+const createForm = ref<{ name: string }>({ name: '' })
 
 const openCreateModal = () => {
   createForm.value.name = ''
@@ -405,10 +423,10 @@ const onCreate = async () => {
 }
 
 const isRenameModalOpen = ref(false)
-const renameForm = ref({ name: '' })
-const activeAlias = ref(null)
+const renameForm = ref<{ name: string }>({ name: '' })
+const activeAlias = ref<Alias | null>(null)
 
-const openRenameModal = (alias) => {
+const openRenameModal = (alias: Alias) => {
   activeAlias.value = alias
   renameForm.value.name = alias.name
   isRenameModalOpen.value = true
@@ -429,7 +447,7 @@ const onRename = async () => {
   }
 }
 
-const onDelete = async (alias) => {
+const onDelete = async (alias: Alias) => {
   const confirmed = await modal.error({
     title: t('groups.deleteAlias'),
     subtitle: t('groups.deleteAliasConfirm'),
@@ -449,7 +467,7 @@ const onDelete = async (alias) => {
   }
 }
 
-const onAssignMember = async (alias, userId) => {
+const onAssignMember = async (alias: Alias, userId: string) => {
   if (!userId) return
 
   try {
@@ -461,7 +479,7 @@ const onAssignMember = async (alias, userId) => {
   }
 }
 
-const onRemoveMember = async (alias, userId) => {
+const onRemoveMember = async (alias: Alias, userId: string) => {
   const confirmed = await modal.warning({
     title: t('groups.removeMember'),
     subtitle: t('groups.removeMemberConfirm'),

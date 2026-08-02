@@ -2,37 +2,41 @@
 
 ## Overview
 
-Nuxt 4 SPA (ssr: false), Vue 3 Composition API, Nuxt UI v4, TailwindCSS v4. **Plain JS — no TypeScript** in `.vue`/`.js` files. No Pinia.
+Nuxt 4 SPA (ssr: false), Vue 3 Composition API, Nuxt UI v4, TailwindCSS v4. No Pinia.
 
 ## Commands
 
 - `pnpm dev` — http://localhost:3000
 - `pnpm generate` — static build → `.output/public/` (deployed into backend wwwroot)
 - `pnpm lint:fix` — **run after every implementation** before considering task done
+- `pnpm typecheck` — **run after every implementation** before considering task done (`nuxt prepare && vue-tsc --noEmit`)
+- `pnpm gen:api` — regenerate `app/types/api.d.ts` from `docs/api/splitduoapi-v1.yaml` (run after OpenAPI spec changes)
 
 ## Tech Stack
 
-- Nuxt 4 (`^4.4.8`), Nuxt UI v4 (`^4.9.0`), TailwindCSS v4
+- Nuxt 4 (`^4.4.8`), Nuxt UI v4 (`^4.9.0`), TailwindCSS v4, **TypeScript** (`strict: true`, `verbatimModuleSyntax: true`)
 - Icons: Lucide + Simple Icons (`@iconify-json/*`)
 - ApexCharts (`apexcharts` + `vue3-apexcharts`) — group statistics charting
 - PWA (`@vite-pwa/nuxt`) — installable app, offline support, auto-update
 - uqr — QR code generation for 2FA
-- ESLint (`@nuxt/eslint` with stylistic rules)
+- `openapi-typescript` — generates `app/types/api.d.ts` from OpenAPI spec (dev-only, zero runtime cost)
+- ESLint (`@nuxt/eslint` with stylistic rules, includes `@typescript-eslint`)
 
 ## Structure
 
+- `app/types/` — `api.d.ts` (generated from OpenAPI spec via `pnpm gen:api`), `domain.ts` (friendlier aliases + envelope types + alias-mode unions + hand-write exceptions for `ImportAnalysis`/`KeyValue`/`BalanceSummary`/`BalanceSuggestion`)
 - `app/components/` — auto-imported, folder nesting = name prefix (`groups/ExpenseCard.vue` → `<GroupsExpenseCard />`). Subfolders: `admin/`, `button/`, `dashboard/`, `expenses/`, `groups/` (+ `members/`), `layout/`, `ui/` (primitives)
-- `app/composables/` — `api/base.js` (useApi, incl. `getBlob` for binary downloads), `auth/` (useAuth, useAuthToken, use2FA), `resources/` (one per entity, incl. `useAliases`), `ui/` (useModal, useChartTheme), `utils/` (useNotifications, useErrorHandling, usePagination, useDebounceSearch), `index.js` (barrel)
+- `app/composables/` — `api/base.ts` (useApi, incl. `getBlob` for binary downloads), `auth/` (useAuth, useAuthToken, use2FA), `resources/` (one per entity, incl. `useAliases`), `ui/` (useModal, useChartTheme), `utils/` (useNotifications, useErrorHandling, usePagination, useDebounceSearch), `index.ts` (barrel)
 - `app/pages/` — file-based routing, nested folders = nested routes
-- `app/middleware/` — `auth.js` (redirect to / if not authenticated), `admin.js` (redirect to /dashboard if not admin)
-- `app/plugins/` — `auth.client.js` (restores auth state on app start), `auth-refresh.client.js` (proactive token refresh: timer + visibilitychange), `apexcharts.client.js` (registers ApexCharts globally)
+- `app/middleware/` — `auth.ts` (redirect to / if not authenticated), `admin.ts` (redirect to /dashboard if not admin)
+- `app/plugins/` — `auth.client.ts` (restores auth state on app start), `auth-refresh.client.ts` (proactive token refresh: timer + visibilitychange), `apexcharts.client.ts` (registers ApexCharts globally)
 - `app/utils/` — currency, date, enumUtils, jwt, userRoles, withMinDuration
 
 ## API Layer
 
-`useApi()` (`composables/api/base.js`) wraps `$fetch` with auth headers. Dev: `http://localhost:8080/api/v1`, prod: `/api/v1`. Methods: `get/post/put/delete`. **Never call `$fetch` directly** — always use `useApi()`.
+`useApi()` (`composables/api/base.ts`) wraps `$fetch` with auth headers. Dev: `http://localhost:8080/api/v1`, prod: `/api/v1`. Methods: `get<T>()`, `getPaginated<T>()`, `post<T>()`, `put<T>()`, `delete()`, `getBlob()`. **Never call `$fetch` directly** — always use `useApi()`. Two distinct envelope types: `ApiEnvelope<T>` (non-paginated) vs `PaginatedEnvelope<T>` (paginated) — use `getPaginated<T>()` for paginated endpoints.
 
-Backend response shape: `{ success, data, error, pagination }` — see backend CLAUDE.md for details.
+Backend response shape: `{ success, data, error, pagination }` — see backend CLAUDE.md for details. Types generated from OpenAPI spec in `app/types/api.d.ts`.
 
 ## Composable Patterns
 
@@ -46,11 +50,22 @@ Backend response shape: `{ success, data, error, pagination }` — see backend C
 
 ## Component Conventions
 
-- `<script setup>` only. Props via runtime `defineProps({ ... })` (no TS).
+- `<script setup lang="ts">` only. Props via type-based `defineProps<Props>()` + `withDefaults` (not runtime validators). Emits via `defineEmits<{ 'event': [args] }>()`. Model via `defineModel<Type>({ ... })`.
 - Auto-imported: folder nesting = name prefix (`groups/ExpenseCard.vue` → `<GroupsExpenseCard />`)
 - Use Nuxt UI components (`UButton`, `UInput`, `UCard`, `UModal`) — don't build custom equivalents
 - Forms emit `@submit` and `@cancel`
 - Extract into components when template chunk has clear responsibility or repeats. Primitives → `components/ui/`, domain → feature folder
+
+## TypeScript
+
+- **`<script setup lang="ts">` only** for new `.vue` files — no plain `<script setup>`
+- **Type-based macros** — `defineProps<Props>()` + `withDefaults`, `defineEmits<{...}>()`, `defineModel<T>()` (not runtime validator objects)
+- **`import type`** for type-only imports (`verbatimModuleSyntax: true` is on) — `import type { Foo }` or `import { type Foo }`
+- **No `any`** — prefer `unknown` + narrowing, generics, or explicit interfaces. `catch (error)` blocks use `unknown` + `typeof error === 'object' && 'statusCode' in error` narrowing
+- **Domain types** in `app/types/domain.ts` (re-exported from generated `app/types/api.d.ts` with friendlier names + `WithRequired` narrowing). Generated types are the source of truth — regenerate with `pnpm gen:api` after OpenAPI spec changes. Do NOT edit `api.d.ts` by hand
+- **API layer** — `useApi().get<T>()` for non-paginated, `useApi().getPaginated<T>()` for paginated endpoints. Two distinct envelope types (`ApiEnvelope<T>` vs `PaginatedEnvelope<T>`) — never conflate
+- **`useState`/`useCookie`** need explicit generics when the initial value is `null` — `useState<User | null>('user', () => null)`, `useCookie<string | null>('auth-token', ...)`
+- **Run `pnpm typecheck`** before considering any frontend task done (in addition to `pnpm lint:fix`)
 
 ## Styling
 
@@ -100,7 +115,6 @@ MCP servers are available for up-to-date Nuxt and Nuxt UI docs:
 
 ## Rules When Modifying This Code
 
-- **Don't add TypeScript** to `.vue` or `.js` files — project uses plain JS with runtime validation
 - **Don't add Pinia** — use composable patterns with `ref()`/`readonly()`/`useState()`
 - **Don't create custom UI components** when Nuxt UI provides one
 - **Extract into components** when a template chunk has clear responsibility or would be repeated — don't leave everything inline in a single large template

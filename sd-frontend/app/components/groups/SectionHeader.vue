@@ -30,7 +30,7 @@
         variant="soft"
         icon="i-lucide-users"
         size="xs"
-        :label="$t('groups.memberCount', { count: group.memberCount }, group.memberCount)"
+        :label="t('groups.memberCount', { count: Number(group.memberCount) }, Number(group.memberCount))"
         @click="navigateTo(`/groups/${group.id}/members`)"
       />
 
@@ -56,24 +56,25 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { Group } from '~/types/domain'
+
 const { t } = useI18n()
-const props = defineProps({
-  group: {
-    type: Object,
-    default: null,
-  },
-  aliasCount: {
-    type: Number,
-    default: null,
-  },
-  isExporting: {
-    type: Boolean,
-    default: false,
-  },
+
+interface Props {
+  group?: Group | null
+  aliasCount?: number | null
+  isExporting?: boolean
+}
+const props = withDefaults(defineProps<Props>(), {
+  group: null,
+  aliasCount: null,
+  isExporting: false,
 })
 
-const emit = defineEmits(['export'])
+const emit = defineEmits<{
+  export: []
+}>()
 
 const { deleteGroup: deleteGroupAPI } = useGroups()
 const modal = useModal()
@@ -103,7 +104,7 @@ const confirmDeleteGroup = async () => {
 const deleteGroup = async () => {
   isDeletingGroup.value = true
   try {
-    await deleteGroupAPI(props.group.id)
+    await deleteGroupAPI(props.group!.id)
     await navigateTo('/groups')
   }
   catch (error) {

@@ -1,5 +1,6 @@
 using System.Net;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SplitDuo.Api.Features.Common.Controllers;
@@ -18,6 +19,8 @@ public class BalancesController(
     IUnitOfWork unitOfWork) : BaseApiController
 {
     [HttpGet]
+    [ProducesResponseType(typeof(ApiResponseDto<List<BalanceDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponseDto<List<AliasBalanceDto>>), StatusCodes.Status200OK)]
     public async Task<ActionResult> GetBalances(string groupId)
     {
         var currentUserId = GetCurrentUserId();
@@ -70,6 +73,8 @@ public class BalancesController(
     }
 
     [HttpGet("summary")]
+    [ProducesResponseType(typeof(ApiResponseDto<BalanceSummaryDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponseDto<AliasBalanceSummaryDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult> GetBalanceSummary(string groupId)
     {
         var currentUserId = GetCurrentUserId();

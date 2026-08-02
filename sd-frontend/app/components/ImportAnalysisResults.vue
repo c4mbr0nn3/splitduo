@@ -188,20 +188,19 @@
   </UCard>
 </template>
 
-<script setup>
-const props = defineProps({
-  analysisResults: {
-    type: Object,
-    required: true,
-  },
-})
+<script setup lang="ts">
+import type { ImportAnalysis } from '~/types/domain'
 
-const getTotalItems = () => {
+const props = defineProps<{
+  analysisResults: ImportAnalysis | null
+}>()
+
+const getTotalItems = (): number => {
   const { aliases = [], members = [], categories = [], paymentModes = [] } = props.analysisResults || {}
   return aliases.length + members.length + categories.length + paymentModes.length
 }
 
-const getInitials = (name) => {
+const getInitials = (name: string): string => {
   return name
     .split(' ')
     .map(word => word.charAt(0))

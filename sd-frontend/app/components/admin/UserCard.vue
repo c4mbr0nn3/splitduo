@@ -67,24 +67,27 @@
   </UCard>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { User } from '~/types/domain'
+
 const { t } = useI18n()
-const props = defineProps({
-  user: {
-    type: Object,
-    required: true,
-  },
-  isDeleting: {
-    type: Boolean,
-    default: false,
-  },
-  isRevokingTokens: {
-    type: Boolean,
-    default: false,
-  },
+
+interface Props {
+  user: User
+  isDeleting?: boolean
+  isRevokingTokens?: boolean
+}
+const props = withDefaults(defineProps<Props>(), {
+  isDeleting: false,
+  isRevokingTokens: false,
 })
 
-const emit = defineEmits(['edit', 'revoke-tokens', 'delete', 'refresh'])
+const emit = defineEmits<{
+  'edit': []
+  'revoke-tokens': [user: User]
+  'delete': [user: User]
+  'refresh': []
+}>()
 
 const { user: authUser } = useAuth()
 const modal = useModal()

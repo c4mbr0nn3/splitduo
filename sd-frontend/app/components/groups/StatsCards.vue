@@ -70,23 +70,22 @@
   </UCard>
 </template>
 
-<script setup>
-defineProps({
-  totalExpenses: {
-    type: Number,
-    default: 0,
-  },
-  groupTotal: {
-    type: Number,
-    default: 0,
-  },
-  suggestion: {
-    type: Object,
-    default: null,
-  },
-  isAliasMode: {
-    type: Boolean,
-    default: false,
-  },
+<script setup lang="ts">
+interface SuggestionInfo {
+  label: string
+  isOwed: boolean
+}
+
+interface Props {
+  totalExpenses?: number
+  groupTotal?: number
+  suggestion?: SuggestionInfo | null
+  isAliasMode?: boolean
+}
+withDefaults(defineProps<Props>(), {
+  totalExpenses: 0,
+  groupTotal: 0,
+  suggestion: null,
+  isAliasMode: false,
 })
 </script>

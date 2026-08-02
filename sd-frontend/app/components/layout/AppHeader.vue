@@ -23,7 +23,7 @@
       <UCard
         class="flex flex-col flex-1"
         variant="soft"
-        :ui="{ body: { base: 'flex-1' } }"
+        :ui="{ body: 'flex-1' }"
       >
         <template #header>
           <div class="flex items-center">
@@ -57,7 +57,7 @@
   </UHeader>
 </template>
 
-<script setup>
+<script setup lang="ts">
 const { t } = useI18n()
 const { user, isGlobalAdmin } = useAuth()
 const { settings, update: updateUserSettings } = useUserSettings()

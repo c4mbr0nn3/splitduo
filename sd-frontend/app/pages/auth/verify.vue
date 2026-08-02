@@ -80,7 +80,9 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { AuthResponse } from '~/types/domain'
+
 const { t } = useI18n()
 useHead({ title: computed(() => t('auth.twoFactorVerification')) })
 
@@ -105,7 +107,7 @@ const tabs = computed(() => [
 ])
 const activeTab = ref('0')
 
-const totpCode = ref([])
+const totpCode = ref<number[]>([])
 const backupCode = ref('')
 const isLoading = ref(false)
 
@@ -116,7 +118,7 @@ watch(totpCode, (val) => {
   }
 })
 
-const verify = async (codeType, code) => {
+const verify = async (codeType: string, code: string) => {
   if (!pendingChallengeToken.value) {
     await navigateTo('/')
     return
@@ -124,7 +126,7 @@ const verify = async (codeType, code) => {
 
   isLoading.value = true
   try {
-    const response = await api.post('/auth/verify-2fa', {
+    const response = await api.post<AuthResponse>('/auth/verify-2fa', {
       challengeToken: pendingChallengeToken.value,
       code,
       codeType,
@@ -140,8 +142,8 @@ const verify = async (codeType, code) => {
       resetCode(codeType)
     }
   }
-  catch (error) {
-    showError(error.message || t('auth.verificationFailed'))
+  catch (error: unknown) {
+    showError(error instanceof Error ? error.message : t('auth.verificationFailed'))
     resetCode(codeType)
   }
   finally {
@@ -149,7 +151,7 @@ const verify = async (codeType, code) => {
   }
 }
 
-const resetCode = (codeType) => {
+const resetCode = (codeType: string) => {
   if (codeType === 'totp') totpCode.value = []
   else backupCode.value = ''
 }

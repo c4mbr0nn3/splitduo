@@ -24,7 +24,7 @@
 
     <!-- Step 2: Analysis Results (no extra card — it provides its own) -->
     <div v-if="currentStep === 'analysis'">
-      <ImportAnalysisResults :analysis-results="analysisResults" />
+      <ImportAnalysisResults :analysis-results="analysisResultsForTemplate" />
     </div>
 
     <!-- Other steps: wrapped in card -->
@@ -78,7 +78,7 @@
         class="space-y-6"
       >
         <ImportMappingForm
-          :analysis-results="analysisResults"
+          :analysis-results="analysisResultsForTemplate"
           :group-id="groupId"
           :is-importing="isImporting"
           @submit="onMappingSubmit"
@@ -145,19 +145,40 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { ImportAnalysis, ImportStatus, ImportMapping } from '~/types/domain'
+
 const { t } = useI18n()
 const route = useRoute()
-const groupId = route.params.id
+const groupId = String(route.params.id)
 
 const { currentGroup, fetchGroup } = useGroups()
-const { analyzeFile, importWithMapping, fetchImports, isAnalyzing, isImporting, analysisResults, currentImport, clearAnalysis } = useImportExport(groupId)
+const importExport = useImportExport(groupId)
+const { analyzeFile, importWithMapping, fetchImports, isAnalyzing, isImporting, clearAnalysis } = importExport
 const { showError } = useNotifications()
+
+// Unwrap readonly refs for template binding (readonly arrays can't bind to mutable props)
+const analysisResults = computed(() => {
+  const val = importExport.analysisResults.value
+  if (!val) return null
+  return {
+    fileHash: val.fileHash,
+    members: val.members ? [...val.members] : [],
+    categories: val.categories ? [...val.categories] : [],
+    paymentModes: val.paymentModes ? [...val.paymentModes] : [],
+    aliases: val.aliases ? [...val.aliases] : [],
+  } as ImportAnalysis
+})
+const currentImport = computed(() => importExport.currentImport.value ? { ...importExport.currentImport.value } as ImportStatus : null)
 
 const group = computed(() => currentGroup.value)
 const selectedImportType = ref(1)
-const selectedFile = ref(null)
-const currentStep = ref('upload') // 'upload', 'analysis', 'configure', 'importing'
+const selectedFile = ref<File | null>(null)
+type Step = 'upload' | 'analysis' | 'configure' | 'importing'
+const currentStep = ref<Step>('upload')
+
+// Template-safe computed (avoids `|` filter syntax in template)
+const analysisResultsForTemplate = computed(() => analysisResults.value as ImportAnalysis | null)
 
 const isAliasMode = computed(() => !!group.value?.useAliases)
 
@@ -203,7 +224,7 @@ const clearFile = () => {
   selectedFile.value = null
 }
 
-const validateFile = (file) => {
+const validateFile = (file: File) => {
   // Validate file size (10MB limit)
   if (file.size > 10 * 1024 * 1024) {
     showError(t('imports.fileSizeError'))
@@ -245,21 +266,26 @@ const onAnalyze = async () => {
       currentStep.value = 'analysis'
     }
   }
-  catch (error) {
+  catch (error: unknown) {
     console.error('Analysis failed:', error)
   }
 }
 
-const onMappingSubmit = async (mappingConfig) => {
+const onMappingSubmit = async (mappingConfig: {
+  userMappings: Record<string, string | undefined>
+  aliasMappings: Record<string, string | undefined>
+  categoryMappings: Record<number, number | undefined>
+  paymentModeMappings: Record<number, number | undefined>
+}) => {
   try {
     currentStep.value = 'importing'
-    const result = await importWithMapping(mappingConfig)
+    const result = await importWithMapping(mappingConfig as unknown as ImportMapping)
     if (result) {
       // Navigate back to imports list
       navigateTo(`/groups/${groupId}/imports`)
     }
   }
-  catch (error) {
+  catch (error: unknown) {
     console.error('Import failed:', error)
     // Stay on configure step on error
     currentStep.value = 'configure'
@@ -339,7 +365,7 @@ onMounted(async () => {
     }
 
     // Check if we're continuing an existing import
-    const continueImportId = route.query.continue
+    const continueImportId = typeof route.query.continue === 'string' ? route.query.continue : undefined
     if (continueImportId) {
       // Load the existing import and set appropriate step
       await loadExistingImport(continueImportId)
@@ -347,7 +373,7 @@ onMounted(async () => {
   }
 })
 
-const loadExistingImport = async (importGuid) => {
+const loadExistingImport = async (importGuid: string) => {
   try {
     // Fetch the specific import to get its analysis results
     // For now, we'll need to fetch from the imports list
@@ -355,19 +381,19 @@ const loadExistingImport = async (importGuid) => {
     const { imports } = useImportExport(groupId)
     await fetchImports({ page: 1 }) // This should load recent imports
 
-    const existingImport = imports.value.find(imp => imp.guid === importGuid)
+    const existingImport = imports.value.find((imp: ImportStatus) => imp.id === importGuid)
     if (existingImport && existingImport.importStatusId === 5) {
       // Set the current import and analysis results
       // analysisResults is already parsed by fetchImports
-      currentImport.value = existingImport
-      analysisResults.value = existingImport.analysisResults
+      ;(currentImport as { value: ImportStatus | null }).value = existingImport
+      ;(analysisResults as { value: ImportAnalysis | null }).value = existingImport.analysisResults as ImportAnalysis | null
       currentStep.value = 'configure' // Skip to configuration step
     }
     else {
       showError(t('imports.importNotReady'))
     }
   }
-  catch (error) {
+  catch (error: unknown) {
     console.error('Failed to load existing import:', error)
     showError(t('imports.failedToLoadImport'))
   }

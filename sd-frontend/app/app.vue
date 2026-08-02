@@ -1,8 +1,8 @@
-<script setup>
+<script setup lang="ts">
 import { en, it } from '@nuxt/ui/locale'
 
 const { locale } = useI18n()
-const uiLocales = { en, it }
+const uiLocales: Record<string, typeof en> = { en, it }
 const uiLocale = computed(() => uiLocales[locale.value] ?? en)
 </script>
 

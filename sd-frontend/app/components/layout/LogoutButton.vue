@@ -9,7 +9,7 @@
   />
 </template>
 
-<script setup>
+<script setup lang="ts">
 const { t } = useI18n()
 const { logout } = useAuth()
 const { showSuccess } = useNotifications()

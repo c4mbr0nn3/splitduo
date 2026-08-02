@@ -10,80 +10,110 @@
   />
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { Expense } from '~/types/domain'
+
+interface ExpenseFormModel {
+  expenseId?: string
+  groupId?: string
+  title?: string
+  description?: string
+  amount?: string
+  paidByUserId?: string
+  expenseDate?: string
+  categoryId?: number
+  paymentModeId?: number
+  splits?: { userId: string, included: boolean, splitAmount: number | null }[]
+  aliasSplits?: { aliasId: string, included: boolean, splitAmount: number | null }[]
+}
+
+interface SplitItem {
+  userId: string
+  included: boolean
+  splitAmount: number | null
+}
+
+interface AliasSplitItem {
+  aliasId: string
+  included: boolean
+  splitAmount: number | null
+}
+
 const { t } = useI18n()
 const route = useRoute()
-const groupId = route.params.id
-const expenseId = route.params.expenseId
+const groupId = String(route.params.id)
+const expenseId = route.params.expenseId ? String(route.params.expenseId) : undefined
 
 const { currentExpense, fetchExpense, updateExpense } = useExpenses(groupId)
 
 const isUpdating = ref(false)
 
 // Form data state
-const expenseFormData = ref({
-  groupId: null,
+const expenseFormData = ref<ExpenseFormModel>({
+  groupId: undefined,
   title: '',
   description: '',
-  amount: null,
-  paidByUserId: null,
+  amount: undefined,
+  paidByUserId: undefined,
   expenseDate: new Date().toISOString().split('T')[0],
-  categoryId: null,
-  paymentModeId: null,
+  categoryId: undefined,
+  paymentModeId: undefined,
   splits: [],
 })
 
 // Watch currentExpense and update form data
 watch(currentExpense, (expense) => {
   if (expense) {
-    const isAliasMode = Array.isArray(expense.aliasSplits) && expense.aliasSplits.length > 0
+    const e = expense as unknown as Expense
+    const isAliasMode = Array.isArray(e.aliasSplits) && e.aliasSplits.length > 0
     expenseFormData.value = {
-      expenseId: expense.id,
-      groupId: expense.groupId,
-      title: expense.title,
-      description: expense.description,
-      amount: expense.amount,
-      paidByUserId: expense.paidByUserId,
-      expenseDate: expense.expenseDate ? new Date(expense.expenseDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-      categoryId: expense.categoryId,
-      paymentModeId: expense.paymentModeId,
-      splits: isAliasMode ? [] : (mapSplits(expense.splits) || []),
-      aliasSplits: isAliasMode ? (mapAliasSplits(expense.aliasSplits) || []) : [],
+      expenseId: e.id,
+      groupId: e.groupId,
+      title: e.title,
+      description: e.description ?? '',
+      amount: String(e.amount ?? ''),
+      paidByUserId: e.paidByUserId,
+      expenseDate: e.expenseDate ? new Date(e.expenseDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      categoryId: Number(e.categoryId) || undefined,
+      paymentModeId: Number(e.paymentModeId) || undefined,
+      splits: isAliasMode ? [] : (mapSplits(e.splits) || []),
+      aliasSplits: isAliasMode ? (mapAliasSplits(e.aliasSplits) || []) : [],
     }
   }
 }, { immediate: true })
 
-const mapSplits = (splits) => {
+const mapSplits = (splits: { userId?: string, splitAmount?: number | string }[] | undefined): SplitItem[] => {
   if (!Array.isArray(splits)) return []
   return splits.map((s) => {
     return {
-      userId: s.userId,
+      userId: s.userId ?? '',
       included: true,
-      splitAmount: s.splitAmount,
+      splitAmount: s.splitAmount != null ? Number(s.splitAmount) : null,
     }
   })
 }
 
-const mapAliasSplits = (aliasSplits) => {
+const mapAliasSplits = (aliasSplits: { aliasId?: string, splitAmount?: number | string }[] | null | undefined): AliasSplitItem[] => {
   if (!Array.isArray(aliasSplits)) return []
   return aliasSplits.map((s) => {
     return {
-      aliasId: s.aliasId,
+      aliasId: s.aliasId ?? '',
       included: true,
-      splitAmount: s.splitAmount,
+      splitAmount: s.splitAmount != null ? Number(s.splitAmount) : null,
     }
   })
 }
 
-const onSubmit = async ({ expenseData }) => {
+const onSubmit = async (payload: { groupId: string, expenseData: Record<string, unknown> }) => {
+  const { expenseData } = payload
   isUpdating.value = true
   try {
-    const updatedExpense = await updateExpense(expenseId, expenseData)
+    const updatedExpense = await updateExpense(expenseId!, expenseData)
     if (updatedExpense) {
       await navigateTo(`/groups/${groupId}`)
     }
   }
-  catch (error) {
+  catch (error: unknown) {
     console.error('Failed to update expense:', error)
   }
   finally {

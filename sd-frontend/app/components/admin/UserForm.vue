@@ -81,36 +81,36 @@
   </div>
 </template>
 
-<script setup>
-const props = defineProps({
-  title: {
-    type: String,
-    required: true,
-  },
-  submitLabel: {
-    type: String,
-    required: true,
-  },
-  initialData: {
-    type: Object,
-    default: () => ({
-      firstName: '',
-      lastName: '',
-      email: '',
-      globalRoleId: UserRole.BASE_USER,
-    }),
-  },
-  loading: {
-    type: Boolean,
-    default: false,
-  },
-  isEdit: {
-    type: Boolean,
-    default: false,
-  },
+<script setup lang="ts">
+interface UserFormData {
+  firstName: string
+  lastName: string
+  email: string
+  globalRoleId: number
+}
+
+interface Props {
+  title: string
+  submitLabel: string
+  initialData?: UserFormData
+  loading?: boolean
+  isEdit?: boolean
+}
+const props = withDefaults(defineProps<Props>(), {
+  initialData: () => ({
+    firstName: '',
+    lastName: '',
+    email: '',
+    globalRoleId: UserRole.BASE_USER,
+  }),
+  loading: false,
+  isEdit: false,
 })
 
-const emit = defineEmits(['submit', 'cancel'])
+const emit = defineEmits<{
+  submit: [data: UserFormData]
+  cancel: []
+}>()
 
 const roleOptions = UserRole.getSelectOptions()
 

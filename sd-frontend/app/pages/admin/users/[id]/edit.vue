@@ -10,24 +10,33 @@
   />
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { User } from '~/types/domain'
+
+interface UserFormData {
+  firstName: string
+  lastName: string
+  email: string
+  globalRoleId: number
+}
+
 const { t } = useI18n()
 const route = useRoute()
 const { goBack } = useSmartBack('/admin/users')
-const userId = route.params.id
+const userId = String(route.params.id)
 
 const { fetchUser, updateUser, isLoading } = useUsers()
 
-const currentUser = ref(null)
+const currentUser = ref<User | null>(null)
 
-const initialData = computed(() => ({
+const initialData = computed<UserFormData>(() => ({
   firstName: currentUser.value?.firstName || '',
   lastName: currentUser.value?.lastName || '',
   email: currentUser.value?.email || '',
-  globalRoleId: currentUser.value?.globalRoleId || UserRole.BASE_USER,
+  globalRoleId: Number(currentUser.value?.globalRoleId) || UserRole.BASE_USER,
 }))
 
-async function onSubmit(formData) {
+async function onSubmit(formData: UserFormData) {
   try {
     const { globalRoleId, ...rest } = formData
     const updatedUser = await updateUser(userId, { ...rest, globalRole: globalRoleId })
@@ -35,7 +44,7 @@ async function onSubmit(formData) {
       navigateTo('/admin/users')
     }
   }
-  catch (err) {
+  catch (err: unknown) {
     console.error('Error updating user:', err)
   }
 }
@@ -43,9 +52,10 @@ async function onSubmit(formData) {
 onMounted(async () => {
   if (userId) {
     try {
-      currentUser.value = await fetchUser(userId)
+      const user = await fetchUser(userId)
+      currentUser.value = user ?? null
     }
-    catch (error) {
+    catch (error: unknown) {
       console.error('Failed to load user:', error)
       navigateTo('/admin/users')
     }

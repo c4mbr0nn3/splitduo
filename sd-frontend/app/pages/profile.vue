@@ -148,7 +148,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useClipboard } from '@vueuse/core'
 
 const { t } = useI18n()
@@ -160,44 +160,46 @@ const { copy, copied } = useClipboard()
 const isPasswordModalOpen = ref(false)
 
 const profileActions = computed(() => [
-  [
-    {
-      label: t('profile.changePassword'),
-      icon: 'i-lucide-key',
-      onSelect: () => { isPasswordModalOpen.value = true },
-    },
-    {
-      label: user.value?.twoFactorEnabled ? t('profile.twoFactorSettings') : t('profile.setUp2FA'),
-      icon: user.value?.twoFactorEnabled ? 'i-lucide-shield-check' : 'i-lucide-shield',
-      to: '/settings/2fa/setup',
-    },
-  ],
-])
+  {
+    label: t('profile.changePassword'),
+    icon: 'i-lucide-key',
+    onSelect: () => { isPasswordModalOpen.value = true },
+  },
+  {
+    label: user.value?.twoFactorEnabled ? t('profile.twoFactorSettings') : t('profile.setUp2FA'),
+    icon: user.value?.twoFactorEnabled ? 'i-lucide-shield-check' : 'i-lucide-shield',
+    to: '/settings/2fa/setup',
+  },
+] as { label: string, icon: string, [key: string]: unknown }[])
 
 const handlePasswordChangeSuccess = () => {
   // Modal will handle redirection to login
   // This is just here for potential future use
 }
 
-const userForm = computed(() => [
-  {
-    label: t('profile.firstName'),
-    value: computed(() => user.value.firstName),
-  },
-  {
-    label: t('profile.lastName'),
-    value: computed(() => user.value.lastName || t('profile.notProvided')),
-  },
-  {
-    label: t('profile.emailAddress'),
-    value: computed(() => user.value.email),
-  },
-  {
-    label: t('profile.userId'),
-    value: computed(() => user.value.id),
-    copyable: true,
-  },
-])
+const userForm = computed(() => {
+  const u = user.value
+  if (!u) return []
+  return [
+    {
+      label: t('profile.firstName'),
+      value: computed(() => u.firstName),
+    },
+    {
+      label: t('profile.lastName'),
+      value: computed(() => u.lastName || t('profile.notProvided')),
+    },
+    {
+      label: t('profile.emailAddress'),
+      value: computed(() => u.email),
+    },
+    {
+      label: t('profile.userId'),
+      value: computed(() => u.id),
+      copyable: true,
+    },
+  ]
+})
 
 const refreshProfile = async () => {
   const { initialize } = useAuth()

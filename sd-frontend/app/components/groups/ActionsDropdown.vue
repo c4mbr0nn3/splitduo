@@ -9,24 +9,26 @@
   />
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { Group } from '~/types/domain'
+
 const { t } = useI18n()
-const props = defineProps({
-  group: {
-    type: Object,
-    default: null,
-  },
-  isExporting: {
-    type: Boolean,
-    default: false,
-  },
-  isDeleting: {
-    type: Boolean,
-    default: false,
-  },
+
+interface Props {
+  group?: Group | null
+  isExporting?: boolean
+  isDeleting?: boolean
+}
+const props = withDefaults(defineProps<Props>(), {
+  group: null,
+  isExporting: false,
+  isDeleting: false,
 })
 
-const emit = defineEmits(['export', 'delete'])
+const emit = defineEmits<{
+  export: []
+  delete: []
+}>()
 
 const navigateToEdit = () => {
   if (!props.group?.id) return

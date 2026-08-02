@@ -223,7 +223,7 @@
                   </span>
                 </button>
                 <span class="text-xs text-muted min-w-[2.5rem] text-right">
-                  {{ model.amount && splitByAlias(alias.id).splitAmount > 0 ? `${getAliasSplitPercentage(alias.id)}%` : '' }}
+                  {{ model.amount && (splitByAlias(alias.id).splitAmount ?? 0) > 0 ? `${getAliasSplitPercentage(alias.id)}%` : '' }}
                 </span>
                 <UInput
                   :model-value="displayValue('alias-' + alias.id, splitByAlias(alias.id).splitAmount)"
@@ -263,7 +263,7 @@
                   </span>
                 </button>
                 <span class="text-xs text-muted min-w-[2.5rem] text-right">
-                  {{ model.amount && splitByUser(member.userId).splitAmount > 0 ? `${getSplitPercentage(member.userId)}%` : '' }}
+                  {{ model.amount && (splitByUser(member.userId).splitAmount ?? 0) > 0 ? `${getSplitPercentage(member.userId)}%` : '' }}
                 </span>
                 <UInput
                   :model-value="displayValue('split-' + member.userId, splitByUser(member.userId).splitAmount)"
@@ -352,38 +352,67 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { GroupMember, CreateExpenseSplit, CreateExpenseAliasSplit } from '~/types/domain'
+
 const { t } = useI18n()
 
-const props = defineProps({
-  title: {
-    type: String,
-    required: true,
-  },
-  submitLabel: {
-    type: String,
-    required: true,
-  },
-  loading: {
-    type: Boolean,
-    default: false,
-  },
-  preSelectedGroupId: {
-    type: String,
-    default: null,
-  },
-  showAddMore: {
-    type: Boolean,
-    default: false,
-  },
-})
+const props = defineProps<{
+  title: string
+  submitLabel: string
+  loading?: boolean
+  preSelectedGroupId?: string | null
+  showAddMore?: boolean
+}>()
 
-const model = defineModel({
-  type: Object,
-  default: () => ({}),
-})
+interface ExpenseFormSplit {
+  userId: string
+  included: boolean
+  splitAmount: number | null
+}
 
-const emit = defineEmits(['submit', 'addMore', 'cancel'])
+interface ExpenseFormAliasSplit {
+  aliasId: string
+  included: boolean
+  splitAmount: number | null
+}
+
+interface ExpenseFormModel {
+  expenseId?: string
+  groupId?: string
+  title?: string
+  description?: string
+  amount?: string
+  paidByUserId?: string
+  expenseDate?: string
+  categoryId?: number
+  paymentModeId?: number
+  splits?: ExpenseFormSplit[]
+  aliasSplits?: ExpenseFormAliasSplit[]
+}
+
+const model = defineModel<ExpenseFormModel>({ default: () => ({}) })
+
+const emit = defineEmits<{
+  submit: [payload: CreateExpensePayload]
+  addMore: [payload: CreateExpensePayload]
+  cancel: []
+}>()
+
+interface CreateExpensePayload {
+  groupId: string
+  expenseData: {
+    title: string | null
+    description: string | null
+    amount: number
+    paidByUserId: string | null
+    expenseDate: string | null
+    categoryId: number | undefined
+    paymentModeId: number | undefined
+    splits?: CreateExpenseSplit[]
+    aliasSplits?: CreateExpenseAliasSplit[]
+  }
+}
 
 const { receiptImageUrl } = useReceiptScan()
 const isReceiptPreviewOpen = ref(false)
@@ -408,7 +437,7 @@ const { paymentModes, isLoading: isLoadingPaymentModes } = usePaymentModes()
  * after the second one". This means typing "10.5.2" becomes "10.5" rather than
  * jumping to "1052".
  */
-const parseAmount = (raw) => {
+const parseAmount = (raw: string | null | undefined): number | null => {
   if (raw === '' || raw === null || raw === undefined) return null
 
   // First, translate comma to dot so both behave as the same decimal separator.
@@ -433,14 +462,14 @@ const parseAmount = (raw) => {
   return n
 }
 
-const handleAmountInput = (raw, field, target, onChange) => {
+const handleAmountInput = (raw: string, field: string, target: ExpenseFormSplit | ExpenseFormAliasSplit | null, onChange?: () => void): void => {
   const parsed = parseAmount(raw)
 
   if (target) {
-    target[field] = parsed ?? null
+    ;(target as unknown as Record<string, unknown>)[field] = parsed ?? null
   }
   else {
-    model.value[field] = parsed ?? null
+    ;(model.value as unknown as Record<string, unknown>)[field] = parsed ?? null
     updateSplits()
   }
 
@@ -449,31 +478,31 @@ const handleAmountInput = (raw, field, target, onChange) => {
 
 // Display formatting is applied on blur, not on every keystroke, so the
 // formatted value (e.g. "10.50") doesn't fight typing while the field is focused.
-const editingField = ref(null) // id string of the field currently being edited
-const editingValue = ref('') // raw string shown while editing
+const editingField = ref<string | null>(null) // id string of the field currently being edited
+const editingValue = ref<string>('') // raw string shown while editing
 
-const displayValue = (id, numericVal) =>
+const displayValue = (id: string, numericVal: string | number | null | undefined): string =>
   editingField.value === id
     ? editingValue.value
     : (numericVal == null ? '' : formatAmount(numericVal))
 
-const onAmountFocus = (id, numericVal) => {
+const onAmountFocus = (id: string, numericVal: string | number | null | undefined): void => {
   editingField.value = id
   editingValue.value = numericVal == null ? '' : String(numericVal)
 }
 
-const onAmountInput = (id, raw, field, target, onChange) => {
+const onAmountInput = (id: string, raw: string, field: string, target?: ExpenseFormSplit | ExpenseFormAliasSplit | null, onChange?: () => void): void => {
   editingValue.value = raw
-  handleAmountInput(raw, field, target, onChange)
+  handleAmountInput(raw, field, target ?? null, onChange)
 }
 
-const onAmountBlur = () => {
+const onAmountBlur = (): void => {
   editingField.value = null
   editingValue.value = ''
 }
 
 const isLoadingMembers = ref(false)
-const groupMembers = ref([])
+const groupMembers = ref<GroupMember[]>([])
 const showAdvanced = ref(false)
 
 const group = computed(() => {
@@ -489,10 +518,10 @@ const canCreateExpense = computed(() => !isAliasMode.value || aliasSetupFinalize
 
 // Tracks the last entity to manually edit a split, so "Distribute Remaining"
 // can avoid re-adjusting the value they just set.
-const lastModifiedEntityId = ref(null)
+const lastModifiedEntityId = ref<string | null>(null)
 
 // Assigns per-user shares (in millis) back onto the split records.
-const assignShares = (splits, sharesMillis) => {
+const assignShares = (splits: (ExpenseFormSplit | ExpenseFormAliasSplit)[], sharesMillis: number[]): void => {
   splits.forEach((s, i) => {
     s.splitAmount = fromMillis(sharesMillis[i] ?? 0)
   })
@@ -501,7 +530,7 @@ const assignShares = (splits, sharesMillis) => {
 // Rescale to target, but re-equalize if the current values were a fair-remainder
 // equal split (differ by ≤1 millicent) — otherwise proportional scaling would
 // turn [23.334, 23.333] into [35.001, 34.999] instead of [35, 35].
-const redistributeMillis = (currentMillis, targetMillis) => {
+const redistributeMillis = (currentMillis: number[], targetMillis: number): number[] => {
   if (currentMillis.length === 0) return []
   const spread = Math.max(...currentMillis) - Math.min(...currentMillis)
   return spread <= 1
@@ -511,28 +540,33 @@ const redistributeMillis = (currentMillis, targetMillis) => {
 
 // Select options ---------------------------------------------------------------
 
-const groupOptions = computed(() => {
+interface SelectOption {
+  value: string | number
+  label: string
+}
+
+const groupOptions = computed<SelectOption[]>(() => {
   return groups.value.map(g => ({
     value: g.id,
     label: g.name,
   }))
 })
 
-const memberOptions = computed(() => {
+const memberOptions = computed<SelectOption[]>(() => {
   return groupMembers.value.map(member => ({
     value: member.userId,
     label: `${member.user.firstName} ${member.user.lastName}`,
   }))
 })
 
-const categoryOptions = computed(() => {
+const categoryOptions = computed<SelectOption[]>(() => {
   return categories.value.map(category => ({
     value: category.id,
     label: category.name,
   }))
 })
 
-const paymentModeOptions = computed(() => {
+const paymentModeOptions = computed<SelectOption[]>(() => {
   return paymentModes.value.map(mode => ({
     value: mode.id,
     label: mode.name,
@@ -543,7 +577,7 @@ const paymentModeOptions = computed(() => {
 
 // Totals in integer millicents — the source of truth for balance comparisons.
 // Summing per-split millis (not millis-of-sum) avoids FP drift entirely.
-const amountMillis = computed(() => toMillis(model.value.amount))
+const amountMillis = computed(() => toMillis(model.value.amount ?? ''))
 
 const activeSplits = computed(() =>
   isAliasMode.value ? (model.value.aliasSplits ?? []) : (model.value.splits ?? []),
@@ -552,7 +586,7 @@ const activeSplits = computed(() =>
 const splitTotalMillis = computed(() =>
   activeSplits.value
     .filter(s => s.included)
-    .reduce((t, s) => t + toMillis(s.splitAmount), 0),
+    .reduce((t, s) => t + toMillis(s.splitAmount ?? 0), 0),
 )
 
 const remainingMillis = computed(() => amountMillis.value - splitTotalMillis.value)
@@ -563,7 +597,7 @@ const remainingAmount = computed(() => fromMillis(remainingMillis.value))
 
 // Returns a LIVE reference into model.value.splits, creating the entry if
 // missing so v-model mutations in the template are never silently lost.
-const splitByUser = (userId) => {
+const splitByUser = (userId: string): ExpenseFormSplit => {
   if (!model.value.splits) model.value.splits = []
   let s = model.value.splits.find(x => x.userId === userId)
   if (!s) {
@@ -573,15 +607,15 @@ const splitByUser = (userId) => {
   return s
 }
 
-const getSplitPercentage = (userId) => {
+const getSplitPercentage = (userId: string): number => {
   const split = splitByUser(userId)
-  const amount = parseFloat(model.value.amount) || 0
+  const amount = parseFloat(model.value.amount ?? '') || 0
   if (amount === 0 || !split.splitAmount) return 0
-  const pct = (split.splitAmount / amount) * 100
+  const pct = (Number(split.splitAmount) / amount) * 100
   return parseFloat(pct.toFixed(1))
 }
 
-const trackUser = (userId) => {
+const trackUser = (userId: string): void => {
   lastModifiedEntityId.value = userId
 }
 
@@ -589,14 +623,14 @@ const trackUser = (userId) => {
 
 // Toggle-off: rescale remaining included to keep the total (preserves ratios).
 // Toggle-on:  give the new member an equal share, rescale others to fit.
-const handleSplitToggle = (userId, included) => {
+const handleSplitToggle = (userId: string, included: boolean): void => {
   const split = splitByUser(userId)
   split.included = included
   if (!model.value.amount) return
 
   if (!included) split.splitAmount = 0
 
-  const includedSplits = model.value.splits.filter(s => s.included)
+  const includedSplits = model.value.splits!.filter(s => s.included)
   if (includedSplits.length === 0) return
 
   if (included) {
@@ -604,19 +638,19 @@ const handleSplitToggle = (userId, included) => {
     split.splitAmount = fromMillis(perPerson)
     const others = includedSplits.filter(s => s.userId !== userId)
     if (others.length > 0) {
-      const otherCurrent = others.map(s => toMillis(s.splitAmount))
+      const otherCurrent = others.map(s => toMillis(s.splitAmount ?? 0))
       const rescaled = redistributeMillis(otherCurrent, amountMillis.value - perPerson)
       assignShares(others, rescaled)
     }
   }
   else {
-    const currentMillis = includedSplits.map(s => toMillis(s.splitAmount))
+    const currentMillis = includedSplits.map(s => toMillis(s.splitAmount ?? 0))
     const rescaled = redistributeMillis(currentMillis, amountMillis.value)
     assignShares(includedSplits, rescaled)
   }
 }
 
-const splitEqually = () => {
+const splitEqually = (): void => {
   if (!model.value.amount) return
 
   if (isAliasMode.value) {
@@ -637,7 +671,7 @@ const splitEqually = () => {
 
 // Alias split helpers ----------------------------------------------------------
 
-const splitByAlias = (aliasId) => {
+const splitByAlias = (aliasId: string): ExpenseFormAliasSplit => {
   if (!model.value.aliasSplits) model.value.aliasSplits = []
   let s = model.value.aliasSplits.find(x => x.aliasId === aliasId)
   if (!s) {
@@ -647,26 +681,26 @@ const splitByAlias = (aliasId) => {
   return s
 }
 
-const getAliasSplitPercentage = (aliasId) => {
+const getAliasSplitPercentage = (aliasId: string): number => {
   const split = splitByAlias(aliasId)
-  const amount = parseFloat(model.value.amount) || 0
+  const amount = parseFloat(model.value.amount ?? '') || 0
   if (amount === 0 || !split.splitAmount) return 0
-  const pct = (split.splitAmount / amount) * 100
+  const pct = (Number(split.splitAmount) / amount) * 100
   return parseFloat(pct.toFixed(1))
 }
 
-const trackAlias = (aliasId) => {
+const trackAlias = (aliasId: string): void => {
   lastModifiedEntityId.value = aliasId
 }
 
-const handleAliasSplitToggle = (aliasId, included) => {
+const handleAliasSplitToggle = (aliasId: string, included: boolean): void => {
   const split = splitByAlias(aliasId)
   split.included = included
   if (!model.value.amount) return
 
   if (!included) split.splitAmount = 0
 
-  const includedSplits = model.value.aliasSplits.filter(s => s.included)
+  const includedSplits = model.value.aliasSplits!.filter(s => s.included)
   if (includedSplits.length === 0) return
 
   if (included) {
@@ -674,13 +708,13 @@ const handleAliasSplitToggle = (aliasId, included) => {
     split.splitAmount = fromMillis(perAlias)
     const others = includedSplits.filter(s => s.aliasId !== aliasId)
     if (others.length > 0) {
-      const otherCurrent = others.map(s => toMillis(s.splitAmount))
+      const otherCurrent = others.map(s => toMillis(s.splitAmount ?? 0))
       const rescaled = redistributeMillis(otherCurrent, amountMillis.value - perAlias)
       assignShares(others, rescaled)
     }
   }
   else {
-    const currentMillis = includedSplits.map(s => toMillis(s.splitAmount))
+    const currentMillis = includedSplits.map(s => toMillis(s.splitAmount ?? 0))
     const rescaled = redistributeMillis(currentMillis, amountMillis.value)
     assignShares(includedSplits, rescaled)
   }
@@ -688,7 +722,7 @@ const handleAliasSplitToggle = (aliasId, included) => {
 
 // Group members ---------------------------------------------------------------
 
-const loadGroupData = async (groupId) => {
+const loadGroupData = async (groupId: string): Promise<void> => {
   if (!groupId) {
     groupMembers.value = []
     return
@@ -706,14 +740,14 @@ const loadGroupData = async (groupId) => {
     if (!model.value.paidByUserId) {
       const currentUserMember = members?.find(m => m.userId === user.value?.id)
       if (currentUserMember) {
-        model.value.paidByUserId = user.value.id
+        model.value.paidByUserId = user.value!.id
       }
-      else if (members?.length > 0) {
-        model.value.paidByUserId = members[0].userId
+      else if (members && members.length > 0) {
+        model.value.paidByUserId = members[0]!.userId
       }
     }
   }
-  catch (error) {
+  catch (error: unknown) {
     console.error('Failed to load group members:', error)
   }
   finally {
@@ -723,7 +757,7 @@ const loadGroupData = async (groupId) => {
 
 watch(
   () => model.value.groupId,
-  async (newGroupId) => {
+  async (newGroupId: string | undefined) => {
     if (!newGroupId) return
     await fetchGroup(newGroupId)
     await loadGroupData(newGroupId)
@@ -734,7 +768,7 @@ watch(
 // Re-sync splits with the current member/alias list whenever it changes —
 // preserves existing splits, drops ones for removed entities,
 // adds zero-entries for newcomers.
-watch([groupMembers, aliases], () => {
+watch([groupMembers, aliases], (): void => {
   if (isAliasMode.value) {
     if (aliases.value && aliases.value.length > 0) updateSplits()
     return
@@ -744,8 +778,13 @@ watch([groupMembers, aliases], () => {
 
 // Validation ------------------------------------------------------------------
 
-const validate = () => {
-  const errors = []
+interface ValidationError {
+  name: string
+  message: string
+}
+
+const validate = (): ValidationError[] => {
+  const errors: ValidationError[] = []
   if (!props.preSelectedGroupId && !model.value.groupId) {
     errors.push({ name: 'groupId', message: t('expenses.groupRequired') })
   }
@@ -787,7 +826,7 @@ const validate = () => {
 // Merge existing splits with the current member/alias list (keyed by id),
 // then either initialize to an equal split (when stuck at zero) or rescale
 // proportionally (when the amount changed).
-const updateSplits = () => {
+const updateSplits = (): void => {
   if (isAliasMode.value) {
     updateAliasSplits()
     return
@@ -795,7 +834,7 @@ const updateSplits = () => {
   updateUserSplits()
 }
 
-const updateUserSplits = () => {
+const updateUserSplits = (): void => {
   const members = groupMembers.value || []
 
   const byId = new Map((model.value.splits || []).map(s => [s.userId, s]))
@@ -807,7 +846,7 @@ const updateUserSplits = () => {
   if (amountMillis.value === 0 || includedSplits.length === 0) return
 
   const currentTotalMillis = includedSplits.reduce(
-    (s, x) => s + toMillis(x.splitAmount),
+    (s, x) => s + toMillis(x.splitAmount ?? 0),
     0,
   )
 
@@ -818,14 +857,14 @@ const updateUserSplits = () => {
 
   if (currentTotalMillis !== amountMillis.value) {
     const rescaled = redistributeMillis(
-      includedSplits.map(s => toMillis(s.splitAmount)),
+      includedSplits.map(s => toMillis(s.splitAmount ?? 0)),
       amountMillis.value,
     )
     assignShares(includedSplits, rescaled)
   }
 }
 
-const updateAliasSplits = () => {
+const updateAliasSplits = (): void => {
   const aliasList = aliases.value || []
 
   const byId = new Map((model.value.aliasSplits || []).map(s => [s.aliasId, s]))
@@ -837,7 +876,7 @@ const updateAliasSplits = () => {
   if (amountMillis.value === 0 || includedSplits.length === 0) return
 
   const currentTotalMillis = includedSplits.reduce(
-    (s, x) => s + toMillis(x.splitAmount),
+    (s, x) => s + toMillis(x.splitAmount ?? 0),
     0,
   )
 
@@ -848,7 +887,7 @@ const updateAliasSplits = () => {
 
   if (currentTotalMillis !== amountMillis.value) {
     const rescaled = redistributeMillis(
-      includedSplits.map(s => toMillis(s.splitAmount)),
+      includedSplits.map(s => toMillis(s.splitAmount ?? 0)),
       amountMillis.value,
     )
     assignShares(includedSplits, rescaled)
@@ -857,21 +896,21 @@ const updateAliasSplits = () => {
 
 // Submit ----------------------------------------------------------------------
 
-const onSubmit = async () => {
+const onSubmit = async (): Promise<void> => {
   emit('submit', buildExpensePayload())
 }
 
 const effectiveGroupId = computed(() => props.preSelectedGroupId || model.value.groupId)
 
-const buildExpensePayload = () => {
-  const payload = {
-    groupId: effectiveGroupId.value,
+const buildExpensePayload = (): CreateExpensePayload => {
+  const payload: CreateExpensePayload = {
+    groupId: effectiveGroupId.value!,
     expenseData: {
-      title: model.value.title,
+      title: model.value.title ?? null,
       description: model.value.description || null,
-      amount: parseFloat(model.value.amount),
-      paidByUserId: model.value.paidByUserId,
-      expenseDate: model.value.expenseDate,
+      amount: parseFloat(model.value.amount ?? ''),
+      paidByUserId: model.value.paidByUserId ?? null,
+      expenseDate: model.value.expenseDate ?? null,
       categoryId: model.value.categoryId || undefined,
       paymentModeId: model.value.paymentModeId || undefined,
     },
@@ -881,7 +920,7 @@ const buildExpensePayload = () => {
     payload.expenseData.aliasSplits = model.value.aliasSplits
       ? model.value.aliasSplits.filter(s => s.included).map(s => ({
           aliasId: s.aliasId,
-          splitAmount: parseFloat(s.splitAmount) || 0,
+          splitAmount: parseFloat(String(s.splitAmount)) || 0,
         }))
       : []
   }
@@ -889,7 +928,7 @@ const buildExpensePayload = () => {
     payload.expenseData.splits = model.value.splits
       ? model.value.splits.filter(s => s.included).map(s => ({
           userId: s.userId,
-          splitAmount: parseFloat(s.splitAmount) || 0,
+          splitAmount: parseFloat(String(s.splitAmount)) || 0,
         }))
       : []
   }
@@ -897,7 +936,7 @@ const buildExpensePayload = () => {
   return payload
 }
 
-const onAddMore = () => {
+const onAddMore = (): void => {
   const errors = validate()
   if (errors.length > 0) return
   emit('addMore', buildExpensePayload())
@@ -911,7 +950,7 @@ const addMoreMenuItems = computed(() => [[
   },
 ]])
 
-const goBack = () => {
+const goBack = (): void => {
   emit('cancel')
 }
 
@@ -919,7 +958,7 @@ onMounted(async () => {
   try {
     await fetchGroups()
   }
-  catch (error) {
+  catch (error: unknown) {
     console.error('Failed to load form data:', error)
   }
 })

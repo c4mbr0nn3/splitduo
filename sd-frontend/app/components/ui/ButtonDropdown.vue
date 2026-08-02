@@ -33,40 +33,26 @@
   </div>
 </template>
 
-<script setup>
-const props = defineProps({
-  label: {
-    type: String,
-    required: false,
-  },
-  items: {
-    type: Array,
-    default: () => [],
-  },
-  color: {
-    type: String,
-    default: 'primary',
-  },
-  size: {
-    type: String,
-    default: 'md',
-  },
-  variant: {
-    type: String,
-    default: 'solid',
-  },
-  disabled: {
-    type: Boolean,
-    default: false,
-  },
-  dropdownIcon: {
-    type: String,
-    default: 'i-lucide-chevron-down',
-  },
-  iconOnly: {
-    type: Boolean,
-    default: false,
-  },
+<script setup lang="ts">
+interface Props {
+  label?: string
+  items?: { label?: string, visible?: boolean, [key: string]: unknown }[]
+  color?: 'primary' | 'secondary' | 'success' | 'error' | 'info' | 'warning' | 'neutral'
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+  variant?: 'solid' | 'outline' | 'soft' | 'subtle' | 'ghost' | 'link'
+  disabled?: boolean
+  dropdownIcon?: string
+  iconOnly?: boolean
+}
+const props = withDefaults(defineProps<Props>(), {
+  label: undefined,
+  items: () => [],
+  color: 'primary',
+  size: 'md',
+  variant: 'solid',
+  disabled: false,
+  dropdownIcon: 'i-lucide-chevron-down',
+  iconOnly: false,
 })
 
 // Filter items based on visible property (if exists)

@@ -1,14 +1,19 @@
-<script setup>
-const deferredPrompt = ref(null)
+<script setup lang="ts">
+const deferredPrompt = ref<BeforeInstallPromptEvent | null>(null)
 const isInstalled = ref(false)
 
-const isStandalone = () =>
-  window.matchMedia('(display-mode: standalone)').matches
-  || window.navigator.standalone === true
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
+}
 
-const handleBeforeInstallPrompt = (event) => {
+const isStandalone = (): boolean =>
+  window.matchMedia('(display-mode: standalone)').matches
+  || (window.navigator as Navigator & { standalone?: boolean }).standalone === true
+
+const handleBeforeInstallPrompt = (event: Event) => {
   event.preventDefault()
-  deferredPrompt.value = event
+  deferredPrompt.value = event as BeforeInstallPromptEvent
 }
 
 const handleAppInstalled = () => {

@@ -47,11 +47,11 @@
   </UCard>
 </template>
 
-<script setup>
-defineProps({
-  pending: {
-    type: Object,
-    required: true,
-  },
-})
+<script setup lang="ts">
+import type { PendingUser } from '~/types/domain'
+
+interface Props {
+  pending: PendingUser
+}
+defineProps<Props>()
 </script>

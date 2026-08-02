@@ -36,15 +36,15 @@
                   <div class="flex flex-col gap-1 mb-2">
                     <div class="flex justify-between items-center gap-2 mb-1">
                       <UBadge
-                        :label="getImportTypeLabel(importItem.importTypeId)"
+                        :label="getImportTypeLabel(Number(importItem.importTypeId))"
                         color="primary"
                         variant="soft"
                         icon="i-lucide-folder"
                       />
                       <UBadge
-                        :label="getStatusLabel(importItem.importStatusId)"
-                        :variant="getStatusVariant(importItem.importStatusId)"
-                        :color="getStatusColor(importItem.importStatusId)"
+                        :label="getStatusLabel(Number(importItem.importStatusId))"
+                        :variant="getStatusVariant(Number(importItem.importStatusId))"
+                        :color="getStatusColor(Number(importItem.importStatusId))"
                         icon="i-lucide-info"
                       />
                     </div>
@@ -63,7 +63,7 @@
                     </div>
                     <div v-if="importItem.duration">
                       <span class="font-medium">{{ $t('imports.duration') }}</span>
-                      {{ formatDuration(importItem.duration) }}
+                      {{ formatDuration(Number(importItem.duration)) }}
                     </div>
                   </div>
                   <UAlert
@@ -110,13 +110,13 @@
 
       <template #footer>
         <div
-          v-if="pagination.totalPages > 1"
+          v-if="Number(pagination.totalPages) > 1"
           class="flex justify-center"
         >
           <UPagination
             v-model:page="currentPage"
-            :items-per-page="pagination.limit"
-            :total="pagination.total"
+            :items-per-page="Number(pagination.limit)"
+            :total="Number(pagination.total)"
             :sibling-count="1"
           />
         </div>
@@ -125,10 +125,12 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { ImportStatus } from '~/types/domain'
+
 const { t } = useI18n()
 const route = useRoute()
-const groupId = route.params.id
+const groupId = String(route.params.id)
 
 const { currentGroup, fetchGroup } = useGroups()
 const { imports, fetchImports, pagination, isLoading } = useImportExport(groupId)
@@ -137,7 +139,7 @@ const group = computed(() => currentGroup.value)
 const currentPage = ref(1)
 
 // Import status mapping (based on backend ImportStatus enum)
-const importStatusMap = computed(() => ({
+const importStatusMap = computed<Record<number, { label: string, color: 'neutral' | 'info' | 'success' | 'error' | 'warning', variant: 'soft' }>>(() => ({
   1: { label: t('imports.pending'), color: 'neutral', variant: 'soft' },
   2: { label: t('imports.processing'), color: 'info', variant: 'soft' },
   3: { label: t('imports.completed'), color: 'success', variant: 'soft' },
@@ -146,32 +148,32 @@ const importStatusMap = computed(() => ({
 }))
 
 // Import type mapping (based on backend ImportType enum)
-const importTypeMap = {
+const importTypeMap: Record<number, string> = {
   1: 'Cospend',
   2: 'SplitDuo',
   4: 'SplitDuo Alias',
 }
 
-const getStatusLabel = (statusId) => {
-  return importStatusMap.value[statusId]?.label || t('imports.unknown')
+const getStatusLabel = (statusId: number): string => {
+  return (importStatusMap.value as Record<number, { label: string, color: string, variant: string }>)[statusId]?.label || t('imports.unknown')
 }
 
-const getStatusColor = (statusId) => {
-  return importStatusMap.value[statusId]?.color || 'neutral'
+const getStatusColor = (statusId: number): 'neutral' | 'info' | 'success' | 'error' | 'warning' => {
+  return ((importStatusMap.value as Record<number, { label: string, color: 'neutral' | 'info' | 'success' | 'error' | 'warning', variant: string }>)[statusId]?.color || 'neutral') as 'neutral' | 'info' | 'success' | 'error' | 'warning'
 }
 
-const getStatusVariant = (statusId) => {
-  return importStatusMap.value[statusId]?.variant || 'soft'
+const getStatusVariant = (statusId: number): 'soft' | 'solid' | 'outline' | 'subtle' => {
+  return ((importStatusMap.value as Record<number, { label: string, color: string, variant: 'soft' | 'solid' | 'outline' | 'subtle' }>)[statusId]?.variant || 'soft') as 'soft' | 'solid' | 'outline' | 'subtle'
 }
 
-const getImportTypeLabel = (typeId) => {
+const getImportTypeLabel = (typeId: number): string => {
   return importTypeMap[typeId] || t('imports.unknown')
 }
 
-const continueImport = (importItem) => {
+const continueImport = (importItem: ImportStatus): void => {
   // Navigate to add page with the import ID as a query parameter
   // This will allow the add page to load the existing analysis results
-  navigateTo(`/groups/${groupId}/imports/add?continue=${importItem.guid}`)
+  navigateTo(`/groups/${groupId}/imports/add?continue=${importItem.id}`)
 }
 
 watch(currentPage, async (newPage) => {

@@ -1,13 +1,13 @@
-<script setup>
+<script setup lang="ts">
 const { t } = useI18n()
-const props = defineProps({
-  open: {
-    type: Boolean,
-    default: false,
-  },
-})
+const props = defineProps<{
+  open?: boolean
+}>()
 
-const emit = defineEmits(['update:open', 'success'])
+const emit = defineEmits<{
+  'update:open': [value: boolean]
+  'success': []
+}>()
 
 const isOpen = computed({
   get: () => props.open,
@@ -25,11 +25,11 @@ const passwordForm = ref({
   confirmPassword: '',
 })
 
-const passwordValidationError = computed(() => {
-  if (!passwordForm.value.newPassword) return null
+const passwordValidationError = computed<string | undefined>(() => {
+  if (!passwordForm.value.newPassword) return undefined
 
   const password = passwordForm.value.newPassword
-  const errors = []
+  const errors: string[] = []
 
   if (password.length < 8) errors.push(t('auth.atLeast8Chars'))
   if (!/[A-Z]/.test(password)) errors.push(t('auth.oneUppercase'))
@@ -37,15 +37,15 @@ const passwordValidationError = computed(() => {
   if (!/[0-9]/.test(password)) errors.push(t('auth.oneDigit'))
   if (!/[!@#$%^&*()_+\-=[\]{}|;:,.<>?]/.test(password)) errors.push(t('auth.oneSpecialChar'))
 
-  return errors.length > 0 ? t('auth.passwordMustContain', { errors: errors.join(', ') }) : null
+  return errors.length > 0 ? t('auth.passwordMustContain', { errors: errors.join(', ') }) : undefined
 })
 
-const confirmPasswordError = computed(() => {
-  if (!passwordForm.value.confirmPassword) return null
+const confirmPasswordError = computed<string | undefined>(() => {
+  if (!passwordForm.value.confirmPassword) return undefined
   if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
     return t('auth.passwordsDoNotMatch')
   }
-  return null
+  return undefined
 })
 
 const isPasswordFormValid = computed(() => {
@@ -97,9 +97,11 @@ const handlePasswordChange = async () => {
       navigateTo('/')
     }, 1500)
   }
-  catch (error) {
-    const errorMessage = error?.data?.error?.message || error?.message || t('changePassword.failedMessage')
-    showError(errorMessage)
+  catch (error: unknown) {
+    const err = error as Record<string, unknown> | undefined
+    const errorMessage = (err?.data as Record<string, unknown> | undefined)?.['error'] as Record<string, unknown> | undefined
+    const message = errorMessage?.message as string | undefined
+    showError(message || (err?.message as string) || t('changePassword.failedMessage'))
   }
   finally {
     isChangingPassword.value = false

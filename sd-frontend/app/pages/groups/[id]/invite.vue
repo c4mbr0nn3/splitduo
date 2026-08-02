@@ -23,10 +23,10 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 const { t } = useI18n()
 const route = useRoute()
-const groupId = route.params.id
+const groupId = String(route.params.id)
 
 const { currentGroup, fetchGroup, isLoading: groupLoading } = useGroups()
 
