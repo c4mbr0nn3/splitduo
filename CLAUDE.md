@@ -16,7 +16,7 @@ See `sd-backend/CLAUDE.md` and `sd-frontend/CLAUDE.md` for detailed codebase doc
 ## Repo Layout
 
 - `sd-backend/` — .NET 10: `SplitDuo.Api` (controllers/DTOs) + `SplitDuo.Core` (entities/data/services) + test projects
-- `sd-frontend/` — Nuxt 4 SPA: Vue 3, Nuxt UI v4, TailwindCSS v4, plain JS
+- `sd-frontend/` — Nuxt 4 SPA: Vue 3, Nuxt UI v4, TailwindCSS v4, TypeScript (strict)
 - `Dockerfile` — multi-stage: frontend `pnpm generate` → static files into backend `wwwroot` → single container on :8080
 - `docker-compose.yml` — app + PostgreSQL 17
 - `scripts/` — `bump-version.sh` (release orchestrator) and dev helpers

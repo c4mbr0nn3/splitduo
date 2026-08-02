@@ -44,7 +44,7 @@ Backend response shape: `{ success, data, error, pagination }` — see backend C
 
 **Singleton composables** (`useCategories`, `usePaymentModes`): global `ref()` declared outside function — shared across callers, auto-fetches on first use.
 
-**Auth**: `useAuthToken` (token in `useState` bridged to `useCookie` for persistence — synchronous shared source of truth; the 7d cookie `maxAge` is intentional because `/auth/refresh` needs the expired JWT), `useAuth` (login/logout/refresh, user in cookie + `useState('user')`, exposes `isAuthenticated`/`isGlobalAdmin`), `use2FA` (TOTP/backup/email flow). Proactive refresh via `plugins/auth-refresh.client.js` (timer + `visibilitychange`); `utils/jwt.js` decodes `exp` for scheduling.
+**Auth**: `useAuthToken` (token in `useState` bridged to `useCookie` for persistence — synchronous shared source of truth; the 7d cookie `maxAge` is intentional because `/auth/refresh` needs the expired JWT), `useAuth` (login/logout/refresh, user in cookie + `useState('user')`, exposes `isAuthenticated`/`isGlobalAdmin`), `use2FA` (TOTP/backup/email flow). Proactive refresh via `plugins/auth-refresh.client.ts` (timer + `visibilitychange`); `utils/jwt.ts` decodes `exp` for scheduling.
 
 **Utility**: `useNotifications` (toast wrapper), `useErrorHandling`, `usePagination` (factory), `useDebounceSearch` (@vueuse/core), `useModal` (Nuxt UI useOverlay, returns Promise<boolean>), `useChartTheme`, `useSmartBack(parentRoute)` (smart back nav — `router.back()` if in-app history exists, else `navigateTo(parentRoute, { replace: true })`; powers `UiCardHeader`'s `backTo` prop and page-level cancel handlers).
 
@@ -58,10 +58,22 @@ Backend response shape: `{ success, data, error, pagination }` — see backend C
 
 ## TypeScript
 
+The frontend is fully TypeScript — no `.js`/`.jsx` source files. `tsconfig` (Nuxt-generated) is `strict: true`, `verbatimModuleSyntax: true`, `noUncheckedIndexedAccess: true`. ESLint enforces `@typescript-eslint/no-explicit-any` as an error.
+
 - **`<script setup lang="ts">` only** for new `.vue` files — no plain `<script setup>`
 - **Type-based macros** — `defineProps<Props>()` + `withDefaults`, `defineEmits<{...}>()`, `defineModel<T>()` (not runtime validator objects)
 - **`import type`** for type-only imports (`verbatimModuleSyntax: true` is on) — `import type { Foo }` or `import { type Foo }`
-- **No `any`** — prefer `unknown` + narrowing, generics, or explicit interfaces. `catch (error)` blocks use `unknown` + `typeof error === 'object' && 'statusCode' in error` narrowing
+- **No `any` — avoid it wherever possible.** ESLint `@typescript-eslint/no-explicit-any` is on (error). Prefer, in order:
+  - `unknown` + narrowing (`typeof`, `in`, `instanceof`) for opaque/untrusted values
+  - generics for reusable, type-preserving code
+  - explicit interfaces/types for known shapes
+  - `Record<string, unknown>` for bag-of-props, not `Record<string, any>`
+  - `as const` / `satisfies` for literal inference
+  - Only as a last resort, with a `// eslint-disable-next-line @typescript-eslint/no-explicit-any -- <reason>` comment explaining why no alternative works
+- **No `as unknown as X` double-casts** unless bridging a genuinely untyped boundary (e.g. generated types, `$fetch` internals) — and add a one-line comment. Prefer fixing the source type or using a typed helper.
+- **No `@ts-ignore`** — use `@ts-expect-error` with a reason comment if a suppression is truly unavoidable (it errors out once the underlying type is fixed, unlike `@ts-ignore` which silently rots).
+- **No non-null assertion (`!`)** on values that can legitimately be `undefined`/`null` — narrow with `if (x)` / `??` / optional chaining instead. `!` is acceptable only on framework invariants that cannot be typed (e.g. a Nuxt auto-import known to exist), with a comment.
+- **Error handling** — `catch (error)` blocks use `unknown` + narrowing (`typeof error === 'object' && 'statusCode' in error`). Never `catch (error: any)`.
 - **Domain types** in `app/types/domain.ts` (re-exported from generated `app/types/api.d.ts` with friendlier names + `WithRequired` narrowing). Generated types are the source of truth — regenerate with `pnpm gen:api` after OpenAPI spec changes. Do NOT edit `api.d.ts` by hand
 - **API layer** — `useApi().get<T>()` for non-paginated, `useApi().getPaginated<T>()` for paginated endpoints. Two distinct envelope types (`ApiEnvelope<T>` vs `PaginatedEnvelope<T>`) — never conflate
 - **`useState`/`useCookie`** need explicit generics when the initial value is `null` — `useState<User | null>('user', () => null)`, `useCookie<string | null>('auth-token', ...)`
@@ -100,8 +112,8 @@ No Pinia. State via: composable-local `ref()` → `readonly()`, singleton refs (
 
 ## Non-Obvious Implementation
 
-- Auth restore: `auth.client.js` plugin calls `/users/me` on app start to restore session
-- Proactive token refresh: `auth-refresh.client.js` schedules a refresh before JWT expiry (`max(exp-60, 10)`s) and on `visibilitychange` (sleep/wake safety net); on failure, `refreshToken()` clears the session and `auth.client.js` redirects to /
+- Auth restore: `auth.client.ts` plugin calls `/users/me` on app start to restore session
+- Proactive token refresh: `auth-refresh.client.ts` schedules a refresh before JWT expiry (`max(exp-60, 10)`s) and on `visibilitychange` (sleep/wake safety net); on failure, `refreshToken()` clears the session and `auth.client.ts` redirects to /
 - Two-phase import: `analyzeFile()` → `ImportMappingForm` → `importWithMapping()`. Alias-mode groups force `SplitDuoAlias` type (4) and pass `aliasMappings` (alias name → alias GUID) in the mapping payload.
 - **Alias mode**: `group.useAliases` (immutable after creation) switches members page to `AliasMembersList` (alias cards + finalize banner) and `ExpenseForm` to alias-based splits (`aliasSplits` payload). `useAliases` composable wraps the alias CRUD endpoints; `useBalances` enriches balances with alias metadata when `isAliasMode`.
 - PWA: `@vite-pwa/nuxt` in `nuxt.config.ts` with manifest, workbox runtime caching, auto-update. `PwaUpdate.vue` prompts users on new deployments.
@@ -127,6 +139,6 @@ MCP servers are available for up-to-date Nuxt and Nuxt UI docs:
 - **Error handling in event handlers** — resource composables already catch errors and show a toast. Event handlers that call composable methods should use `catch { // Error shown via toast }`, not `console.error` (redundant double-handling). See `NormalMembersList.vue` `confirmRoleChange` as the reference pattern.
 - **Name fallbacks in modal copy** — when interpolating a user's name into confirmation modal text, use `user.firstName || user.fullName || ''` to avoid rendering `undefined` when `firstName` is empty. See `NormalMembersList.vue` as the reference pattern.
 - **Self-action gating** — prefer `v-if` to hide action controls for the current user's own row/card rather than `:disabled`. Hiding is cleaner (no ghost button) and avoids over-disabling unrelated actions in the same dropdown. See `NormalMembersList.vue` as the reference pattern.
-- **User settings** — live in `useState('user-settings')` via `useUserSettings` composable. `auth.client.js` watches `user` and calls `syncFromUser` to apply the saved theme on any auth state change. Updates go via debounced PUT to `/users/me/settings`. Theme `"auto"` maps to Nuxt UI's `"system"` color-mode preference. `colorMode.storage` is set to `'cookie'` in `nuxt.config.ts` so the server-synced theme wins over stale localStorage on reload.
+- **User settings** — live in `useState('user-settings')` via `useUserSettings` composable. `auth.client.ts` watches `user` and calls `syncFromUser` to apply the saved theme on any auth state change. Updates go via debounced PUT to `/users/me/settings`. Theme `"auto"` maps to Nuxt UI's `"system"` color-mode preference. `colorMode.storage` is set to `'cookie'` in `nuxt.config.ts` so the server-synced theme wins over stale localStorage on reload.
 - **i18n — all user-facing strings via `$t()` / `useI18n()`** — never hardcode English in `.vue` files or composables. Use `$t('key')` in templates, `t('key')` from `useI18n()` in script. Locale files: `i18n/locales/en.json` + `it.json` (flat dotted keys, structurally identical). `@nuxtjs/i18n` v10 with `no_prefix` strategy, `lazy` loading. Nuxt UI v4 locale wired via `<UApp :locale="uiLocale">` in `app.vue` using `@nuxt/ui/locale`. Escape `@` in locale messages with `{'@'}` (ICU MessageFormat). No HTML in translation messages (use template-level tags instead).
-- **i18n — language switching** — `useUserSettings` syncs `uiLanguage` ↔ `setLocale()` on auth state change and settings update. `LanguageSwitcher.vue` (in `components/settings/`) calls `setLocale()` + `settings.update()` + `refreshToken()` — the backend re-issues the JWT with the new `lang` claim. `base.js` sends `Accept-Language` header on every API request matching the active locale. Backend returns a new token in the settings update response when `uiLanguage` changes.
+- **i18n — language switching** — `useUserSettings` syncs `uiLanguage` ↔ `setLocale()` on auth state change and settings update. `LanguageSwitcher.vue` (in `components/settings/`) calls `setLocale()` + `settings.update()` + `refreshToken()` — the backend re-issues the JWT with the new `lang` claim. `base.ts` sends `Accept-Language` header on every API request matching the active locale. Backend returns a new token in the settings update response when `uiLanguage` changes.
