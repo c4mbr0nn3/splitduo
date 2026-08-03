@@ -16,7 +16,7 @@ Nuxt 4 SPA (ssr: false), Vue 3 Composition API, Nuxt UI v4, TailwindCSS v4. No P
 
 - Nuxt 4 (`^4.4.8`), Nuxt UI v4 (`^4.9.0`), TailwindCSS v4, **TypeScript** (`strict: true`, `verbatimModuleSyntax: true`)
 - Icons: Lucide + Simple Icons (`@iconify-json/*`)
-- ApexCharts (`apexcharts` + `vue3-apexcharts`) — group statistics charting
+- ApexCharts (`apexcharts` + `vue3-apexcharts`) — group statistics charting. Tree-shaken via `vue3-apexcharts/core` in `plugins/apexcharts.client.ts`: only `bar` + `donut` chart types and `legend` + `toolbar` features are imported. Add new chart types/features there if a chart needs them.
 - PWA (`@vite-pwa/nuxt`) — installable app, offline support, auto-update
 - uqr — QR code generation for 2FA
 - `openapi-typescript` — generates `app/types/api.d.ts` from OpenAPI spec (dev-only, zero runtime cost)
