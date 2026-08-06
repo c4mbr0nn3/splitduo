@@ -319,6 +319,7 @@
             :label="$t('expenses.cancel')"
             variant="ghost"
             color="neutral"
+            class="grow sm:grow-0"
             @click="goBack"
           />
           <UFieldGroup size="lg">
@@ -328,6 +329,7 @@
               :label="submitLabel"
               :loading="loading"
               :disabled="!canCreateExpense"
+              class="grow sm:grow-0"
             />
             <UDropdownMenu
               v-if="showAddMore"
