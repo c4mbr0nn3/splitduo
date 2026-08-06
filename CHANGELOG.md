@@ -4,6 +4,15 @@ All notable changes to SplitDuo will be documented in this file.
 
 Generated with [git-cliff](https://git-cliff.org) from Conventional Commits.
 
+## [1.11.0] - 2026-08-06
+
+### Bug Fixes
+
+- *(frontend)* Inline GenericModal props to fix SFC type resolution
+
+### Features
+
+- *(scripts)* Add aggregated security scan runner
 ## [1.10.0] - 2026-08-06
 
 ### Bug Fixes
