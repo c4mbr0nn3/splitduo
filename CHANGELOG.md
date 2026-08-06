@@ -4,6 +4,23 @@ All notable changes to SplitDuo will be documented in this file.
 
 Generated with [git-cliff](https://git-cliff.org) from Conventional Commits.
 
+## [1.10.0] - 2026-08-06
+
+### Bug Fixes
+
+- *(ci)* Pull upstream artifacts into aggregate-coverage job
+- *(ci)* Expose cobertura files as artifact paths for downstream jobs
+- *(frontend)* Make expense form buttons full-width on mobile
+
+### Build System
+
+- *(test)* Skip integration-tests on release commits to main
+- Aggregate coverage, gate build on tests, tag-only build
+- *(frontend)* Bump apexcharts to v6, tree-shake to bar+donut
+
+### Features
+
+- Migrate frontend from JavaScript to TypeScript
 ## [1.9.2] - 2026-08-01
 
 ### Bug Fixes
