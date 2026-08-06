@@ -1,8 +1,18 @@
 <script setup lang="ts">
-import type { ModalOptions } from '~/composables/ui/useModal'
+import type { ButtonColor } from '~/composables/ui/useModal'
 
-interface Props extends ModalOptions {
+interface Props {
   title: string
+  subtitle?: string
+  content?: string
+  color?: ButtonColor
+  icon?: string
+  iconColor?: string
+  confirmText?: string
+  cancelText?: string
+  confirmColor?: ButtonColor | ''
+  cancelColor?: ButtonColor
+  loading?: boolean
 }
 const props = withDefaults(defineProps<Props>(), {
   subtitle: '',
