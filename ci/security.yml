@@ -1,0 +1,62 @@
+# Security scans for SplitDuo
+# SplitDuo CI — verify stage
+#
+# Runs Trivy (CVE) and TruffleHog (secrets) directly as the job image — no
+# dind, no `docker run` wrapper. The scanner image IS the job container, so
+# the scanner runs natively against the checked-out repo at $CI_PROJECT_DIR.
+# This is simpler and faster than the local scripts/security.sh path (which
+# wraps `docker run` because the scanner binaries aren't installed locally)
+# and avoids a dind service entirely.
+#
+# Images are pinned by digest (sha256) for supply-chain integrity — a mutable
+# tag like `latest` could be repushed with different content. The version tag
+# (e.g. 0.73.0) is itself immutable, so version+digest is the strongest pin.
+# Bump the digest deliberately: check the upstream image, verify the new SHA,
+# and update both the tag and digest here.
+#
+# Trivy fails on HIGH/CRITICAL findings (--exit-code 1).
+# TruffleHog runs in --no-verification mode in CI: verification requires
+# outbound calls to the leaked-credential providers, which the runner
+# network may block or rate-limit, and unverified findings are still
+# actionable signals for review.
+#
+# Auto on version tags (release gate) and main pushes; manual with
+# allow_failure on MRs and other branches so contributors can opt in without
+# blocking their pipeline on a pre-existing finding.
+
+stages:
+  - verify
+
+security:trivy:
+  stage: verify
+  image:
+    name: docker.io/aquasec/trivy:0.73.0@sha256:7cced7cae583819fc7806d4cbc0dbbc7cad18b99f7d3e235192e6da8c091045c
+    entrypoint: [""]
+  script:
+    - trivy fs . --severity HIGH,CRITICAL --format table --skip-dirs .git --exit-code 1
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+.*$/
+      when: on_success
+    - if: '$CI_COMMIT_BRANCH == "main" && $CI_COMMIT_MESSAGE =~ /chore: bump version to \d+\.\d+\.\d+/'
+      when: never
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: on_success
+    - when: manual
+      allow_failure: true
+
+security:trufflehog:
+  stage: verify
+  image:
+    name: docker.io/trufflesecurity/trufflehog:3.96.0@sha256:aa821cf4ace8861c7d096d83818cdf7bb9719028a52d37a52eaad44086a52577
+    entrypoint: [""]
+  script:
+    - trufflehog filesystem . --no-verification --fail
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+.*$/
+      when: on_success
+    - if: '$CI_COMMIT_BRANCH == "main" && $CI_COMMIT_MESSAGE =~ /chore: bump version to \d+\.\d+\.\d+/'
+      when: never
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: on_success
+    - when: manual
+      allow_failure: true

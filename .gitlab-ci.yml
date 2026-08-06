@@ -12,6 +12,7 @@ stages:
 
 include:
   - local: ci/verify.yml
+  - local: ci/security.yml
   - local: ci/build.yml
   - local: ci/integration-tests.yml
   - local: ci/coverage.yml
