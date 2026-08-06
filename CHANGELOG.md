@@ -4,6 +4,15 @@ All notable changes to SplitDuo will be documented in this file.
 
 Generated with [git-cliff](https://git-cliff.org) from Conventional Commits.
 
+## [1.11.1] - 2026-08-06
+
+### Bug Fixes
+
+- *(ci)* Exclude .git and build artifacts from trufflehog scan
+
+### Build System
+
+- *(security)* Add trivy and trufflehog scans to verify stage
 ## [1.11.0] - 2026-08-06
 
 ### Bug Fixes
