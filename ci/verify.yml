@@ -1,17 +1,13 @@
 # Quality gates for SplitDuo
 # SplitDuo CI — verify stage
 #
-# Runs before build/test/release. Lints the frontend and runs the xUnit
-# unit tests (SplitDuo.Tests.Unit) on every main push, version tag, and MR
-# so the main-branch pipeline badge reflects real branch health.
+# Static analysis only: frontend lint/typecheck and security scans. Runs
+# before test/build/release. The lint job uses node:22-alpine (matches the
+# Dockerfile frontend stage); security jobs use pinned scanner images.
 #
 # Release commits (chore: bump version to …) are skipped on the main branch
 # because the same commit is also tagged vX.Y.Z, which triggers an identical
 # tag pipeline — running both would duplicate the work on unchanged code.
-#
-# The lint job uses node:22-alpine (matches the Dockerfile frontend stage).
-# The unit-tests job uses the .NET 10 SDK directly (no dind needed — unit
-# tests have no external dependencies).
 
 stages:
   - verify
@@ -51,7 +47,7 @@ typecheck:
       when: on_success
 
 unit-tests:
-  stage: verify
+  stage: test
   image: mcr.microsoft.com/dotnet/sdk:10.0
   script:
     - cd sd-backend

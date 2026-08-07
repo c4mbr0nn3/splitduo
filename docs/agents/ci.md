@@ -6,6 +6,7 @@
 
 - CI lives in `ci/*.yml` — one file per concern, included from `.gitlab-ci.yml`.
 - Add new CI concerns as a new file under `ci/` and include it in `.gitlab-ci.yml`.
+- Stage order: `verify` (lint, typecheck, security scans) → `test` (unit + integration tests, emit per-suite coverage) → `coverage` (aggregate-coverage, owns the pipeline `coverage:` regex) → `build` (docker) → `release` (GitLab + GitHub releases).
 
 ## Image Pinning
 

@@ -1,5 +1,5 @@
 # Aggregate coverage report for SplitDuo
-# SplitDuo CI — test stage
+# SplitDuo CI — coverage stage
 #
 # Merges the cobertura reports from unit-tests and integration-tests into a
 # single aggregate report and publishes the combined line-coverage percentage
@@ -12,10 +12,10 @@
 # aggregate is published.
 
 stages:
-  - test
+  - coverage
 
 aggregate-coverage:
-  stage: test
+  stage: coverage
   image: mcr.microsoft.com/dotnet/sdk:10.0
   needs:
     - job: unit-tests
