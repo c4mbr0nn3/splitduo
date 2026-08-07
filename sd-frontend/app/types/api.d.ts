@@ -4,2873 +4,2873 @@
  */
 
 export interface paths {
-  '/api/v1/users': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get: {
-      parameters: {
-        query?: never
-        header?: never
-        path?: never
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfListOfUserDto']
-            'application/json': components['schemas']['ApiResponseDtoOfListOfUserDto']
-            'text/json': components['schemas']['ApiResponseDtoOfListOfUserDto']
-          }
-        }
-      }
-    }
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/users/pending': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get: {
-      parameters: {
-        query?: never
-        header?: never
-        path?: never
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfListOfPendingUserDto']
-            'application/json': components['schemas']['ApiResponseDtoOfListOfPendingUserDto']
-            'text/json': components['schemas']['ApiResponseDtoOfListOfPendingUserDto']
-          }
-        }
-      }
-    }
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/users/me': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get: {
-      parameters: {
-        query?: never
-        header?: never
-        path?: never
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfUserDto']
-            'application/json': components['schemas']['ApiResponseDtoOfUserDto']
-            'text/json': components['schemas']['ApiResponseDtoOfUserDto']
-          }
-        }
-      }
-    }
-    put: {
-      parameters: {
-        query?: never
-        header?: never
-        path?: never
-        cookie?: never
-      }
-      requestBody: {
-        content: {
-          'application/json': components['schemas']['UpdateUserRequestDto']
-          'text/json': components['schemas']['UpdateUserRequestDto']
-          'application/*+json': components['schemas']['UpdateUserRequestDto']
-        }
-      }
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfUserDto']
-            'application/json': components['schemas']['ApiResponseDtoOfUserDto']
-            'text/json': components['schemas']['ApiResponseDtoOfUserDto']
-          }
-        }
-      }
-    }
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/users/me/stats': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get: {
-      parameters: {
-        query?: never
-        header?: never
-        path?: never
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfUserStatsDto']
-            'application/json': components['schemas']['ApiResponseDtoOfUserStatsDto']
-            'text/json': components['schemas']['ApiResponseDtoOfUserStatsDto']
-          }
-        }
-      }
-    }
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/users/me/imports': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get: {
-      parameters: {
-        query?: never
-        header?: never
-        path?: never
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfListOfImportStatusDto']
-            'application/json': components['schemas']['ApiResponseDtoOfListOfImportStatusDto']
-            'text/json': components['schemas']['ApiResponseDtoOfListOfImportStatusDto']
-          }
-        }
-      }
-    }
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/users/me/settings': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put: {
-      parameters: {
-        query?: never
-        header?: never
-        path?: never
-        cookie?: never
-      }
-      requestBody: {
-        content: {
-          'application/json': components['schemas']['UpdateUserSettingsRequestDto']
-          'text/json': components['schemas']['UpdateUserSettingsRequestDto']
-          'application/*+json': components['schemas']['UpdateUserSettingsRequestDto']
-        }
-      }
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfUpdateUserSettingsResponseDto']
-            'application/json': components['schemas']['ApiResponseDtoOfUpdateUserSettingsResponseDto']
-            'text/json': components['schemas']['ApiResponseDtoOfUpdateUserSettingsResponseDto']
-          }
-        }
-      }
-    }
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/users/me/password': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put: {
-      parameters: {
-        query?: never
-        header?: never
-        path?: never
-        cookie?: never
-      }
-      requestBody: {
-        content: {
-          'application/json': components['schemas']['ChangePasswordRequestDto']
-          'text/json': components['schemas']['ChangePasswordRequestDto']
-          'application/*+json': components['schemas']['ChangePasswordRequestDto']
-        }
-      }
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content?: never
-        }
-      }
-    }
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/users/{userId}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          userId: string
-        }
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfUserDto']
-            'application/json': components['schemas']['ApiResponseDtoOfUserDto']
-            'text/json': components['schemas']['ApiResponseDtoOfUserDto']
-          }
-        }
-      }
-    }
-    put: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          userId: string
-        }
-        cookie?: never
-      }
-      requestBody: {
-        content: {
-          'application/json': components['schemas']['UpdateUserRequestDto']
-          'text/json': components['schemas']['UpdateUserRequestDto']
-          'application/*+json': components['schemas']['UpdateUserRequestDto']
-        }
-      }
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfUserDto']
-            'application/json': components['schemas']['ApiResponseDtoOfUserDto']
-            'text/json': components['schemas']['ApiResponseDtoOfUserDto']
-          }
-        }
-      }
-    }
-    post?: never
-    delete: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          userId: string
-        }
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content?: never
-        }
-      }
-    }
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/receipts/parse': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    post: {
-      parameters: {
-        query?: never
-        header?: never
-        path?: never
-        cookie?: never
-      }
-      requestBody: {
-        content: {
-          'multipart/form-data': {
-            image?: components['schemas']['IFormFile']
-          }
-        }
-      }
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfParsedReceiptDto']
-            'application/json': components['schemas']['ApiResponseDtoOfParsedReceiptDto']
-            'text/json': components['schemas']['ApiResponseDtoOfParsedReceiptDto']
-          }
-        }
-      }
-    }
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/payment-modes': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get: {
-      parameters: {
-        query?: never
-        header?: never
-        path?: never
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfListOfPaymentModeDto']
-            'application/json': components['schemas']['ApiResponseDtoOfListOfPaymentModeDto']
-            'text/json': components['schemas']['ApiResponseDtoOfListOfPaymentModeDto']
-          }
-        }
-      }
-    }
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/groups/{groupId}/invitations': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          groupId: string
-        }
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfListOfInvitationDto']
-            'application/json': components['schemas']['ApiResponseDtoOfListOfInvitationDto']
-            'text/json': components['schemas']['ApiResponseDtoOfListOfInvitationDto']
-          }
-        }
-      }
-    }
-    put?: never
-    post: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          groupId: string
-        }
-        cookie?: never
-      }
-      requestBody: {
-        content: {
-          'application/json': components['schemas']['SendInvitationRequestDto']
-          'text/json': components['schemas']['SendInvitationRequestDto']
-          'application/*+json': components['schemas']['SendInvitationRequestDto']
-        }
-      }
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfSendInvitationResponseDto']
-            'application/json': components['schemas']['ApiResponseDtoOfSendInvitationResponseDto']
-            'text/json': components['schemas']['ApiResponseDtoOfSendInvitationResponseDto']
-          }
-        }
-      }
-    }
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/groups/{groupId}/invitations/{invitationId}/resend': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    post: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          groupId: string
-          invitationId: string
-        }
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfInvitationDto']
-            'application/json': components['schemas']['ApiResponseDtoOfInvitationDto']
-            'text/json': components['schemas']['ApiResponseDtoOfInvitationDto']
-          }
-        }
-      }
-    }
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/groups/{groupId}/invitations/{invitationId}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    post?: never
-    delete: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          groupId: string
-          invitationId: string
-        }
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content?: never
-        }
-      }
-    }
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/invitations/validate': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get: {
-      parameters: {
-        query?: {
-          token?: string
-        }
-        header?: never
-        path?: never
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfValidateInvitationResponseDto']
-            'application/json': components['schemas']['ApiResponseDtoOfValidateInvitationResponseDto']
-            'text/json': components['schemas']['ApiResponseDtoOfValidateInvitationResponseDto']
-          }
-        }
-      }
-    }
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/invitations/accept': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    post: {
-      parameters: {
-        query?: never
-        header?: never
-        path?: never
-        cookie?: never
-      }
-      requestBody: {
-        content: {
-          'application/json': components['schemas']['AcceptInvitationRequestDto']
-          'text/json': components['schemas']['AcceptInvitationRequestDto']
-          'application/*+json': components['schemas']['AcceptInvitationRequestDto']
-        }
-      }
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content?: never
-        }
-      }
-    }
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/groups/{groupId}/imports': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get: {
-      parameters: {
-        query?: {
-          page?: number | string
-          limit?: number | string
-        }
-        header?: never
-        path: {
-          groupId: string
-        }
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['PaginatedResponseDtoOfImportStatusDto']
-            'application/json': components['schemas']['PaginatedResponseDtoOfImportStatusDto']
-            'text/json': components['schemas']['PaginatedResponseDtoOfImportStatusDto']
-          }
-        }
-      }
-    }
-    put?: never
-    post: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          groupId: string
-        }
-        cookie?: never
-      }
-      requestBody: {
-        content: {
-          'application/json': components['schemas']['ImportMappingDto']
-          'text/json': components['schemas']['ImportMappingDto']
-          'application/*+json': components['schemas']['ImportMappingDto']
-        }
-      }
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfImportStatusDto']
-            'application/json': components['schemas']['ApiResponseDtoOfImportStatusDto']
-            'text/json': components['schemas']['ApiResponseDtoOfImportStatusDto']
-          }
-        }
-      }
-    }
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/groups/{groupId}/imports/analyze': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    post: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          groupId: string
-        }
-        cookie?: never
-      }
-      requestBody: {
-        content: {
-          'application/x-www-form-urlencoded': {
-            File?: components['schemas']['IFormFile']
-            /** Format: int32 */
-            ImportTypeId?: number | string
-          }
-        }
-      }
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfImportStatusDto']
-            'application/json': components['schemas']['ApiResponseDtoOfImportStatusDto']
-            'text/json': components['schemas']['ApiResponseDtoOfImportStatusDto']
-          }
-        }
-      }
-    }
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/groups': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get: {
-      parameters: {
-        query?: {
-          limit?: number | string
-        }
-        header?: never
-        path?: never
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfListOfGroupDto']
-            'application/json': components['schemas']['ApiResponseDtoOfListOfGroupDto']
-            'text/json': components['schemas']['ApiResponseDtoOfListOfGroupDto']
-          }
-        }
-      }
-    }
-    put?: never
-    post: {
-      parameters: {
-        query?: never
-        header?: never
-        path?: never
-        cookie?: never
-      }
-      requestBody: {
-        content: {
-          'application/json': components['schemas']['CreateGroupRequestDto']
-          'text/json': components['schemas']['CreateGroupRequestDto']
-          'application/*+json': components['schemas']['CreateGroupRequestDto']
-        }
-      }
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfGroupDto']
-            'application/json': components['schemas']['ApiResponseDtoOfGroupDto']
-            'text/json': components['schemas']['ApiResponseDtoOfGroupDto']
-          }
-        }
-      }
-    }
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/groups/{groupId}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          groupId: string
-        }
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfGroupDto']
-            'application/json': components['schemas']['ApiResponseDtoOfGroupDto']
-            'text/json': components['schemas']['ApiResponseDtoOfGroupDto']
-          }
-        }
-      }
-    }
-    put: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          groupId: string
-        }
-        cookie?: never
-      }
-      requestBody: {
-        content: {
-          'application/json': components['schemas']['UpdateGroupRequestDto']
-          'text/json': components['schemas']['UpdateGroupRequestDto']
-          'application/*+json': components['schemas']['UpdateGroupRequestDto']
-        }
-      }
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfGroupDto']
-            'application/json': components['schemas']['ApiResponseDtoOfGroupDto']
-            'text/json': components['schemas']['ApiResponseDtoOfGroupDto']
-          }
-        }
-      }
-    }
-    post?: never
-    delete: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          groupId: string
-        }
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content?: never
-        }
-      }
-    }
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/groups/{groupId}/stats': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          groupId: string
-        }
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfGroupStatsDto']
-            'application/json': components['schemas']['ApiResponseDtoOfGroupStatsDto']
-            'text/json': components['schemas']['ApiResponseDtoOfGroupStatsDto']
-          }
-        }
-      }
-    }
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/groups/{groupId}/members': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          groupId: string
-        }
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfListOfGroupMemberDto']
-            'application/json': components['schemas']['ApiResponseDtoOfListOfGroupMemberDto']
-            'text/json': components['schemas']['ApiResponseDtoOfListOfGroupMemberDto']
-          }
-        }
-      }
-    }
-    put?: never
-    post: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          groupId: string
-        }
-        cookie?: never
-      }
-      requestBody: {
-        content: {
-          'application/json': components['schemas']['AddGroupMemberRequestDto']
-          'text/json': components['schemas']['AddGroupMemberRequestDto']
-          'application/*+json': components['schemas']['AddGroupMemberRequestDto']
-        }
-      }
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfGroupMemberDto']
-            'application/json': components['schemas']['ApiResponseDtoOfGroupMemberDto']
-            'text/json': components['schemas']['ApiResponseDtoOfGroupMemberDto']
-          }
-        }
-      }
-    }
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/groups/{groupId}/members/{userId}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    post?: never
-    delete: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          groupId: string
-          userId: string
-        }
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content?: never
-        }
-      }
-    }
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/groups/{groupId}/members/{userId}/role': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          groupId: string
-          userId: string
-        }
-        cookie?: never
-      }
-      requestBody: {
-        content: {
-          'application/json': components['schemas']['UpdateGroupMemberRoleRequestDto']
-          'text/json': components['schemas']['UpdateGroupMemberRoleRequestDto']
-          'application/*+json': components['schemas']['UpdateGroupMemberRoleRequestDto']
-        }
-      }
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfGroupMemberDto']
-            'application/json': components['schemas']['ApiResponseDtoOfGroupMemberDto']
-            'text/json': components['schemas']['ApiResponseDtoOfGroupMemberDto']
-          }
-        }
-      }
-    }
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/groups/{groupId}/export/csv': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          groupId: string
-        }
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content?: never
-        }
-      }
-    }
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/groups/{groupId}/balances': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          groupId: string
-        }
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfListOfAliasBalanceDto']
-            'application/json': components['schemas']['ApiResponseDtoOfListOfAliasBalanceDto']
-            'text/json': components['schemas']['ApiResponseDtoOfListOfAliasBalanceDto']
-          }
-        }
-      }
-    }
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/groups/{groupId}/balances/summary': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          groupId: string
-        }
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfAliasBalanceSummaryDto']
-            'application/json': components['schemas']['ApiResponseDtoOfAliasBalanceSummaryDto']
-            'text/json': components['schemas']['ApiResponseDtoOfAliasBalanceSummaryDto']
-          }
-        }
-      }
-    }
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/groups/{groupId}/expenses': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get: {
-      parameters: {
-        query?: {
-          page?: number | string
-          limit?: number | string
-          startDate?: string
-          endDate?: string
-          category?: string
-          userId?: string
-          search?: string
-        }
-        header?: never
-        path: {
-          groupId: string
-        }
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['PaginatedResponseDtoOfExpenseDto']
-            'application/json': components['schemas']['PaginatedResponseDtoOfExpenseDto']
-            'text/json': components['schemas']['PaginatedResponseDtoOfExpenseDto']
-          }
-        }
-      }
-    }
-    put?: never
-    post: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          groupId: string
-        }
-        cookie?: never
-      }
-      requestBody: {
-        content: {
-          'application/json': components['schemas']['CreateExpenseRequestDto']
-          'text/json': components['schemas']['CreateExpenseRequestDto']
-          'application/*+json': components['schemas']['CreateExpenseRequestDto']
-        }
-      }
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfExpenseDto']
-            'application/json': components['schemas']['ApiResponseDtoOfExpenseDto']
-            'text/json': components['schemas']['ApiResponseDtoOfExpenseDto']
-          }
-        }
-      }
-    }
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/groups/{groupId}/expenses/{expenseId}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          groupId: string
-          expenseId: string
-        }
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfExpenseDto']
-            'application/json': components['schemas']['ApiResponseDtoOfExpenseDto']
-            'text/json': components['schemas']['ApiResponseDtoOfExpenseDto']
-          }
-        }
-      }
-    }
-    put: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          groupId: string
-          expenseId: string
-        }
-        cookie?: never
-      }
-      requestBody: {
-        content: {
-          'application/json': components['schemas']['UpdateExpenseRequestDto']
-          'text/json': components['schemas']['UpdateExpenseRequestDto']
-          'application/*+json': components['schemas']['UpdateExpenseRequestDto']
-        }
-      }
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfExpenseDto']
-            'application/json': components['schemas']['ApiResponseDtoOfExpenseDto']
-            'text/json': components['schemas']['ApiResponseDtoOfExpenseDto']
-          }
-        }
-      }
-    }
-    post?: never
-    delete: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          groupId: string
-          expenseId: string
-        }
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content?: never
-        }
-      }
-    }
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/categories': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get: {
-      parameters: {
-        query?: never
-        header?: never
-        path?: never
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfListOfCategoryDto']
-            'application/json': components['schemas']['ApiResponseDtoOfListOfCategoryDto']
-            'text/json': components['schemas']['ApiResponseDtoOfListOfCategoryDto']
-          }
-        }
-      }
-    }
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/auth/login': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    post: {
-      parameters: {
-        query?: never
-        header?: never
-        path?: never
-        cookie?: never
-      }
-      requestBody: {
-        content: {
-          'application/json': components['schemas']['LoginRequestDto']
-          'text/json': components['schemas']['LoginRequestDto']
-          'application/*+json': components['schemas']['LoginRequestDto']
-        }
-      }
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfAuthResponseDto']
-            'application/json': components['schemas']['ApiResponseDtoOfAuthResponseDto']
-            'text/json': components['schemas']['ApiResponseDtoOfAuthResponseDto']
-          }
-        }
-      }
-    }
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/auth/refresh': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    post: {
-      parameters: {
-        query?: never
-        header?: never
-        path?: never
-        cookie?: never
-      }
-      requestBody: {
-        content: {
-          'application/json': components['schemas']['RefreshTokenRequestDto']
-          'text/json': components['schemas']['RefreshTokenRequestDto']
-          'application/*+json': components['schemas']['RefreshTokenRequestDto']
-        }
-      }
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfAuthResponseDto']
-            'application/json': components['schemas']['ApiResponseDtoOfAuthResponseDto']
-            'text/json': components['schemas']['ApiResponseDtoOfAuthResponseDto']
-          }
-        }
-      }
-    }
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/auth/verify-2fa': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    post: {
-      parameters: {
-        query?: never
-        header?: never
-        path?: never
-        cookie?: never
-      }
-      requestBody: {
-        content: {
-          'application/json': components['schemas']['VerifyTwoFactorLoginDto']
-          'text/json': components['schemas']['VerifyTwoFactorLoginDto']
-          'application/*+json': components['schemas']['VerifyTwoFactorLoginDto']
-        }
-      }
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfAuthResponseDto']
-            'application/json': components['schemas']['ApiResponseDtoOfAuthResponseDto']
-            'text/json': components['schemas']['ApiResponseDtoOfAuthResponseDto']
-          }
-        }
-      }
-    }
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/auth/revoke': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    post: {
-      parameters: {
-        query?: never
-        header?: never
-        path?: never
-        cookie?: never
-      }
-      requestBody: {
-        content: {
-          'application/json': components['schemas']['RevokeTokenRequestDto']
-          'text/json': components['schemas']['RevokeTokenRequestDto']
-          'application/*+json': components['schemas']['RevokeTokenRequestDto']
-        }
-      }
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content?: never
-        }
-      }
-    }
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/auth/{userGuid}/revoke': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    post: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          userGuid: string
-        }
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content?: never
-        }
-      }
-    }
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/auth/forgot-password': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    post: {
-      parameters: {
-        query?: never
-        header?: never
-        path?: never
-        cookie?: never
-      }
-      requestBody: {
-        content: {
-          'application/json': components['schemas']['ForgotPasswordRequestDto']
-          'text/json': components['schemas']['ForgotPasswordRequestDto']
-          'application/*+json': components['schemas']['ForgotPasswordRequestDto']
-        }
-      }
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content?: never
-        }
-      }
-    }
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/auth/validate-reset-token': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get: {
-      parameters: {
-        query?: {
-          email?: string
-          token?: string
-        }
-        header?: never
-        path?: never
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfboolean']
-            'application/json': components['schemas']['ApiResponseDtoOfboolean']
-            'text/json': components['schemas']['ApiResponseDtoOfboolean']
-          }
-        }
-      }
-    }
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/auth/reset-password': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    post: {
-      parameters: {
-        query?: never
-        header?: never
-        path?: never
-        cookie?: never
-      }
-      requestBody: {
-        content: {
-          'application/json': components['schemas']['ResetPasswordRequestDto']
-          'text/json': components['schemas']['ResetPasswordRequestDto']
-          'application/*+json': components['schemas']['ResetPasswordRequestDto']
-        }
-      }
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content?: never
-        }
-      }
-    }
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/2fa/setup/initiate': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    post: {
-      parameters: {
-        query?: never
-        header?: never
-        path?: never
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfTwoFactorSetupDto']
-            'application/json': components['schemas']['ApiResponseDtoOfTwoFactorSetupDto']
-            'text/json': components['schemas']['ApiResponseDtoOfTwoFactorSetupDto']
-          }
-        }
-      }
-    }
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/2fa/setup/verify': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    post: {
-      parameters: {
-        query?: never
-        header?: never
-        path?: never
-        cookie?: never
-      }
-      requestBody: {
-        content: {
-          'application/json': components['schemas']['VerifyTwoFactorSetupDto']
-          'text/json': components['schemas']['VerifyTwoFactorSetupDto']
-          'application/*+json': components['schemas']['VerifyTwoFactorSetupDto']
-        }
-      }
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfEmptyDto']
-            'application/json': components['schemas']['ApiResponseDtoOfEmptyDto']
-            'text/json': components['schemas']['ApiResponseDtoOfEmptyDto']
-          }
-        }
-      }
-    }
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/2fa/disable': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    post: {
-      parameters: {
-        query?: never
-        header?: never
-        path?: never
-        cookie?: never
-      }
-      requestBody: {
-        content: {
-          'application/json': components['schemas']['DisableTwoFactorDto']
-          'text/json': components['schemas']['DisableTwoFactorDto']
-          'application/*+json': components['schemas']['DisableTwoFactorDto']
-        }
-      }
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfEmptyDto']
-            'application/json': components['schemas']['ApiResponseDtoOfEmptyDto']
-            'text/json': components['schemas']['ApiResponseDtoOfEmptyDto']
-          }
-        }
-      }
-    }
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/2fa/backup-codes/generate': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    post: {
-      parameters: {
-        query?: never
-        header?: never
-        path?: never
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfListOfstring']
-            'application/json': components['schemas']['ApiResponseDtoOfListOfstring']
-            'text/json': components['schemas']['ApiResponseDtoOfListOfstring']
-          }
-        }
-      }
-    }
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/groups/{groupId}/aliases': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          groupId: string
-        }
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfListOfAliasDto']
-            'application/json': components['schemas']['ApiResponseDtoOfListOfAliasDto']
-            'text/json': components['schemas']['ApiResponseDtoOfListOfAliasDto']
-          }
-        }
-      }
-    }
-    put?: never
-    post: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          groupId: string
-        }
-        cookie?: never
-      }
-      requestBody: {
-        content: {
-          'application/json': components['schemas']['CreateAliasRequestDto']
-          'text/json': components['schemas']['CreateAliasRequestDto']
-          'application/*+json': components['schemas']['CreateAliasRequestDto']
-        }
-      }
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfAliasDto']
-            'application/json': components['schemas']['ApiResponseDtoOfAliasDto']
-            'text/json': components['schemas']['ApiResponseDtoOfAliasDto']
-          }
-        }
-      }
-    }
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/groups/{groupId}/aliases/finalize': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    post: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          groupId: string
-        }
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content?: never
-        }
-      }
-    }
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/aliases/{aliasId}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          aliasId: string
-        }
-        cookie?: never
-      }
-      requestBody: {
-        content: {
-          'application/json': components['schemas']['UpdateAliasRequestDto']
-          'text/json': components['schemas']['UpdateAliasRequestDto']
-          'application/*+json': components['schemas']['UpdateAliasRequestDto']
-        }
-      }
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfAliasDto']
-            'application/json': components['schemas']['ApiResponseDtoOfAliasDto']
-            'text/json': components['schemas']['ApiResponseDtoOfAliasDto']
-          }
-        }
-      }
-    }
-    post?: never
-    delete: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          aliasId: string
-        }
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content?: never
-        }
-      }
-    }
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/aliases/{aliasId}/members': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    post: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          aliasId: string
-        }
-        cookie?: never
-      }
-      requestBody: {
-        content: {
-          'application/json': components['schemas']['AssignAliasMemberRequestDto']
-          'text/json': components['schemas']['AssignAliasMemberRequestDto']
-          'application/*+json': components['schemas']['AssignAliasMemberRequestDto']
-        }
-      }
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfAliasDto']
-            'application/json': components['schemas']['ApiResponseDtoOfAliasDto']
-            'text/json': components['schemas']['ApiResponseDtoOfAliasDto']
-          }
-        }
-      }
-    }
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/aliases/{aliasId}/members/{userId}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    post?: never
-    delete: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          aliasId: string
-          userId: string
-        }
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content?: never
-        }
-      }
-    }
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/ai/status': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get: {
-      parameters: {
-        query?: never
-        header?: never
-        path?: never
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'text/plain': components['schemas']['ApiResponseDtoOfAiStatusDto']
-            'application/json': components['schemas']['ApiResponseDtoOfAiStatusDto']
-            'text/json': components['schemas']['ApiResponseDtoOfAiStatusDto']
-          }
-        }
-      }
-    }
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
+    "/api/v1/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfListOfUserDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfListOfUserDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfListOfUserDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/pending": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfListOfPendingUserDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfListOfPendingUserDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfListOfPendingUserDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfUserDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfUserDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfUserDto"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateUserRequestDto"];
+                    "text/json": components["schemas"]["UpdateUserRequestDto"];
+                    "application/*+json": components["schemas"]["UpdateUserRequestDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfUserDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfUserDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfUserDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/me/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfUserStatsDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfUserStatsDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfUserStatsDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/me/imports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfListOfImportStatusDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfListOfImportStatusDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfListOfImportStatusDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/me/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateUserSettingsRequestDto"];
+                    "text/json": components["schemas"]["UpdateUserSettingsRequestDto"];
+                    "application/*+json": components["schemas"]["UpdateUserSettingsRequestDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfUpdateUserSettingsResponseDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfUpdateUserSettingsResponseDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfUpdateUserSettingsResponseDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/me/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ChangePasswordRequestDto"];
+                    "text/json": components["schemas"]["ChangePasswordRequestDto"];
+                    "application/*+json": components["schemas"]["ChangePasswordRequestDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    userId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfUserDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfUserDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfUserDto"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    userId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateUserRequestDto"];
+                    "text/json": components["schemas"]["UpdateUserRequestDto"];
+                    "application/*+json": components["schemas"]["UpdateUserRequestDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfUserDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfUserDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfUserDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    userId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/receipts/parse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        image?: components["schemas"]["IFormFile"];
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfParsedReceiptDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfParsedReceiptDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfParsedReceiptDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/payment-modes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfListOfPaymentModeDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfListOfPaymentModeDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfListOfPaymentModeDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/{groupId}/invitations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfListOfInvitationDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfListOfInvitationDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfListOfInvitationDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SendInvitationRequestDto"];
+                    "text/json": components["schemas"]["SendInvitationRequestDto"];
+                    "application/*+json": components["schemas"]["SendInvitationRequestDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfSendInvitationResponseDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfSendInvitationResponseDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfSendInvitationResponseDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/{groupId}/invitations/{invitationId}/resend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                    invitationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfInvitationDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfInvitationDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfInvitationDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/{groupId}/invitations/{invitationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                    invitationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/invitations/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    token?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfValidateInvitationResponseDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfValidateInvitationResponseDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfValidateInvitationResponseDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/invitations/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AcceptInvitationRequestDto"];
+                    "text/json": components["schemas"]["AcceptInvitationRequestDto"];
+                    "application/*+json": components["schemas"]["AcceptInvitationRequestDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/{groupId}/imports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    page?: number | string;
+                    limit?: number | string;
+                };
+                header?: never;
+                path: {
+                    groupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["PaginatedResponseDtoOfImportStatusDto"];
+                        "application/json": components["schemas"]["PaginatedResponseDtoOfImportStatusDto"];
+                        "text/json": components["schemas"]["PaginatedResponseDtoOfImportStatusDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ImportMappingDto"];
+                    "text/json": components["schemas"]["ImportMappingDto"];
+                    "application/*+json": components["schemas"]["ImportMappingDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfImportStatusDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfImportStatusDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfImportStatusDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/{groupId}/imports/analyze": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/x-www-form-urlencoded": {
+                        File?: components["schemas"]["IFormFile"];
+                        /** Format: int32 */
+                        ImportTypeId?: number | string;
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfImportStatusDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfImportStatusDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfImportStatusDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    limit?: number | string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfListOfGroupDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfListOfGroupDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfListOfGroupDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateGroupRequestDto"];
+                    "text/json": components["schemas"]["CreateGroupRequestDto"];
+                    "application/*+json": components["schemas"]["CreateGroupRequestDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfGroupDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfGroupDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfGroupDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/{groupId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfGroupDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfGroupDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfGroupDto"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateGroupRequestDto"];
+                    "text/json": components["schemas"]["UpdateGroupRequestDto"];
+                    "application/*+json": components["schemas"]["UpdateGroupRequestDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfGroupDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfGroupDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfGroupDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/{groupId}/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfGroupStatsDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfGroupStatsDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfGroupStatsDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/{groupId}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfListOfGroupMemberDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfListOfGroupMemberDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfListOfGroupMemberDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AddGroupMemberRequestDto"];
+                    "text/json": components["schemas"]["AddGroupMemberRequestDto"];
+                    "application/*+json": components["schemas"]["AddGroupMemberRequestDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfGroupMemberDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfGroupMemberDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfGroupMemberDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/{groupId}/members/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                    userId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/{groupId}/members/{userId}/role": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                    userId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateGroupMemberRoleRequestDto"];
+                    "text/json": components["schemas"]["UpdateGroupMemberRoleRequestDto"];
+                    "application/*+json": components["schemas"]["UpdateGroupMemberRoleRequestDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfGroupMemberDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfGroupMemberDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfGroupMemberDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/{groupId}/export/csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/{groupId}/balances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfListOfAliasBalanceDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfListOfAliasBalanceDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfListOfAliasBalanceDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/{groupId}/balances/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfAliasBalanceSummaryDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfAliasBalanceSummaryDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfAliasBalanceSummaryDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/{groupId}/expenses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    page?: number | string;
+                    limit?: number | string;
+                    startDate?: string;
+                    endDate?: string;
+                    category?: string;
+                    userId?: string;
+                    search?: string;
+                };
+                header?: never;
+                path: {
+                    groupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["PaginatedResponseDtoOfExpenseDto"];
+                        "application/json": components["schemas"]["PaginatedResponseDtoOfExpenseDto"];
+                        "text/json": components["schemas"]["PaginatedResponseDtoOfExpenseDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateExpenseRequestDto"];
+                    "text/json": components["schemas"]["CreateExpenseRequestDto"];
+                    "application/*+json": components["schemas"]["CreateExpenseRequestDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfExpenseDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfExpenseDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfExpenseDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/{groupId}/expenses/{expenseId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                    expenseId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfExpenseDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfExpenseDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfExpenseDto"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                    expenseId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateExpenseRequestDto"];
+                    "text/json": components["schemas"]["UpdateExpenseRequestDto"];
+                    "application/*+json": components["schemas"]["UpdateExpenseRequestDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfExpenseDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfExpenseDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfExpenseDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                    expenseId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfListOfCategoryDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfListOfCategoryDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfListOfCategoryDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["LoginRequestDto"];
+                    "text/json": components["schemas"]["LoginRequestDto"];
+                    "application/*+json": components["schemas"]["LoginRequestDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfAuthResponseDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfAuthResponseDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfAuthResponseDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["RefreshTokenRequestDto"];
+                    "text/json": components["schemas"]["RefreshTokenRequestDto"];
+                    "application/*+json": components["schemas"]["RefreshTokenRequestDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfAuthResponseDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfAuthResponseDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfAuthResponseDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/verify-2fa": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["VerifyTwoFactorLoginDto"];
+                    "text/json": components["schemas"]["VerifyTwoFactorLoginDto"];
+                    "application/*+json": components["schemas"]["VerifyTwoFactorLoginDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfAuthResponseDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfAuthResponseDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfAuthResponseDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["RevokeTokenRequestDto"];
+                    "text/json": components["schemas"]["RevokeTokenRequestDto"];
+                    "application/*+json": components["schemas"]["RevokeTokenRequestDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/{userGuid}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    userGuid: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/forgot-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ForgotPasswordRequestDto"];
+                    "text/json": components["schemas"]["ForgotPasswordRequestDto"];
+                    "application/*+json": components["schemas"]["ForgotPasswordRequestDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/validate-reset-token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    email?: string;
+                    token?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfboolean"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfboolean"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfboolean"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ResetPasswordRequestDto"];
+                    "text/json": components["schemas"]["ResetPasswordRequestDto"];
+                    "application/*+json": components["schemas"]["ResetPasswordRequestDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/2fa/setup/initiate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfTwoFactorSetupDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfTwoFactorSetupDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfTwoFactorSetupDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/2fa/setup/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["VerifyTwoFactorSetupDto"];
+                    "text/json": components["schemas"]["VerifyTwoFactorSetupDto"];
+                    "application/*+json": components["schemas"]["VerifyTwoFactorSetupDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfEmptyDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfEmptyDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfEmptyDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/2fa/disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["DisableTwoFactorDto"];
+                    "text/json": components["schemas"]["DisableTwoFactorDto"];
+                    "application/*+json": components["schemas"]["DisableTwoFactorDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfEmptyDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfEmptyDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfEmptyDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/2fa/backup-codes/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfListOfstring"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfListOfstring"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfListOfstring"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/{groupId}/aliases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfListOfAliasDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfListOfAliasDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfListOfAliasDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateAliasRequestDto"];
+                    "text/json": components["schemas"]["CreateAliasRequestDto"];
+                    "application/*+json": components["schemas"]["CreateAliasRequestDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfAliasDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfAliasDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfAliasDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/{groupId}/aliases/finalize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/aliases/{aliasId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    aliasId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateAliasRequestDto"];
+                    "text/json": components["schemas"]["UpdateAliasRequestDto"];
+                    "application/*+json": components["schemas"]["UpdateAliasRequestDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfAliasDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfAliasDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfAliasDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    aliasId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/aliases/{aliasId}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    aliasId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AssignAliasMemberRequestDto"];
+                    "text/json": components["schemas"]["AssignAliasMemberRequestDto"];
+                    "application/*+json": components["schemas"]["AssignAliasMemberRequestDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfAliasDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfAliasDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfAliasDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/aliases/{aliasId}/members/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    aliasId: string;
+                    userId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ai/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfAiStatusDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfAiStatusDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfAiStatusDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
-export type webhooks = Record<string, never>
+export type webhooks = Record<string, never>;
 export interface components {
-  schemas: {
-    AcceptInvitationRequestDto: {
-      token: string
-      firstName: string
-      lastName: string
-      password: string
-      confirmPassword: string
-      uiLanguage?: null | string
-    }
-    AddGroupMemberRequestDto: {
-      userEmail: string
-      role?: string
-    }
-    AiStatusDto: {
-      enabled?: boolean
-    }
-    AliasBalanceDto: {
-      aliasId?: string
-      aliasName?: string
-      /** Format: double */
-      balance?: number | string
-      /** Format: double */
-      totalPaid?: number | string
-      /** Format: double */
-      totalOwed?: number | string
-      members?: components['schemas']['UserBasicInfoDto'][]
-      isSingleton?: boolean
-    }
-    AliasBalanceSummaryDto: {
-      groupId?: string
-      balances?: components['schemas']['AliasBalanceDto'][]
-      suggestions?: components['schemas']['AliasSettlementSuggestionDto'][]
-    }
-    AliasDto: {
-      id?: string
-      name?: string
-      groupId?: string
-      members?: components['schemas']['UserBasicInfoDto'][]
-      isSingleton?: boolean
-      /** Format: int64 */
-      createdAt?: number | string
-      /** Format: int64 */
-      updatedAt?: number | string
-    }
-    AliasSettlementSuggestionDto: {
-      fromAliasId?: string
-      toAliasId?: string
-      fromAliasName?: string
-      toAliasName?: string
-      /** Format: double */
-      amount?: number | string
-      description?: string
-    }
-    ApiErrorDto: {
-      code?: string
-      message?: string
-      details?: null | string[]
-    }
-    ApiResponseDtoOfAiStatusDto: {
-      success?: boolean
-      data?: null | components['schemas']['AiStatusDto']
-      message?: null | string
-      error?: null | components['schemas']['ApiErrorDto']
-    }
-    ApiResponseDtoOfAliasBalanceSummaryDto: {
-      success?: boolean
-      data?: null | components['schemas']['AliasBalanceSummaryDto']
-      message?: null | string
-      error?: null | components['schemas']['ApiErrorDto']
-    }
-    ApiResponseDtoOfAliasDto: {
-      success?: boolean
-      data?: null | components['schemas']['AliasDto']
-      message?: null | string
-      error?: null | components['schemas']['ApiErrorDto']
-    }
-    ApiResponseDtoOfAuthResponseDto: {
-      success?: boolean
-      data?: null | components['schemas']['AuthResponseDto']
-      message?: null | string
-      error?: null | components['schemas']['ApiErrorDto']
-    }
-    ApiResponseDtoOfboolean: {
-      success?: boolean
-      data?: boolean
-      message?: null | string
-      error?: null | components['schemas']['ApiErrorDto']
-    }
-    ApiResponseDtoOfEmptyDto: {
-      success?: boolean
-      data?: null | components['schemas']['EmptyDto']
-      message?: null | string
-      error?: null | components['schemas']['ApiErrorDto']
-    }
-    ApiResponseDtoOfExpenseDto: {
-      success?: boolean
-      data?: null | components['schemas']['ExpenseDto']
-      message?: null | string
-      error?: null | components['schemas']['ApiErrorDto']
-    }
-    ApiResponseDtoOfGroupDto: {
-      success?: boolean
-      data?: null | components['schemas']['GroupDto']
-      message?: null | string
-      error?: null | components['schemas']['ApiErrorDto']
-    }
-    ApiResponseDtoOfGroupMemberDto: {
-      success?: boolean
-      data?: null | components['schemas']['GroupMemberDto']
-      message?: null | string
-      error?: null | components['schemas']['ApiErrorDto']
-    }
-    ApiResponseDtoOfGroupStatsDto: {
-      success?: boolean
-      data?: null | components['schemas']['GroupStatsDto']
-      message?: null | string
-      error?: null | components['schemas']['ApiErrorDto']
-    }
-    ApiResponseDtoOfImportStatusDto: {
-      success?: boolean
-      data?: null | components['schemas']['ImportStatusDto']
-      message?: null | string
-      error?: null | components['schemas']['ApiErrorDto']
-    }
-    ApiResponseDtoOfInvitationDto: {
-      success?: boolean
-      data?: null | components['schemas']['InvitationDto']
-      message?: null | string
-      error?: null | components['schemas']['ApiErrorDto']
-    }
-    ApiResponseDtoOfListOfAliasBalanceDto: {
-      success?: boolean
-      data?: null | components['schemas']['AliasBalanceDto'][]
-      message?: null | string
-      error?: null | components['schemas']['ApiErrorDto']
-    }
-    ApiResponseDtoOfListOfAliasDto: {
-      success?: boolean
-      data?: null | components['schemas']['AliasDto'][]
-      message?: null | string
-      error?: null | components['schemas']['ApiErrorDto']
-    }
-    ApiResponseDtoOfListOfCategoryDto: {
-      success?: boolean
-      data?: null | components['schemas']['CategoryDto'][]
-      message?: null | string
-      error?: null | components['schemas']['ApiErrorDto']
-    }
-    ApiResponseDtoOfListOfGroupDto: {
-      success?: boolean
-      data?: null | components['schemas']['GroupDto'][]
-      message?: null | string
-      error?: null | components['schemas']['ApiErrorDto']
-    }
-    ApiResponseDtoOfListOfGroupMemberDto: {
-      success?: boolean
-      data?: null | components['schemas']['GroupMemberDto'][]
-      message?: null | string
-      error?: null | components['schemas']['ApiErrorDto']
-    }
-    ApiResponseDtoOfListOfImportStatusDto: {
-      success?: boolean
-      data?: null | components['schemas']['ImportStatusDto'][]
-      message?: null | string
-      error?: null | components['schemas']['ApiErrorDto']
-    }
-    ApiResponseDtoOfListOfInvitationDto: {
-      success?: boolean
-      data?: null | components['schemas']['InvitationDto'][]
-      message?: null | string
-      error?: null | components['schemas']['ApiErrorDto']
-    }
-    ApiResponseDtoOfListOfPaymentModeDto: {
-      success?: boolean
-      data?: null | components['schemas']['PaymentModeDto'][]
-      message?: null | string
-      error?: null | components['schemas']['ApiErrorDto']
-    }
-    ApiResponseDtoOfListOfPendingUserDto: {
-      success?: boolean
-      data?: null | components['schemas']['PendingUserDto'][]
-      message?: null | string
-      error?: null | components['schemas']['ApiErrorDto']
-    }
-    ApiResponseDtoOfListOfstring: {
-      success?: boolean
-      data?: null | string[]
-      message?: null | string
-      error?: null | components['schemas']['ApiErrorDto']
-    }
-    ApiResponseDtoOfListOfUserDto: {
-      success?: boolean
-      data?: null | components['schemas']['UserDto'][]
-      message?: null | string
-      error?: null | components['schemas']['ApiErrorDto']
-    }
-    ApiResponseDtoOfParsedReceiptDto: {
-      success?: boolean
-      data?: null | components['schemas']['ParsedReceiptDto']
-      message?: null | string
-      error?: null | components['schemas']['ApiErrorDto']
-    }
-    ApiResponseDtoOfSendInvitationResponseDto: {
-      success?: boolean
-      data?: null | components['schemas']['SendInvitationResponseDto']
-      message?: null | string
-      error?: null | components['schemas']['ApiErrorDto']
-    }
-    ApiResponseDtoOfTwoFactorSetupDto: {
-      success?: boolean
-      data?: null | components['schemas']['TwoFactorSetupDto']
-      message?: null | string
-      error?: null | components['schemas']['ApiErrorDto']
-    }
-    ApiResponseDtoOfUpdateUserSettingsResponseDto: {
-      success?: boolean
-      data?: null | components['schemas']['UpdateUserSettingsResponseDto']
-      message?: null | string
-      error?: null | components['schemas']['ApiErrorDto']
-    }
-    ApiResponseDtoOfUserDto: {
-      success?: boolean
-      data?: null | components['schemas']['UserDto']
-      message?: null | string
-      error?: null | components['schemas']['ApiErrorDto']
-    }
-    ApiResponseDtoOfUserStatsDto: {
-      success?: boolean
-      data?: null | components['schemas']['UserStatsDto']
-      message?: null | string
-      error?: null | components['schemas']['ApiErrorDto']
-    }
-    ApiResponseDtoOfValidateInvitationResponseDto: {
-      success?: boolean
-      data?: null | components['schemas']['ValidateInvitationResponseDto']
-      message?: null | string
-      error?: null | components['schemas']['ApiErrorDto']
-    }
-    AssignAliasMemberRequestDto: {
-      userId: string
-    }
-    AuthResponseDto: {
-      token?: string
-      refreshToken?: string
-      /** Format: int64 */
-      expiresAt?: number | string
-      requiresTwoFactor?: boolean
-      twoFactorChallengeToken?: null | string
-      user?: components['schemas']['UserDto']
-    }
-    BalanceDto: {
-      userId?: string
-      user?: components['schemas']['UserBasicInfoDto']
-      /** Format: double */
-      balance?: number | string
-      /** Format: double */
-      totalPaid?: number | string
-      /** Format: double */
-      totalOwed?: number | string
-    }
-    CategoryDto: {
-      /** Format: int32 */
-      id?: number | string
-      name?: string
-    }
-    CategoryStatDto: {
-      /** Format: int32 */
-      categoryId?: number | string
-      categoryName?: string
-      /** Format: double */
-      amount?: number | string
-      /** Format: int32 */
-      count?: number | string
-    }
-    ChangePasswordRequestDto: {
-      currentPassword: string
-      newPassword: string
-      confirmPassword: string
-    }
-    CreateAliasRequestDto: {
-      name: string
-    }
-    CreateExpenseAliasSplitDto: {
-      aliasId: string
-      /** Format: double */
-      splitAmount: number | string
-    }
-    CreateExpenseRequestDto: {
-      title: string
-      description?: null | string
-      /** Format: double */
-      amount: number | string
-      paidByUserId: string
-      expenseDate: string
-      /** Format: int32 */
-      categoryId?: number | string
-      /** Format: int32 */
-      paymentModeId?: number | string
-      splits?: components['schemas']['CreateExpenseSplitDto'][]
-      aliasSplits?: null | components['schemas']['CreateExpenseAliasSplitDto'][]
-    }
-    CreateExpenseSplitDto: {
-      userId: string
-      /** Format: double */
-      splitAmount: number | string
-    }
-    CreateGroupRequestDto: {
-      name: string
-      description?: null | string
-      useAliases?: boolean
-    }
-    DisableTwoFactorDto: {
-      password: string
-    }
-    EmptyDto: Record<string, never>
-    ExpenseAliasSplitDto: {
-      id?: string
-      aliasId?: string
-      aliasName?: string
-      /** Format: double */
-      splitAmount?: number | string
-      /** Format: double */
-      splitPercentage?: null | number | string
-    }
-    ExpenseDto: {
-      id?: string
-      groupId?: string
-      title?: string
-      description?: null | string
-      /** Format: double */
-      amount?: number | string
-      paidByUserId?: string
-      paidByUser?: components['schemas']['UserBasicInfoDto']
-      expenseDate?: string
-      /** Format: int32 */
-      categoryId?: number | string
-      /** Format: int32 */
-      paymentModeId?: number | string
-      splits?: components['schemas']['ExpenseSplitDto'][]
-      aliasSplits?: null | components['schemas']['ExpenseAliasSplitDto'][]
-      /** Format: int64 */
-      createdAt?: number | string
-      /** Format: int64 */
-      updatedAt?: number | string
-    }
-    ExpenseSplitDto: {
-      id?: string
-      userId?: string
-      user?: components['schemas']['UserBasicInfoDto']
-      /** Format: double */
-      splitAmount?: number | string
-      /** Format: double */
-      splitPercentage?: null | number | string
-    }
-    ForgotPasswordRequestDto: {
-      email: string
-    }
-    GlobalRole: number
-    GroupDto: {
-      id?: string
-      name?: string
-      description?: null | string
-      createdByUserId?: string
-      /** Format: int32 */
-      memberCount?: number | string
-      /** Format: int64 */
-      createdAt?: number | string
-      /** Format: int64 */
-      updatedAt?: number | string
-      /** Format: double */
-      netBalance?: number | string
-      useAliases?: boolean
-      aliasSetupFinalized?: boolean
-    }
-    GroupMemberDto: {
-      groupId?: string
-      userId?: string
-      user?: components['schemas']['UserInfoDto']
-      role?: string
-      /** Format: int64 */
-      joinedAt?: number | string
-    }
-    GroupStatsDto: {
-      /** Format: int32 */
-      totalExpenses?: number | string
-      /** Format: double */
-      totalAmount?: number | string
-      balances?: components['schemas']['BalanceDto'][]
-      categoryBreakdown?: components['schemas']['CategoryStatDto'][]
-      monthlyBreakdown?: components['schemas']['MonthlyStatDto'][]
-    }
-    /** Format: binary */
-    IFormFile: string
-    ImportMappingDto: {
-      importId?: string
-      userMappings?: {
-        [key: string]: string
-      }
-      categoryMappings?: {
-        [key: string]: number | string
-      }
-      paymentModeMappings?: {
-        [key: string]: number | string
-      }
-      aliasMappings?: {
-        [key: string]: string
-      }
-    }
-    ImportStatusDto: {
-      id?: string
-      groupId?: null | string
-      fileName?: string
-      fileHash?: string
-      /** Format: int32 */
-      importStatusId?: number | string
-      /** Format: int32 */
-      importTypeId?: number | string
-      /** Format: int32 */
-      recordsCount?: number | string
-      errorDetails?: string
-      importDate?: string
-      /** Format: int64 */
-      startedAt?: null | number | string
-      /** Format: int64 */
-      completedAt?: null | number | string
-      /** Format: int64 */
-      duration?: null | number | string
-      /** Format: int64 */
-      createdAt?: number | string
-      /** Format: int64 */
-      updatedAt?: number | string
-      analysisResults?: null | string
-      mappingConfiguration?: null | string
-    }
-    InvitationDto: {
-      id?: string
-      email?: string
-      invitedBy?: components['schemas']['UserInfoDto']
-      groupName?: string
-      /** Format: int64 */
-      invitedAt?: number | string
-      /** Format: int64 */
-      expiresAt?: number | string
-    }
-    LoginRequestDto: {
-      email: string
-      password: string
-    }
-    MonthlyStatDto: {
-      /** Format: int32 */
-      year?: number | string
-      /** Format: int32 */
-      month?: number | string
-      /** Format: double */
-      amount?: number | string
-      /** Format: int32 */
-      count?: number | string
-    }
-    PaginatedResponseDtoOfExpenseDto: {
-      success?: boolean
-      data?: components['schemas']['ExpenseDto'][]
-      pagination?: components['schemas']['PaginationDto']
-      message?: null | string
-      error?: null | components['schemas']['ApiErrorDto']
-    }
-    PaginatedResponseDtoOfImportStatusDto: {
-      success?: boolean
-      data?: components['schemas']['ImportStatusDto'][]
-      pagination?: components['schemas']['PaginationDto']
-      message?: null | string
-      error?: null | components['schemas']['ApiErrorDto']
-    }
-    PaginationDto: {
-      /** Format: int32 */
-      page?: number | string
-      /** Format: int32 */
-      limit?: number | string
-      /** Format: int32 */
-      total?: number | string
-      /** Format: int32 */
-      totalPages?: number | string
-      hasNext?: boolean
-      hasPrev?: boolean
-    }
-    ParsedReceiptDto: {
-      title?: string
-      /** Format: double */
-      amount?: number | string
-      description?: null | string
-      expenseDate?: string
-      /** Format: int32 */
-      categoryId?: null | number | string
-      /** Format: int32 */
-      paymentModeId?: null | number | string
-    }
-    PaymentModeDto: {
-      /** Format: int32 */
-      id?: number | string
-      name?: string
-    }
-    PendingUserDto: {
-      email?: string
-      groups?: components['schemas']['PendingUserGroupDto'][]
-    }
-    PendingUserGroupDto: {
-      id?: string
-      name?: string
-      /** Format: int64 */
-      invitedAt?: number | string
-      /** Format: int64 */
-      expiresAt?: number | string
-    }
-    RefreshTokenRequestDto: {
-      token: string
-      refreshToken: string
-    }
-    ResetPasswordRequestDto: {
-      email: string
-      token: string
-      newPassword: string
-      confirmPassword: string
-    }
-    RevokeTokenRequestDto: {
-      refreshToken: string
-    }
-    SendInvitationRequestDto: {
-      email: string
-    }
-    SendInvitationResponseDto: {
-      type?: string
-      member?: null | components['schemas']['GroupMemberDto']
-      invitation?: null | components['schemas']['InvitationDto']
-    }
-    TwoFactorSetupDto: {
-      secret?: string
-      qrCodeUri?: string
-      backupCodes?: string[]
-    }
-    UpdateAliasRequestDto: {
-      name?: null | string
-    }
-    UpdateExpenseRequestDto: {
-      title?: null | string
-      description?: null | string
-      /** Format: double */
-      amount?: null | number | string
-      paidByUserId?: null | string
-      expenseDate?: null | string
-      /** Format: int32 */
-      categoryId?: null | number | string
-      /** Format: int32 */
-      paymentModeId?: null | number | string
-      splits?: null | components['schemas']['UpdateExpenseSplitDto'][]
-      aliasSplits?: null | components['schemas']['CreateExpenseAliasSplitDto'][]
-    }
-    UpdateExpenseSplitDto: {
-      userId: string
-      /** Format: double */
-      splitAmount: number | string
-    }
-    UpdateGroupMemberRoleRequestDto: {
-      role: string
-    }
-    UpdateGroupRequestDto: {
-      name?: null | string
-      description?: null | string
-    }
-    UpdateUserRequestDto: {
-      firstName?: null | string
-      lastName?: null | string
-      email?: null | string
-      globalRole?: null | components['schemas']['GlobalRole']
-    }
-    UpdateUserSettingsRequestDto: {
-      theme?: null | string
-      uiLanguage?: null | string
-    }
-    UpdateUserSettingsResponseDto: {
-      settings?: components['schemas']['UserSettingsDto']
-      token?: null | string
-    }
-    UserBasicInfoDto: {
-      id?: string
-      firstName?: string
-      lastName?: null | string
-    }
-    UserDto: {
-      id?: string
-      email?: string
-      firstName?: string
-      lastName?: null | string
-      /** Format: int32 */
-      globalRoleId?: number | string
-      /** Format: int64 */
-      createdAt?: number | string
-      /** Format: int64 */
-      updatedAt?: number | string
-      fullName?: null | string
-      twoFactorEnabled?: boolean
-      settings?: components['schemas']['UserSettingsDto']
-    }
-    UserInfoDto: {
-      id?: string
-      email?: string
-      firstName?: string
-      lastName?: null | string
-    }
-    UserSettingsDto: {
-      theme?: string
-      uiLanguage?: string
-    }
-    UserStatsDto: {
-      /** Format: int32 */
-      totalGroups?: number | string
-      /** Format: double */
-      youOwe?: number | string
-      /** Format: double */
-      youreOwed?: number | string
-    }
-    ValidateInvitationResponseDto: {
-      email?: string
-      groupName?: string
-      /** Format: int64 */
-      expiresAt?: number | string
-    }
-    VerifyTwoFactorLoginDto: {
-      challengeToken: string
-      code: string
-      codeType?: string
-    }
-    VerifyTwoFactorSetupDto: {
-      code: string
-    }
-  }
-  responses: never
-  parameters: never
-  requestBodies: never
-  headers: never
-  pathItems: never
+    schemas: {
+        AcceptInvitationRequestDto: {
+            token: string;
+            firstName: string;
+            lastName: string;
+            password: string;
+            confirmPassword: string;
+            uiLanguage?: null | string;
+        };
+        AddGroupMemberRequestDto: {
+            userEmail: string;
+            role?: string;
+        };
+        AiStatusDto: {
+            enabled?: boolean;
+        };
+        AliasBalanceDto: {
+            aliasId?: string;
+            aliasName?: string;
+            /** Format: double */
+            balance?: number | string;
+            /** Format: double */
+            totalPaid?: number | string;
+            /** Format: double */
+            totalOwed?: number | string;
+            members?: components["schemas"]["UserBasicInfoDto"][];
+            isSingleton?: boolean;
+        };
+        AliasBalanceSummaryDto: {
+            groupId?: string;
+            balances?: components["schemas"]["AliasBalanceDto"][];
+            suggestions?: components["schemas"]["AliasSettlementSuggestionDto"][];
+        };
+        AliasDto: {
+            id?: string;
+            name?: string;
+            groupId?: string;
+            members?: components["schemas"]["UserBasicInfoDto"][];
+            isSingleton?: boolean;
+            /** Format: int64 */
+            createdAt?: number | string;
+            /** Format: int64 */
+            updatedAt?: number | string;
+        };
+        AliasSettlementSuggestionDto: {
+            fromAliasId?: string;
+            toAliasId?: string;
+            fromAliasName?: string;
+            toAliasName?: string;
+            /** Format: double */
+            amount?: number | string;
+            description?: string;
+        };
+        ApiErrorDto: {
+            code?: string;
+            message?: string;
+            details?: null | string[];
+        };
+        ApiResponseDtoOfAiStatusDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["AiStatusDto"];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfAliasBalanceSummaryDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["AliasBalanceSummaryDto"];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfAliasDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["AliasDto"];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfAuthResponseDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["AuthResponseDto"];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfboolean: {
+            success?: boolean;
+            data?: boolean;
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfEmptyDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["EmptyDto"];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfExpenseDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["ExpenseDto"];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfGroupDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["GroupDto"];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfGroupMemberDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["GroupMemberDto"];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfGroupStatsDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["GroupStatsDto"];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfImportStatusDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["ImportStatusDto"];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfInvitationDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["InvitationDto"];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfListOfAliasBalanceDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["AliasBalanceDto"][];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfListOfAliasDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["AliasDto"][];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfListOfCategoryDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["CategoryDto"][];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfListOfGroupDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["GroupDto"][];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfListOfGroupMemberDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["GroupMemberDto"][];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfListOfImportStatusDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["ImportStatusDto"][];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfListOfInvitationDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["InvitationDto"][];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfListOfPaymentModeDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["PaymentModeDto"][];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfListOfPendingUserDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["PendingUserDto"][];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfListOfstring: {
+            success?: boolean;
+            data?: null | string[];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfListOfUserDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["UserDto"][];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfParsedReceiptDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["ParsedReceiptDto"];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfSendInvitationResponseDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["SendInvitationResponseDto"];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfTwoFactorSetupDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["TwoFactorSetupDto"];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfUpdateUserSettingsResponseDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["UpdateUserSettingsResponseDto"];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfUserDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["UserDto"];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfUserStatsDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["UserStatsDto"];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfValidateInvitationResponseDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["ValidateInvitationResponseDto"];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        AssignAliasMemberRequestDto: {
+            userId: string;
+        };
+        AuthResponseDto: {
+            token?: string;
+            refreshToken?: string;
+            /** Format: int64 */
+            expiresAt?: number | string;
+            requiresTwoFactor?: boolean;
+            twoFactorChallengeToken?: null | string;
+            user?: components["schemas"]["UserDto"];
+        };
+        BalanceDto: {
+            userId?: string;
+            user?: components["schemas"]["UserBasicInfoDto"];
+            /** Format: double */
+            balance?: number | string;
+            /** Format: double */
+            totalPaid?: number | string;
+            /** Format: double */
+            totalOwed?: number | string;
+        };
+        CategoryDto: {
+            /** Format: int32 */
+            id?: number | string;
+            name?: string;
+        };
+        CategoryStatDto: {
+            /** Format: int32 */
+            categoryId?: number | string;
+            categoryName?: string;
+            /** Format: double */
+            amount?: number | string;
+            /** Format: int32 */
+            count?: number | string;
+        };
+        ChangePasswordRequestDto: {
+            currentPassword: string;
+            newPassword: string;
+            confirmPassword: string;
+        };
+        CreateAliasRequestDto: {
+            name: string;
+        };
+        CreateExpenseAliasSplitDto: {
+            aliasId: string;
+            /** Format: double */
+            splitAmount: number | string;
+        };
+        CreateExpenseRequestDto: {
+            title: string;
+            description?: null | string;
+            /** Format: double */
+            amount: number | string;
+            paidByUserId: string;
+            expenseDate: string;
+            /** Format: int32 */
+            categoryId?: number | string;
+            /** Format: int32 */
+            paymentModeId?: number | string;
+            splits?: components["schemas"]["CreateExpenseSplitDto"][];
+            aliasSplits?: null | components["schemas"]["CreateExpenseAliasSplitDto"][];
+        };
+        CreateExpenseSplitDto: {
+            userId: string;
+            /** Format: double */
+            splitAmount: number | string;
+        };
+        CreateGroupRequestDto: {
+            name: string;
+            description?: null | string;
+            useAliases?: boolean;
+        };
+        DisableTwoFactorDto: {
+            password: string;
+        };
+        EmptyDto: Record<string, never>;
+        ExpenseAliasSplitDto: {
+            id?: string;
+            aliasId?: string;
+            aliasName?: string;
+            /** Format: double */
+            splitAmount?: number | string;
+            /** Format: double */
+            splitPercentage?: null | number | string;
+        };
+        ExpenseDto: {
+            id?: string;
+            groupId?: string;
+            title?: string;
+            description?: null | string;
+            /** Format: double */
+            amount?: number | string;
+            paidByUserId?: string;
+            paidByUser?: components["schemas"]["UserBasicInfoDto"];
+            expenseDate?: string;
+            /** Format: int32 */
+            categoryId?: number | string;
+            /** Format: int32 */
+            paymentModeId?: number | string;
+            splits?: components["schemas"]["ExpenseSplitDto"][];
+            aliasSplits?: null | components["schemas"]["ExpenseAliasSplitDto"][];
+            /** Format: int64 */
+            createdAt?: number | string;
+            /** Format: int64 */
+            updatedAt?: number | string;
+        };
+        ExpenseSplitDto: {
+            id?: string;
+            userId?: string;
+            user?: components["schemas"]["UserBasicInfoDto"];
+            /** Format: double */
+            splitAmount?: number | string;
+            /** Format: double */
+            splitPercentage?: null | number | string;
+        };
+        ForgotPasswordRequestDto: {
+            email: string;
+        };
+        GlobalRole: number;
+        GroupDto: {
+            id?: string;
+            name?: string;
+            description?: null | string;
+            createdByUserId?: string;
+            /** Format: int32 */
+            memberCount?: number | string;
+            /** Format: int64 */
+            createdAt?: number | string;
+            /** Format: int64 */
+            updatedAt?: number | string;
+            /** Format: double */
+            netBalance?: number | string;
+            useAliases?: boolean;
+            aliasSetupFinalized?: boolean;
+        };
+        GroupMemberDto: {
+            groupId?: string;
+            userId?: string;
+            user?: components["schemas"]["UserInfoDto"];
+            role?: string;
+            /** Format: int64 */
+            joinedAt?: number | string;
+        };
+        GroupStatsDto: {
+            /** Format: int32 */
+            totalExpenses?: number | string;
+            /** Format: double */
+            totalAmount?: number | string;
+            balances?: components["schemas"]["BalanceDto"][];
+            categoryBreakdown?: components["schemas"]["CategoryStatDto"][];
+            monthlyBreakdown?: components["schemas"]["MonthlyStatDto"][];
+        };
+        /** Format: binary */
+        IFormFile: string;
+        ImportMappingDto: {
+            importId?: string;
+            userMappings?: {
+                [key: string]: string;
+            };
+            categoryMappings?: {
+                [key: string]: number | string;
+            };
+            paymentModeMappings?: {
+                [key: string]: number | string;
+            };
+            aliasMappings?: {
+                [key: string]: string;
+            };
+        };
+        ImportStatusDto: {
+            id?: string;
+            groupId?: null | string;
+            fileName?: string;
+            fileHash?: string;
+            /** Format: int32 */
+            importStatusId?: number | string;
+            /** Format: int32 */
+            importTypeId?: number | string;
+            /** Format: int32 */
+            recordsCount?: number | string;
+            errorDetails?: string;
+            importDate?: string;
+            /** Format: int64 */
+            startedAt?: null | number | string;
+            /** Format: int64 */
+            completedAt?: null | number | string;
+            /** Format: int64 */
+            duration?: null | number | string;
+            /** Format: int64 */
+            createdAt?: number | string;
+            /** Format: int64 */
+            updatedAt?: number | string;
+            analysisResults?: null | string;
+            mappingConfiguration?: null | string;
+        };
+        InvitationDto: {
+            id?: string;
+            email?: string;
+            invitedBy?: components["schemas"]["UserInfoDto"];
+            groupName?: string;
+            /** Format: int64 */
+            invitedAt?: number | string;
+            /** Format: int64 */
+            expiresAt?: number | string;
+        };
+        LoginRequestDto: {
+            email: string;
+            password: string;
+        };
+        MonthlyStatDto: {
+            /** Format: int32 */
+            year?: number | string;
+            /** Format: int32 */
+            month?: number | string;
+            /** Format: double */
+            amount?: number | string;
+            /** Format: int32 */
+            count?: number | string;
+        };
+        PaginatedResponseDtoOfExpenseDto: {
+            success?: boolean;
+            data?: components["schemas"]["ExpenseDto"][];
+            pagination?: components["schemas"]["PaginationDto"];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        PaginatedResponseDtoOfImportStatusDto: {
+            success?: boolean;
+            data?: components["schemas"]["ImportStatusDto"][];
+            pagination?: components["schemas"]["PaginationDto"];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        PaginationDto: {
+            /** Format: int32 */
+            page?: number | string;
+            /** Format: int32 */
+            limit?: number | string;
+            /** Format: int32 */
+            total?: number | string;
+            /** Format: int32 */
+            totalPages?: number | string;
+            hasNext?: boolean;
+            hasPrev?: boolean;
+        };
+        ParsedReceiptDto: {
+            title?: string;
+            /** Format: double */
+            amount?: number | string;
+            description?: null | string;
+            expenseDate?: string;
+            /** Format: int32 */
+            categoryId?: null | number | string;
+            /** Format: int32 */
+            paymentModeId?: null | number | string;
+        };
+        PaymentModeDto: {
+            /** Format: int32 */
+            id?: number | string;
+            name?: string;
+        };
+        PendingUserDto: {
+            email?: string;
+            groups?: components["schemas"]["PendingUserGroupDto"][];
+        };
+        PendingUserGroupDto: {
+            id?: string;
+            name?: string;
+            /** Format: int64 */
+            invitedAt?: number | string;
+            /** Format: int64 */
+            expiresAt?: number | string;
+        };
+        RefreshTokenRequestDto: {
+            token: string;
+            refreshToken: string;
+        };
+        ResetPasswordRequestDto: {
+            email: string;
+            token: string;
+            newPassword: string;
+            confirmPassword: string;
+        };
+        RevokeTokenRequestDto: {
+            refreshToken: string;
+        };
+        SendInvitationRequestDto: {
+            email: string;
+        };
+        SendInvitationResponseDto: {
+            type?: string;
+            member?: null | components["schemas"]["GroupMemberDto"];
+            invitation?: null | components["schemas"]["InvitationDto"];
+        };
+        TwoFactorSetupDto: {
+            secret?: string;
+            qrCodeUri?: string;
+            backupCodes?: string[];
+        };
+        UpdateAliasRequestDto: {
+            name?: null | string;
+        };
+        UpdateExpenseRequestDto: {
+            title?: null | string;
+            description?: null | string;
+            /** Format: double */
+            amount?: null | number | string;
+            paidByUserId?: null | string;
+            expenseDate?: null | string;
+            /** Format: int32 */
+            categoryId?: null | number | string;
+            /** Format: int32 */
+            paymentModeId?: null | number | string;
+            splits?: null | components["schemas"]["UpdateExpenseSplitDto"][];
+            aliasSplits?: null | components["schemas"]["CreateExpenseAliasSplitDto"][];
+        };
+        UpdateExpenseSplitDto: {
+            userId: string;
+            /** Format: double */
+            splitAmount: number | string;
+        };
+        UpdateGroupMemberRoleRequestDto: {
+            role: string;
+        };
+        UpdateGroupRequestDto: {
+            name?: null | string;
+            description?: null | string;
+        };
+        UpdateUserRequestDto: {
+            firstName?: null | string;
+            lastName?: null | string;
+            email?: null | string;
+            globalRole?: null | components["schemas"]["GlobalRole"];
+        };
+        UpdateUserSettingsRequestDto: {
+            theme?: null | string;
+            uiLanguage?: null | string;
+        };
+        UpdateUserSettingsResponseDto: {
+            settings?: components["schemas"]["UserSettingsDto"];
+            token?: null | string;
+        };
+        UserBasicInfoDto: {
+            id?: string;
+            firstName?: string;
+            lastName?: null | string;
+        };
+        UserDto: {
+            id?: string;
+            email?: string;
+            firstName?: string;
+            lastName?: null | string;
+            /** Format: int32 */
+            globalRoleId?: number | string;
+            /** Format: int64 */
+            createdAt?: number | string;
+            /** Format: int64 */
+            updatedAt?: number | string;
+            fullName?: null | string;
+            twoFactorEnabled?: boolean;
+            settings?: components["schemas"]["UserSettingsDto"];
+        };
+        UserInfoDto: {
+            id?: string;
+            email?: string;
+            firstName?: string;
+            lastName?: null | string;
+        };
+        UserSettingsDto: {
+            theme?: string;
+            uiLanguage?: string;
+        };
+        UserStatsDto: {
+            /** Format: int32 */
+            totalGroups?: number | string;
+            /** Format: double */
+            youOwe?: number | string;
+            /** Format: double */
+            youreOwed?: number | string;
+        };
+        ValidateInvitationResponseDto: {
+            email?: string;
+            groupName?: string;
+            /** Format: int64 */
+            expiresAt?: number | string;
+        };
+        VerifyTwoFactorLoginDto: {
+            challengeToken: string;
+            code: string;
+            codeType?: string;
+        };
+        VerifyTwoFactorSetupDto: {
+            code: string;
+        };
+    };
+    responses: never;
+    parameters: never;
+    requestBodies: never;
+    headers: never;
+    pathItems: never;
 }
-export type $defs = Record<string, never>
-export type operations = Record<string, never>
+export type $defs = Record<string, never>;
+export type operations = Record<string, never>;

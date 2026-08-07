@@ -13,6 +13,30 @@ Nuxt 4 SPA (ssr: false), Vue 3 Composition API, Nuxt UI v4, TailwindCSS v4. No P
 - `pnpm lint:fix` — **run after every implementation** before considering task done
 - `pnpm typecheck` — **run after every implementation** before considering task done (`nuxt prepare && vue-tsc --noEmit`)
 - `pnpm gen:api` — regenerate `app/types/api.d.ts` from `docs/api/splitduoapi-v1.yaml` (run after OpenAPI spec changes)
+- `pnpm test` — run Vitest suite once (CI mode); **run after every implementation** before considering task done
+- `pnpm test:watch` — Vitest watch mode (dev)
+- `pnpm test -- <path>` — run a single test file: `pnpm test app/utils/currency.test.ts`
+- `pnpm test:contract` — `gen:api` staleness check (CI only; slow, not in watch loop)
+
+## Testing
+
+Vitest + happy-dom + @vue/test-utils + @nuxt/test-utils. No E2E (Playwright excluded — Fedora breakage; API contract enforced by generated types + backend integration tests).
+
+- **Run `pnpm test` before considering any frontend task done** (alongside `pnpm lint:fix` + `pnpm typecheck`)
+- **Add or update tests when changing logic in `app/utils/` or `app/composables/`** — this is the agent quality boundary
+- **Colocate tests next to source** — `<file>.test.ts` in the same directory as the source file
+- **Mock at boundaries, not internals** — mock `useApi` (for resource composables) or `$fetch.raw` (for useApi tests), `useI18n`, `useNotifications`; never mock pure utils — call them directly
+- **Prefer real implementations over mocks** — mock only at external boundaries (network, auth, Nuxt runtime)
+- **Test observable behavior** (return values, state changes, toast calls, api call args), not implementation details (which internal methods were called)
+- **One behavior per `it`**, descriptive spec-style names (`it('rejects empty titles', ...)`), Arrange-Act-Assert layout, DAMP over DRY
+- **No snapshot tests**; no `any`; no `@ts-ignore`; follow project TS rules
+- **Nuxt runtime stubs** live in `vitest.setup.ts` — mocks `#app/composables/state`, `#app/composables/cookie`, `#app/nuxt`, `#app/composables/router`, `#app/composables/error` at module level (auto-import transform bypasses `vi.stubGlobal`)
+- **Singleton composables** (`useCategories`, `usePaymentModes`, `useAiStatus`) — use `vi.resetModules()` + dynamic `import()` in `beforeEach` to reset module-level state between tests
+- **What NOT to test** — Nuxt UI v4 internals (upstream-tested), ApexCharts rendering, PWA lifecycle, route middleware (5-line guards)
+- **When to revisit E2E** — only if payment flows or cross-system user journeys appear that unit/composable tests can't catch. The cold-start auth restore + proactive refresh flow (plugin → composable → API → refresh → retry) is the first E2E candidate if regressions appear there.
+- **Flaky tests must be fixed immediately or skipped with a `// FIXME: flaky` + issue** — never leave a test red. A flaky suite erodes trust and makes developers ignore failures.
+- **Never bypass `readonly()` with `toRaw()` in tests** — if you need to set state, the composable should expose a setter (e.g. `setPagination`). If it doesn't, add one to the source rather than reaching into internals.
+- **For singleton tests, bump `testTimeout` in `vitest.config.ts`** rather than using `beforeAll` warm-up hacks. The dynamic-import transform cost can exceed the default 5s timeout on first load.
 
 ## Tech Stack
 
