@@ -37,6 +37,10 @@ export default function usePagination() {
       pagination.value.page = 1 // Reset to first page when changing limit
     }
 
+    const setPagination = (p: Partial<Pagination>): void => {
+      pagination.value = { ...pagination.value, ...p }
+    }
+
     // Computed properties for easy access
     const currentPageItems = computed(() => items.value)
     const hasItems = computed(() => items.value.length > 0)
@@ -57,6 +61,7 @@ export default function usePagination() {
       prevPage,
       goToPage,
       setLimit,
+      setPagination,
     }
   }
 

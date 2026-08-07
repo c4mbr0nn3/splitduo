@@ -46,6 +46,45 @@ typecheck:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: on_success
 
+frontend-unit-tests:
+  stage: test
+  image: node:22-alpine
+  before_script:
+    - corepack enable && corepack prepare pnpm@11.11.0 --activate
+  script:
+    - cd sd-frontend && pnpm install --frozen-lockfile && pnpm test -- --coverage
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+.*$/
+      when: on_success
+    - if: '$CI_COMMIT_BRANCH == "main" && $CI_COMMIT_MESSAGE =~ /chore: bump version to \d+\.\d+\.\d+/'
+      when: never
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: on_success
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: on_success
+  artifacts:
+    when: always
+    expire_in: 30 days
+    paths:
+      - sd-frontend/coverage/
+
+frontend-contract:
+  stage: test
+  image: node:22-alpine
+  before_script:
+    - corepack enable && corepack prepare pnpm@11.11.0 --activate
+  script:
+    - cd sd-frontend && pnpm install --frozen-lockfile && pnpm test:contract
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+.*$/
+      when: on_success
+    - if: '$CI_COMMIT_BRANCH == "main" && $CI_COMMIT_MESSAGE =~ /chore: bump version to \d+\.\d+\.\d+/'
+      when: never
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: on_success
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: on_success
+
 unit-tests:
   stage: test
   image: mcr.microsoft.com/dotnet/sdk:10.0

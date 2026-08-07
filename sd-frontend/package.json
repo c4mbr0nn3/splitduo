@@ -12,7 +12,10 @@
     "lint:fix": "eslint --fix .",
     "typecheck": "nuxt prepare && vue-tsc --noEmit -p .nuxt/tsconfig.json",
     "gen:api": "openapi-typescript ../docs/api/splitduoapi-v1.yaml --output app/types/api.d.ts",
-    "check:locales": "node -e \"import('./scripts/check-locale-parity.mjs').then(m => { const r = m.checkLocaleParity(); if (r.ok) { console.log('Locale key parity: OK'); process.exit(0); } else { for (const e of r.errors) { console.error('\\n' + e.file + ':'); if (e.missing.length) console.error('  Missing keys: ' + e.missing.join(', ')); if (e.extra.length) console.error('  Extra keys:   ' + e.extra.join(', ')); if (e.error) console.error('  Error: ' + e.error); } process.exit(1); } })\""
+    "check:locales": "node -e \"import('./scripts/check-locale-parity.mjs').then(m => { const r = m.checkLocaleParity(); if (r.ok) { console.log('Locale key parity: OK'); process.exit(0); } else { for (const e of r.errors) { console.error('\\n' + e.file + ':'); if (e.missing.length) console.error('  Missing keys: ' + e.missing.join(', ')); if (e.extra.length) console.error('  Extra keys:   ' + e.extra.join(', ')); if (e.error) console.error('  Error: ' + e.error); } process.exit(1); } })\"",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:contract": "node scripts/gen-api-check.mjs"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.121",
@@ -27,12 +30,17 @@
   "devDependencies": {
     "@internationalized/date": "^3.12.3",
     "@nuxt/eslint": "^1.16.0",
+    "@nuxt/test-utils": "^4.1.0",
     "@nuxtjs/i18n": "^10.6.0",
     "@types/node": "^26.1.2",
     "@vite-pwa/nuxt": "^1.1.1",
+    "@vitest/coverage-v8": "^4.1.10",
+    "@vue/test-utils": "^2.4.11",
     "eslint": "^10.8.0",
+    "happy-dom": "^20.11.1",
     "openapi-typescript": "^7.13.0",
     "typescript": "^5.9.3",
+    "vitest": "^4.1.10",
     "vue-tsc": "^3.3.9"
   },
   "packageManager": "pnpm@11.11.0+sha512.4463f65fd80ed80d69bc1d4bf163ee94f605c7380fc318bb5b2ebe15f8cd12d49c51a4d59e951b401e764d3b6ca751cbf51bc50ed7001a6bcb4935e684c34882"
