@@ -21,22 +21,7 @@ The frontend is compiled to static files and served directly by the .NET backend
 
 ---
 
-<details>
-<summary>Screenshots</summary>
-
-<br>
-
-![Login](docs/screenshots/login.png)
-
-![Dashboard](docs/screenshots/dashboard.png)
-
-![Groups](docs/screenshots/group_list.png)
-
-![Group Detail](docs/screenshots/group_page.png)
-
-![Add Expense](docs/screenshots/add_expense.png)
-
-</details>
+![SplitDuo](docs/screenshots/screenshot-hero.png)
 
 ---
 
