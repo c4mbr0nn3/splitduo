@@ -5,6 +5,16 @@
     mode="drawer"
     class="shadow-xs"
   >
+    <template #title>
+      <div class="flex items-center gap-1">
+        <img
+          src="/logo.svg"
+          class="size-6"
+          alt="SplitDuo"
+        >
+        <span class="text-lg font-bold">SplitDuo</span>
+      </div>
+    </template>
     <UNavigationMenu
 
       :items="navigationItems"
