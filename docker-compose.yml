@@ -22,9 +22,7 @@ services:
 
   # SplitDuo Application
   splitduo-app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: j1mm0/splitduo:latest
     container_name: splitduo-app
     environment:
       # Database Configuration

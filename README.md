@@ -67,7 +67,7 @@ Single Docker container. Your server, your database, your rules.
 
 ## Quick Start
 
-Requires Docker and Docker Compose.
+Requires Docker and Docker Compose. The app image is published on [Docker Hub](https://hub.docker.com/r/j1mm0/splitduo) — no build step needed.
 
 ```bash
 git clone https://gitlab.com/j1mm0/splitduo.git
@@ -77,7 +77,7 @@ docker compose up -d
 
 Open `http://localhost:3000` — default login is `admin@splitduo.local` / `changeme123`.
 
-> **Before going to production**: set `SD_JWT_SECRET_KEY` and `SD_INITIAL_USER_PASSWORD` to something you control.
+> **Before going to production**: set `SD_JWT_SECRET_KEY` and `SD_INITIAL_USER_PASSWORD` to something you control. See the [self-hosting guide](docs/self-hosting.md) for the full walkthrough.
 
 ---
 
@@ -85,6 +85,7 @@ Open `http://localhost:3000` — default login is `admin@splitduo.local` / `chan
 
 ### Setup & Operations
 
+- [Self-Hosting with Docker](docs/self-hosting.md) — deploy in 5 minutes
 - [Configuration](docs/readme/configuration.md) — environment variables reference
 - [Development](docs/readme/development.md) — local dev setup, migrations, dev services
 - [Testing](docs/readme/testing.md) — integration, unit, and frontend tests, coverage
