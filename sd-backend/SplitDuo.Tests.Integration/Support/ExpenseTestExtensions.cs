@@ -41,4 +41,35 @@ public static class ExpenseTestExtensions
         var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<ExpenseDto>>(ct);
         return body!.Data!;
     }
+
+    /// <summary>
+    /// Creates an alias-mode expense via POST /api/v1/groups/{groupId}/expenses with alias splits.
+    /// </summary>
+    public static async Task<ExpenseDto> CreateAliasExpenseAsync(
+        this HttpClient client,
+        string groupId,
+        string paidByUserId,
+        decimal amount,
+        object aliasSplits,
+        string title = "Test Expense",
+        int categoryId = 1,
+        int paymentModeId = 1,
+        string expenseDate = "2025-01-15")
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var response = await client.PostAsJsonAsync($"/api/v1/groups/{groupId}/expenses", new
+        {
+            title,
+            amount,
+            paidByUserId,
+            expenseDate,
+            categoryId,
+            paymentModeId,
+            aliasSplits,
+        }, ct);
+
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<ExpenseDto>>(ct);
+        return body!.Data!;
+    }
 }

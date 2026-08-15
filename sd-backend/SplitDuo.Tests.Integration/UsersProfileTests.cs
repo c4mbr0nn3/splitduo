@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using SplitDuo.Api.Features.Aliases.Dto;
 using SplitDuo.Api.Features.Authentication.Dto;
 using SplitDuo.Api.Features.Common.Dto;
 using SplitDuo.Api.Features.Users.Dto;
@@ -102,6 +103,173 @@ public class UsersProfileTests : IntegrationTest
         var response = await Client.GetAsync("/api/v1/users/me/stats", ct);
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    #endregion
+
+    #region GET /users/me/stats — alias-mode groups
+
+    /// <summary>
+    /// Creates an alias-mode group with two members, assigns both to a shared alias,
+    /// finalizes alias setup, and returns the admin client, group id, admin user id,
+    /// the shared alias id (as Guid string), and user2's singleton alias id.
+    /// </summary>
+    private async Task<(HttpClient adminClient, string groupId, string adminId, string aliasId, string user2SingletonAliasId)>
+        SetupFinalizedAliasGroupAsync(string user2Email = "stats-alias@localhost")
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var adminClient = await CreateAuthenticatedClientAsync();
+        var group = await adminClient.CreateGroupAsync(useAliases: true);
+        var admin = await adminClient.GetCurrentUserAsync();
+
+        var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
+            user2Email, "changeme123", "Second", "User");
+        await adminClient.PostAsJsonAsync(
+            $"/api/v1/groups/{group.Id}/members", new { userEmail = memberEmail, role = "member" }, ct);
+        var user2Client = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
+        var user2 = await user2Client.GetCurrentUserAsync();
+
+        // Capture user2's auto-created singleton alias before reassigning to the shared alias
+        var aliasesBefore = await adminClient.GetAsync($"/api/v1/groups/{group.Id}/aliases", ct);
+        var aliasesBeforeBody = await aliasesBefore.Content.ReadFromJsonAsync<ApiResponseDto<List<AliasDto>>>(ct);
+        var user2SingletonAliasId = aliasesBeforeBody!.Data!
+            .Single(a => a.IsSingleton && a.Members.Any(m => m.Id == user2.Id)).Id;
+
+        // Create a shared alias and assign both members to it
+        var aliasResponse = await adminClient.PostAsJsonAsync(
+            $"/api/v1/groups/{group.Id}/aliases", new { name = "Couple" }, ct);
+        aliasResponse.EnsureSuccessStatusCode();
+        var aliasBody = await aliasResponse.Content.ReadFromJsonAsync<ApiResponseDto<AliasDto>>(ct);
+        var aliasId = aliasBody!.Data!.Id;
+
+        await adminClient.PostAsJsonAsync(
+            $"/api/v1/aliases/{aliasId}/members", new { userId = admin.Id }, ct);
+        await adminClient.PostAsJsonAsync(
+            $"/api/v1/aliases/{aliasId}/members", new { userId = user2.Id }, ct);
+
+        // Finalize so expenses can be created
+        var finalize = await adminClient.PostAsJsonAsync(
+            $"/api/v1/groups/{group.Id}/aliases/finalize", new { }, ct);
+        finalize.EnsureSuccessStatusCode();
+
+        return (adminClient, group.Id, admin.Id, aliasId, user2SingletonAliasId);
+    }
+
+    [Fact]
+    public async Task GetUserStats_AliasMode_ReturnsCorrectBalances()
+    {
+        // BUG: alias-mode balances ignored — see issue #16.
+        // GetCurrentUserStatsAsync only computes individual-mode balances (paid_by +
+        // expense_splits). Alias-mode groups never create ExpenseSplit rows, so the
+        // alias-paid amount is counted but the alias-owed amount is not, inflating
+        // YoureOwed. This test asserts the CORRECT alias-level behavior and is
+        // EXPECTED TO FAIL until the bug is fixed.
+        var ct = TestContext.Current.CancellationToken;
+        var (adminClient, groupId, adminId, aliasId, user2SingletonAliasId) = await SetupFinalizedAliasGroupAsync();
+
+        // Admin's alias pays 100, split 50/50 between the two aliases (Couple + user2's singleton)
+        await adminClient.CreateAliasExpenseAsync(groupId, adminId, amount: 100m,
+            aliasSplits: new[]
+            {
+                new { aliasId, splitAmount = 50m },
+                new { aliasId = user2SingletonAliasId, splitAmount = 50m },
+            });
+
+        var response = await adminClient.GetAsync("/api/v1/users/me/stats", ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserStatsDto>>(ct);
+        Assert.Equal(1, body!.Data!.TotalGroups);
+        // Alias paid 100, alias owed 50 → net +50 → user is owed 50
+        Assert.Equal(50m, body.Data.YoureOwed);
+        Assert.Equal(0m, body.Data.YouOwe);
+    }
+
+    [Fact]
+    public async Task GetUserStats_IndividualMode_UnchangedByAliasFix()
+    {
+        // Regression guard: individual-mode groups must produce identical results
+        // before and after the alias-mode fix.
+        var ct = TestContext.Current.CancellationToken;
+        var client = await CreateAuthenticatedClientAsync();
+        var group = await client.CreateGroupAsync();
+        var admin = await client.GetCurrentUserAsync();
+
+        var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "stats-ind@localhost");
+        await client.PostAsJsonAsync(
+            $"/api/v1/groups/{group.Id}/members", new { userEmail = memberEmail, role = "member" }, ct);
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
+        var member = await memberClient.GetCurrentUserAsync();
+
+        // Admin pays 100 split 50/50 → admin +50, member -50
+        await client.CreateExpenseAsync(group.Id, admin.Id, amount: 100m,
+            splits: new[]
+            {
+                new { userId = admin.Id, splitAmount = 50m },
+                new { userId = member.Id, splitAmount = 50m },
+            });
+
+        // Member pays 60 split 30/30 → admin -30, member +30
+        await memberClient.CreateExpenseAsync(group.Id, member.Id, amount: 60m,
+            splits: new[]
+            {
+                new { userId = admin.Id, splitAmount = 30m },
+                new { userId = member.Id, splitAmount = 30m },
+            });
+
+        var response = await client.GetAsync("/api/v1/users/me/stats", ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserStatsDto>>(ct);
+        Assert.Equal(1, body!.Data!.TotalGroups);
+        // Admin: paid 100, owed 80 → net +20
+        Assert.Equal(20m, body.Data.YoureOwed);
+        Assert.Equal(0m, body.Data.YouOwe);
+    }
+
+    [Fact]
+    public async Task GetUserStats_MixedMode_CombinesBothCorrectly()
+    {
+        // BUG: alias-mode balances ignored — see issue #16.
+        // The alias-mode group contributes paid but 0 owed, so the combined stats are
+        // wrong. This test asserts the CORRECT combined behavior and is EXPECTED TO
+        // FAIL until the bug is fixed.
+        var ct = TestContext.Current.CancellationToken;
+        var client = await CreateAuthenticatedClientAsync();
+        var admin = await client.GetCurrentUserAsync();
+
+        // Individual-mode group: admin pays 100 split 50/50 → admin +50
+        var individualGroup = await client.CreateGroupAsync();
+        var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "stats-mixed@localhost");
+        await client.PostAsJsonAsync(
+            $"/api/v1/groups/{individualGroup.Id}/members", new { userEmail = memberEmail, role = "member" }, ct);
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
+        var member = await memberClient.GetCurrentUserAsync();
+
+        await client.CreateExpenseAsync(individualGroup.Id, admin.Id, amount: 100m,
+            splits: new[]
+            {
+                new { userId = admin.Id, splitAmount = 50m },
+                new { userId = member.Id, splitAmount = 50m },
+            });
+
+        // Alias-mode group: admin's alias pays 100, alias owed 50 → admin +50
+        var (adminClient, aliasGroupId, adminId, aliasId, user2SingletonAliasId) = await SetupFinalizedAliasGroupAsync("stats-mixed2@localhost");
+        await adminClient.CreateAliasExpenseAsync(aliasGroupId, adminId, amount: 100m,
+            aliasSplits: new[]
+            {
+                new { aliasId, splitAmount = 50m },
+                new { aliasId = user2SingletonAliasId, splitAmount = 50m },
+            });
+
+        var response = await client.GetAsync("/api/v1/users/me/stats", ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserStatsDto>>(ct);
+        Assert.Equal(2, body!.Data!.TotalGroups);
+        // Individual +50, alias +50 → total owed 100
+        Assert.Equal(100m, body.Data.YoureOwed);
+        Assert.Equal(0m, body.Data.YouOwe);
     }
 
     #endregion
