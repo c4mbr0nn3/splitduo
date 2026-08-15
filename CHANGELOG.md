@@ -4,6 +4,24 @@ All notable changes to SplitDuo will be documented in this file.
 
 Generated with [git-cliff](https://git-cliff.org) from Conventional Commits.
 
+## [1.12.0] - 2026-08-15
+
+### Bug Fixes
+
+- Align backend default admin creds with docker-compose
+
+### Code Refactoring
+
+- *(ci)* Regroup stages into verify/test/coverage/build/release
+
+### Features
+
+- *(pwa)* Generate icons from SVG logo via @vite-pwa/assets-generator
+- *(cache)* In-memory cache for backend aggregates
+
+### Testing
+
+- *(frontend)* Add Vitest test infrastructure and regression suite
 ## [1.11.1] - 2026-08-06
 
 ### Bug Fixes
