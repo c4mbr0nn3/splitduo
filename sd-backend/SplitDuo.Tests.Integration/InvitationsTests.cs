@@ -122,7 +122,7 @@ public class InvitationsTests : IntegrationTest
             email: "member@localhost");
         await adminClient.PostAsJsonAsync(
             $"/api/v1/groups/{group.Id}/members", new { userEmail = memberEmail, role = "member" }, ct);
-        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
 
         var response = await memberClient.PostAsJsonAsync(
             $"/api/v1/groups/{group.Id}/invitations", new { email = "someone@localhost" }, ct);
@@ -139,7 +139,7 @@ public class InvitationsTests : IntegrationTest
         var adminClient = await CreateAuthenticatedClientAsync();
         var otherClientEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
             email: "other@localhost");
-        var otherClient = await CreateAuthenticatedClientAsync(otherClientEmail, "changeme");
+        var otherClient = await CreateAuthenticatedClientAsync(otherClientEmail, "changeme123");
         var adminGroup = await adminClient.CreateGroupAsync();
 
         var response = await otherClient.PostAsJsonAsync(
@@ -239,7 +239,7 @@ public class InvitationsTests : IntegrationTest
             email: "viewer@localhost");
         await adminClient.PostAsJsonAsync(
             $"/api/v1/groups/{group.Id}/members", new { userEmail = memberEmail, role = "member" }, ct);
-        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
 
         var response = await memberClient.GetAsync($"/api/v1/groups/{group.Id}/invitations", ct);
 
@@ -533,7 +533,7 @@ public class InvitationsTests : IntegrationTest
             email: "member2@localhost");
         await adminClient.PostAsJsonAsync(
             $"/api/v1/groups/{group.Id}/members", new { userEmail = memberEmail, role = "member" }, ct);
-        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
 
         var response = await memberClient.PostAsJsonAsync(
             $"/api/v1/groups/{group.Id}/invitations/{invitationId}/resend", new { }, ct);
@@ -648,7 +648,7 @@ public class InvitationsTests : IntegrationTest
         var ct = TestContext.Current.CancellationToken;
         var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
             email: "nonadmin@localhost");
-        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
 
         var response = await memberClient.GetAsync("/api/v1/users/pending", ct);
 

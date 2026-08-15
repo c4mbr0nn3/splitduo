@@ -27,7 +27,7 @@ public class GroupMembersTests : IntegrationTest
         Assert.NotNull(body!.Data);
         Assert.Single(body.Data!);
         Assert.Equal("admin", body.Data[0].Role);
-        Assert.Equal("admin@localhost", body.Data[0].User.Email);
+        Assert.Equal("admin@splitduo.local", body.Data[0].User.Email);
         Assert.Equal(group.Id, body.Data[0].GroupId);
         Assert.NotEmpty(body.Data[0].UserId);
         Assert.True(body.Data[0].JoinedAt > 0);
@@ -41,7 +41,7 @@ public class GroupMembersTests : IntegrationTest
         var group = await adminClient.CreateGroupAsync();
 
         var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
-            "member@localhost", "changeme", "Added", "Member");
+            "member@localhost", "changeme123", "Added", "Member");
         await adminClient.PostAsJsonAsync(
             $"/api/v1/groups/{group.Id}/members", new { userEmail = memberEmail, role = "member" }, ct);
 
@@ -51,7 +51,7 @@ public class GroupMembersTests : IntegrationTest
         var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<List<GroupMemberDto>>>(ct);
         Assert.Equal(2, body!.Data!.Count);
         // Ordered by CreatedAt ascending — admin (creator) first
-        Assert.Equal("admin@localhost", body.Data[0].User.Email);
+        Assert.Equal("admin@splitduo.local", body.Data[0].User.Email);
         Assert.Equal("admin", body.Data[0].Role);
         Assert.Equal("member@localhost", body.Data[1].User.Email);
         Assert.Equal("member", body.Data[1].Role);
@@ -103,7 +103,7 @@ public class GroupMembersTests : IntegrationTest
         var ct = TestContext.Current.CancellationToken;
         var adminClient = await CreateAuthenticatedClientAsync();
         var otherEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "other@localhost");
-        var otherClient = await CreateAuthenticatedClientAsync(otherEmail, "changeme");
+        var otherClient = await CreateAuthenticatedClientAsync(otherEmail, "changeme123");
         var adminGroup = await adminClient.CreateGroupAsync();
 
         var response = await otherClient.GetAsync($"/api/v1/groups/{adminGroup.Id}/members", ct);
@@ -125,7 +125,7 @@ public class GroupMembersTests : IntegrationTest
         var group = await adminClient.CreateGroupAsync();
 
         var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
-            "newmember@localhost", "changeme", "New", "Member");
+            "newmember@localhost", "changeme123", "New", "Member");
 
         var response = await adminClient.PostAsJsonAsync(
             $"/api/v1/groups/{group.Id}/members", new { userEmail = memberEmail, role = "member" }, ct);
@@ -183,7 +183,7 @@ public class GroupMembersTests : IntegrationTest
         var group = await adminClient.CreateGroupAsync(useAliases: true);
 
         var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "alias@localhost");
-        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
         var newMember = await memberClient.GetCurrentUserAsync();
 
         var response = await adminClient.PostAsJsonAsync(
@@ -250,7 +250,7 @@ public class GroupMembersTests : IntegrationTest
         var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "peasant@localhost");
         await adminClient.PostAsJsonAsync(
             $"/api/v1/groups/{group.Id}/members", new { userEmail = memberEmail, role = "member" }, ct);
-        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
 
         var targetEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "target@localhost");
         var response = await memberClient.PostAsJsonAsync(
@@ -267,7 +267,7 @@ public class GroupMembersTests : IntegrationTest
         var ct = TestContext.Current.CancellationToken;
         var adminClient = await CreateAuthenticatedClientAsync();
         var otherEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "outsider@localhost");
-        var otherClient = await CreateAuthenticatedClientAsync(otherEmail, "changeme");
+        var otherClient = await CreateAuthenticatedClientAsync(otherEmail, "changeme123");
         var adminGroup = await adminClient.CreateGroupAsync();
 
         var targetEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "target2@localhost");
@@ -314,7 +314,7 @@ public class GroupMembersTests : IntegrationTest
 
         var response = await client.PostAsJsonAsync(
             $"/api/v1/groups/{Guid.NewGuid()}/members",
-            new { userEmail = "admin@localhost", role = "member" }, ct);
+            new { userEmail = "admin@splitduo.local", role = "member" }, ct);
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<GroupMemberDto>>(ct);
@@ -348,7 +348,7 @@ public class GroupMembersTests : IntegrationTest
         var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "gone@localhost");
         await adminClient.PostAsJsonAsync(
             $"/api/v1/groups/{group.Id}/members", new { userEmail = memberEmail, role = "member" }, ct);
-        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
         var member = await memberClient.GetCurrentUserAsync();
 
         var response = await adminClient.DeleteAsync(
@@ -376,7 +376,7 @@ public class GroupMembersTests : IntegrationTest
         var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "self@localhost");
         await adminClient.PostAsJsonAsync(
             $"/api/v1/groups/{group.Id}/members", new { userEmail = memberEmail, role = "member" }, ct);
-        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
         var member = await memberClient.GetCurrentUserAsync();
 
         var response = await memberClient.DeleteAsync(
@@ -419,8 +419,8 @@ public class GroupMembersTests : IntegrationTest
         await adminClient.PostAsJsonAsync(
             $"/api/v1/groups/{group.Id}/members", new { userEmail = m2Email, role = "member" }, ct);
 
-        var m1Client = await CreateAuthenticatedClientAsync(m1Email, "changeme");
-        var m2 = await (await CreateAuthenticatedClientAsync(m2Email, "changeme")).GetCurrentUserAsync();
+        var m1Client = await CreateAuthenticatedClientAsync(m1Email, "changeme123");
+        var m2 = await (await CreateAuthenticatedClientAsync(m2Email, "changeme123")).GetCurrentUserAsync();
 
         var response = await m1Client.DeleteAsync(
             $"/api/v1/groups/{group.Id}/members/{m2.Id}", ct);
@@ -451,7 +451,7 @@ public class GroupMembersTests : IntegrationTest
         var ct = TestContext.Current.CancellationToken;
         var adminClient = await CreateAuthenticatedClientAsync();
         var otherEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "outsider2@localhost");
-        var otherClient = await CreateAuthenticatedClientAsync(otherEmail, "changeme");
+        var otherClient = await CreateAuthenticatedClientAsync(otherEmail, "changeme123");
         var adminGroup = await adminClient.CreateGroupAsync();
 
         // Use a real user (the admin) as the removal target — the service checks
@@ -519,10 +519,10 @@ public class GroupMembersTests : IntegrationTest
         var group = await adminClient.CreateGroupAsync();
 
         var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
-            "promotee@localhost", "changeme", "Promotee", "User");
+            "promotee@localhost", "changeme123", "Promotee", "User");
         await adminClient.PostAsJsonAsync(
             $"/api/v1/groups/{group.Id}/members", new { userEmail = memberEmail, role = "member" }, ct);
-        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
         var member = await memberClient.GetCurrentUserAsync();
 
         var response = await adminClient.PutAsJsonAsync(
@@ -551,10 +551,10 @@ public class GroupMembersTests : IntegrationTest
         var group = await adminClient.CreateGroupAsync();
 
         var secondEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
-            "demotee@localhost", "changeme", "Demotee", "User");
+            "demotee@localhost", "changeme123", "Demotee", "User");
         await adminClient.PostAsJsonAsync(
             $"/api/v1/groups/{group.Id}/members", new { userEmail = secondEmail, role = "admin" }, ct);
-        var secondClient = await CreateAuthenticatedClientAsync(secondEmail, "changeme");
+        var secondClient = await CreateAuthenticatedClientAsync(secondEmail, "changeme123");
         var second = await secondClient.GetCurrentUserAsync();
 
         var response = await adminClient.PutAsJsonAsync(
@@ -598,10 +598,10 @@ public class GroupMembersTests : IntegrationTest
         var group = await adminClient.CreateGroupAsync();
 
         var secondEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
-            "secondadmin@localhost", "changeme", "Second", "Admin");
+            "secondadmin@splitduo.local", "changeme123", "Second", "Admin");
         await adminClient.PostAsJsonAsync(
             $"/api/v1/groups/{group.Id}/members", new { userEmail = secondEmail, role = "admin" }, ct);
-        var secondClient = await CreateAuthenticatedClientAsync(secondEmail, "changeme");
+        var secondClient = await CreateAuthenticatedClientAsync(secondEmail, "changeme123");
         var second = await secondClient.GetCurrentUserAsync();
 
         var response = await adminClient.PutAsJsonAsync(
@@ -621,16 +621,16 @@ public class GroupMembersTests : IntegrationTest
         var group = await adminClient.CreateGroupAsync();
 
         var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
-            "regular@localhost", "changeme", "Regular", "User");
+            "regular@localhost", "changeme123", "Regular", "User");
         await adminClient.PostAsJsonAsync(
             $"/api/v1/groups/{group.Id}/members", new { userEmail = memberEmail, role = "member" }, ct);
-        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
 
         var targetEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
-            "target@localhost", "changeme", "Target", "User");
+            "target@localhost", "changeme123", "Target", "User");
         await adminClient.PostAsJsonAsync(
             $"/api/v1/groups/{group.Id}/members", new { userEmail = targetEmail, role = "member" }, ct);
-        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme");
+        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme123");
         var target = await targetClient.GetCurrentUserAsync();
 
         var response = await memberClient.PutAsJsonAsync(
@@ -649,10 +649,10 @@ public class GroupMembersTests : IntegrationTest
         var group = await adminClient.CreateGroupAsync();
 
         var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
-            "invalidrole@localhost", "changeme", "Invalid", "Role");
+            "invalidrole@localhost", "changeme123", "Invalid", "Role");
         await adminClient.PostAsJsonAsync(
             $"/api/v1/groups/{group.Id}/members", new { userEmail = memberEmail, role = "member" }, ct);
-        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
         var member = await memberClient.GetCurrentUserAsync();
 
         var response = await adminClient.PutAsJsonAsync(
@@ -671,10 +671,10 @@ public class GroupMembersTests : IntegrationTest
         var group = await adminClient.CreateGroupAsync();
 
         var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
-            "duperole@localhost", "changeme", "Dupe", "Role");
+            "duperole@localhost", "changeme123", "Dupe", "Role");
         await adminClient.PostAsJsonAsync(
             $"/api/v1/groups/{group.Id}/members", new { userEmail = memberEmail, role = "member" }, ct);
-        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
         var member = await memberClient.GetCurrentUserAsync();
 
         var response = await adminClient.PutAsJsonAsync(
@@ -693,15 +693,15 @@ public class GroupMembersTests : IntegrationTest
         var group = await adminClient.CreateGroupAsync();
 
         var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
-            "member@localhost", "changeme", "Member", "User");
+            "member@localhost", "changeme123", "Member", "User");
         await adminClient.PostAsJsonAsync(
             $"/api/v1/groups/{group.Id}/members", new { userEmail = memberEmail, role = "member" }, ct);
-        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
         var member = await memberClient.GetCurrentUserAsync();
 
         // Seed a third user who is NOT a member of the group
         var outsiderEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "outsider@localhost");
-        var outsiderClient = await CreateAuthenticatedClientAsync(outsiderEmail, "changeme");
+        var outsiderClient = await CreateAuthenticatedClientAsync(outsiderEmail, "changeme123");
 
         var response = await outsiderClient.PutAsJsonAsync(
             $"/api/v1/groups/{group.Id}/members/{member.Id}/role", new { role = "admin" }, ct);
@@ -719,13 +719,13 @@ public class GroupMembersTests : IntegrationTest
         var group = await adminClient.CreateGroupAsync();
 
         var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
-            "member2@localhost", "changeme", "Member", "User");
+            "member2@localhost", "changeme123", "Member", "User");
         await adminClient.PostAsJsonAsync(
             $"/api/v1/groups/{group.Id}/members", new { userEmail = memberEmail, role = "member" }, ct);
 
         // Seed a third user who is NOT a member of the group
         var outsiderEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "outsider2@localhost");
-        var outsiderClient = await CreateAuthenticatedClientAsync(outsiderEmail, "changeme");
+        var outsiderClient = await CreateAuthenticatedClientAsync(outsiderEmail, "changeme123");
         var outsider = await outsiderClient.GetCurrentUserAsync();
 
         // Admin tries to change role of a user who is not in the group

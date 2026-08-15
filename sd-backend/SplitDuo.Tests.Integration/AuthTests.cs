@@ -19,8 +19,8 @@ public class AuthTests : IntegrationTest
 
         var response = await Client.PostAsJsonAsync("/api/v1/auth/login", new
         {
-            email = "admin@localhost",
-            password = "changeme",
+            email = "admin@splitduo.local",
+            password = "changeme123",
         }, ct);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -30,7 +30,7 @@ public class AuthTests : IntegrationTest
         Assert.NotEmpty(body.Data.Token);
         Assert.NotEmpty(body.Data.RefreshToken);
         Assert.True(body.Data.ExpiresAt > DateTimeOffset.UtcNow.ToUnixTimeSeconds());
-        Assert.Equal("admin@localhost", body.Data.User.Email);
+        Assert.Equal("admin@splitduo.local", body.Data.User.Email);
         Assert.NotEmpty(body.Data.User.Id);
     }
 
@@ -42,7 +42,7 @@ public class AuthTests : IntegrationTest
         // First login
         var first = await Client.PostAsJsonAsync("/api/v1/auth/login", new
         {
-            email = "admin@localhost", password = "changeme",
+            email = "admin@splitduo.local", password = "changeme123",
         }, ct);
         var firstBody = await first.Content.ReadFromJsonAsync<ApiResponseDto<AuthResponseDto>>(ct);
         var firstRefresh = firstBody!.Data!.RefreshToken;
@@ -51,7 +51,7 @@ public class AuthTests : IntegrationTest
         // The first refresh token remains valid (multi-device support); it is NOT revoked.
         var second = await Client.PostAsJsonAsync("/api/v1/auth/login", new
         {
-            email = "admin@localhost", password = "changeme",
+            email = "admin@splitduo.local", password = "changeme123",
         }, ct);
         Assert.Equal(HttpStatusCode.OK, second.StatusCode);
         var secondBody = await second.Content.ReadFromJsonAsync<ApiResponseDto<AuthResponseDto>>(ct);
@@ -77,7 +77,7 @@ public class AuthTests : IntegrationTest
 
         var response = await Client.PostAsJsonAsync("/api/v1/auth/login", new
         {
-            email = "admin@localhost",
+            email = "admin@splitduo.local",
             password = "wrong-password",
         }, ct);
 
@@ -110,7 +110,7 @@ public class AuthTests : IntegrationTest
 
         var response = await Client.PostAsJsonAsync("/api/v1/auth/login", new
         {
-            password = "changeme",
+            password = "changeme123",
         }, ct);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -123,7 +123,7 @@ public class AuthTests : IntegrationTest
 
         var response = await Client.PostAsJsonAsync("/api/v1/auth/login", new
         {
-            email = "admin@localhost",
+            email = "admin@splitduo.local",
             password = "short",
         }, ct);
 
@@ -141,7 +141,7 @@ public class AuthTests : IntegrationTest
 
         var login = await Client.PostAsJsonAsync("/api/v1/auth/login", new
         {
-            email = "admin@localhost", password = "changeme",
+            email = "admin@splitduo.local", password = "changeme123",
         }, ct);
         var loginBody = await login.Content.ReadFromJsonAsync<ApiResponseDto<AuthResponseDto>>(ct);
         var oldToken = loginBody!.Data!.Token;
@@ -171,7 +171,7 @@ public class AuthTests : IntegrationTest
         // network retries / lost responses, so a reuse within that window is accepted.
         var login = await Client.PostAsJsonAsync("/api/v1/auth/login", new
         {
-            email = "admin@localhost", password = "changeme",
+            email = "admin@splitduo.local", password = "changeme123",
         }, ct);
         var loginBody = await login.Content.ReadFromJsonAsync<ApiResponseDto<AuthResponseDto>>(ct);
         var oldToken = loginBody!.Data!.Token;
@@ -206,7 +206,7 @@ public class AuthTests : IntegrationTest
         var client = await CreateAuthenticatedClientAsync();
         var login = await Client.PostAsJsonAsync("/api/v1/auth/login", new
         {
-            email = "admin@localhost", password = "changeme",
+            email = "admin@splitduo.local", password = "changeme123",
         }, ct);
         var loginBody = await login.Content.ReadFromJsonAsync<ApiResponseDto<AuthResponseDto>>(ct);
         var oldToken = loginBody!.Data!.Token;
@@ -233,7 +233,7 @@ public class AuthTests : IntegrationTest
 
         var login = await Client.PostAsJsonAsync("/api/v1/auth/login", new
         {
-            email = "admin@localhost", password = "changeme",
+            email = "admin@splitduo.local", password = "changeme123",
         }, ct);
         var loginBody = await login.Content.ReadFromJsonAsync<ApiResponseDto<AuthResponseDto>>(ct);
 
@@ -275,7 +275,7 @@ public class AuthTests : IntegrationTest
         // Get a refresh token via login (CreateAuthenticatedClient discards it; re-login here)
         var login = await Client.PostAsJsonAsync("/api/v1/auth/login", new
         {
-            email = "admin@localhost", password = "changeme",
+            email = "admin@splitduo.local", password = "changeme123",
         }, ct);
         var loginBody = await login.Content.ReadFromJsonAsync<ApiResponseDto<AuthResponseDto>>(ct);
         var refreshToken = loginBody!.Data!.RefreshToken;
@@ -303,7 +303,7 @@ public class AuthTests : IntegrationTest
         var client = await CreateAuthenticatedClientAsync();
         var login = await Client.PostAsJsonAsync("/api/v1/auth/login", new
         {
-            email = "admin@localhost", password = "changeme",
+            email = "admin@splitduo.local", password = "changeme123",
         }, ct);
         var loginBody = await login.Content.ReadFromJsonAsync<ApiResponseDto<AuthResponseDto>>(ct);
         var refreshToken = loginBody!.Data!.RefreshToken;
@@ -375,13 +375,13 @@ public class AuthTests : IntegrationTest
 
         var response = await Client.PostAsJsonAsync("/api/v1/auth/forgot-password", new
         {
-            email = "admin@localhost",
+            email = "admin@splitduo.local",
         }, ct);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var bodies = await NotificationTestExtensions
-            .GetEnqueuedBodiesAsync(Factory.Services, "admin@localhost");
+            .GetEnqueuedBodiesAsync(Factory.Services, "admin@splitduo.local");
         Assert.NotEmpty(bodies);
         Assert.Contains("reset-password", bodies[0]);
     }
@@ -393,13 +393,13 @@ public class AuthTests : IntegrationTest
 
         await Client.PostAsJsonAsync("/api/v1/auth/forgot-password", new
         {
-            email = "admin@localhost",
+            email = "admin@splitduo.local",
         }, ct);
         var token = await NotificationTestExtensions
-            .ExtractTokenFromFirstNotificationAsync(Factory.Services, "admin@localhost");
+            .ExtractTokenFromFirstNotificationAsync(Factory.Services, "admin@splitduo.local");
 
         var response = await Client.GetAsync(
-            $"/api/v1/auth/validate-reset-token?email=admin@localhost&token={Uri.EscapeDataString(token)}", ct);
+            $"/api/v1/auth/validate-reset-token?email=admin@splitduo.local&token={Uri.EscapeDataString(token)}", ct);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
@@ -478,7 +478,7 @@ public class AuthTests : IntegrationTest
 
         var response = await Client.PostAsJsonAsync("/api/v1/auth/reset-password", new
         {
-            email = "admin@localhost",
+            email = "admin@splitduo.local",
             token = "garbage",
             newPassword = "NewPass456!",
             confirmPassword = "NewPass456!",

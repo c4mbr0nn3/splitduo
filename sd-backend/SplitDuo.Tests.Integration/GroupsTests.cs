@@ -382,7 +382,7 @@ public class GroupsTests : IntegrationTest
 
         // Seed second user and create a group as user2
         var user2Email = await TestDbSeeder.SeedUserAsync(Factory.Services);
-        var user2Client = await CreateAuthenticatedClientAsync(user2Email, "changeme");
+        var user2Client = await CreateAuthenticatedClientAsync(user2Email, "changeme123");
         var user2Group = await user2Client.CreateGroupAsync();
 
         // Admin tries to GET user2's group
@@ -400,7 +400,7 @@ public class GroupsTests : IntegrationTest
         var adminClient = await CreateAuthenticatedClientAsync();
 
         var user2Email = await TestDbSeeder.SeedUserAsync(Factory.Services);
-        var user2Client = await CreateAuthenticatedClientAsync(user2Email, "changeme");
+        var user2Client = await CreateAuthenticatedClientAsync(user2Email, "changeme123");
         var user2Group = await user2Client.CreateGroupAsync();
 
         var response = await adminClient.PutAsJsonAsync($"/api/v1/groups/{user2Group.Id}", new
@@ -420,7 +420,7 @@ public class GroupsTests : IntegrationTest
         var adminClient = await CreateAuthenticatedClientAsync();
 
         var user2Email = await TestDbSeeder.SeedUserAsync(Factory.Services);
-        var user2Client = await CreateAuthenticatedClientAsync(user2Email, "changeme");
+        var user2Client = await CreateAuthenticatedClientAsync(user2Email, "changeme123");
         var user2Group = await user2Client.CreateGroupAsync();
 
         var response = await adminClient.DeleteAsync($"/api/v1/groups/{user2Group.Id}", ct);

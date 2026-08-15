@@ -36,8 +36,8 @@ public abstract class IntegrationTest : IAsyncLifetime
     /// Rate limiter is disabled in the test host, so repeated logins are safe.
     /// </summary>
     protected async Task<string> GetAuthTokenAsync(
-        string email = "admin@localhost",
-        string password = "changeme")
+        string email = "admin@splitduo.local",
+        string password = "changeme123")
     {
         var response = await Client.PostAsJsonAsync("/api/v1/auth/login", new
         {
@@ -54,8 +54,8 @@ public abstract class IntegrationTest : IAsyncLifetime
     /// Returns an HttpClient with a valid Bearer token set.
     /// </summary>
     protected async Task<HttpClient> CreateAuthenticatedClientAsync(
-        string email = "admin@localhost",
-        string password = "changeme")
+        string email = "admin@splitduo.local",
+        string password = "changeme123")
     {
         var token = await GetAuthTokenAsync(email, password);
         var client = Factory.CreateClient();

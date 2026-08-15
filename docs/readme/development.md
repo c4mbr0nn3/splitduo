@@ -42,4 +42,4 @@ dotnet ef database update --project SplitDuo.Core --startup-project SplitDuo.Api
 ## Default logins
 
 - Docker Compose: `admin@splitduo.local` / `changeme123`
-- Bare `dotnet run`: `admin@localhost` / `changeme`
+- Bare `dotnet run`: `admin@splitduo.local` / `changeme123`

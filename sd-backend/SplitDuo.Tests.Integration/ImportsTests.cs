@@ -24,8 +24,8 @@ public class ImportsTests : IntegrationTest
 
     private static readonly string SplitDuoCsv = """
         Date,Title,Description,Amount,PaidByEmail,Category,PaymentMode,Owers
-        2025-01-15,Lunch,Team lunch,30.00,admin@localhost,Dining,Cash,admin@localhost:15.00|u2@localhost:15.00
-        2025-02-01,Bus,Trip,10.00,u2@localhost,Transportation,Card,u2@localhost:5.00|admin@localhost:5.00
+        2025-01-15,Lunch,Team lunch,30.00,admin@splitduo.local,Dining,Cash,admin@splitduo.local:15.00|u2@localhost:15.00
+        2025-02-01,Bus,Trip,10.00,u2@localhost,Transportation,Card,u2@localhost:5.00|admin@splitduo.local:5.00
         """;
 
     /// <summary>
@@ -59,10 +59,10 @@ public class ImportsTests : IntegrationTest
         var admin = await adminClient.GetCurrentUserAsync();
 
         var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
-            "u2@localhost", "changeme", "Second", "User");
+            "u2@localhost", "changeme123", "Second", "User");
         await adminClient.PostAsJsonAsync(
             $"/api/v1/groups/{group.Id}/members", new { userEmail = memberEmail, role = "member" }, ct);
-        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
         var user2 = await memberClient.GetCurrentUserAsync();
 
         return (adminClient, group.Id, admin.Id, user2.Id);
@@ -129,7 +129,7 @@ public class ImportsTests : IntegrationTest
 
         // AnalysisResults JSON contains the extracted members
         Assert.NotNull(body.Data.AnalysisResults);
-        Assert.Contains("admin@localhost", body.Data.AnalysisResults!);
+        Assert.Contains("admin@splitduo.local", body.Data.AnalysisResults!);
         Assert.Contains("u2@localhost", body.Data.AnalysisResults);
     }
 
@@ -249,7 +249,7 @@ public class ImportsTests : IntegrationTest
         var ct = TestContext.Current.CancellationToken;
         var (adminClient, groupId, _, _) = await SetupGroupWithTwoMembersAsync();
         var outsiderEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "outsider@localhost");
-        var outsiderClient = await CreateAuthenticatedClientAsync(outsiderEmail, "changeme");
+        var outsiderClient = await CreateAuthenticatedClientAsync(outsiderEmail, "changeme123");
 
         var response = await AnalyzeAsync(outsiderClient, groupId, SplitDuoCsv);
 
@@ -285,7 +285,7 @@ public class ImportsTests : IntegrationTest
         var ct = TestContext.Current.CancellationToken;
         var (adminClient, groupId, _, _) = await SetupGroupWithTwoMembersAsync();
         var outsiderEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "outsider2@localhost");
-        var outsiderClient = await CreateAuthenticatedClientAsync(outsiderEmail, "changeme");
+        var outsiderClient = await CreateAuthenticatedClientAsync(outsiderEmail, "changeme123");
 
         var response = await outsiderClient.GetAsync(
             $"/api/v1/groups/{groupId}/imports", ct);
@@ -314,7 +314,7 @@ public class ImportsTests : IntegrationTest
             ImportId = importId,
             UserMappings = new()
             {
-                ["admin@localhost"] = adminId,
+                ["admin@splitduo.local"] = adminId,
                 ["u2@localhost"] = user2Id,
             },
             CategoryMappings = new() { [(int)ExpenseCategory.Dining] = (int)ExpenseCategory.Dining },
@@ -349,7 +349,7 @@ public class ImportsTests : IntegrationTest
             ImportId = importId,
             UserMappings = new()
             {
-                ["admin@localhost"] = adminId,
+                ["admin@splitduo.local"] = adminId,
                 ["u2@localhost"] = Guid.NewGuid().ToString(), // not a group member
             },
         };
@@ -377,7 +377,7 @@ public class ImportsTests : IntegrationTest
             ImportId = importId,
             UserMappings = new()
             {
-                ["admin@localhost"] = adminId,
+                ["admin@splitduo.local"] = adminId,
                 ["u2@localhost"] = user2Id,
             },
             CategoryMappings = new() { [1] = 99 }, // 99 is not a valid category
@@ -406,7 +406,7 @@ public class ImportsTests : IntegrationTest
             ImportId = importId,
             UserMappings = new()
             {
-                ["admin@localhost"] = adminId,
+                ["admin@splitduo.local"] = adminId,
                 ["u2@localhost"] = user2Id,
             },
             PaymentModeMappings = new() { [1] = 99 }, // 99 is not a valid payment mode
@@ -484,7 +484,7 @@ public class ImportsTests : IntegrationTest
             ImportId = importId,
             UserMappings = new()
             {
-                ["admin@localhost"] = adminId,
+                ["admin@splitduo.local"] = adminId,
                 ["u2@localhost"] = user2Id,
             },
         };
@@ -519,7 +519,7 @@ public class ImportsTests : IntegrationTest
         var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "u2@localhost");
         await adminClient.PostAsJsonAsync(
             $"/api/v1/groups/{group.Id}/members", new { userEmail = memberEmail, role = "member" }, ct);
-        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
         var user2 = await memberClient.GetCurrentUserAsync();
 
         var analyzeResponse = await AnalyzeAsync(adminClient, group.Id, SplitDuoCsv);
@@ -531,7 +531,7 @@ public class ImportsTests : IntegrationTest
             ImportId = importId,
             UserMappings = new()
             {
-                ["admin@localhost"] = admin.Id,
+                ["admin@splitduo.local"] = admin.Id,
                 ["u2@localhost"] = user2.Id,
             },
         };

@@ -110,7 +110,7 @@ MailKit SMTP. Queue pattern: `INotificationService.EnqueueAsync()` → Notificat
 
 ## Seeding
 
-`DataSeederService` (IHostedService): if no users exist, creates SystemAdmin from AppOptions. Defaults (no env): `admin@localhost` / `changeme` (firstname "Super", lastname "Admin").
+`DataSeederService` (IHostedService): if no users exist, creates SystemAdmin from AppOptions. Defaults (no env): `admin@splitduo.local` / `changeme123` (firstname "Super", lastname "Admin").
 
 ## Rules When Modifying This Code
 

@@ -18,7 +18,7 @@ public static class TestDbSeeder
     public static async Task<string> SeedUserAsync(
         IServiceProvider services,
         string email = "user2@localhost",
-        string password = "changeme",
+        string password = "changeme123",
         string firstName = "Second",
         string lastName = "User",
         GlobalRole role = GlobalRole.BaseUser)

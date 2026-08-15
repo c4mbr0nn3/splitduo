@@ -111,7 +111,7 @@ public class TwoFactorTests : IntegrationTest
 
         // Confirmation email enqueued
         var bodies = await NotificationTestExtensions
-            .GetEnqueuedBodiesAsync(Factory.Services, "admin@localhost");
+            .GetEnqueuedBodiesAsync(Factory.Services, "admin@splitduo.local");
         Assert.Contains(bodies, b => b.Contains("two-factor") || b.Contains("2FA") || b.Contains("enabled"));
     }
 
@@ -197,7 +197,7 @@ public class TwoFactorTests : IntegrationTest
         await client.PostAsJsonAsync("/api/v1/2fa/setup/verify", new { code }, ct);
 
         var response = await client.PostAsJsonAsync("/api/v1/2fa/disable",
-            new { password = "changeme" }, ct);
+            new { password = "changeme123" }, ct);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -206,7 +206,7 @@ public class TwoFactorTests : IntegrationTest
         Assert.False(meBody!.Data!.TwoFactorEnabled);
 
         var bodies = await NotificationTestExtensions
-            .GetEnqueuedBodiesAsync(Factory.Services, "admin@localhost");
+            .GetEnqueuedBodiesAsync(Factory.Services, "admin@splitduo.local");
         Assert.Contains(bodies, b => b.Contains("disabled"));
     }
 
@@ -235,7 +235,7 @@ public class TwoFactorTests : IntegrationTest
         var client = await CreateAuthenticatedClientAsync();
 
         var response = await client.PostAsJsonAsync("/api/v1/2fa/disable",
-            new { password = "changeme" }, ct);
+            new { password = "changeme123" }, ct);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<object>>(ct);
@@ -248,7 +248,7 @@ public class TwoFactorTests : IntegrationTest
         var ct = TestContext.Current.CancellationToken;
 
         var response = await Client.PostAsJsonAsync("/api/v1/2fa/disable",
-            new { password = "changeme" }, ct);
+            new { password = "changeme123" }, ct);
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
@@ -318,7 +318,7 @@ public class TwoFactorTests : IntegrationTest
         // Login now requires 2FA
         var loginResponse = await Client.PostAsJsonAsync("/api/v1/auth/login", new
         {
-            email = "admin@localhost", password = "changeme",
+            email = "admin@splitduo.local", password = "changeme123",
         }, ct);
 
         Assert.Equal(HttpStatusCode.OK, loginResponse.StatusCode);
@@ -340,7 +340,7 @@ public class TwoFactorTests : IntegrationTest
 
         var login = await Client.PostAsJsonAsync("/api/v1/auth/login", new
         {
-            email = "admin@localhost", password = "changeme",
+            email = "admin@splitduo.local", password = "changeme123",
         }, ct);
         var loginBody = await login.Content.ReadFromJsonAsync<ApiResponseDto<AuthResponseDto>>(ct);
         var challengeToken = loginBody!.Data!.TwoFactorChallengeToken!;
@@ -370,7 +370,7 @@ public class TwoFactorTests : IntegrationTest
 
         var login = await Client.PostAsJsonAsync("/api/v1/auth/login", new
         {
-            email = "admin@localhost", password = "changeme",
+            email = "admin@splitduo.local", password = "changeme123",
         }, ct);
         var loginBody = await login.Content.ReadFromJsonAsync<ApiResponseDto<AuthResponseDto>>(ct);
         var challengeToken = loginBody!.Data!.TwoFactorChallengeToken!;
@@ -399,7 +399,7 @@ public class TwoFactorTests : IntegrationTest
 
         var login = await Client.PostAsJsonAsync("/api/v1/auth/login", new
         {
-            email = "admin@localhost", password = "changeme",
+            email = "admin@splitduo.local", password = "changeme123",
         }, ct);
         var loginBody = await login.Content.ReadFromJsonAsync<ApiResponseDto<AuthResponseDto>>(ct);
         var challengeToken = loginBody!.Data!.TwoFactorChallengeToken!;
@@ -458,7 +458,7 @@ public class TwoFactorTests : IntegrationTest
 
         var login = await Client.PostAsJsonAsync("/api/v1/auth/login", new
         {
-            email = "admin@localhost", password = "changeme",
+            email = "admin@splitduo.local", password = "changeme123",
         }, ct);
         var loginBody = await login.Content.ReadFromJsonAsync<ApiResponseDto<AuthResponseDto>>(ct);
         var challengeToken = loginBody!.Data!.TwoFactorChallengeToken!;

@@ -26,10 +26,10 @@ public class AliasesTests : IntegrationTest
         var admin = await adminClient.GetCurrentUserAsync();
 
         var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
-            user2Email, "changeme", "Second", "User");
+            user2Email, "changeme123", "Second", "User");
         await adminClient.PostAsJsonAsync(
             $"/api/v1/groups/{group.Id}/members", new { userEmail = memberEmail, role = "member" }, ct);
-        var user2Client = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+        var user2Client = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
         var user2 = await user2Client.GetCurrentUserAsync();
 
         return (adminClient, group.Id, admin.Id, user2.Id, user2Client);
@@ -86,7 +86,7 @@ public class AliasesTests : IntegrationTest
         var ct = TestContext.Current.CancellationToken;
         var adminClient = await CreateAuthenticatedClientAsync();
         var otherEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "outsider@localhost");
-        var otherClient = await CreateAuthenticatedClientAsync(otherEmail, "changeme");
+        var otherClient = await CreateAuthenticatedClientAsync(otherEmail, "changeme123");
         var adminGroup = await adminClient.CreateGroupAsync(useAliases: true);
 
         var response = await otherClient.GetAsync($"/api/v1/groups/{adminGroup.Id}/aliases", ct);
@@ -207,7 +207,7 @@ public class AliasesTests : IntegrationTest
         var ct = TestContext.Current.CancellationToken;
         var adminClient = await CreateAuthenticatedClientAsync();
         var otherEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "outsider2@localhost");
-        var otherClient = await CreateAuthenticatedClientAsync(otherEmail, "changeme");
+        var otherClient = await CreateAuthenticatedClientAsync(otherEmail, "changeme123");
         var adminGroup = await adminClient.CreateGroupAsync(useAliases: true);
 
         var response = await otherClient.PostAsJsonAsync(
@@ -413,7 +413,7 @@ public class AliasesTests : IntegrationTest
         var aliasId = await CreateAliasAsync(adminClient, groupId, "X");
         // Seed a user that is NOT a member of the group
         var outsiderEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "outsider3@localhost");
-        var outsiderClient = await CreateAuthenticatedClientAsync(outsiderEmail, "changeme");
+        var outsiderClient = await CreateAuthenticatedClientAsync(outsiderEmail, "changeme123");
         var outsider = await outsiderClient.GetCurrentUserAsync();
 
         var response = await adminClient.PostAsJsonAsync(

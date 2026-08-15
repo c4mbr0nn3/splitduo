@@ -25,7 +25,7 @@ public class UsersProfileTests : IntegrationTest
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserDto>>(ct);
         Assert.NotNull(body!.Data);
-        Assert.Equal("admin@localhost", body.Data!.Email);
+        Assert.Equal("admin@splitduo.local", body.Data!.Email);
         Assert.Equal("Super", body.Data.FirstName);
         Assert.Equal("Admin", body.Data.LastName);
         Assert.Equal((int)GlobalRole.SystemAdmin, body.Data.GlobalRoleId);
@@ -74,7 +74,7 @@ public class UsersProfileTests : IntegrationTest
         var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "stats@localhost");
         await client.PostAsJsonAsync(
             $"/api/v1/groups/{group.Id}/members", new { userEmail = memberEmail, role = "member" }, ct);
-        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
         var member = await memberClient.GetCurrentUserAsync();
 
         // Admin pays 100, split 50/50 → admin +50, member -50
@@ -248,7 +248,7 @@ public class UsersProfileTests : IntegrationTest
         // Get a refresh token via login
         var login = await Client.PostAsJsonAsync("/api/v1/auth/login", new
         {
-            email = "admin@localhost", password = "changeme",
+            email = "admin@splitduo.local", password = "changeme123",
         }, ct);
         var loginBody = await login.Content.ReadFromJsonAsync<ApiResponseDto<AuthResponseDto>>(ct);
         var oldRefresh = loginBody!.Data!.RefreshToken;
@@ -256,7 +256,7 @@ public class UsersProfileTests : IntegrationTest
 
         var response = await client.PutAsJsonAsync("/api/v1/users/me/password", new
         {
-            currentPassword = "changeme",
+            currentPassword = "changeme123",
             newPassword = "NewPass456!",
             confirmPassword = "NewPass456!",
         }, ct);
@@ -266,14 +266,14 @@ public class UsersProfileTests : IntegrationTest
         // Old password no longer works
         var oldLogin = await Client.PostAsJsonAsync("/api/v1/auth/login", new
         {
-            email = "admin@localhost", password = "changeme",
+            email = "admin@splitduo.local", password = "changeme123",
         }, ct);
         Assert.Equal(HttpStatusCode.Unauthorized, oldLogin.StatusCode);
 
         // New password works
         var newLogin = await Client.PostAsJsonAsync("/api/v1/auth/login", new
         {
-            email = "admin@localhost", password = "NewPass456!",
+            email = "admin@splitduo.local", password = "NewPass456!",
         }, ct);
         Assert.Equal(HttpStatusCode.OK, newLogin.StatusCode);
 
@@ -311,7 +311,7 @@ public class UsersProfileTests : IntegrationTest
 
         var response = await client.PutAsJsonAsync("/api/v1/users/me/password", new
         {
-            currentPassword = "changeme",
+            currentPassword = "changeme123",
             newPassword = "NewPass456!",
             confirmPassword = "Different789!",
         }, ct);
@@ -327,7 +327,7 @@ public class UsersProfileTests : IntegrationTest
 
         var response = await client.PutAsJsonAsync("/api/v1/users/me/password", new
         {
-            currentPassword = "changeme",
+            currentPassword = "changeme123",
             newPassword = "alllowercase",
             confirmPassword = "alllowercase",
         }, ct);
@@ -343,7 +343,7 @@ public class UsersProfileTests : IntegrationTest
 
         var response = await client.PutAsJsonAsync("/api/v1/users/me/password", new
         {
-            currentPassword = "changeme",
+            currentPassword = "changeme123",
             newPassword = "Short1!",
             confirmPassword = "Short1!",
         }, ct);
@@ -358,7 +358,7 @@ public class UsersProfileTests : IntegrationTest
 
         var response = await Client.PutAsJsonAsync("/api/v1/users/me/password", new
         {
-            currentPassword = "changeme",
+            currentPassword = "changeme123",
             newPassword = "NewPass456!",
             confirmPassword = "NewPass456!",
         }, ct);
@@ -383,7 +383,7 @@ public class UsersProfileTests : IntegrationTest
         var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<List<UserDto>>>(ct);
         Assert.NotNull(body!.Data);
         Assert.True(body.Data!.Count >= 2);
-        Assert.Contains(body.Data, u => u.Email == "admin@localhost");
+        Assert.Contains(body.Data, u => u.Email == "admin@splitduo.local");
         Assert.Contains(body.Data, u => u.Email == "extra@localhost");
     }
 
@@ -392,7 +392,7 @@ public class UsersProfileTests : IntegrationTest
     {
         var ct = TestContext.Current.CancellationToken;
         var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "baseuser@localhost");
-        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
 
         var response = await memberClient.GetAsync("/api/v1/users", ct);
 
@@ -432,7 +432,7 @@ public class UsersProfileTests : IntegrationTest
     {
         var ct = TestContext.Current.CancellationToken;
         var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "m@localhost");
-        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
         var admin = await (await CreateAuthenticatedClientAsync()).GetCurrentUserAsync();
 
         var response = await memberClient.GetAsync($"/api/v1/users/{admin.Id}", ct);
@@ -448,7 +448,7 @@ public class UsersProfileTests : IntegrationTest
         var ct = TestContext.Current.CancellationToken;
         var adminClient = await CreateAuthenticatedClientAsync();
         var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "target@localhost");
-        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
         var member = await memberClient.GetCurrentUserAsync();
 
         var response = await adminClient.GetAsync($"/api/v1/users/{member.Id}", ct);
@@ -504,7 +504,7 @@ public class UsersProfileTests : IntegrationTest
         var ct = TestContext.Current.CancellationToken;
         var adminClient = await CreateAuthenticatedClientAsync();
         var targetEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "deletee@localhost");
-        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme");
+        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme123");
         var target = await targetClient.GetCurrentUserAsync();
 
         var response = await adminClient.DeleteAsync($"/api/v1/users/{target.Id}", ct);
@@ -519,7 +519,7 @@ public class UsersProfileTests : IntegrationTest
         // Deleted user can no longer log in
         var login = await Client.PostAsJsonAsync("/api/v1/auth/login", new
         {
-            email = "deletee@localhost", password = "changeme",
+            email = "deletee@localhost", password = "changeme123",
         }, ct);
         Assert.Equal(HttpStatusCode.Unauthorized, login.StatusCode);
     }
@@ -528,10 +528,10 @@ public class UsersProfileTests : IntegrationTest
     public async Task DeleteUser_AsNonAdmin_Returns403()
     {
         var ct = TestContext.Current.CancellationToken;
-        var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "nonadmin@localhost");
-        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+        var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "nonadmin@splitduo.local");
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
         var targetEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "target2@localhost");
-        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme");
+        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme123");
         var target = await targetClient.GetCurrentUserAsync();
 
         var response = await memberClient.DeleteAsync($"/api/v1/users/{target.Id}", ct);
@@ -588,7 +588,7 @@ public class UsersProfileTests : IntegrationTest
         var adminClient = await CreateAuthenticatedClientAsync();
 
         var targetEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "editname@localhost");
-        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme");
+        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme123");
         var target = await targetClient.GetCurrentUserAsync();
 
         var response = await adminClient.PutAsJsonAsync($"/api/v1/users/{target.Id}", new
@@ -619,7 +619,7 @@ public class UsersProfileTests : IntegrationTest
         var adminClient = await CreateAuthenticatedClientAsync();
 
         var targetEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "editandpromote@localhost");
-        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme");
+        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme123");
         var target = await targetClient.GetCurrentUserAsync();
 
         var response = await adminClient.PutAsJsonAsync($"/api/v1/users/{target.Id}", new
@@ -643,7 +643,7 @@ public class UsersProfileTests : IntegrationTest
 
         // Seed a second admin so demotion is allowed (last-admin guard)
         var targetEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "editanddemote@localhost");
-        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme");
+        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme123");
         var target = await targetClient.GetCurrentUserAsync();
 
         await adminClient.PutAsJsonAsync($"/api/v1/users/{target.Id}", new
@@ -672,7 +672,7 @@ public class UsersProfileTests : IntegrationTest
 
         await TestDbSeeder.SeedUserAsync(Factory.Services, "taken@localhost");
         var targetEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "editemail@localhost");
-        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme");
+        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme123");
         var target = await targetClient.GetCurrentUserAsync();
 
         var response = await adminClient.PutAsJsonAsync($"/api/v1/users/{target.Id}", new
@@ -691,7 +691,7 @@ public class UsersProfileTests : IntegrationTest
     {
         var ct = TestContext.Current.CancellationToken;
         var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "noneditor@localhost");
-        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
         var admin = await (await CreateAuthenticatedClientAsync()).GetCurrentUserAsync();
 
         var response = await memberClient.PutAsJsonAsync($"/api/v1/users/{admin.Id}", new
@@ -710,7 +710,7 @@ public class UsersProfileTests : IntegrationTest
         // Sending their own current role (unchanged) must be a no-op, not a 403.
         var ct = TestContext.Current.CancellationToken;
         var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "selfeditor@localhost");
-        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
         var member = await memberClient.GetCurrentUserAsync();
 
         var response = await memberClient.PutAsJsonAsync($"/api/v1/users/{member.Id}", new
@@ -729,7 +729,7 @@ public class UsersProfileTests : IntegrationTest
     {
         var ct = TestContext.Current.CancellationToken;
         var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "selfpromoter@localhost");
-        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
         var member = await memberClient.GetCurrentUserAsync();
 
         var response = await memberClient.PutAsJsonAsync($"/api/v1/users/{member.Id}", new
@@ -799,7 +799,7 @@ public class UsersProfileTests : IntegrationTest
 
         // Seed a new base user
         var targetEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "promotee@localhost");
-        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme");
+        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme123");
         var target = await targetClient.GetCurrentUserAsync();
 
         // Admin promotes them to SystemAdmin
@@ -826,7 +826,7 @@ public class UsersProfileTests : IntegrationTest
 
         // Seed a new user and promote them to admin
         var targetEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "demotee@localhost");
-        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme");
+        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme123");
         var target = await targetClient.GetCurrentUserAsync();
 
         await adminClient.PutAsJsonAsync($"/api/v1/users/{target.Id}", new
@@ -872,7 +872,7 @@ public class UsersProfileTests : IntegrationTest
     {
         var ct = TestContext.Current.CancellationToken;
         var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "baseuser@localhost");
-        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
         var member = await memberClient.GetCurrentUserAsync();
 
         var response = await memberClient.PutAsJsonAsync($"/api/v1/users/{member.Id}", new
@@ -893,7 +893,7 @@ public class UsersProfileTests : IntegrationTest
 
         // Seed a new base user (already BaseUser)
         var targetEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "duplicaterole@localhost");
-        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme");
+        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme123");
         var target = await targetClient.GetCurrentUserAsync();
 
         // Admin resubmits the user's current role — this is a no-op, not an error.
@@ -922,7 +922,7 @@ public class UsersProfileTests : IntegrationTest
 
         // Seed a new base user
         var targetEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "invalidrole@localhost");
-        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme");
+        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme123");
         var target = await targetClient.GetCurrentUserAsync();
 
         // Admin tries to set an out-of-range role value
@@ -943,8 +943,8 @@ public class UsersProfileTests : IntegrationTest
         var adminClient = await CreateAuthenticatedClientAsync();
 
         // Seed a new user and promote them to admin (now there are 2 admins)
-        var targetEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "secondadmin@localhost");
-        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme");
+        var targetEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "secondadmin@splitduo.local");
+        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme123");
         var target = await targetClient.GetCurrentUserAsync();
 
         await adminClient.PutAsJsonAsync($"/api/v1/users/{target.Id}", new

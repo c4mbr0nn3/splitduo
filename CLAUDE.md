@@ -11,7 +11,7 @@ See `docs/agents/backend.md` and `docs/agents/frontend.md` for detailed codebase
 - **Backend**: `cd sd-backend && dotnet run --project SplitDuo.Api` → http://localhost:8080
 - **Frontend**: `cd sd-frontend && pnpm install && pnpm dev` → http://localhost:3000 (proxies API to :8080)
 - **Docker**: `docker compose up -d` → http://localhost:3000
-- Default login: `admin@splitduo.local` / `changeme123` (docker-compose); `admin@localhost` / `changeme` (bare dotnet run)
+- Default login: `admin@splitduo.local` / `changeme123`
 
 ## Repo Layout
 

@@ -267,7 +267,7 @@ public class ExpensesTests : IntegrationTest
 
         var group = await client.CreateGroupAsync();
         var user2Email = await TestDbSeeder.SeedUserAsync(Factory.Services);
-        var user2Client = await CreateAuthenticatedClientAsync(user2Email, "changeme");
+        var user2Client = await CreateAuthenticatedClientAsync(user2Email, "changeme123");
         var user2 = await user2Client.GetCurrentUserAsync();
 
         var response = await client.PostAsJsonAsync($"/api/v1/groups/{group.Id}/expenses", new
@@ -467,7 +467,7 @@ public class ExpensesTests : IntegrationTest
         var group = await client.CreateGroupAsync();
         var adminId = group.CreatedByUserId;
         var user2Email = await TestDbSeeder.SeedUserAsync(Factory.Services);
-        var user2Client = await CreateAuthenticatedClientAsync(user2Email, "changeme");
+        var user2Client = await CreateAuthenticatedClientAsync(user2Email, "changeme123");
         var user2 = await user2Client.GetCurrentUserAsync();
 
         var response = await client.PostAsJsonAsync($"/api/v1/groups/{group.Id}/expenses", new
@@ -646,7 +646,7 @@ public class ExpensesTests : IntegrationTest
         var adminClient = await CreateAuthenticatedClientAsync();
 
         var user2Email = await TestDbSeeder.SeedUserAsync(Factory.Services);
-        var user2Client = await CreateAuthenticatedClientAsync(user2Email, "changeme");
+        var user2Client = await CreateAuthenticatedClientAsync(user2Email, "changeme123");
         var user2Group = await user2Client.CreateGroupAsync();
 
         var response = await adminClient.GetAsync($"/api/v1/groups/{user2Group.Id}/expenses", ct);
@@ -663,7 +663,7 @@ public class ExpensesTests : IntegrationTest
         var adminClient = await CreateAuthenticatedClientAsync();
 
         var user2Email = await TestDbSeeder.SeedUserAsync(Factory.Services);
-        var user2Client = await CreateAuthenticatedClientAsync(user2Email, "changeme");
+        var user2Client = await CreateAuthenticatedClientAsync(user2Email, "changeme123");
         var user2Group = await user2Client.CreateGroupAsync();
 
         var response = await adminClient.PostAsJsonAsync($"/api/v1/groups/{user2Group.Id}/expenses", new
@@ -689,7 +689,7 @@ public class ExpensesTests : IntegrationTest
         var adminClient = await CreateAuthenticatedClientAsync();
 
         var user2Email = await TestDbSeeder.SeedUserAsync(Factory.Services);
-        var user2Client = await CreateAuthenticatedClientAsync(user2Email, "changeme");
+        var user2Client = await CreateAuthenticatedClientAsync(user2Email, "changeme123");
         var user2Group = await user2Client.CreateGroupAsync();
         var user2Expense = await user2Client.CreateExpenseAsync(user2Group.Id, user2Group.CreatedByUserId);
 

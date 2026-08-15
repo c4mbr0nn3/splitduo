@@ -21,7 +21,7 @@ Four concrete blockers must be handled in the test host: (1) `Program.cs` runs `
 - Stand up a PostgreSQL 17 container via Testcontainers + podman, shared across the test run.
 - Run the full SplitDuo API in-process via `WebApplicationFactory<Program>` against the container DB.
 - Apply real EF migrations (12, including `AddUserSettings`) to the container DB.
-- Seed the admin user (`admin@localhost` / `changeme`) so tests can authenticate.
+- Seed the admin user (`admin@splitduo.local` / `changeme123`) so tests can authenticate.
 - Write the first integration tests for the user-settings feature: round-trip persistence, validation, auth enforcement, defaults on new user, cross-request persistence.
 - Provide a reusable test harness (`SplitDuoApiFactory` + `IntegrationTest` base class) for future tests.
 - Provide a runnable script that configures podman env vars and launches `dotnet test`.
@@ -105,7 +105,7 @@ Top-level statements → compiler generates a `Program` class → `WebApplicatio
 - `WebApplicationFactory` package already referenced.
 - xUnit v3 already set up.
 - All DB env vars have defaults (`DatabaseOptionsSetup`) — overridable via `ConfigureTestServices` or env vars.
-- Seeder creates a known admin (`admin@localhost` / `changeme`) — perfect for test auth.
+- Seeder creates a known admin (`admin@splitduo.local` / `changeme123`) — perfect for test auth.
 - `GlobalExceptionHandler` returns structured `ProblemDetails` — easy to assert on error responses.
 - Settings endpoint has **no** rate limiter attribute — only `/auth/login`, `/auth/verify-2fa`, `/receipts/parse` do.
 - `postgres:17-alpine` matches docker-compose — Testcontainers image is settled.
@@ -465,8 +465,8 @@ public abstract class IntegrationTest : IAsyncLifetime
     /// Rate limiter is disabled in the test host, so repeated logins are safe.
     /// </summary>
     protected async Task<string> GetAuthTokenAsync(
-        string email = "admin@localhost",
-        string password = "changeme")
+        string email = "admin@splitduo.local",
+        string password = "changeme123")
     {
         var response = await Client.PostAsJsonAsync("/api/v1/auth/login", new
         {
@@ -483,8 +483,8 @@ public abstract class IntegrationTest : IAsyncLifetime
     /// Returns an HttpClient with a valid Bearer token set.
     /// </summary>
     protected async Task<HttpClient> CreateAuthenticatedClientAsync(
-        string email = "admin@localhost",
-        string password = "changeme")
+        string email = "admin@splitduo.local",
+        string password = "changeme123")
     {
         var token = await GetAuthTokenAsync(email, password);
         var client = Factory.CreateClient();

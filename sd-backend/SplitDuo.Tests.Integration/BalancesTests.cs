@@ -23,10 +23,10 @@ public class BalancesTests : IntegrationTest
     {
         var ct = TestContext.Current.CancellationToken;
         var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
-            email, "changeme", "Second", "User");
+            email, "changeme123", "Second", "User");
         await adminClient.PostAsJsonAsync(
             $"/api/v1/groups/{groupId}/members", new { userEmail = memberEmail, role }, ct);
-        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme");
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
         var member = await memberClient.GetCurrentUserAsync();
         return (memberEmail, member.Id, memberClient);
     }
@@ -199,7 +199,7 @@ public class BalancesTests : IntegrationTest
         var ct = TestContext.Current.CancellationToken;
         var adminClient = await CreateAuthenticatedClientAsync();
         var otherEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "outsider@localhost");
-        var otherClient = await CreateAuthenticatedClientAsync(otherEmail, "changeme");
+        var otherClient = await CreateAuthenticatedClientAsync(otherEmail, "changeme123");
         var adminGroup = await adminClient.CreateGroupAsync();
 
         var response = await otherClient.GetAsync($"/api/v1/groups/{adminGroup.Id}/balances", ct);
@@ -328,7 +328,7 @@ public class BalancesTests : IntegrationTest
         var ct = TestContext.Current.CancellationToken;
         var adminClient = await CreateAuthenticatedClientAsync();
         var otherEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "outsider2@localhost");
-        var otherClient = await CreateAuthenticatedClientAsync(otherEmail, "changeme");
+        var otherClient = await CreateAuthenticatedClientAsync(otherEmail, "changeme123");
         var adminGroup = await adminClient.CreateGroupAsync();
 
         var response = await otherClient.GetAsync(
@@ -424,7 +424,7 @@ public class BalancesTests : IntegrationTest
         var ct = TestContext.Current.CancellationToken;
         var adminClient = await CreateAuthenticatedClientAsync();
         var otherEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "outsider3@localhost");
-        var otherClient = await CreateAuthenticatedClientAsync(otherEmail, "changeme");
+        var otherClient = await CreateAuthenticatedClientAsync(otherEmail, "changeme123");
         var adminGroup = await adminClient.CreateGroupAsync();
 
         var response = await otherClient.GetAsync($"/api/v1/groups/{adminGroup.Id}/stats", ct);

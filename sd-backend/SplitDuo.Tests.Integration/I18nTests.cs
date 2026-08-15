@@ -72,7 +72,7 @@ public class I18nTests : IntegrationTest
 
         var response = await client.PostAsJsonAsync("/api/v1/auth/login", new
         {
-            email = "admin@localhost",
+            email = "admin@splitduo.local",
             password = "wrong-password",
         }, ct);
 
@@ -91,7 +91,7 @@ public class I18nTests : IntegrationTest
 
         var response = await client.PostAsJsonAsync("/api/v1/auth/login", new
         {
-            email = "admin@localhost",
+            email = "admin@splitduo.local",
             password = "wrong-password",
         }, ct);
 
@@ -107,7 +107,7 @@ public class I18nTests : IntegrationTest
 
         var response = await Client.PostAsJsonAsync("/api/v1/auth/login", new
         {
-            email = "admin@localhost",
+            email = "admin@splitduo.local",
             password = "wrong-password",
         }, ct);
 

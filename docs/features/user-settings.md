@@ -450,12 +450,12 @@ Ordered by dependency. Backend and frontend can be built in parallel once the DT
 
 ### Manual verification (minimum)
 1. Start backend (`dotnet run --project SplitDuo.Api`) + frontend (`pnpm dev`).
-2. Log in as `admin@localhost` / `changeme`.
+2. Log in as `admin@splitduo.local` / `changeme123`.
 3. Confirm default theme `auto` applies (matches OS).
 4. Toggle to `dark` via header button → reload → confirm `dark` persists.
 5. Open profile page → select `light` → confirm immediate apply + persisted after reload.
 6. Open a different browser → log in → confirm theme matches the last saved value.
-7. Inspect DB: `SELECT settings FROM users WHERE email = 'admin@localhost';` → confirm `{"Theme":"dark","UiLanguage":"en"}` (or camelCase depending on serializer config — verify and align with frontend expectations).
+7. Inspect DB: `SELECT settings FROM users WHERE email = 'admin@splitduo.local';` → confirm `{"Theme":"dark","UiLanguage":"en"}` (or camelCase depending on serializer config — verify and align with frontend expectations).
 
 ### Serializer case alignment (verify during implementation)
 System.Text.Json defaults to PascalCase property names in serialized JSON unless configured. Confirm whether the JSON column stores `{"Theme":...}` or `{"theme":...}` and ensure the frontend reads it consistently. If the frontend expects camelCase, configure `JsonSerializerOptions` with `PropertyNamingPolicy = JsonNamingPolicy.CamelCase` on the complex property, or map to camelCase in the DTO (the DTO is what the frontend sees, so DTO casing is what matters for the API contract — the internal JSON column casing is transparent).
