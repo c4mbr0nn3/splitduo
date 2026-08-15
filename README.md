@@ -4,7 +4,7 @@
 [![coverage report](https://gitlab.com/j1mm0/splitduo/badges/main/coverage.svg)](https://gitlab.com/j1mm0/splitduo/-/graphs/main/charts)
 [![latest version](https://img.shields.io/gitlab/v/release/j1mm0/splitduo?label=latest%20version)](https://gitlab.com/j1mm0/splitduo/-/releases)
 
-**Primary repo:** [gitlab.com/j1mm0/splitduo](https://gitlab.com/j1mm0/splitduo) · **GitHub mirror:** [github.com/j1mm0/splitduo](https://github.com/j1mm0/splitduo) — development, issues, and releases happen on GitLab; GitHub is kept in sync for visibility and stars.
+**Primary repo:** [gitlab.com/j1mm0/splitduo](https://gitlab.com/j1mm0/splitduo) · **GitHub mirror:** [github.com/c4mbr0nn3/splitduo](https://github.com/c4mbr0nn3/splitduo) — development, issues, and releases happen on GitLab; GitHub is kept in sync for visibility and stars.
 
 Shared finances, without the noise. SplitDuo is a self-hosted expense splitting app for small groups — couples, housemates, travel companions, or anyone sharing costs. No subscription, no third-party servers, no data you don't control.
 
