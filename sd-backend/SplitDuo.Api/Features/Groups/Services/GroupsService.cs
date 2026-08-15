@@ -60,6 +60,7 @@ public class GroupsService(
             .AsNoTracking()
             .Where(gm => gm.UserId == user.Id && gm.DeletedAt == null)
             .Include(gm => gm.Group)
+            .ThenInclude(g => g.CreatedByUser)
             .Where(gm => gm.Group.DeletedAt == null)
             .Select(gm => new
             {
@@ -130,49 +131,32 @@ public class GroupsService(
             .ToDictionary(x => x.GroupId, x => x.AliasId!.Value);
 
         // TotalPaid per alias: sum of Expense.Amount where Expense.PaidByAliasId == aliasId
-        // (with fallback to current-membership for null PaidByAliasId — backward compat)
-        var aliasPaidByGroup = new Dictionary<(int GroupId, int AliasId), decimal>();
-
-        if (aliasGroupIds.Count > 0)
-        {
-            var aliasExpenses = await unitOfWork.Expenses
+        // (with fallback to current-membership for null PaidByAliasId — backward compat).
+        // Single SQL query: LEFT JOIN group_members to resolve the payer's current alias,
+        // COALESCE(paid_by_alias_id, gm.alias_id), GROUP BY (group_id, alias_id).
+        // Invariant: one membership per user per group (no fan-out from the LEFT JOIN).
+        var aliasPaidByGroup = aliasGroupIds.Count > 0
+            ? await unitOfWork.Expenses
                 .AsNoTracking()
                 .Where(e => aliasGroupIds.Contains(e.GroupId) && e.DeletedAt == null)
-                .Select(e => new { e.GroupId, e.PaidBy, e.PaidByAliasId, e.Amount })
-                .ToListAsync();
-
-            // Get current alias membership for fallback
-            var currentMemberships = await unitOfWork.GroupMembers
-                .AsNoTracking()
-                .Where(gm => aliasGroupIds.Contains(gm.GroupId) && gm.DeletedAt == null && gm.AliasId != null)
-                .Select(gm => new { gm.GroupId, gm.UserId, gm.AliasId })
-                .ToListAsync();
-
-            var userAliasLookup = currentMemberships
+                .GroupJoin(unitOfWork.GroupMembers.AsNoTracking()
+                        .Where(gm => gm.DeletedAt == null && gm.AliasId != null),
+                    e => new { e.GroupId, UserId = e.PaidBy },
+                    gm => new { gm.GroupId, gm.UserId },
+                    (e, gms) => new { Expense = e, Memberships = gms })
+                .SelectMany(x => x.Memberships.DefaultIfEmpty(), (x, gm) => new
+                {
+                    x.Expense.GroupId,
+                    // gm is null for unmatched expenses; the ?? short-circuits, so gm!.AliasId
+                    // is only evaluated when gm != null (null-forgiving is erased at compile time).
+                    AliasId = (int?)(x.Expense.PaidByAliasId ?? gm!.AliasId),
+                    x.Expense.Amount
+                })
                 .Where(x => x.AliasId != null)
-                .ToLookup(x => (x.GroupId, x.UserId), x => x.AliasId!.Value);
-
-            foreach (var expense in aliasExpenses)
-            {
-                int? aliasId;
-
-                if (expense.PaidByAliasId != null)
-                {
-                    aliasId = expense.PaidByAliasId;
-                }
-                else
-                {
-                    aliasId = userAliasLookup[(expense.GroupId, expense.PaidBy)].FirstOrDefault();
-                }
-
-                if (aliasId != null)
-                {
-                    var key = (expense.GroupId, aliasId.Value);
-                    aliasPaidByGroup.TryGetValue(key, out var current);
-                    aliasPaidByGroup[key] = current + expense.Amount;
-                }
-            }
-        }
+                .GroupBy(x => new { x.GroupId, x.AliasId })
+                .Select(g => new { g.Key.GroupId, g.Key.AliasId, Total = g.Sum(x => x.Amount) })
+                .ToDictionaryAsync(x => (x.GroupId, x.AliasId!.Value), x => x.Total)
+            : new Dictionary<(int GroupId, int AliasId), decimal>();
 
         // TotalOwed per alias: sum of ExpenseAliasSplit.SplitAmount for that alias
         var aliasSplitByGroup = aliasGroupIds.Count > 0
