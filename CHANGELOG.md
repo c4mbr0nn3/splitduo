@@ -4,6 +4,16 @@ All notable changes to SplitDuo will be documented in this file.
 
 Generated with [git-cliff](https://git-cliff.org) from Conventional Commits.
 
+## [1.13.0] - 2026-08-15
+
+### Bug Fixes
+
+- *(groups)* SQL aggregation for alias balances + created-by bug
+- *(users)* Handle alias-mode balances in user stats endpoint
+
+### Features
+
+- *(ui)* Add logo to header and enhance login page
 ## [1.12.0] - 2026-08-15
 
 ### Bug Fixes
