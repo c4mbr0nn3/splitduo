@@ -14,7 +14,7 @@ export default defineNuxtConfig({
       titleTemplate: '%s | SplitDuo',
       link: [
         { rel: 'manifest', href: '/manifest.webmanifest' },
-        { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
+        { rel: 'apple-touch-icon', href: '/apple-touch-icon-180x180.png' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         {
@@ -119,17 +119,22 @@ export default defineNuxtConfig({
       display_override: ['standalone', 'minimal-ui'],
       icons: [
         {
-          src: 'android-chrome-192x192.png',
+          src: 'pwa-64x64.png',
+          sizes: '64x64',
+          type: 'image/png',
+        },
+        {
+          src: 'pwa-192x192.png',
           sizes: '192x192',
           type: 'image/png',
         },
         {
-          src: 'android-chrome-512x512.png',
+          src: 'pwa-512x512.png',
           sizes: '512x512',
           type: 'image/png',
         },
         {
-          src: 'maskable-icon.png',
+          src: 'maskable-icon-512x512.png',
           sizes: '512x512',
           type: 'image/png',
           purpose: 'maskable',

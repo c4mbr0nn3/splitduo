@@ -13,6 +13,7 @@
     "typecheck": "nuxt prepare && vue-tsc --noEmit -p .nuxt/tsconfig.json",
     "gen:api": "openapi-typescript ../docs/api/splitduoapi-v1.yaml --output app/types/api.d.ts",
     "check:locales": "node -e \"import('./scripts/check-locale-parity.mjs').then(m => { const r = m.checkLocaleParity(); if (r.ok) { console.log('Locale key parity: OK'); process.exit(0); } else { for (const e of r.errors) { console.error('\\n' + e.file + ':'); if (e.missing.length) console.error('  Missing keys: ' + e.missing.join(', ')); if (e.extra.length) console.error('  Extra keys:   ' + e.extra.join(', ')); if (e.error) console.error('  Error: ' + e.error); } process.exit(1); } })\"",
+    "gen:pwa-assets": "pwa-assets-generator",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:contract": "node scripts/gen-api-check.mjs"
@@ -33,6 +34,7 @@
     "@nuxt/test-utils": "^4.1.0",
     "@nuxtjs/i18n": "^10.6.0",
     "@types/node": "^26.2.0",
+    "@vite-pwa/assets-generator": "^1.0.2",
     "@vite-pwa/nuxt": "^1.1.1",
     "@vitest/coverage-v8": "^4.1.10",
     "@vue/test-utils": "^2.4.11",

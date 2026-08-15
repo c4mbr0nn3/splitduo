@@ -38,9 +38,9 @@ The application must provide a `manifest.webmanifest` that defines:
 
 ## Technical Implementation
 
-> **Note:** `sd-frontend/public/site.webmanifest` currently exists as a manually created stub with empty name/short_name. Delete it once `@vite-pwa/nuxt` is added — the plugin generates and manages the manifest automatically.
+> **Note:** `sd-frontend/public/site.webmanifest` was a manually created stub — deleted once `@vite-pwa/nuxt` was added, since the plugin generates and manages the manifest automatically.
 
-> **Note:** `sd-frontend/public/maskable-icon.png` does not exist yet and must be created before implementation. Use [maskable.app/editor](https://maskable.app/editor) to generate a 512×512 maskable version of the app icon.
+> **Note:** Maskable and all other PWA icons are generated from the SVG source — see [Regenerating PWA Icons](#regenerating-pwa-icons) below.
 
 ### 1. Nuxt Configuration
 
@@ -63,17 +63,22 @@ export default defineNuxtConfig({
       orientation: "portrait",
       icons: [
         {
-          src: "android-chrome-192x192.png",
+          src: "pwa-64x64.png",
+          sizes: "64x64",
+          type: "image/png",
+        },
+        {
+          src: "pwa-192x192.png",
           sizes: "192x192",
           type: "image/png",
         },
         {
-          src: "android-chrome-512x512.png",
+          src: "pwa-512x512.png",
           sizes: "512x512",
           type: "image/png",
         },
         {
-          src: "maskable-icon.png",
+          src: "maskable-icon-512x512.png",
           sizes: "512x512",
           type: "image/png",
           purpose: "maskable",
@@ -180,3 +185,46 @@ ENTRYPOINT ["dotnet", "SplitDuo.Api.dll"]
 1. **SSL Requirement:** PWAs require HTTPS. Ensure your Docker container sits behind a reverse proxy (like Nginx or Caddy) with a valid certificate.
 2. **Manifest Validation:** Test via Chrome DevTools (Application > Manifest) to ensure all icons are resolved.
 3. **Deep Linking:** Open the installed app and navigate to a nested route. Refresh the app to ensure Kestrel serves the fallback `index.html` and Vue Router takes over.
+
+---
+
+## Regenerating PWA Icons
+
+PWA icons (favicons, apple-touch-icon, maskable, manifest icons) are generated from a single SVG source via [`@vite-pwa/assets-generator`](https://github.com/vite-pwa/assets-generator) — the asset generator from the same org as `@vite-pwa/nuxt`. No web upload, no third-party server; reproducible locally and in CI.
+
+### Source
+
+- **SVG:** `sd-frontend/public/logo.svg` — the SplitDuo S₂ mark on a teal squircle. This is the only file to edit when the logo changes.
+- **Config:** `sd-frontend/pwa-assets.config.ts` — uses the `minimal-2023` preset (transparent 64/192/512, maskable 512 with 0.3 safe-zone padding, apple 180, `favicon.ico`).
+
+### Generate
+
+```bash
+cd sd-frontend
+pnpm gen:pwa-assets
+```
+
+This regenerates all icon files in `public/`:
+
+| File | Purpose |
+| --- | --- |
+| `pwa-64x64.png` | Manifest icon (small) |
+| `pwa-192x192.png` | Manifest icon (standard) |
+| `pwa-512x512.png` | Manifest icon (large) |
+| `maskable-icon-512x512.png` | Maskable icon (adaptive Android icon) |
+| `apple-touch-icon-180x180.png` | iOS home screen icon |
+| `favicon.ico` | Browser tab favicon |
+
+### Manifest entries
+
+The generator outputs files only — it does **not** write manifest entries. The `icons` array in `nuxt.config.ts` (`pwa.manifest.icons`) is maintained manually and must match the generated filenames above. Only touch it if you change the preset's output names.
+
+### CI note
+
+`sharp` (the image backend) requires its native build script. pnpm blocks build scripts by default — if CI runs `gen:pwa-assets`, ensure `sharp` is in the approved-builds list (`pnpm approve-builds sharp` or the equivalent config in `package.json`).
+
+### Changing the logo
+
+1. Edit `sd-frontend/public/logo.svg`.
+2. Run `pnpm gen:pwa-assets`.
+3. Commit the updated `logo.svg` + regenerated files in `public/`.
