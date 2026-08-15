@@ -2,11 +2,13 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Quartz;
 using Serilog;
+using SplitDuo.Core.Caching;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Domain.Enums;
 using SplitDuo.Core.Exceptions;
@@ -86,6 +88,21 @@ public static class ApiProgramExtensions
             builder.Services.AddScoped<ISmtpService, SmtpService>();
             builder.Services.AddScoped<INotificationService, EmailNotificationService>();
             builder.Services.AddScoped<IEmailTemplateProvider, EmailTemplateProvider>();
+
+            // Caching
+            builder.Services.AddMemoryCache(o => o.SizeLimit = 10_000);
+            builder.Services.AddHybridCache(options =>
+            {
+                options.MaximumPayloadBytes = 1024 * 1024; // 1 MB
+                options.MaximumKeyLength = 512;
+                options.DefaultEntryOptions = new HybridCacheEntryOptions
+                {
+                    Expiration = TimeSpan.FromSeconds(60),
+                };
+            });
+            builder.Services.AddSingleton<HybridCacheInvalidator>();
+            builder.Services.AddSingleton<ICacheInvalidator>(sp => sp.GetRequiredService<HybridCacheInvalidator>());
+            builder.Services.AddSingleton<ITestCacheInvalidator>(sp => sp.GetRequiredService<HybridCacheInvalidator>());
 
             // hosted services
             builder.Services.AddHostedService<DataSeederService>();

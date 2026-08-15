@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Npgsql;
 using Respawn;
+using SplitDuo.Core.Caching;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Domain.Enums;
 using SplitDuo.Core.Options;
@@ -188,6 +189,11 @@ public class SplitDuoApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 
         // Respawn wipes all rows including the admin — re-seed for the next test
         await SeedAdminUserAsync();
+
+        // Clear cache between tests to prevent stale data
+        using var cacheScope = Services.CreateScope();
+        var testInvalidator = cacheScope.ServiceProvider.GetRequiredService<ITestCacheInvalidator>();
+        await testInvalidator.ClearAllAsync();
     }
 
     public new async ValueTask DisposeAsync()

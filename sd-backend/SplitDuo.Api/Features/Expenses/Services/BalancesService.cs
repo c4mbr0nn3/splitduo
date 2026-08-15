@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Hybrid;
 using SplitDuo.Api.Features.Common.Dto;
 using SplitDuo.Api.Features.Expenses.Dto;
 using SplitDuo.Api.Features.Groups.Dto;
@@ -19,7 +20,7 @@ public interface IBalancesService
 
 public class BalancesService(
     IUnitOfWork unitOfWork,
-    TimeProvider timeProvider) : IBalancesService
+    HybridCache cache) : IBalancesService
 {
     public async Task<Result<List<BalanceDto>>> GetBalancesAsync(string groupId, Guid currentUserId)
     {
@@ -45,7 +46,11 @@ public class BalancesService(
         if (!isMember)
             return Result<List<BalanceDto>>.Forbidden("Access to this group is not allowed");
 
-        var balances = await CalculateBalancesAsync(group.Id);
+        var groupGuidStr = groupGuid.ToString();
+        var balances = await cache.GetOrCreateAsync(
+            $"balances:group:{groupGuidStr}",
+            async ct => await CalculateBalancesAsync(group.Id),
+            tags: [$"group:{groupGuidStr}"]);
         return Result<List<BalanceDto>>.Success(balances);
     }
 
@@ -72,7 +77,11 @@ public class BalancesService(
         if (!isMember)
             return Result<List<AliasBalanceDto>>.Forbidden("Access to this group is not allowed");
 
-        var balances = await CalculateAliasBalancesAsync(group.Id);
+        var groupGuidStr = groupGuid.ToString();
+        var balances = await cache.GetOrCreateAsync(
+            $"aliasbalances:group:{groupGuidStr}",
+            async ct => await CalculateAliasBalancesAsync(group.Id),
+            tags: [$"group:{groupGuidStr}"]);
         return Result<List<AliasBalanceDto>>.Success(balances);
     }
 
@@ -99,69 +108,75 @@ public class BalancesService(
         if (!isMember)
             return Result<GroupStatsDto>.Forbidden("Access to this group is not allowed");
 
-        var totalExpenses = await unitOfWork.Expenses
-            .CountAsync(e => e.GroupId == group.Id && e.DeletedAt == null);
-
-        var totalAmount = await unitOfWork.Expenses
-            .Where(e => e.GroupId == group.Id && e.DeletedAt == null)
-            .SumAsync(e => (decimal?)e.Amount) ?? 0m;
-
-        List<BalanceDto> balances;
-        if (group.UseAliases)
-        {
-            var aliasBalances = await CalculateAliasBalancesAsync(group.Id);
-            // For GroupStatsDto, we still need BalanceDto list — convert alias balances to a flat
-            // per-user representation for backward compatibility, or leave empty.
-            // The GroupStatsDto is used by the frontend stats view; for alias-mode groups,
-            // the per-user balance is not meaningful. Return empty list.
-            balances = [];
-        }
-        else
-        {
-            balances = await CalculateBalancesAsync(group.Id);
-        }
-
-        var categoryData = await unitOfWork.Expenses
-            .Where(e => e.GroupId == group.Id && e.DeletedAt == null)
-            .GroupBy(e => e.CategoryId)
-            .Select(g => new { CategoryId = g.Key, Amount = g.Sum(e => (decimal?)e.Amount) ?? 0m, Count = g.Count() })
-            .OrderByDescending(x => x.Amount)
-            .ToListAsync();
-
-        var categoryBreakdown = categoryData
-            .Select(x => new CategoryStatDto
+        var groupGuidStr = groupGuid.ToString();
+        var stats = await cache.GetOrCreateAsync(
+            $"groupstats:group:{groupGuidStr}",
+            async ct =>
             {
-                CategoryId = x.CategoryId,
-                CategoryName = ((ExpenseCategory)x.CategoryId).ToString(),
-                Amount = x.Amount,
-                Count = x.Count
-            }).ToList();
+                var totalExpenses = await unitOfWork.Expenses
+                    .CountAsync(e => e.GroupId == group.Id && e.DeletedAt == null, ct);
 
-        var utcNow = timeProvider.GetUtcNow().DateTime;
-        var firstDayOfWindow = new DateOnly(utcNow.Year, utcNow.Month, 1).AddMonths(-11);
+                var totalAmount = await unitOfWork.Expenses
+                    .Where(e => e.GroupId == group.Id && e.DeletedAt == null)
+                    .SumAsync(e => (decimal?)e.Amount, ct) ?? 0m;
 
-        var monthlyData = await unitOfWork.Expenses
-            .Where(e => e.GroupId == group.Id && e.DeletedAt == null)
-            .GroupBy(e => new { e.ExpenseDate.Year, e.ExpenseDate.Month })
-            .Select(g => new
-            {
-                g.Key.Year, g.Key.Month, Amount = g.Sum(e => (decimal?)e.Amount) ?? 0m, Count = g.Count()
-            })
-            .OrderBy(x => x.Year).ThenBy(x => x.Month)
-            .ToListAsync();
+                List<BalanceDto> balances;
+                if (group.UseAliases)
+                {
+                    var aliasBalances = await CalculateAliasBalancesAsync(group.Id);
+                    // For GroupStatsDto, we still need BalanceDto list — convert alias balances to a flat
+                    // per-user representation for backward compatibility, or leave empty.
+                    // The GroupStatsDto is used by the frontend stats view; for alias-mode groups,
+                    // the per-user balance is not meaningful. Return empty list.
+                    balances = [];
+                }
+                else
+                {
+                    balances = await CalculateBalancesAsync(group.Id);
+                }
 
-        var monthlyBreakdown = monthlyData
-            .Select(x => new MonthlyStatDto { Year = x.Year, Month = x.Month, Amount = x.Amount, Count = x.Count })
-            .ToList();
+                var categoryData = await unitOfWork.Expenses
+                    .Where(e => e.GroupId == group.Id && e.DeletedAt == null)
+                    .GroupBy(e => e.CategoryId)
+                    .Select(g => new { CategoryId = g.Key, Amount = g.Sum(e => (decimal?)e.Amount) ?? 0m, Count = g.Count() })
+                    .OrderByDescending(x => x.Amount)
+                    .ToListAsync(ct);
 
-        return Result<GroupStatsDto>.Success(new GroupStatsDto
-        {
-            TotalExpenses = totalExpenses,
-            TotalAmount = totalAmount,
-            Balances = balances,
-            CategoryBreakdown = categoryBreakdown,
-            MonthlyBreakdown = monthlyBreakdown,
-        });
+                var categoryBreakdown = categoryData
+                    .Select(x => new CategoryStatDto
+                    {
+                        CategoryId = x.CategoryId,
+                        CategoryName = ((ExpenseCategory)x.CategoryId).ToString(),
+                        Amount = x.Amount,
+                        Count = x.Count
+                    }).ToList();
+
+                var monthlyData = await unitOfWork.Expenses
+                    .Where(e => e.GroupId == group.Id && e.DeletedAt == null)
+                    .GroupBy(e => new { e.ExpenseDate.Year, e.ExpenseDate.Month })
+                    .Select(g => new
+                    {
+                        g.Key.Year, g.Key.Month, Amount = g.Sum(e => (decimal?)e.Amount) ?? 0m, Count = g.Count()
+                    })
+                    .OrderBy(x => x.Year).ThenBy(x => x.Month)
+                    .ToListAsync(ct);
+
+                var monthlyBreakdown = monthlyData
+                    .Select(x => new MonthlyStatDto { Year = x.Year, Month = x.Month, Amount = x.Amount, Count = x.Count })
+                    .ToList();
+
+                return new GroupStatsDto
+                {
+                    TotalExpenses = totalExpenses,
+                    TotalAmount = totalAmount,
+                    Balances = balances,
+                    CategoryBreakdown = categoryBreakdown,
+                    MonthlyBreakdown = monthlyBreakdown,
+                };
+            },
+            tags: [$"group:{groupGuidStr}"]);
+
+        return Result<GroupStatsDto>.Success(stats);
     }
 
     public async Task<Result<BalanceSummaryDto>> GetBalanceSummaryAsync(string groupId, Guid currentUserId)
@@ -188,15 +203,21 @@ public class BalancesService(
         if (!isMember)
             return Result<BalanceSummaryDto>.Forbidden("Access to this group is not allowed");
 
-        var balances = await CalculateBalancesAsync(group.Id);
-        var suggestions = GenerateSettlementSuggestions(balances);
-
-        var summary = new BalanceSummaryDto
-        {
-            GroupId = groupId,
-            Balances = balances,
-            Suggestions = suggestions
-        };
+        var groupGuidStr = groupGuid.ToString();
+        var summary = await cache.GetOrCreateAsync(
+            $"balancesummary:group:{groupGuidStr}",
+            async ct =>
+            {
+                var balances = await CalculateBalancesAsync(group.Id);
+                var suggestions = GenerateSettlementSuggestions(balances);
+                return new BalanceSummaryDto
+                {
+                    GroupId = groupId,
+                    Balances = balances,
+                    Suggestions = suggestions
+                };
+            },
+            tags: [$"group:{groupGuidStr}"]);
 
         return Result<BalanceSummaryDto>.Success(summary);
     }
@@ -224,15 +245,21 @@ public class BalancesService(
         if (!isMember)
             return Result<AliasBalanceSummaryDto>.Forbidden("Access to this group is not allowed");
 
-        var balances = await CalculateAliasBalancesAsync(group.Id);
-        var suggestions = GenerateAliasSettlementSuggestions(balances);
-
-        var summary = new AliasBalanceSummaryDto
-        {
-            GroupId = groupId,
-            Balances = balances,
-            Suggestions = suggestions
-        };
+        var groupGuidStr = groupGuid.ToString();
+        var summary = await cache.GetOrCreateAsync(
+            $"aliassummary:group:{groupGuidStr}",
+            async ct =>
+            {
+                var balances = await CalculateAliasBalancesAsync(group.Id);
+                var suggestions = GenerateAliasSettlementSuggestions(balances);
+                return new AliasBalanceSummaryDto
+                {
+                    GroupId = groupId,
+                    Balances = balances,
+                    Suggestions = suggestions
+                };
+            },
+            tags: [$"group:{groupGuidStr}"]);
 
         return Result<AliasBalanceSummaryDto>.Success(summary);
     }

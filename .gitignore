@@ -6,6 +6,9 @@
 # Dev tooling (git-cliff changelog generator)
 node_modules/
 
+# opencode (agent working dir — session scratch, images)
+.opencode/
+
 # Backfill script scratch dir (scripts/backfill-releases.sh)
 .backfill-tmp/
 

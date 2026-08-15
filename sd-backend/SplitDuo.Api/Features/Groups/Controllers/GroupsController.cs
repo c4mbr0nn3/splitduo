@@ -5,6 +5,7 @@ using SplitDuo.Api.Features.Common.Dto;
 using SplitDuo.Api.Features.Expenses.Services;
 using SplitDuo.Api.Features.Groups.Dto;
 using SplitDuo.Api.Features.Groups.Services;
+using SplitDuo.Core.Caching;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Persistence;
 
@@ -17,6 +18,7 @@ public class GroupsController(
     IGroupsService groupsService,
     IBalancesService balancesService,
     IUnitOfWork unitOfWork,
+    ICacheInvalidator cacheInvalidator,
     ILogger<GroupsController> logger) : BaseApiController
 {
     [HttpGet]
@@ -69,7 +71,10 @@ public class GroupsController(
         var result = await groupsService.UpdateGroupAsync(groupId, currentUserId.Value, request);
 
         if (result.IsSuccess)
+        {
             await unitOfWork.SaveChangesAsync();
+            await cacheInvalidator.InvalidateGroupAsync(groupId);
+        }
 
         return HandleResult(result, "Group updated successfully");
     }
@@ -86,7 +91,10 @@ public class GroupsController(
         var result = await groupsService.DeleteGroupAsync(groupId, currentUserId.Value);
 
         if (result.IsSuccess)
+        {
             await unitOfWork.SaveChangesAsync();
+            await cacheInvalidator.InvalidateGroupAsync(groupId);
+        }
 
         return HandleResult(result, "Group deleted successfully");
     }
@@ -124,7 +132,10 @@ public class GroupsController(
         var result = await groupsService.AddGroupMemberAsync(groupId, currentUserId.Value, request);
 
         if (result.IsSuccess)
+        {
             await unitOfWork.SaveChangesAsync();
+            await cacheInvalidator.InvalidateGroupAsync(groupId);
+        }
 
         return HandleResult(result, "Group member added successfully");
     }
@@ -139,7 +150,10 @@ public class GroupsController(
         var result = await groupsService.RemoveGroupMemberAsync(groupId, userId, currentUserId.Value);
 
         if (result.IsSuccess)
+        {
             await unitOfWork.SaveChangesAsync();
+            await cacheInvalidator.InvalidateGroupAsync(groupId);
+        }
 
         return HandleResult(result, "Group member removed successfully");
     }
@@ -155,7 +169,10 @@ public class GroupsController(
         var result = await groupsService.ChangeMemberRoleAsync(groupId, userId, currentUserId.Value, request);
 
         if (result.IsSuccess)
+        {
             await unitOfWork.SaveChangesAsync();
+            await cacheInvalidator.InvalidateGroupAsync(groupId);
+        }
 
         return HandleResult(result, "Member role updated successfully");
     }

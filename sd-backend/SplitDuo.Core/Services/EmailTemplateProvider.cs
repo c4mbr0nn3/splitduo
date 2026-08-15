@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Net;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -19,6 +20,7 @@ public class EmailTemplateProvider(IOptions<AppOptions> appOptions, TimeProvider
     private readonly AppOptions _appOptions = appOptions.Value;
     private static readonly Assembly _assembly = typeof(EmailTemplateProvider).Assembly;
     private static readonly Regex SubjectRegex = new(@"^<!--\s*SUBJECT:\s*(.+?)\s*-->", RegexOptions.Compiled);
+    private static readonly ConcurrentDictionary<(string key, string language), string> _templateCache = new();
 
     public Notification Render(ITemplateModel model, string language = "en")
     {
@@ -43,22 +45,25 @@ public class EmailTemplateProvider(IOptions<AppOptions> appOptions, TimeProvider
 
     private string LoadTemplate(string key, string language)
     {
-        var resourceName = $"SplitDuo.Core.EmailTemplates.{language}.{key}.html";
-        var stream = _assembly.GetManifestResourceStream(resourceName);
-
-        if (stream == null && language != "en")
+        return _templateCache.GetOrAdd((key, language), k =>
         {
-            resourceName = $"SplitDuo.Core.EmailTemplates.en.{key}.html";
-            stream = _assembly.GetManifestResourceStream(resourceName);
-        }
+            var resourceName = $"SplitDuo.Core.EmailTemplates.{k.language}.{k.key}.html";
+            var stream = _assembly.GetManifestResourceStream(resourceName);
 
-        if (stream == null)
-        {
-            throw new InvalidOperationException($"Email template not found: {key} for language '{language}'");
-        }
+            if (stream == null && k.language != "en")
+            {
+                resourceName = $"SplitDuo.Core.EmailTemplates.en.{k.key}.html";
+                stream = _assembly.GetManifestResourceStream(resourceName);
+            }
 
-        using var reader = new StreamReader(stream);
-        return reader.ReadToEnd();
+            if (stream == null)
+            {
+                throw new InvalidOperationException($"Email template not found: {k.key} for language '{k.language}'");
+            }
+
+            using var reader = new StreamReader(stream);
+            return reader.ReadToEnd();
+        });
     }
 
     private static (string subject, string body) ParseSubject(string html)
