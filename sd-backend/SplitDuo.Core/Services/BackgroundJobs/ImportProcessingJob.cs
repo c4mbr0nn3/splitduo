@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Quartz;
+using SplitDuo.Core.Caching;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Domain.Enums;
 using SplitDuo.Core.Factories;
@@ -13,7 +14,8 @@ public class ImportProcessingJob(
     ILogger<ImportProcessingJob> logger,
     IUnitOfWork unitOfWork,
     IImportServiceFactory importServiceFactory,
-    TimeProvider timeProvider) : IJob
+    TimeProvider timeProvider,
+    ICacheInvalidator cacheInvalidator) : IJob
 {
     public async Task Execute(IJobExecutionContext context)
     {
@@ -36,6 +38,7 @@ public class ImportProcessingJob(
         logger.LogInformation("Starting import processing for Import: {ImportGuid}", importGuid);
 
         var import = await unitOfWork.Imports
+            .Include(i => i.Group)
             .FirstOrDefaultAsync(i => i.Guid.ToString() == importGuid);
 
         if (import == null)
@@ -122,6 +125,12 @@ public class ImportProcessingJob(
                     "Import completed successfully: {ImportGuid}, Records: {RecordsCount}",
                     import.Guid,
                     result.Value);
+
+                // Invalidate cache for the group whose expenses changed
+                if (import.Group != null)
+                {
+                    await cacheInvalidator.InvalidateGroupAsync(import.Group.Guid.ToString());
+                }
             }
             else
             {

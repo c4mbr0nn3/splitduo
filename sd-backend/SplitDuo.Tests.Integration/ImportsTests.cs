@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Quartz;
 using SplitDuo.Api.Features.Common.Dto;
 using SplitDuo.Api.Features.Expenses.Dto;
+using SplitDuo.Core.Caching;
 using SplitDuo.Core.Domain.Enums;
 using SplitDuo.Core.Dto.Imports;
 using SplitDuo.Core.Factories;
@@ -78,7 +79,8 @@ public class ImportsTests : IntegrationTest
         var unitOfWork = services.GetRequiredService<IUnitOfWork>();
         var factory = services.GetRequiredService<IImportServiceFactory>();
         var timeProvider = services.GetRequiredService<TimeProvider>();
-        return new ImportProcessingJob(logger, unitOfWork, factory, timeProvider);
+        var cacheInvalidator = services.GetRequiredService<ICacheInvalidator>();
+        return new ImportProcessingJob(logger, unitOfWork, factory, timeProvider, cacheInvalidator);
     }
 
     /// <summary>

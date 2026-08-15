@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SplitDuo.Api.Features.Aliases.Dto;
 using SplitDuo.Api.Features.Aliases.Services;
 using SplitDuo.Api.Features.Common.Controllers;
 using SplitDuo.Api.Features.Common.Dto;
+using SplitDuo.Core.Caching;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Persistence;
 
@@ -14,7 +16,8 @@ namespace SplitDuo.Api.Features.Aliases.Controllers;
 [Authorize]
 public class AliasesController(
     IAliasesService aliasesService,
-    IUnitOfWork unitOfWork) : BaseApiController
+    IUnitOfWork unitOfWork,
+    ICacheInvalidator cacheInvalidator) : BaseApiController
 {
     [HttpGet("groups/{groupId}/aliases")]
     public async Task<ActionResult<ApiResponseDto<List<AliasDto>>>> ListAliases(string groupId)
@@ -38,7 +41,10 @@ public class AliasesController(
         var result = await aliasesService.CreateAliasAsync(groupId, currentUserId.Value, request);
 
         if (result.IsSuccess)
+        {
             await unitOfWork.SaveChangesAsync();
+            await cacheInvalidator.InvalidateGroupAsync(groupId);
+        }
 
         return HandleResult(result, "Alias created successfully");
     }
@@ -53,7 +59,10 @@ public class AliasesController(
         var result = await aliasesService.FinalizeAliasSetupAsync(groupId, currentUserId.Value);
 
         if (result.IsSuccess)
+        {
             await unitOfWork.SaveChangesAsync();
+            await cacheInvalidator.InvalidateGroupAsync(groupId);
+        }
 
         return HandleResult(result, "Alias setup finalized successfully");
     }
@@ -69,7 +78,10 @@ public class AliasesController(
         var result = await aliasesService.UpdateAliasAsync(aliasId, currentUserId.Value, request);
 
         if (result.IsSuccess)
+        {
             await unitOfWork.SaveChangesAsync();
+            await cacheInvalidator.InvalidateGroupAsync(result.Value!.GroupId);
+        }
 
         return HandleResult(result, "Alias updated successfully");
     }
@@ -81,10 +93,20 @@ public class AliasesController(
         if (currentUserId == null)
             return HandleResult(NotAuthenticated());
 
+        // Look up the alias's group before deletion for cache invalidation
+        var alias = await unitOfWork.Aliases
+            .Include(a => a.Group)
+            .FirstOrDefaultAsync(a => a.Guid.ToString() == aliasId);
+        var groupGuid = alias?.Group != null ? alias.Group.Guid.ToString() : null;
+
         var result = await aliasesService.DeleteAliasAsync(aliasId, currentUserId.Value);
 
         if (result.IsSuccess)
+        {
             await unitOfWork.SaveChangesAsync();
+            if (groupGuid != null)
+                await cacheInvalidator.InvalidateGroupAsync(groupGuid);
+        }
 
         return HandleResult(result, "Alias deleted successfully");
     }
@@ -100,7 +122,10 @@ public class AliasesController(
         var result = await aliasesService.AssignMemberAsync(aliasId, currentUserId.Value, request);
 
         if (result.IsSuccess)
+        {
             await unitOfWork.SaveChangesAsync();
+            await cacheInvalidator.InvalidateGroupAsync(result.Value!.GroupId);
+        }
 
         return HandleResult(result, "Member assigned to alias successfully");
     }
@@ -112,10 +137,20 @@ public class AliasesController(
         if (currentUserId == null)
             return HandleResult(NotAuthenticated());
 
+        // Look up the alias's group before removal for cache invalidation
+        var alias = await unitOfWork.Aliases
+            .Include(a => a.Group)
+            .FirstOrDefaultAsync(a => a.Guid.ToString() == aliasId);
+        var groupGuid = alias?.Group != null ? alias.Group.Guid.ToString() : null;
+
         var result = await aliasesService.RemoveMemberAsync(aliasId, userId, currentUserId.Value);
 
         if (result.IsSuccess)
+        {
             await unitOfWork.SaveChangesAsync();
+            if (groupGuid != null)
+                await cacheInvalidator.InvalidateGroupAsync(groupGuid);
+        }
 
         return HandleResult(result, "Member removed from alias successfully");
     }

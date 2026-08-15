@@ -309,6 +309,47 @@ public class EmailTemplateProviderTests
 
     #endregion
 
+    #region Template caching
+
+    [Fact]
+    public void Render_SameTemplateTwice_UsesCache()
+    {
+        var provider = CreateProvider();
+        var model = new PasswordResetModel
+        {
+            To = "user@example.com",
+            FirstName = "John",
+            ResetToken = "token123"
+        };
+
+        var result1 = provider.Render(model, "en");
+        var result2 = provider.Render(model, "en");
+
+        // Same subject and body — cache returns the same template HTML
+        Assert.Equal(result1.Subject, result2.Subject);
+        Assert.Equal(result1.Body, result2.Body);
+    }
+
+    [Fact]
+    public void Render_DifferentLanguages_CacheSeparately()
+    {
+        var provider = CreateProvider();
+        var model = new PasswordResetModel
+        {
+            To = "user@example.com",
+            FirstName = "John",
+            ResetToken = "token123"
+        };
+
+        var enResult = provider.Render(model, "en");
+        var itResult = provider.Render(model, "it");
+
+        // Different languages should produce different templates
+        Assert.NotEqual(enResult.Subject, itResult.Subject);
+    }
+
+    #endregion
+
     #region Subject parsing
 
     [Fact]

@@ -4,6 +4,7 @@ using SplitDuo.Api.Features.Common.Controllers;
 using SplitDuo.Api.Features.Common.Dto;
 using SplitDuo.Api.Features.Expenses.Dto;
 using SplitDuo.Api.Features.Expenses.Services;
+using SplitDuo.Core.Caching;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Persistence;
 
@@ -15,6 +16,7 @@ namespace SplitDuo.Api.Features.Expenses.Controllers;
 public class ExpensesController(
     IExpensesService expensesService,
     IUnitOfWork unitOfWork,
+    ICacheInvalidator cacheInvalidator,
     ILogger<ExpensesController> logger) : BaseApiController
 {
     [HttpGet]
@@ -51,7 +53,10 @@ public class ExpensesController(
         var result = await expensesService.CreateExpenseAsync(groupId, currentUserId.Value, request);
 
         if (result.IsSuccess)
+        {
             await unitOfWork.SaveChangesAsync();
+            await cacheInvalidator.InvalidateGroupAsync(groupId);
+        }
 
         return HandleResult(result, "Expense created successfully");
     }
@@ -80,7 +85,10 @@ public class ExpensesController(
         var result = await expensesService.UpdateExpenseAsync(groupId, expenseId, currentUserId.Value, request);
 
         if (result.IsSuccess)
+        {
             await unitOfWork.SaveChangesAsync();
+            await cacheInvalidator.InvalidateGroupAsync(groupId);
+        }
 
         return HandleResult(result, "Expense updated successfully");
     }
@@ -97,7 +105,10 @@ public class ExpensesController(
         var result = await expensesService.DeleteExpenseAsync(groupId, expenseId, currentUserId.Value);
 
         if (result.IsSuccess)
+        {
             await unitOfWork.SaveChangesAsync();
+            await cacheInvalidator.InvalidateGroupAsync(groupId);
+        }
 
         return HandleResult(result, "Expense deleted successfully");
     }

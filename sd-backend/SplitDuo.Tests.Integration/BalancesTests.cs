@@ -11,28 +11,6 @@ public class BalancesTests : IntegrationTest
 {
     public BalancesTests(SplitDuoApiFactory factory) : base(factory) { }
 
-    #region Helpers
-
-    /// <summary>
-    /// Seeds a second user and adds them as a member of the admin's group.
-    /// Returns the second user's id (guid string) for use in expense splits.
-    /// </summary>
-    private async Task<(string email, string userId, HttpClient client)> SeedSecondMemberAsync(
-        HttpClient adminClient, string groupId, string role = "member",
-        string email = "user2@localhost")
-    {
-        var ct = TestContext.Current.CancellationToken;
-        var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
-            email, "changeme123", "Second", "User");
-        await adminClient.PostAsJsonAsync(
-            $"/api/v1/groups/{groupId}/members", new { userEmail = memberEmail, role }, ct);
-        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
-        var member = await memberClient.GetCurrentUserAsync();
-        return (memberEmail, member.Id, memberClient);
-    }
-
-    #endregion
-
     #region GetBalances — individual mode
 
     [Fact]

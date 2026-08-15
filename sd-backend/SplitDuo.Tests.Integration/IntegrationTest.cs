@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using SplitDuo.Api.Features.Authentication.Dto;
 using SplitDuo.Api.Features.Common.Dto;
+using SplitDuo.Tests.Integration.Support;
 
 namespace SplitDuo.Tests.Integration;
 
@@ -29,6 +30,24 @@ public abstract class IntegrationTest : IAsyncLifetime
     public virtual async ValueTask DisposeAsync()
     {
         await Factory.ResetDatabaseAsync();
+    }
+
+    /// <summary>
+    /// Seeds a second user, adds them to the group as a member, and returns an
+    /// authenticated client for them.
+    /// </summary>
+    protected async Task<(string email, string userId, HttpClient client)> SeedSecondMemberAsync(
+        HttpClient adminClient, string groupId, string role = "member",
+        string email = "user2@localhost")
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
+            email, "changeme123", "Second", "User");
+        await adminClient.PostAsJsonAsync(
+            $"/api/v1/groups/{groupId}/members", new { userEmail = memberEmail, role }, ct);
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
+        var member = await memberClient.GetCurrentUserAsync();
+        return (memberEmail, member.Id, memberClient);
     }
 
     /// <summary>
