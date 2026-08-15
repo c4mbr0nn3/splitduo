@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/logo.png" alt="SplitDuo logo" width="120">
+</p>
+
 # SplitDuo
 
 [![build status](https://gitlab.com/j1mm0/splitduo/badges/main/pipeline.svg)](https://gitlab.com/j1mm0/splitduo/-/pipelines)
