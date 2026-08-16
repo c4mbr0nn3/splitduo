@@ -1,8 +1,11 @@
 <template>
   <UButton
-    icon="i-lucide-scan"
+    icon="i-lucide-scan-line"
     size="sm"
-    variant="outline"
+    color="primary"
+    variant="soft"
+    :aria-label="$t('expenses.scanReceipt')"
+    :title="$t('expenses.scanReceipt')"
     :loading="isScanning"
     @click="fileInput?.click()"
   >
