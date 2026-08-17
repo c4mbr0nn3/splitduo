@@ -544,6 +544,20 @@
     "you": "you",
     "loading": "Loading stats..."
   },
+  "settle": {
+    "title": "Settle Up",
+    "titleForGroup": "Settle Up — {name}",
+    "loading": "Loading settlements...",
+    "allSettled": "All settled up",
+    "allSettledSubtitle": "No one owes anyone in this group",
+    "yourSettlements": "Your settlements",
+    "otherSettlements": "Other settlements",
+    "youOweLabel": "You owe",
+    "owedToYou": "Owed to you",
+    "someone": "someone",
+    "summaryLine": "{count} settlements · {amount} € total",
+    "viewAll": "View settlements"
+  },
   "changePassword": {
     "title": "Change Password",
     "subtitle": "Update your account password",
