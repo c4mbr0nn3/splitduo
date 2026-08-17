@@ -14,6 +14,7 @@ stages:
 
 lint:
   stage: verify
+  interruptible: true
   image: node:22-alpine
   before_script:
     - corepack enable && corepack prepare pnpm@11.11.0 --activate
@@ -31,6 +32,7 @@ lint:
 
 typecheck:
   stage: verify
+  interruptible: true
   image: node:22-alpine
   before_script:
     - corepack enable && corepack prepare pnpm@11.11.0 --activate
@@ -48,6 +50,7 @@ typecheck:
 
 frontend-unit-tests:
   stage: test
+  interruptible: true
   image: node:22-alpine
   before_script:
     - corepack enable && corepack prepare pnpm@11.11.0 --activate
@@ -70,6 +73,7 @@ frontend-unit-tests:
 
 frontend-contract:
   stage: test
+  interruptible: true
   image: node:22-alpine
   before_script:
     - corepack enable && corepack prepare pnpm@11.11.0 --activate
@@ -87,6 +91,7 @@ frontend-contract:
 
 unit-tests:
   stage: test
+  interruptible: true
   image: mcr.microsoft.com/dotnet/sdk:10.0
   script:
     - cd sd-backend

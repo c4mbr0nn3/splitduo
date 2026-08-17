@@ -4,6 +4,10 @@
 # stages and includes the per-concern job files. Add new CI concerns as new
 # files under ci/ and include them here.
 
+workflow:
+  auto_cancel:
+    on_new_commit: interruptible
+
 stages:
   - verify
   - test

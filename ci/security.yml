@@ -36,6 +36,7 @@ stages:
 
 security:trivy:
   stage: verify
+  interruptible: true
   image:
     name: docker.io/aquasec/trivy:0.73.0@sha256:7cced7cae583819fc7806d4cbc0dbbc7cad18b99f7d3e235192e6da8c091045c
     entrypoint: [""]
@@ -53,6 +54,7 @@ security:trivy:
 
 security:trufflehog:
   stage: verify
+  interruptible: true
   image:
     name: docker.io/trufflesecurity/trufflehog:3.96.0@sha256:aa821cf4ace8861c7d096d83818cdf7bb9719028a52d37a52eaad44086a52577
     entrypoint: [""]
