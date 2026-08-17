@@ -43,12 +43,14 @@
           variant="outline"
           size="sm"
         >{{ paymentModeName }}</UBadge>
-        <span
-          class="text-xs text-dimmed truncate max-w-[12rem] sm:max-w-[16rem]"
-          :title="splitLabel"
-        >
-          {{ splitLabel }}
-        </span>
+        <div class="w-full">
+          <span
+            class="text-xs text-dimmed truncate max-w-[12rem] sm:max-w-[16rem]"
+            :title="splitLabel"
+          >
+            {{ splitLabel }}
+          </span>
+        </div>
       </div>
     </NuxtLink>
     <div class="flex items-center justify-end -mt-2">
@@ -69,13 +71,16 @@
 </template>
 
 <script setup lang="ts">
-import type { Expense, User } from '~/types/domain'
+import type { DeepReadonly } from 'vue'
+import type { Alias, Expense, User } from '~/types/domain'
 
 const { t } = useI18n()
 
 interface Props {
   expense: Expense
   currentUser?: User | null
+  currentUserAliasId?: string | null
+  aliases?: DeepReadonly<Alias[]>
 }
 const props = withDefaults(defineProps<Props>(), {
   currentUser: null,
@@ -119,6 +124,11 @@ const categoryColor = computed(() => {
 })
 
 const youOwe = computed(() => {
+  if (props.currentUserAliasId && props.aliases?.length) {
+    const myAlias = props.aliases.find(a => a.id === props.currentUserAliasId)
+    const paidByMyAlias = myAlias?.members?.some(m => m.id === props.expense.paidByUserId)
+    return !paidByMyAlias
+  }
   return props.currentUser && props.expense.paidByUserId !== props.currentUser.id
 })
 

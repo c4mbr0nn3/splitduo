@@ -83,6 +83,8 @@
                 :key="expense.id"
                 :expense="expense"
                 :current-user="user"
+                :current-user-alias-id="currentUserAliasId"
+                :aliases="aliases"
                 @expense-deleted="onExpenseDeleted"
               />
             </div>
