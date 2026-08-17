@@ -29,7 +29,8 @@ aggregate-coverage:
       when: never
     - if: $CI_COMMIT_BRANCH == "main"
       when: on_success
-    - when: manual
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: manual
       allow_failure: true
   before_script:
     - dotnet tool install --global dotnet-reportgenerator-globaltool
