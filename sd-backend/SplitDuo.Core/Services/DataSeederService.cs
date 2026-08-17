@@ -162,8 +162,9 @@ public class DataSeederService(IServiceProvider serviceProvider, ILogger<DataSee
                 .Category(category).PaymentMode(paymentMode)
                 .Build();
             var share3 = Math.Round(amount / 3, 2, MidpointRounding.AwayFromZero);
+            var remainder3 = amount - share3 * 3; // add remainder to first member to satisfy sum-to-total
             await AddExpenseWithSplitsAsync(context, expense, [
-                (alice.Id, share3),
+                (alice.Id, share3 + remainder3),
                 (clara.Id, share3),
                 (sam.Id, share3),
             ]);
@@ -207,11 +208,13 @@ public class DataSeederService(IServiceProvider serviceProvider, ILogger<DataSee
                 .Date(tripStart.AddDays(dayOffset))
                 .Category(category).PaymentMode(paymentMode)
                 .Build();
+            var share4 = Math.Round(amount / 4, 2, MidpointRounding.AwayFromZero);
+            var remainder4 = amount - share4 * 4; // add remainder to first member to satisfy sum-to-total
             await AddExpenseWithSplitsAsync(context, expense, [
-                (alice.Id, amount / 4),
-                (bob.Id, amount / 4),
-                (clara.Id, amount / 4),
-                (jamie.Id, amount / 4),
+                (alice.Id, share4 + remainder4),
+                (bob.Id, share4),
+                (clara.Id, share4),
+                (jamie.Id, share4),
             ]);
         }
 

@@ -512,10 +512,10 @@ public class BalancesService(
     }
 
     /// <summary>
-    /// Generates alias-level settlement suggestions using the same greedy algorithm
-    /// as the per-user version, but operating on AliasBalanceDto.
+    /// Generates alias-level settlement suggestions using the greedy algorithm.
     /// </summary>
-    private static List<AliasSettlementSuggestionDto> GenerateAliasSettlementSuggestions(List<AliasBalanceDto> balances)
+    private static List<AliasSettlementSuggestionDto> GenerateAliasSettlementSuggestions(
+        List<AliasBalanceDto> balances)
     {
         var suggestions = new List<AliasSettlementSuggestionDto>();
 

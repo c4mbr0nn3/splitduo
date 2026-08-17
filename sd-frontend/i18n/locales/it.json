@@ -544,6 +544,20 @@
     "you": "tu",
     "loading": "Caricamento statistiche..."
   },
+  "settle": {
+    "title": "Salda i conti",
+    "titleForGroup": "Salda i conti — {name}",
+    "loading": "Caricamento saldi...",
+    "allSettled": "Tutto saldato",
+    "allSettledSubtitle": "Nessuno deve nulla in questo gruppo",
+    "yourSettlements": "I tuoi saldi",
+    "otherSettlements": "Altri saldi",
+    "youOweLabel": "Devi a",
+    "owedToYou": "Ti spetta",
+    "someone": "qualcuno",
+    "summaryLine": "{count} saldi · {amount} € totali",
+    "viewAll": "Vedi i saldi"
+  },
   "changePassword": {
     "title": "Cambia Password",
     "subtitle": "Aggiorna la password del tuo account",

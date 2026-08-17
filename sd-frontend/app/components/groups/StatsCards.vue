@@ -41,29 +41,28 @@
       </div>
 
       <div
-        v-if="suggestion"
-        class="flex items-center gap-3"
+        v-if="groupId"
+        class="flex items-center gap-3 pt-4 border-t border-default"
       >
-        <div
-          class="w-10 h-10 rounded-full flex items-center justify-center"
-          :class="suggestion.isOwed ? 'bg-success/10' : 'bg-warning/10'"
-        >
+        <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
           <UIcon
             name="i-lucide-hand-coins"
-            class="w-5 h-5"
-            :class="suggestion.isOwed ? 'text-success' : 'text-warning'"
+            class="w-5 h-5 text-primary"
           />
         </div>
-        <div>
+        <div class="flex-1">
           <p class="text-sm text-muted">
             {{ $t('stats.settleUp') }}
           </p>
-          <p
-            class="font-bold text-xl sd-tabular"
-            :class="suggestion.isOwed ? 'text-success' : 'text-warning'"
+          <UButton
+            :to="`/groups/${groupId}/settle`"
+            variant="link"
+            color="primary"
+            class="p-0 h-auto font-bold text-lg"
+            trailing-icon="i-lucide-arrow-right"
           >
-            {{ suggestion.label }}
-          </p>
+            {{ $t('settle.viewAll') }}
+          </UButton>
         </div>
       </div>
     </div>
@@ -71,21 +70,16 @@
 </template>
 
 <script setup lang="ts">
-interface SuggestionInfo {
-  label: string
-  isOwed: boolean
-}
-
 interface Props {
   totalExpenses?: number
   groupTotal?: number
-  suggestion?: SuggestionInfo | null
+  groupId?: string | null
   isAliasMode?: boolean
 }
 withDefaults(defineProps<Props>(), {
   totalExpenses: 0,
   groupTotal: 0,
-  suggestion: null,
+  groupId: null,
   isAliasMode: false,
 })
 </script>

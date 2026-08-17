@@ -14,7 +14,7 @@
           class="lg:col-span-3"
           :total-expenses="Number(expensePagination.total)"
           :group-total="getGroupTotal()"
-          :suggestion="mySuggestion"
+          :group-id="props.groupId"
           :is-alias-mode="isAliasMode"
         />
       </div>
@@ -111,7 +111,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Expense, AliasBalance, NormalBalance, AliasSettlementSuggestion, BalanceSuggestion } from '~/types/domain'
+import type { Expense, AliasBalance, NormalBalance } from '~/types/domain'
 import type { ExpenseFilters } from '~/composables/resources/useExpenses'
 
 const { t } = useI18n()
@@ -189,44 +189,6 @@ const mySummary = computed(() => {
         totalOwed: Number(my.totalOwed) || 0,
       }
     : null
-})
-
-const userMap = computed(() => {
-  if (!summary.value?.balances) return {} as Record<string, { firstName?: string, lastName?: string | null }>
-  const normalBalances = summary.value.balances as NormalBalance[]
-  return Object.fromEntries(normalBalances.map(b => [b.userId, b.user]))
-})
-
-const mySuggestion = computed(() => {
-  if (!summary.value?.suggestions?.length) return null
-
-  if (isAliasMode.value) {
-    const aliasId = currentUserAliasId.value
-    if (!aliasId) return null
-    const aliasSuggestions = summary.value.suggestions as AliasSettlementSuggestion[]
-    const s = aliasSuggestions.find(el => el.fromAliasId === aliasId || el.toAliasId === aliasId)
-    if (!s) return null
-    return {
-      label: s.fromAliasId === aliasId
-        ? `${t('stats.yourAlias', { name: s.fromAliasName })} ${t('stats.owes')} ${s.toAliasName} ${formatAmount(Number(s.amount))} €`
-        : `${s.fromAliasName} ${t('stats.owes')} ${t('stats.yourAlias', { name: s.toAliasName })} ${formatAmount(Number(s.amount))} €`,
-      isOwed: s.toAliasId === aliasId,
-    }
-  }
-
-  if (!user.value?.id) return null
-  const id = user.value.id
-  const normalSuggestions = summary.value.suggestions as BalanceSuggestion[]
-  const s = normalSuggestions.find(el => el.fromUserId === id || el.toUserId === id)
-  if (!s) return null
-  const from = userMap.value[s.fromUserId]
-  const to = userMap.value[s.toUserId]
-  return {
-    label: s.fromUserId === id
-      ? `${t('stats.youOwe')} ${to?.firstName || 'someone'} ${formatAmount(Number(s.amount))} €`
-      : `${from?.firstName || 'someone'} ${t('stats.owes')} ${t('stats.you')} ${formatAmount(Number(s.amount))} €`,
-    isOwed: s.toUserId === id,
-  }
 })
 
 const categoryOptions = computed(() => [
