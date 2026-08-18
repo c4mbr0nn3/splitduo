@@ -4,6 +4,24 @@ All notable changes to SplitDuo will be documented in this file.
 
 Generated with [git-cliff](https://git-cliff.org) from Conventional Commits.
 
+## [1.14.0] - 2026-08-18
+
+### Bug Fixes
+
+- *(expenses)* Correct alias-mode dot color and split-among layout
+- *(ci)* Scope aggregate-coverage manual rule to MR events only
+
+### Build System
+
+- Mark verify and security jobs interruptible to save runner minutes
+
+### Features
+
+- *(settle)* Add dedicated settle page
+
+### Styling
+
+- *(expenses)* Make AI scan button more discoverable
 ## [1.13.0] - 2026-08-15
 
 ### Bug Fixes
