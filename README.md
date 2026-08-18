@@ -7,6 +7,10 @@
 [![build status](https://gitlab.com/j1mm0/splitduo/badges/main/pipeline.svg)](https://gitlab.com/j1mm0/splitduo/-/pipelines)
 [![coverage report](https://gitlab.com/j1mm0/splitduo/badges/main/coverage.svg)](https://gitlab.com/j1mm0/splitduo/-/graphs/main/charts)
 [![latest version](https://img.shields.io/gitlab/v/release/j1mm0/splitduo?label=latest%20version)](https://gitlab.com/j1mm0/splitduo/-/releases)
+[![docker pulls](https://img.shields.io/docker/pulls/j1mm0/splitduo)](https://hub.docker.com/r/j1mm0/splitduo)
+[![docker image size](https://img.shields.io/docker/image-size/j1mm0/splitduo/latest)](https://hub.docker.com/r/j1mm0/splitduo/tags)
+[![docker version](https://img.shields.io/docker/v/j1mm0/splitduo?label=docker)](https://hub.docker.com/r/j1mm0/splitduo/tags)
+[![license](https://img.shields.io/github/license/c4mbr0nn3/splitduo)](LICENSE)
 
 **Primary repo:** [gitlab.com/j1mm0/splitduo](https://gitlab.com/j1mm0/splitduo) · **GitHub mirror:** [github.com/c4mbr0nn3/splitduo](https://github.com/c4mbr0nn3/splitduo) — development, issues, and releases happen on GitLab; GitHub is kept in sync for visibility and stars.
 
