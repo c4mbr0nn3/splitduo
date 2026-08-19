@@ -107,11 +107,13 @@ public class SplitDuoAliasImportsService(
 
             if (!group.UseAliases)
             {
+                await UnitOfWork.RollbackTransactionAsync();
                 return Result<int>.Conflict("This group is not in alias mode");
             }
 
             if (!group.AliasSetupFinalized)
             {
+                await UnitOfWork.RollbackTransactionAsync();
                 return Result<int>.Conflict("Alias setup must be finalized before importing");
             }
 

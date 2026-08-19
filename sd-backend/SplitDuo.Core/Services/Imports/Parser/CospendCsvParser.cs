@@ -1,5 +1,6 @@
 using System.Globalization;
 using CsvHelper;
+using CsvHelper.Configuration;
 using Microsoft.AspNetCore.Http;
 using SplitDuo.Core.Dto.Imports;
 
@@ -57,11 +58,12 @@ public static class CospendCsvParser
     private static async Task<CospendParseResult> ParseAsync(Stream stream, List<CospendSection> includeSections)
     {
         using var reader = new StreamReader(stream);
-        using var csvReader = new CsvReader(reader, CultureInfo.InvariantCulture);
-
-        // Configure CsvHelper to handle missing fields gracefully
-        csvReader.Context.Configuration.MissingFieldFound = null;
-        csvReader.Context.Configuration.HeaderValidated = null;
+        var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+        {
+            MissingFieldFound = null,
+            HeaderValidated = null,
+        };
+        using var csvReader = new CsvReader(reader, config);
 
         var members = new List<CospendMemberDto>();
         var categories = new List<CospendCategoryDto>();

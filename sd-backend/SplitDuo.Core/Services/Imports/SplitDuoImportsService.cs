@@ -88,6 +88,7 @@ public class SplitDuoImportsService(
             if (mappingConfig == null)
             {
                 Logger.LogError("No mapping configuration found for import {ImportId}", importId);
+                await UnitOfWork.RollbackTransactionAsync();
                 return Result<int>.BadRequest("No mapping configuration found");
             }
 

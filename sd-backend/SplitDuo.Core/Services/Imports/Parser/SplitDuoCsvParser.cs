@@ -1,5 +1,6 @@
 using System.Globalization;
 using CsvHelper;
+using CsvHelper.Configuration;
 using Microsoft.AspNetCore.Http;
 using SplitDuo.Core.Dto.Imports;
 
@@ -23,11 +24,12 @@ public static class SplitDuoCsvParser
     private static async Task<SplitDuoParseResult> ParseAsync(Stream stream)
     {
         using var reader = new StreamReader(stream);
-        using var csvReader = new CsvReader(reader, CultureInfo.InvariantCulture);
-
-        // Configure CsvHelper to handle missing fields gracefully
-        csvReader.Context.Configuration.MissingFieldFound = null;
-        csvReader.Context.Configuration.HeaderValidated = null;
+        var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+        {
+            MissingFieldFound = null,
+            HeaderValidated = null,
+        };
+        using var csvReader = new CsvReader(reader, config);
 
         var expenses = new List<SplitDuoExpenseDto>();
         var uniqueEmails = new HashSet<string>();
