@@ -51,6 +51,28 @@ public abstract class IntegrationTest : IAsyncLifetime
     }
 
     /// <summary>
+    /// Seeds a two-member group (admin + u2@localhost) and returns
+    /// (adminClient, groupId, adminId, user2Id).
+    /// </summary>
+    protected async Task<(HttpClient adminClient, string groupId, string adminId, string user2Id)>
+        SetupGroupWithTwoMembersAsync()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var adminClient = await CreateAuthenticatedClientAsync();
+        var group = await adminClient.CreateGroupAsync();
+        var admin = await adminClient.GetCurrentUserAsync();
+
+        var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
+            "u2@localhost", "changeme123", "Second", "User");
+        await adminClient.PostAsJsonAsync(
+            $"/api/v1/groups/{group.Id}/members", new { userEmail = memberEmail, role = "member" }, ct);
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
+        var user2 = await memberClient.GetCurrentUserAsync();
+
+        return (adminClient, group.Id, admin.Id, user2.Id);
+    }
+
+    /// <summary>
     /// Logs in via the real /auth/login endpoint and returns the JWT.
     /// Rate limiter is disabled in the test host, so repeated logins are safe.
     /// </summary>

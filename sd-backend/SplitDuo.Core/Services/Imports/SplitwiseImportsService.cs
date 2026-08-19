@@ -95,6 +95,7 @@ public class SplitwiseImportsService(
 
             if (group.UseAliases)
             {
+                await UnitOfWork.RollbackTransactionAsync();
                 return Result<int>.Conflict("This group uses alias mode — use the SplitDuo Alias import type");
             }
 
