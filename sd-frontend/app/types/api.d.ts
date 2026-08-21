@@ -1426,6 +1426,134 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/groups/{groupId}/expenses/{expenseId}/attachments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                    expenseId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfListOfExpenseAttachmentDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfListOfExpenseAttachmentDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfListOfExpenseAttachmentDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                    expenseId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        file?: components["schemas"]["IFormFile"];
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfExpenseAttachmentDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfExpenseAttachmentDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfExpenseAttachmentDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/{groupId}/expenses/{expenseId}/attachments/{attachmentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                    expenseId: string;
+                    attachmentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                    expenseId: string;
+                    attachmentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/categories": {
         parameters: {
             query?: never;
@@ -2326,6 +2454,12 @@ export interface components {
             message?: null | string;
             error?: null | components["schemas"]["ApiErrorDto"];
         };
+        ApiResponseDtoOfExpenseAttachmentDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["ExpenseAttachmentDto"];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
         ApiResponseDtoOfExpenseDto: {
             success?: boolean;
             data?: null | components["schemas"]["ExpenseDto"];
@@ -2377,6 +2511,12 @@ export interface components {
         ApiResponseDtoOfListOfCategoryDto: {
             success?: boolean;
             data?: null | components["schemas"]["CategoryDto"][];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfListOfExpenseAttachmentDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["ExpenseAttachmentDto"][];
             message?: null | string;
             error?: null | components["schemas"]["ApiErrorDto"];
         };
@@ -2556,6 +2696,18 @@ export interface components {
             /** Format: double */
             splitPercentage?: null | number | string;
         };
+        ExpenseAttachmentDto: {
+            id?: string;
+            expenseId?: string;
+            filenameOriginal?: string;
+            mimeType?: string;
+            /** Format: int64 */
+            sizeBytes?: number | string;
+            /** Format: int64 */
+            createdAt?: number | string;
+            /** Format: int64 */
+            updatedAt?: number | string;
+        };
         ExpenseDto: {
             id?: string;
             groupId?: string;
@@ -2572,6 +2724,8 @@ export interface components {
             paymentModeId?: number | string;
             splits?: components["schemas"]["ExpenseSplitDto"][];
             aliasSplits?: null | components["schemas"]["ExpenseAliasSplitDto"][];
+            /** Format: int32 */
+            attachmentCount?: number | string;
             /** Format: int64 */
             createdAt?: number | string;
             /** Format: int64 */

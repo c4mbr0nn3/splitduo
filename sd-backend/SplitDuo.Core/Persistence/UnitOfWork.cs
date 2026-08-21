@@ -11,6 +11,7 @@ public interface IUnitOfWork : IDisposable, IAsyncDisposable
     DbSet<GroupMember> GroupMembers { get; }
     DbSet<Expense> Expenses { get; }
     DbSet<ExpenseSplit> ExpenseSplits { get; }
+    DbSet<ExpenseAttachment> ExpenseAttachments { get; }
     DbSet<RefreshToken> RefreshTokens { get; }
     DbSet<Import> Imports { get; }
     DbSet<Notification> Notifications { get; }
@@ -35,6 +36,7 @@ public class UnitOfWork(AppDbContext context) : IUnitOfWork
     public DbSet<GroupMember> GroupMembers => context.GroupMembers;
     public DbSet<Expense> Expenses => context.Expenses;
     public DbSet<ExpenseSplit> ExpenseSplits => context.ExpenseSplits;
+    public DbSet<ExpenseAttachment> ExpenseAttachments => context.ExpenseAttachments;
     public DbSet<RefreshToken> RefreshTokens => context.RefreshTokens;
     public DbSet<Import> Imports => context.Imports;
     public DbSet<Notification> Notifications => context.Notifications;

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+    <xsd:element name="root" msdata:IsDataSet="true"/>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="ExpenseNotFound" xml:space="preserve"><value>Spesa non trovata</value></data>
+  <data name="GroupNotFound" xml:space="preserve"><value>Gruppo non trovato</value></data>
+  <data name="AttachmentNotFound" xml:space="preserve"><value>Allegato non trovato</value></data>
+  <data name="AccessNotAllowed" xml:space="preserve"><value>Non hai accesso a questo gruppo</value></data>
+  <data name="UserNotAuthenticated" xml:space="preserve"><value>Utente non autenticato</value></data>
+  <data name="InvalidGroupIdFormat" xml:space="preserve"><value>Formato ID gruppo non valido</value></data>
+  <data name="InvalidExpenseIdFormat" xml:space="preserve"><value>Formato ID spesa non valido</value></data>
+  <data name="InvalidAttachmentIdFormat" xml:space="preserve"><value>Formato ID allegato non valido</value></data>
+  <data name="NoFileUploaded" xml:space="preserve"><value>Nessun file caricato</value></data>
+  <data name="FileSizeExceeded" xml:space="preserve"><value>La dimensione del file supera il massimo consentito di 10MB</value></data>
+  <data name="FileTypeNotAllowed" xml:space="preserve"><value>Tipo di file non consentito. Accettati: .jpg, .jpeg, .png, .webp, .heic, .heif, .pdf</value></data>
+  <data name="FileContentMismatch" xml:space="preserve"><value>Il contenuto del file non corrisponde al tipo dichiarato</value></data>
+  <data name="DuplicateAttachment" xml:space="preserve"><value>Questo file è già stato allegato a questa spesa</value></data>
+  <data name="AttachmentLimitReached" xml:space="preserve"><value>Raggiunto il limite massimo di 5 allegati per spesa</value></data>
+</root>

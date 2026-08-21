@@ -9,6 +9,8 @@
     @submit="onSubmit"
     @add-more="onAddMore"
     @cancel="goBack"
+    @add-attachment="onAddAttachment"
+    @remove-attachment="onRemoveAttachment"
   />
 </template>
 
@@ -30,8 +32,9 @@ interface ExpenseFormModel {
 }
 
 const { t } = useI18n()
+const { showError } = useNotifications()
 const route = useRoute()
-const { clearReceiptImage } = useReceiptScan()
+const { receiptImageUrl, clearReceiptImage } = useReceiptScan()
 
 onUnmounted(() => clearReceiptImage())
 
@@ -55,6 +58,7 @@ const getInitialFormData = (): ExpenseFormModel => ({
 
 // Form data state
 const expenseFormData = ref(getInitialFormData())
+const stashedFiles = ref<File[]>([])
 
 // Loading states
 const isCreating = ref(false)
@@ -63,6 +67,48 @@ const isCreating = ref(false)
 // groupId isn't known until submit, so bridge via a reactive ref.
 const activeGroupId = ref('')
 const { createExpense } = useExpenses(activeGroupId)
+
+// useExpenseAttachments must also be called at setup scope (it uses useApi/
+// useI18n/useNotifications). groupId/expenseId aren't known until after
+// createExpense resolves, so bridge via reactive refs — uploadAttachment
+// reads them at call time, not construction time.
+const activeExpenseId = ref('')
+const attachmentsComposable = useExpenseAttachments(activeGroupId, activeExpenseId)
+
+// Upload all attachments (scanned receipt + manually stashed files) in
+// parallel. Uses Promise.allSettled so a single failure doesn't reject the
+// whole batch — each file is independent and non-fatal (the expense is
+// already created).
+const uploadAllAttachments = async (): Promise<void> => {
+  const files: File[] = []
+
+  // Collect scanned receipt (if any) as a File
+  if (receiptImageUrl.value) {
+    try {
+      const blob = await fetch(receiptImageUrl.value).then(r => r.blob())
+      files.push(new File([blob], 'receipt.jpg', { type: blob.type }))
+    }
+    catch {
+      showError(t('toasts.attachments.autoUploadFailed'))
+    }
+  }
+
+  // Add manually stashed files
+  files.push(...stashedFiles.value)
+
+  if (files.length === 0) return
+
+  const results = await Promise.allSettled(
+    files.map(f => attachmentsComposable.uploadAttachment(f)),
+  )
+
+  const failures = results.filter(r => r.status === 'rejected')
+  if (failures.length > 0) {
+    showError(t('toasts.attachments.autoUploadFailed'))
+  }
+
+  stashedFiles.value = []
+}
 
 // Form submission
 const onSubmit = async (payload: { groupId: string, expenseData: Record<string, unknown> }) => {
@@ -73,6 +119,11 @@ const onSubmit = async (payload: { groupId: string, expenseData: Record<string, 
     const createdExpense = await createExpense(expenseData as CreateExpenseRequest)
 
     if (createdExpense) {
+      // Auto-attach the scanned receipt and any manually selected files to the
+      // newly created expense. Non-fatal: the expense is already created, so
+      // a failure only shows a toast.
+      activeExpenseId.value = createdExpense.id
+      await uploadAllAttachments()
       clearReceiptImage()
       await navigateTo(`/groups/${groupId}`)
     }
@@ -93,6 +144,8 @@ const onAddMore = async (payload: { groupId: string, expenseData: Record<string,
     const createdExpense = await createExpense(expenseData as CreateExpenseRequest)
 
     if (createdExpense) {
+      activeExpenseId.value = createdExpense.id
+      await uploadAllAttachments()
       clearReceiptImage()
       const resetData = getInitialFormData()
       resetData.groupId = groupId
@@ -104,6 +157,17 @@ const onAddMore = async (payload: { groupId: string, expenseData: Record<string,
   }
   finally {
     isCreating.value = false
+  }
+}
+
+const onAddAttachment = (file: File): void => {
+  stashedFiles.value.push(file)
+}
+
+const onRemoveAttachment = (file: File): void => {
+  const index = stashedFiles.value.findIndex(f => f.name === file.name && f.size === file.size)
+  if (index >= 0) {
+    stashedFiles.value.splice(index, 1)
   }
 }
 

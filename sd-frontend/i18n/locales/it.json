@@ -289,7 +289,21 @@
     "atLeastOneSplit": "Almeno un {entity} deve essere incluso nella divisione",
     "splitTotalMustEqual": "Il totale della divisione ({total}) deve essere uguale all'importo della spesa ({amount})",
     "person": "persona",
-    "alias": "sottogruppo"
+    "alias": "sottogruppo",
+    "attachments": {
+      "title": "Ricevute",
+      "empty": "Nessuna ricevuta allegata",
+      "add": "Aggiungi ricevuta",
+      "removeFile": "Rimuovi file selezionato",
+      "selectedFiles": "File selezionati ({count})",
+      "maxReached": "Raggiunto il limite di 5 ricevute",
+      "deleteTitle": "Elimina ricevuta",
+      "deleteConfirm": "Questa azione non può essere annullata.",
+      "deleteContent": "La ricevuta verrà eliminata definitivamente. Sei sicuro?",
+      "deleteButton": "Elimina ricevuta",
+      "download": "Scarica",
+      "hasAttachments": "Ha ricevute allegate"
+    }
   },
   "members": {
     "title": "Membri",
@@ -603,6 +617,15 @@
       "updateFailed": "Impossibile aggiornare la spesa",
       "deleted": "Spesa eliminata con successo",
       "deleteFailed": "Impossibile eliminare la spesa"
+    },
+    "attachments": {
+      "loadFailed": "Caricamento ricevute fallito",
+      "uploaded": "Ricevuta caricata",
+      "uploadFailed": "Caricamento ricevuta fallito",
+      "downloadFailed": "Download ricevuta fallito",
+      "deleted": "Ricevuta eliminata",
+      "deleteFailed": "Eliminazione ricevuta fallita",
+      "autoUploadFailed": "Impossibile allegare la ricevuta automaticamente. Puoi caricarla manualmente."
     },
     "imports": {
       "invalidFormat": "Formato {fieldName} non valido ricevuto dal server",

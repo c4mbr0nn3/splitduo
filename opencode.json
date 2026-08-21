@@ -19,6 +19,11 @@
         "GITLAB_PERSONAL_ACCESS_TOKEN": "{env:GITLAB_PERSONAL_ACCESS_TOKEN}",
         "GITLAB_API_URL": "{env:GITLAB_API_URL}"
       }
+    },
+    "chrome-devtools": {
+      "type": "local",
+      "command": ["npx", "-y", "chrome-devtools-mcp@latest", "--no-usage-statistics", "--executablePath=/usr/bin/chromium-browser"],
+      "enabled": true
     }
   }
 }

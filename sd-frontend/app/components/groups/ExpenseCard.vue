@@ -43,6 +43,14 @@
           variant="outline"
           size="sm"
         >{{ paymentModeName }}</UBadge>
+        <UBadge
+          v-if="attachmentCount > 0"
+          color="neutral"
+          variant="outline"
+          size="sm"
+          icon="i-lucide-paperclip"
+          :title="t('expenses.attachments.hasAttachments')"
+        >{{ attachmentCount }}</UBadge>
         <div class="w-full">
           <span
             class="text-xs text-dimmed truncate max-w-[12rem] sm:max-w-[16rem]"
@@ -145,6 +153,8 @@ const splitCount = computed(() => {
   if (isAliasSplit.value) return (props.expense.aliasSplits || []).length
   return props.expense.splits?.length || 0
 })
+
+const attachmentCount = computed(() => Number(props.expense.attachmentCount || 0))
 
 const splitLabel = computed(() => {
   if (!isAliasSplit.value) return t('expenses.peopleCount', { count: splitCount.value })

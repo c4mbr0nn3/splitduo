@@ -110,6 +110,13 @@ public class ExpensesService(
 
         var splitsByExpense = splits.GroupBy(s => s.ExpenseId).ToDictionary(g => g.Key, g => g.ToList());
 
+        // Load attachment counts for each expense (batch load, avoids N+1)
+        var attachmentCounts = await unitOfWork.ExpenseAttachments
+            .Where(ea => expenseIds.Contains(ea.ExpenseId))
+            .GroupBy(ea => ea.ExpenseId)
+            .Select(g => new { ExpenseId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(g => g.ExpenseId, g => g.Count);
+
         // Load alias splits for alias-mode groups
         List<ExpenseAliasSplit>? aliasSplits = null;
         Dictionary<int, List<ExpenseAliasSplit>>? aliasSplitsByExpense = null;
@@ -137,7 +144,9 @@ public class ExpensesService(
                 expenseAliasSplits = aliasSplitsByExpense[expense.Id];
             }
 
-            return new ExpenseDto(expense, expenseSplits, expenseAliasSplits);
+            var attachmentCount = attachmentCounts.ContainsKey(expense.Id) ? attachmentCounts[expense.Id] : 0;
+
+            return new ExpenseDto(expense, expenseSplits, expenseAliasSplits, attachmentCount);
         }).ToList();
 
         var pagination = new PaginationDto
@@ -468,7 +477,11 @@ public class ExpensesService(
                 .ToListAsync();
         }
 
-        var expenseDto = new ExpenseDto(expense, splits, aliasSplits);
+        // Load attachment count
+        var attachmentCount = await unitOfWork.ExpenseAttachments
+            .CountAsync(ea => ea.ExpenseId == expense.Id);
+
+        var expenseDto = new ExpenseDto(expense, splits, aliasSplits, attachmentCount);
 
         return Result<ExpenseDto>.Success(expenseDto);
     }
@@ -732,8 +745,12 @@ public class ExpensesService(
             }
         }
 
+        // Load attachment count (attachments are unaffected by updates)
+        var attachmentCount = await unitOfWork.ExpenseAttachments
+            .CountAsync(ea => ea.ExpenseId == expense.Id);
+
         // Return with in-memory splits (avoids EF Core identity resolution issue)
-        var expenseDto = new ExpenseDto(expense, newSplits, newAliasSplits);
+        var expenseDto = new ExpenseDto(expense, newSplits, newAliasSplits, attachmentCount);
         return Result<ExpenseDto>.Success(expenseDto);
     }
 
@@ -772,6 +789,13 @@ public class ExpensesService(
 
         // Soft delete the expense
         expense.DeletedAt = timeProvider.GetUtcNow().ToUnixTimeSeconds();
+
+        // Hard-delete attachments (bytea content must not linger after the expense is gone)
+        var attachments = await unitOfWork.ExpenseAttachments
+            .Where(a => a.ExpenseId == expense.Id)
+            .ToListAsync();
+
+        unitOfWork.ExpenseAttachments.RemoveRange(attachments);
 
         // Notify other group members
         var otherMembersForDelete = await unitOfWork.GroupMembers

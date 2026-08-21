@@ -289,7 +289,21 @@
     "atLeastOneSplit": "At least one {entity} must be included in the split",
     "splitTotalMustEqual": "Split total ({total}) must equal expense amount ({amount})",
     "person": "person",
-    "alias": "alias"
+    "alias": "alias",
+    "attachments": {
+      "title": "Receipts",
+      "empty": "No receipts attached",
+      "add": "Add receipt",
+      "removeFile": "Remove selected file",
+      "selectedFiles": "Selected files ({count})",
+      "maxReached": "Maximum of 5 receipts reached",
+      "deleteTitle": "Delete receipt",
+      "deleteConfirm": "This action cannot be undone.",
+      "deleteContent": "The receipt will be permanently deleted. Are you sure?",
+      "deleteButton": "Delete receipt",
+      "download": "Download",
+      "hasAttachments": "Has attachments"
+    }
   },
   "members": {
     "title": "Members",
@@ -603,6 +617,15 @@
       "updateFailed": "Failed to update expense",
       "deleted": "Expense deleted successfully",
       "deleteFailed": "Failed to delete expense"
+    },
+    "attachments": {
+      "loadFailed": "Failed to load receipts",
+      "uploaded": "Receipt uploaded",
+      "uploadFailed": "Failed to upload receipt",
+      "downloadFailed": "Failed to download receipt",
+      "deleted": "Receipt deleted",
+      "deleteFailed": "Failed to delete receipt",
+      "autoUploadFailed": "Receipt could not be attached automatically. You can upload it manually."
     },
     "imports": {
       "invalidFormat": "Invalid {fieldName} format received from server",
