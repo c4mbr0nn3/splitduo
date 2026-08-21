@@ -31,6 +31,7 @@ const expense = (overrides: Partial<Expense> = {}): Expense => ({
   categoryId: 1,
   paymentModeId: 1,
   splits: [{ id: 'split-1', userId: 'user-1', user: { id: 'user-1', firstName: 'Alice' }, splitAmount: 21.25 }],
+  attachmentCount: 0,
   createdAt: 0,
   updatedAt: 0,
   ...overrides,

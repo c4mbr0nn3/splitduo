@@ -4,15 +4,31 @@
       <template #header>
         <div class="flex items-center justify-between">
           <UiCardHeader :title="title" />
-          <UButton
-            v-if="receiptImageUrl"
-            icon="i-lucide-image"
-            :label="$t('expenses.viewReceipt')"
-            size="sm"
-            variant="ghost"
-            @click="isReceiptPreviewOpen = true"
-          />
+          <div class="flex items-center gap-1">
+            <UButton
+              icon="i-lucide-image-plus"
+              :label="$t('expenses.attachments.add')"
+              size="sm"
+              variant="ghost"
+              @click="attachmentInput?.click()"
+            />
+            <UButton
+              v-if="receiptImageUrl"
+              icon="i-lucide-image"
+              :label="$t('expenses.viewReceipt')"
+              size="sm"
+              variant="ghost"
+              @click="isReceiptPreviewOpen = true"
+            />
+          </div>
         </div>
+        <input
+          ref="attachmentInput"
+          type="file"
+          accept=".jpg,.jpeg,.png,.webp,.heic,.heif,.pdf"
+          class="hidden"
+          @change="onAttachmentSelected"
+        >
       </template>
       <UForm
         :state="model"
@@ -345,6 +361,40 @@
             </UDropdownMenu>
           </UFieldGroup>
         </div>
+
+        <!-- Selected receipts -->
+        <div
+          v-if="selectedFiles.length > 0"
+          class="space-y-2 pt-2"
+        >
+          <p class="text-sm font-medium text-muted">
+            {{ $t('expenses.attachments.selectedFiles', { count: selectedFiles.length }) }}
+          </p>
+          <ul class="space-y-2">
+            <li
+              v-for="(file, index) in selectedFiles"
+              :key="file.name + index"
+              class="flex items-center justify-between gap-3 rounded-md bg-muted/30 px-3 py-2"
+            >
+              <div class="flex items-center gap-2 min-w-0">
+                <UIcon
+                  name="i-lucide-file-image"
+                  class="size-4 text-muted shrink-0"
+                />
+                <span class="text-sm truncate">{{ file.name }}</span>
+              </div>
+              <UButton
+                icon="i-lucide-x"
+                variant="ghost"
+                color="neutral"
+                size="xs"
+                square
+                :aria-label="$t('expenses.attachments.removeFile')"
+                @click="removeSelectedFile(index)"
+              />
+            </li>
+          </ul>
+        </div>
       </UForm>
     </UCard>
     <UiReceiptPreviewModal
@@ -365,6 +415,7 @@ const props = defineProps<{
   loading?: boolean
   preSelectedGroupId?: string | null
   showAddMore?: boolean
+  expenseId?: string | null
 }>()
 
 interface ExpenseFormSplit {
@@ -399,6 +450,8 @@ const emit = defineEmits<{
   submit: [payload: CreateExpensePayload]
   addMore: [payload: CreateExpensePayload]
   cancel: []
+  addAttachment: [file: File]
+  removeAttachment: [file: File]
 }>()
 
 interface CreateExpensePayload {
@@ -419,6 +472,35 @@ interface CreateExpensePayload {
 const { receiptImageUrl } = useReceiptScan()
 const isReceiptPreviewOpen = ref(false)
 const isEditMode = computed(() => !!model.value?.expenseId)
+
+// Attachment upload — the form only picks the file and emits it; the parent
+// page owns the upload (it has the expenseId in edit mode).
+const attachmentInput = ref<HTMLInputElement | null>(null)
+const selectedFiles = ref<File[]>([])
+
+const onAttachmentSelected = (event: Event): void => {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
+
+  if (isEditMode.value) {
+    emit('addAttachment', file)
+    target.value = ''
+    return
+  }
+
+  selectedFiles.value.push(file)
+  emit('addAttachment', file)
+  target.value = ''
+}
+
+const removeSelectedFile = (index: number): void => {
+  const file = selectedFiles.value[index]
+  if (!file) return
+
+  selectedFiles.value.splice(index, 1)
+  emit('removeAttachment', file)
+}
 
 const { user } = useAuth()
 const { groups, fetchGroups, fetchGroup, currentGroup, fetchGroupMembers, isLoading: isLoadingGroups } = useGroups()

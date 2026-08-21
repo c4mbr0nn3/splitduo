@@ -17,6 +17,7 @@ public class ExpenseDto
     public int PaymentModeId { get; set; }
     public List<ExpenseSplitDto> Splits { get; set; } = [];
     public List<ExpenseAliasSplitDto>? AliasSplits { get; set; }
+    public int AttachmentCount { get; set; }
     public long CreatedAt { get; set; }
     public long UpdatedAt { get; set; }
 
@@ -26,8 +27,11 @@ public class ExpenseDto
     }
 
     // Constructor that takes an Expense entity
-    public ExpenseDto(Expense expense, List<ExpenseSplit>? splits = null, List<ExpenseAliasSplit>? aliasSplits = null)
+    public ExpenseDto(Expense expense, List<ExpenseSplit>? splits = null, List<ExpenseAliasSplit>? aliasSplits = null,
+        int? attachmentCount = null)
     {
+        AttachmentCount = attachmentCount ?? 0;
+
         Id = expense.Guid.ToString();
         GroupId = expense.Group.Guid.ToString();
         Title = expense.Title;

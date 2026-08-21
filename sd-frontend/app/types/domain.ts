@@ -75,9 +75,10 @@ export type GroupStats = WithRequired<components['schemas']['GroupStatsDto'], 't
 export type CategoryStat = WithRequired<components['schemas']['CategoryStatDto'], 'categoryId' | 'categoryName' | 'amount' | 'count'>
 export type MonthlyStat = WithRequired<components['schemas']['MonthlyStatDto'], 'year' | 'month' | 'amount' | 'count'>
 
-export type Expense = WithRequired<components['schemas']['ExpenseDto'], 'id' | 'groupId' | 'title' | 'amount' | 'paidByUserId' | 'paidByUser' | 'expenseDate' | 'categoryId' | 'paymentModeId' | 'splits' | 'createdAt' | 'updatedAt'>
+export type Expense = WithRequired<components['schemas']['ExpenseDto'], 'id' | 'groupId' | 'title' | 'amount' | 'paidByUserId' | 'paidByUser' | 'expenseDate' | 'categoryId' | 'paymentModeId' | 'splits' | 'attachmentCount' | 'createdAt' | 'updatedAt'>
 export type ExpenseSplit = WithRequired<components['schemas']['ExpenseSplitDto'], 'id' | 'userId' | 'user' | 'splitAmount'>
 export type ExpenseAliasSplit = WithRequired<components['schemas']['ExpenseAliasSplitDto'], 'id' | 'aliasId' | 'aliasName' | 'splitAmount'>
+export type ExpenseAttachment = WithRequired<components['schemas']['ExpenseAttachmentDto'], 'id' | 'expenseId' | 'filenameOriginal' | 'mimeType' | 'sizeBytes' | 'createdAt' | 'updatedAt'>
 
 export type Alias = WithRequired<components['schemas']['AliasDto'], 'id' | 'name' | 'groupId' | 'isSingleton' | 'createdAt' | 'updatedAt'>
 

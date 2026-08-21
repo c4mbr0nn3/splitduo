@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+    <xsd:element name="root" msdata:IsDataSet="true"/>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="ExpenseNotFound" xml:space="preserve"><value>Expense not found</value></data>
+  <data name="GroupNotFound" xml:space="preserve"><value>Group not found</value></data>
+  <data name="AttachmentNotFound" xml:space="preserve"><value>Attachment not found</value></data>
+  <data name="AccessNotAllowed" xml:space="preserve"><value>You do not have access to this group</value></data>
+  <data name="UserNotAuthenticated" xml:space="preserve"><value>User not authenticated</value></data>
+  <data name="InvalidGroupIdFormat" xml:space="preserve"><value>Invalid group ID format</value></data>
+  <data name="InvalidExpenseIdFormat" xml:space="preserve"><value>Invalid expense ID format</value></data>
+  <data name="InvalidAttachmentIdFormat" xml:space="preserve"><value>Invalid attachment ID format</value></data>
+  <data name="NoFileUploaded" xml:space="preserve"><value>No file uploaded</value></data>
+  <data name="FileSizeExceeded" xml:space="preserve"><value>File size exceeds the maximum allowed size of 10MB</value></data>
+  <data name="FileTypeNotAllowed" xml:space="preserve"><value>File type not allowed. Accepted: .jpg, .jpeg, .png, .webp, .heic, .heif, .pdf</value></data>
+  <data name="FileContentMismatch" xml:space="preserve"><value>File content does not match the declared type</value></data>
+  <data name="DuplicateAttachment" xml:space="preserve"><value>This file has already been attached to this expense</value></data>
+  <data name="AttachmentLimitReached" xml:space="preserve"><value>Maximum of 5 attachments per expense reached</value></data>
+</root>

@@ -1034,6 +1034,115 @@ paths:
       responses:
         "200":
           description: OK
+  /api/v1/groups/{groupId}/expenses/{expenseId}/attachments:
+    post:
+      tags:
+        - ExpenseAttachments
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: expenseId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  $ref: "#/components/schemas/IFormFile"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfExpenseAttachmentDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfExpenseAttachmentDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfExpenseAttachmentDto"
+    get:
+      tags:
+        - ExpenseAttachments
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: expenseId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfListOfExpenseAttachmentDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfListOfExpenseAttachmentDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfListOfExpenseAttachmentDto"
+  /api/v1/groups/{groupId}/expenses/{expenseId}/attachments/{attachmentId}:
+    get:
+      tags:
+        - ExpenseAttachments
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: expenseId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: attachmentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+    delete:
+      tags:
+        - ExpenseAttachments
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: expenseId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: attachmentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
   /api/v1/categories:
     get:
       tags:
@@ -1757,6 +1866,23 @@ components:
           oneOf:
             - type: "null"
             - $ref: "#/components/schemas/ApiErrorDto"
+    ApiResponseDtoOfExpenseAttachmentDto:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/ExpenseAttachmentDto"
+        message:
+          type:
+            - "null"
+            - string
+        error:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/ApiErrorDto"
     ApiResponseDtoOfExpenseDto:
       type: object
       properties:
@@ -1908,6 +2034,25 @@ components:
             - array
           items:
             $ref: "#/components/schemas/CategoryDto"
+        message:
+          type:
+            - "null"
+            - string
+        error:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/ApiErrorDto"
+    ApiResponseDtoOfListOfExpenseAttachmentDto:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type:
+            - "null"
+            - array
+          items:
+            $ref: "#/components/schemas/ExpenseAttachmentDto"
         message:
           type:
             - "null"
@@ -2417,6 +2562,35 @@ components:
             - number
             - string
           format: double
+    ExpenseAttachmentDto:
+      type: object
+      properties:
+        id:
+          type: string
+        expenseId:
+          type: string
+        filenameOriginal:
+          type: string
+        mimeType:
+          type: string
+        sizeBytes:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int64
+        createdAt:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int64
+        updatedAt:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int64
     ExpenseDto:
       type: object
       properties:
@@ -2464,6 +2638,12 @@ components:
             - array
           items:
             $ref: "#/components/schemas/ExpenseAliasSplitDto"
+        attachmentCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
         createdAt:
           pattern: ^-?(?:0|[1-9]\d*)$
           type:
@@ -3237,6 +3417,7 @@ tags:
   - name: Exports
   - name: Balances
   - name: Expenses
+  - name: ExpenseAttachments
   - name: Categories
   - name: Auth
   - name: TwoFactor

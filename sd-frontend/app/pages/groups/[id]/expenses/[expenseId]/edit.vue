@@ -1,13 +1,36 @@
 <template>
-  <ExpensesExpenseForm
-    v-model="expenseFormData"
-    :title="$t('expenses.editExpense')"
-    :submit-label="$t('expenses.updateExpense')"
-    :pre-selected-group-id="groupId"
-    :loading="isUpdating"
-    @submit="onSubmit"
-    @cancel="goBack"
-  />
+  <div class="flex flex-col items-center justify-center py-6 sm:py-8 px-4">
+    <div class="w-full max-w-2xl space-y-4">
+      <ExpensesExpenseForm
+        v-model="expenseFormData"
+        :title="$t('expenses.editExpense')"
+        :submit-label="$t('expenses.updateExpense')"
+        :pre-selected-group-id="groupId"
+        :expense-id="expenseId"
+        :loading="isUpdating"
+        @submit="onSubmit"
+        @cancel="goBack"
+        @add-attachment="onAddAttachment"
+      />
+      <UCard
+        v-if="expenseId"
+        variant="soft"
+        :ui="{ body: 'p-4' }"
+      >
+        <template #header>
+          <p class="text-sm font-semibold text-highlighted">
+            {{ $t('expenses.attachments.title') }}
+          </p>
+        </template>
+        <ExpensesExpenseAttachmentsList
+          v-if="attachments"
+          :group-id="groupId"
+          :expense-id="expenseId"
+          :instance="attachments"
+        />
+      </UCard>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -46,7 +69,24 @@ const expenseId = route.params.expenseId ? String(route.params.expenseId) : unde
 
 const { currentExpense, fetchExpense, updateExpense } = useExpenses(groupId)
 
+// Create the attachments composable at setup scope so Nuxt context (useApi,
+// useI18n, useNotifications) is available — calling it inside an async event
+// handler loses the context and the upload fails silently. The single shared
+// instance is passed down to ExpensesExpenseAttachmentsList so uploads and the
+// displayed list share the same reactive source.
+const attachments = expenseId ? useExpenseAttachments(groupId, expenseId) : null
+
 const isUpdating = ref(false)
+
+const onAddAttachment = async (file: File): Promise<void> => {
+  if (!attachments) return
+  try {
+    await attachments.uploadAttachment(file)
+  }
+  catch {
+    // Error shown via toast
+  }
+}
 
 // Form data state
 const expenseFormData = ref<ExpenseFormModel>({
