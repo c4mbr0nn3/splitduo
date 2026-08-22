@@ -15,7 +15,7 @@
 </template>
 
 <script setup lang="ts">
-import type { CreateExpenseRequest } from '~/types/domain'
+import type { CreateExpenseRequest, SplitMode } from '~/types/domain'
 
 interface ExpenseFormModel {
   expenseId?: string
@@ -27,8 +27,9 @@ interface ExpenseFormModel {
   expenseDate?: string
   categoryId?: number
   paymentModeId?: number
-  splits?: { userId: string, included: boolean, splitAmount: number | null }[]
-  aliasSplits?: { aliasId: string, included: boolean, splitAmount: number | null }[]
+  splits?: { userId: string, included: boolean, splitAmount: number | null, splitPercentage?: number | null }[]
+  aliasSplits?: { aliasId: string, included: boolean, splitAmount: number | null, splitPercentage?: number | null }[]
+  splitMode?: SplitMode
 }
 
 const { t } = useI18n()
@@ -54,6 +55,7 @@ const getInitialFormData = (): ExpenseFormModel => ({
   categoryId: route.query.categoryId ? Number(route.query.categoryId) : undefined,
   paymentModeId: route.query.paymentModeId ? Number(route.query.paymentModeId) : undefined,
   splits: [],
+  splitMode: 'amounts' as SplitMode,
 })
 
 // Form data state
@@ -149,6 +151,7 @@ const onAddMore = async (payload: { groupId: string, expenseData: Record<string,
       clearReceiptImage()
       const resetData = getInitialFormData()
       resetData.groupId = groupId
+      resetData.splitMode = expenseFormData.value.splitMode
       expenseFormData.value = resetData
     }
   }

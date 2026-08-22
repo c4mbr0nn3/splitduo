@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Net;
 using System.Net.Http.Json;
 using SplitDuo.Api.Features.Common.Dto;
@@ -823,4 +824,148 @@ public class ExpensesTests : IntegrationTest
     }
 
     #endregion
+
+    #region Hamilton-distributed amounts (frontend regression guard)
+
+    [Fact]
+    public async Task CreateExpense_HamiltonDistributedAmounts_ThreeWaySplit_Accepted()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var client = await CreateAuthenticatedClientAsync();
+
+        var group = await client.CreateGroupAsync();
+        var adminId = group.CreatedByUserId;
+
+        // Seed two more members for a 3-way split
+        var (email2, user2Id, _) = await SeedSecondMemberAsync(client, group.Id, email: "u2@localhost");
+        var (email3, user3Id, _) = await SeedSecondMemberAsync(client, group.Id, email: "u3@localhost");
+
+        // Hamilton-distributed amounts for 33.34/33.33/33.33 of €100
+        // distributeByPercentages([33.34, 33.33, 33.33], 100000) = [33340, 33330, 33330] → [33.34, 33.33, 33.33]
+        var splits = new[]
+        {
+            new { userId = adminId, splitAmount = 33.34m },
+            new { userId = user2Id, splitAmount = 33.33m },
+            new { userId = user3Id, splitAmount = 33.33m },
+        };
+
+        var expense = await client.CreateExpenseAsync(group.Id, adminId, amount: 100m, splits: splits);
+
+        Assert.Equal(100m, expense.Amount);
+        Assert.Equal(3, expense.Splits.Count);
+        // Sum of splits should equal the amount
+        var sum = expense.Splits.Sum(s => s.SplitAmount);
+        Assert.Equal(100m, sum);
+    }
+
+    [Fact]
+    public async Task CreateExpense_HamiltonDistributedAmounts_TwoWaySplit_Accepted()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var client = await CreateAuthenticatedClientAsync();
+
+        var group = await client.CreateGroupAsync();
+        var adminId = group.CreatedByUserId;
+
+        // Seed one more member for a 2-way split
+        var (_, user2Id, _) = await SeedSecondMemberAsync(client, group.Id, email: "u2@localhost");
+
+        // 60/40 of €100 → [60.00, 40.00]
+        var splits = new[]
+        {
+            new { userId = adminId, splitAmount = 60m },
+            new { userId = user2Id, splitAmount = 40m },
+        };
+
+        var expense = await client.CreateExpenseAsync(group.Id, adminId, amount: 100m, splits: splits);
+
+        Assert.Equal(100m, expense.Amount);
+        Assert.Equal(2, expense.Splits.Count);
+        var sum = expense.Splits.Sum(s => s.SplitAmount);
+        Assert.Equal(100m, sum);
+    }
+
+    [Fact]
+    public async Task CreateExpense_ZeroShareParticipantsExcluded_Accepted()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var client = await CreateAuthenticatedClientAsync();
+
+        var group = await client.CreateGroupAsync();
+        var adminId = group.CreatedByUserId;
+
+        // Seed two more members
+        var (email2, user2Id, _) = await SeedSecondMemberAsync(client, group.Id, email: "u2@localhost");
+        var (email3, user3Id, _) = await SeedSecondMemberAsync(client, group.Id, email: "u3@localhost");
+
+        // 0.01% of €0.01 = 0.0001 → floors to 0 millicents → excluded from payload
+        // Only the 99.98% share (0.01 EUR) is sent
+        var splits = new[]
+        {
+            new { userId = adminId, splitAmount = 0.01m },
+        };
+
+        var expense = await client.CreateExpenseAsync(group.Id, adminId, amount: 0.01m, splits: splits);
+
+        Assert.Equal(0.01m, expense.Amount);
+        Assert.Single(expense.Splits);
+        Assert.Equal(0.01m, expense.Splits[0].SplitAmount);
+    }
+
+    #endregion
+
+    [Fact]
+    public async Task UpdateExpense_ReplacesSplits_WhenSplitsProvided()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var client = await CreateAuthenticatedClientAsync();
+
+        var group = await client.CreateGroupAsync();
+        var adminId = group.CreatedByUserId;
+
+        // Seed two more members for a 3-way split
+        var (_, user2Id, _) = await SeedSecondMemberAsync(client, group.Id, email: "u2@localhost");
+        var (_, user3Id, _) = await SeedSecondMemberAsync(client, group.Id, email: "u3@localhost");
+
+        // Create expense with 3 splits
+        var initialSplits = new[]
+        {
+            new { userId = adminId, splitAmount = 40m },
+            new { userId = user2Id, splitAmount = 30m },
+            new { userId = user3Id, splitAmount = 30m },
+        };
+        var expense = await client.CreateExpenseAsync(group.Id, adminId, amount: 100m, splits: initialSplits);
+        Assert.Equal(3, expense.Splits.Count);
+
+        // Update with only 2 splits (different amounts, user3 removed)
+        var updatedSplits = new[]
+        {
+            new { userId = adminId, splitAmount = 60m },
+            new { userId = user2Id, splitAmount = 40m },
+        };
+        var putResponse = await client.PutAsJsonAsync($"/api/v1/groups/{group.Id}/expenses/{expense.Id}", new
+        {
+            title = "Updated",
+            amount = 100m,
+            paidByUserId = adminId,
+            expenseDate = "2025-01-15",
+            categoryId = 1,
+            paymentModeId = 1,
+            splits = updatedSplits,
+        }, ct);
+
+        Assert.Equal(HttpStatusCode.OK, putResponse.StatusCode);
+        var putBody = await putResponse.Content.ReadFromJsonAsync<ApiResponseDto<ExpenseDto>>(ct);
+        Assert.Equal(2, putBody!.Data!.Splits.Count);
+
+        // Confirm via GET — only 2 splits remain, user3 is gone
+        var getResponse = await client.GetAsync($"/api/v1/groups/{group.Id}/expenses/{expense.Id}", ct);
+        getResponse.EnsureSuccessStatusCode();
+        var getBody = await getResponse.Content.ReadFromJsonAsync<ApiResponseDto<ExpenseDto>>(ct);
+        Assert.Equal(2, getBody!.Data!.Splits.Count);
+        var splitUserIds = getBody.Data.Splits.Select(s => s.UserId).OrderBy(u => u).ToList();
+        Assert.DoesNotContain(user3Id, splitUserIds);
+        Assert.Equal(60m, getBody.Data.Splits.First(s => s.UserId == adminId).SplitAmount);
+        Assert.Equal(40m, getBody.Data.Splits.First(s => s.UserId == user2Id).SplitAmount);
+    }
 }

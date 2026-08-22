@@ -34,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Expense } from '~/types/domain'
+import type { Expense, SplitMode } from '~/types/domain'
 
 interface ExpenseFormModel {
   expenseId?: string
@@ -46,20 +46,23 @@ interface ExpenseFormModel {
   expenseDate?: string
   categoryId?: number
   paymentModeId?: number
-  splits?: { userId: string, included: boolean, splitAmount: number | null }[]
-  aliasSplits?: { aliasId: string, included: boolean, splitAmount: number | null }[]
+  splits?: { userId: string, included: boolean, splitAmount: number | null, splitPercentage?: number | null }[]
+  aliasSplits?: { aliasId: string, included: boolean, splitAmount: number | null, splitPercentage?: number | null }[]
+  splitMode?: SplitMode
 }
 
 interface SplitItem {
   userId: string
   included: boolean
   splitAmount: number | null
+  splitPercentage?: number | null
 }
 
 interface AliasSplitItem {
   aliasId: string
   included: boolean
   splitAmount: number | null
+  splitPercentage?: number | null
 }
 
 const { t } = useI18n()
@@ -106,6 +109,9 @@ watch(currentExpense, (expense) => {
   if (expense) {
     const e = expense as unknown as Expense
     const isAliasMode = Array.isArray(e.aliasSplits) && e.aliasSplits.length > 0
+    const mappedSplits = isAliasMode ? [] : (mapSplits(e.splits) || [])
+    const mappedAliasSplits = isAliasMode ? (mapAliasSplits(e.aliasSplits) || []) : []
+
     expenseFormData.value = {
       expenseId: e.id,
       groupId: e.groupId,
@@ -116,8 +122,9 @@ watch(currentExpense, (expense) => {
       expenseDate: e.expenseDate ? new Date(e.expenseDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       categoryId: Number(e.categoryId) || undefined,
       paymentModeId: Number(e.paymentModeId) || undefined,
-      splits: isAliasMode ? [] : (mapSplits(e.splits) || []),
-      aliasSplits: isAliasMode ? (mapAliasSplits(e.aliasSplits) || []) : [],
+      splits: mappedSplits,
+      aliasSplits: mappedAliasSplits,
+      splitMode: 'amounts',
     }
   }
 }, { immediate: true })
@@ -129,6 +136,7 @@ const mapSplits = (splits: { userId?: string, splitAmount?: number | string }[] 
       userId: s.userId ?? '',
       included: true,
       splitAmount: s.splitAmount != null ? Number(s.splitAmount) : null,
+      splitPercentage: null,
     }
   })
 }
@@ -140,6 +148,7 @@ const mapAliasSplits = (aliasSplits: { aliasId?: string, splitAmount?: number | 
       aliasId: s.aliasId ?? '',
       included: true,
       splitAmount: s.splitAmount != null ? Number(s.splitAmount) : null,
+      splitPercentage: null,
     }
   })
 }

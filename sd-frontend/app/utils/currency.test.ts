@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { toMillis, fromMillis, splitMillis, rescaleMillis, formatAmount, formatCurrency } from './currency'
+import { toMillis, fromMillis, splitMillis, rescaleMillis, formatAmount, formatCurrency, distributeByPercentages, amountsToPercentages, equalPercentages } from './currency'
 
 describe('currency', () => {
   describe('toMillis / fromMillis', () => {
@@ -112,6 +112,86 @@ describe('currency', () => {
 
     it('shows 3 decimals with fullPrecision when the third decimal is non-zero', () => {
       expect(formatCurrency(3.334, { fullPrecision: true })).toBe('€3.334')
+    })
+  })
+
+  describe('distributeByPercentages', () => {
+    it('distributes 33.33/33.33/33.34 of 100000 exactly', () => {
+      expect(distributeByPercentages([33.33, 33.33, 33.34], 100000)).toEqual([33330, 33330, 33340])
+    })
+
+    it('distributes 60/40 of 100000 exactly', () => {
+      expect(distributeByPercentages([60, 40], 100000)).toEqual([60000, 40000])
+    })
+
+    it('handles zero-share participants on tiny amounts (1/1/98 of 10)', () => {
+      expect(distributeByPercentages([0.01, 0.01, 99.98], 10)).toEqual([0, 0, 10])
+    })
+
+    it('handles a single participant at 100%', () => {
+      expect(distributeByPercentages([100], 100000)).toEqual([100000])
+    })
+
+    it('returns all-zero shares for a zero total', () => {
+      expect(distributeByPercentages([50, 50], 0)).toEqual([0, 0])
+    })
+
+    it('returns an empty array for empty input', () => {
+      expect(distributeByPercentages([], 100000)).toEqual([])
+    })
+
+    it('handles large totals without drift', () => {
+      const total = 1_000_000_000 // €1,000,000 in millis
+      const shares = distributeByPercentages([33.33, 33.33, 33.34], total)
+      expect(shares.reduce((a, b) => a + b, 0)).toBe(total)
+    })
+
+    it('sums exactly to the total via Hamilton remainder distribution', () => {
+      const total = 100
+      const shares = distributeByPercentages([33.33, 33.33, 33.34], total)
+      expect(shares.reduce((a, b) => a + b, 0)).toBe(total)
+    })
+  })
+
+  describe('amountsToPercentages', () => {
+    it('converts amounts to 2dp percentages with first absorbing residual', () => {
+      // 33.34/33.33/33.33 of 100 → [33.34, 33.33, 33.33] (sum 100.00)
+      expect(amountsToPercentages([33340, 33330, 33330], 100000)).toEqual([33.34, 33.33, 33.33])
+    })
+
+    it('absorbs the 2dp residual on the first participant so sum is exactly 100.00', () => {
+      // 10/10/10 of 30 → each is 33.33%, residual 0.01 goes to first → [33.34, 33.33, 33.33]
+      expect(amountsToPercentages([10000, 10000, 10000], 30000)).toEqual([33.34, 33.33, 33.33])
+    })
+
+    it('returns all-zero for a zero total', () => {
+      expect(amountsToPercentages([0, 0, 0], 0)).toEqual([0, 0, 0])
+    })
+
+    it('returns an empty array for empty input', () => {
+      expect(amountsToPercentages([], 100000)).toEqual([])
+    })
+
+    it('handles a single participant at 100%', () => {
+      expect(amountsToPercentages([100000], 100000)).toEqual([100])
+    })
+  })
+
+  describe('equalPercentages', () => {
+    it('generates equal 3-way percentages with first absorbing residual', () => {
+      expect(equalPercentages(3)).toEqual([33.34, 33.33, 33.33])
+    })
+
+    it('generates equal 2-way percentages', () => {
+      expect(equalPercentages(2)).toEqual([50, 50])
+    })
+
+    it('returns 100 for a single participant', () => {
+      expect(equalPercentages(1)).toEqual([100])
+    })
+
+    it('returns an empty array for zero participants', () => {
+      expect(equalPercentages(0)).toEqual([])
     })
   })
 })

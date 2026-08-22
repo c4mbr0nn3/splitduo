@@ -180,3 +180,8 @@ export type SendInvitationRequest = components['schemas']['SendInvitationRequest
 export type AcceptInvitationRequest = components['schemas']['AcceptInvitationRequestDto']
 
 export type ImportMapping = components['schemas']['ImportMappingDto']
+
+// ─── Split mode (frontend-only UI state — not persisted to backend) ──────────
+
+/** Expense split mode: Amounts (user-entered amounts), Percentage (user-entered %). Equal is a one-click action, not a mode. */
+export type SplitMode = 'amounts' | 'percentage'

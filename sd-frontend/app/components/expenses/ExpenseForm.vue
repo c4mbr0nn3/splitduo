@@ -182,26 +182,29 @@
 
         <!-- Split Section -->
         <div class="space-y-2">
+          <URadioGroup
+            :model-value="splitMode"
+            :items="modeOptions"
+            variant="list"
+            orientation="horizontal"
+            size="md"
+            class="w-full mb-3"
+            :aria-label="$t('expenses.splitMode')"
+            @update:model-value="(v) => onModeChange(v as SplitMode)"
+          />
           <div class="flex items-center justify-between mb-3">
             <p class="text-sm font-medium text-muted">
               {{ isAliasMode ? $t('expenses.splitBetweenAliases') : $t('expenses.splitBetween') }}
             </p>
-            <div class="flex gap-2">
-              <UButton
-                :label="$t('expenses.splitEqually')"
-                variant="ghost"
-                color="neutral"
-                size="xs"
-                @click="splitEqually"
-              />
-              <UButton
-                :label="$t('expenses.adjustSplits')"
-                variant="ghost"
-                color="neutral"
-                size="xs"
-                @click="showAdvanced = !showAdvanced"
-              />
-            </div>
+            <UButton
+              :label="$t('expenses.splitEqually')"
+              icon="i-lucide-equal"
+              variant="ghost"
+              color="primary"
+              size="sm"
+              :disabled="includedSplits.length < 2 || amountMillis === 0"
+              @click="splitEqually"
+            />
           </div>
           <div class="space-y-0">
             <template v-if="isAliasMode">
@@ -238,20 +241,48 @@
                     />
                   </span>
                 </button>
-                <span class="text-xs text-muted min-w-[2.5rem] text-right">
-                  {{ model.amount && (splitByAlias(alias.id).splitAmount ?? 0) > 0 ? `${getAliasSplitPercentage(alias.id)}%` : '' }}
-                </span>
-                <UInput
-                  :model-value="displayValue('alias-' + alias.id, splitByAlias(alias.id).splitAmount)"
-                  type="text"
-                  inputmode="decimal"
-                  size="sm"
-                  class="w-24 text-right sd-tabular"
-                  :disabled="!splitByAlias(alias.id).included"
-                  @focus="onAmountFocus('alias-' + alias.id, splitByAlias(alias.id).splitAmount)"
-                  @update:model-value="v => onAmountInput('alias-' + alias.id, v, 'splitAmount', splitByAlias(alias.id), () => trackAlias(alias.id))"
-                  @blur="onAmountBlur"
-                />
+                <!-- Percentage mode -->
+                <template v-if="splitMode === 'percentage'">
+                  <span class="text-xs text-muted min-w-[3rem] text-right sd-tabular">
+                    {{ formatCurrency(percentageAmountFor(alias.id), { fullPrecision: true }) }}
+                  </span>
+                  <UInput
+                    :model-value="displayValue('pct-' + alias.id, splitByAlias(alias.id).splitPercentage)"
+                    type="text"
+                    inputmode="decimal"
+                    size="sm"
+                    class="w-20 text-right sd-tabular"
+                    placeholder="%"
+                    :disabled="!splitByAlias(alias.id).included || amountMillis === 0 || isSingleIncluded"
+                    :aria-label="`${alias.name} ${$t('expenses.splitByPercentage')}`"
+                    @focus="onAmountFocus('pct-' + alias.id, splitByAlias(alias.id).splitPercentage)"
+                    @update:model-value="v => onPercentageInput(splitByAlias(alias.id), v)"
+                    @blur="onPercentageBlur(splitByAlias(alias.id))"
+                  />
+                  <span
+                    v-if="splitByAlias(alias.id).included && (splitByAlias(alias.id).splitPercentage ?? 0) > 0 && percentageAmountFor(alias.id) === 0"
+                    class="text-xs text-warning"
+                  >
+                    {{ $t('expenses.shareTooSmall') }}
+                  </span>
+                </template>
+                <!-- Amounts mode -->
+                <template v-else>
+                  <span class="text-xs text-muted min-w-[2.5rem] text-right">
+                    {{ model.amount && (splitByAlias(alias.id).splitAmount ?? 0) > 0 ? `${getAliasSplitPercentage(alias.id)}%` : '' }}
+                  </span>
+                  <UInput
+                    :model-value="displayValue('alias-' + alias.id, splitByAlias(alias.id).splitAmount)"
+                    type="text"
+                    inputmode="decimal"
+                    size="sm"
+                    class="w-24 text-right sd-tabular"
+                    :disabled="!splitByAlias(alias.id).included"
+                    @focus="onAmountFocus('alias-' + alias.id, splitByAlias(alias.id).splitAmount)"
+                    @update:model-value="v => onAmountInput('alias-' + alias.id, v, 'splitAmount', splitByAlias(alias.id), () => trackAlias(alias.id))"
+                    @blur="onAmountBlur"
+                  />
+                </template>
               </div>
             </template>
             <template v-else>
@@ -278,22 +309,77 @@
                     {{ member.user.firstName }} {{ member.user.lastName }}
                   </span>
                 </button>
-                <span class="text-xs text-muted min-w-[2.5rem] text-right">
-                  {{ model.amount && (splitByUser(member.userId).splitAmount ?? 0) > 0 ? `${getSplitPercentage(member.userId)}%` : '' }}
-                </span>
-                <UInput
-                  :model-value="displayValue('split-' + member.userId, splitByUser(member.userId).splitAmount)"
-                  type="text"
-                  inputmode="decimal"
-                  size="sm"
-                  class="w-24 text-right sd-tabular"
-                  :disabled="!splitByUser(member.userId).included"
-                  @focus="onAmountFocus('split-' + member.userId, splitByUser(member.userId).splitAmount)"
-                  @update:model-value="v => onAmountInput('split-' + member.userId, v, 'splitAmount', splitByUser(member.userId), () => trackUser(member.userId))"
-                  @blur="onAmountBlur"
-                />
+                <!-- Percentage mode -->
+                <template v-if="splitMode === 'percentage'">
+                  <span class="text-xs text-muted min-w-[3rem] text-right sd-tabular">
+                    {{ formatCurrency(percentageAmountFor(member.userId), { fullPrecision: true }) }}
+                  </span>
+                  <UInput
+                    :model-value="displayValue('pct-' + member.userId, splitByUser(member.userId).splitPercentage)"
+                    type="text"
+                    inputmode="decimal"
+                    size="sm"
+                    class="w-20 text-right sd-tabular"
+                    placeholder="%"
+                    :disabled="!splitByUser(member.userId).included || amountMillis === 0 || isSingleIncluded"
+                    :aria-label="`${member.user.firstName} ${member.user.lastName} ${$t('expenses.splitByPercentage')}`"
+                    @focus="onAmountFocus('pct-' + member.userId, splitByUser(member.userId).splitPercentage)"
+                    @update:model-value="v => onPercentageInput(splitByUser(member.userId), v)"
+                    @blur="onPercentageBlur(splitByUser(member.userId))"
+                  />
+                  <span
+                    v-if="splitByUser(member.userId).included && (splitByUser(member.userId).splitPercentage ?? 0) > 0 && percentageAmountFor(member.userId) === 0"
+                    class="text-xs text-warning"
+                  >
+                    {{ $t('expenses.shareTooSmall') }}
+                  </span>
+                </template>
+                <!-- Amounts mode -->
+                <template v-else>
+                  <span class="text-xs text-muted min-w-[2.5rem] text-right">
+                    {{ model.amount && (splitByUser(member.userId).splitAmount ?? 0) > 0 ? `${getSplitPercentage(member.userId)}%` : '' }}
+                  </span>
+                  <UInput
+                    :model-value="displayValue('split-' + member.userId, splitByUser(member.userId).splitAmount)"
+                    type="text"
+                    inputmode="decimal"
+                    size="sm"
+                    class="w-24 text-right sd-tabular"
+                    :disabled="!splitByUser(member.userId).included"
+                    @focus="onAmountFocus('split-' + member.userId, splitByUser(member.userId).splitAmount)"
+                    @update:model-value="v => onAmountInput('split-' + member.userId, v, 'splitAmount', splitByUser(member.userId), () => trackUser(member.userId))"
+                    @blur="onAmountBlur"
+                  />
+                </template>
               </div>
             </template>
+          </div>
+          <!-- Allocation feedback (percentage mode only) -->
+          <div
+            v-if="splitMode === 'percentage' && amountMillis > 0"
+            class="space-y-2 pt-2"
+          >
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-muted">{{ $t('expenses.splitAllocation') }}</span>
+              <UBadge
+                :color="badgeColor"
+                variant="soft"
+                size="xs"
+                :label="badgeLabel"
+              />
+            </div>
+            <UProgress
+              :model-value="percentageSum"
+              :max="100"
+              size="sm"
+              :color="progressColor"
+            />
+            <p
+              class="text-xs text-muted sr-only"
+              aria-live="polite"
+            >
+              {{ badgeLabel }}
+            </p>
           </div>
           <div class="text-xs space-y-1">
             <div
@@ -339,14 +425,19 @@
             @click="goBack"
           />
           <UFieldGroup size="lg">
-            <UButton
-              type="submit"
-              variant="subtle"
-              :label="submitLabel"
-              :loading="loading"
-              :disabled="!canCreateExpense"
-              class="grow sm:grow-0"
-            />
+            <UTooltip
+              :text="splitMode === 'percentage' && !isPercentageBalanced ? $t('expenses.saveDisabledTooltip') : undefined"
+              :disabled="splitMode !== 'percentage' || isPercentageBalanced"
+            >
+              <UButton
+                type="submit"
+                variant="subtle"
+                :label="submitLabel"
+                :loading="loading"
+                :disabled="!canSubmit"
+                class="grow sm:grow-0"
+              />
+            </UTooltip>
             <UDropdownMenu
               v-if="showAddMore"
               :items="addMoreMenuItems"
@@ -356,7 +447,7 @@
                 variant="subtle"
                 icon="i-lucide-chevron-down"
                 :loading="loading"
-                :disabled="!canCreateExpense"
+                :disabled="!canSubmit"
               />
             </UDropdownMenu>
           </UFieldGroup>
@@ -405,7 +496,7 @@
 </template>
 
 <script setup lang="ts">
-import type { GroupMember, CreateExpenseSplit, CreateExpenseAliasSplit } from '~/types/domain'
+import type { GroupMember, CreateExpenseSplit, CreateExpenseAliasSplit, SplitMode } from '~/types/domain'
 
 const { t } = useI18n()
 
@@ -422,12 +513,14 @@ interface ExpenseFormSplit {
   userId: string
   included: boolean
   splitAmount: number | null
+  splitPercentage?: number | null
 }
 
 interface ExpenseFormAliasSplit {
   aliasId: string
   included: boolean
   splitAmount: number | null
+  splitPercentage?: number | null
 }
 
 interface ExpenseFormModel {
@@ -442,6 +535,7 @@ interface ExpenseFormModel {
   paymentModeId?: number
   splits?: ExpenseFormSplit[]
   aliasSplits?: ExpenseFormAliasSplit[]
+  splitMode?: SplitMode
 }
 
 const model = defineModel<ExpenseFormModel>({ default: () => ({}) })
@@ -585,9 +679,86 @@ const onAmountBlur = (): void => {
   editingValue.value = ''
 }
 
+const parsePercentage = (raw: string | null | undefined): number | null => {
+  if (raw === '' || raw === null || raw === undefined) return null
+  let normalized = String(raw).replace(/,/g, '.')
+  normalized = normalized.replace(/[^\d.]/g, '')
+  const firstDot = normalized.indexOf('.')
+  if (firstDot !== -1) {
+    const before = normalized.slice(0, firstDot + 1)
+    const after = normalized.slice(firstDot + 1).replace(/\./g, '')
+    normalized = before + after
+  }
+  if (normalized.endsWith('.')) normalized = normalized.slice(0, -1)
+  const n = Number(normalized)
+  if (!Number.isFinite(n) || normalized === '') return null
+  return n
+}
+
+const onPercentageInput = (split: ExpenseFormSplit | ExpenseFormAliasSplit, raw: string): void => {
+  editingValue.value = raw
+  const parsed = parsePercentage(raw)
+  split.splitPercentage = parsed ?? null
+}
+
+const onPercentageBlur = (split: ExpenseFormSplit | ExpenseFormAliasSplit): void => {
+  if (split.splitPercentage === null || split.splitPercentage === undefined) {
+    editingField.value = null
+    editingValue.value = ''
+    return
+  }
+  if (split.splitPercentage < 0.01) split.splitPercentage = 0.01
+  if (split.splitPercentage > 100) split.splitPercentage = 100
+  split.splitPercentage = Math.round(split.splitPercentage * 100) / 100
+  editingField.value = null
+  editingValue.value = ''
+}
+
+const onModeChange = (newMode: SplitMode): void => {
+  const oldMode = splitMode.value
+  if (oldMode === newMode) return
+
+  // amounts → percentage: snapshot exact amounts, convert to percentages
+  if (oldMode !== 'percentage' && newMode === 'percentage') {
+    exactAmountSnapshot.value = new Map()
+    includedSplits.value.forEach((s) => {
+      const id = isAliasMode.value ? (s as ExpenseFormAliasSplit).aliasId : (s as ExpenseFormSplit).userId
+      exactAmountSnapshot.value!.set(id, toMillis(s.splitAmount ?? 0))
+    })
+    const amounts = includedSplits.value.map(s => toMillis(s.splitAmount ?? 0))
+    const pcts = amountsToPercentages(amounts, amountMillis.value)
+    includedSplits.value.forEach((s, i) => {
+      s.splitPercentage = pcts[i] ?? 0
+    })
+  }
+
+  // percentage → amounts: restore snapshot (lossless) or compute from percentages
+  if (oldMode === 'percentage' && newMode === 'amounts') {
+    if (exactAmountSnapshot.value && exactAmountSnapshot.value.size > 0) {
+      includedSplits.value.forEach((s) => {
+        const id = isAliasMode.value ? (s as ExpenseFormAliasSplit).aliasId : (s as ExpenseFormSplit).userId
+        const snapshotted = exactAmountSnapshot.value!.get(id)
+        if (snapshotted !== undefined) s.splitAmount = fromMillis(snapshotted)
+      })
+    }
+    else {
+      const pcts = includedSplits.value.map(s => s.splitPercentage ?? 0)
+      const shares = distributeByPercentages(pcts, amountMillis.value)
+      includedSplits.value.forEach((s, i) => {
+        s.splitAmount = fromMillis(shares[i] ?? 0)
+      })
+    }
+  }
+
+  splitMode.value = newMode
+  model.value.splitMode = newMode
+}
+
 const isLoadingMembers = ref(false)
 const groupMembers = ref<GroupMember[]>([])
-const showAdvanced = ref(false)
+
+const splitMode = ref<SplitMode>(model.value.splitMode ?? 'amounts')
+const exactAmountSnapshot = ref<Map<string, number> | null>(null)
 
 const group = computed(() => {
   if (props.preSelectedGroupId) {
@@ -599,6 +770,67 @@ const group = computed(() => {
 const isAliasMode = computed(() => !!group.value?.useAliases)
 const aliasSetupFinalized = computed(() => !!group.value?.aliasSetupFinalized)
 const canCreateExpense = computed(() => !isAliasMode.value || aliasSetupFinalized.value)
+
+const modeOptions = computed(() => [
+  { value: 'amounts', label: t('expenses.splitModeAmounts') },
+  { value: 'percentage', label: t('expenses.splitModePercentage') },
+])
+
+const activeSplitList = computed(() => isAliasMode.value ? (model.value.aliasSplits ?? []) : (model.value.splits ?? []))
+const includedSplits = computed(() => activeSplitList.value.filter(s => s.included))
+
+const percentageSum = computed(() =>
+  includedSplits.value.reduce((sum, s) => sum + (s.splitPercentage ?? 0), 0),
+)
+
+const isPercentageBalanced = computed(() =>
+  splitMode.value !== 'percentage' || Math.abs(percentageSum.value - 100) < 0.01,
+)
+
+const remainingPercentage = computed(() => 100 - percentageSum.value)
+
+const isSingleIncluded = computed(() => includedSplits.value.length === 1)
+
+// Enforce single-participant 100% in percentage mode — covers toggle, mode-switch, and member-load paths
+watch(isSingleIncluded, (single) => {
+  if (single && splitMode.value === 'percentage' && includedSplits.value.length === 1) {
+    includedSplits.value[0]!.splitPercentage = 100
+  }
+})
+
+const percentageAmounts = computed(() => {
+  if (splitMode.value !== 'percentage' || amountMillis.value === 0) return {}
+  const pcts = includedSplits.value.map(s => s.splitPercentage ?? 0)
+  const shares = distributeByPercentages(pcts, amountMillis.value)
+  const map: Record<string, number> = {}
+  includedSplits.value.forEach((s, i) => {
+    const key = isAliasMode.value ? (s as ExpenseFormAliasSplit).aliasId : (s as ExpenseFormSplit).userId
+    map[key] = fromMillis(shares[i] ?? 0)
+  })
+  return map
+})
+
+const percentageAmountFor = (id: string): number => percentageAmounts.value[id] ?? 0
+
+const progressColor = computed(() => {
+  if (percentageSum.value > 100.01) return 'error' as const
+  if (percentageSum.value < 99.99) return 'warning' as const
+  return 'success' as const
+})
+
+const badgeColor = computed(() => progressColor.value)
+
+const badgeLabel = computed(() => {
+  if (percentageSum.value > 100.01) return t('expenses.overPercentage', { percentage: Math.abs(remainingPercentage.value).toFixed(2) })
+  if (percentageSum.value < 99.99) return t('expenses.remainingPercentage', { percentage: Math.abs(remainingPercentage.value).toFixed(2) })
+  return t('expenses.allocatedPercentage', { percentage: '100.00' })
+})
+
+const canSubmit = computed(() => {
+  if (!canCreateExpense.value) return false
+  if (splitMode.value === 'percentage' && !isPercentageBalanced.value) return false
+  return true
+})
 
 // Tracks the last entity to manually edit a split, so "Distribute Remaining"
 // can avoid re-adjusting the value they just set.
@@ -663,6 +895,14 @@ const paymentModeOptions = computed<SelectOption[]>(() => {
 // Summing per-split millis (not millis-of-sum) avoids FP drift entirely.
 const amountMillis = computed(() => toMillis(model.value.amount ?? ''))
 
+// Clear the exact-amount snapshot when the amount changes in percentage mode,
+// so the percentage→exact transition computes from percentages (not stale amounts).
+watch(amountMillis, () => {
+  if (splitMode.value === 'percentage') {
+    exactAmountSnapshot.value = null
+  }
+})
+
 const activeSplits = computed(() =>
   isAliasMode.value ? (model.value.aliasSplits ?? []) : (model.value.splits ?? []),
 )
@@ -710,17 +950,56 @@ const trackUser = (userId: string): void => {
 const handleSplitToggle = (userId: string, included: boolean): void => {
   const split = splitByUser(userId)
   split.included = included
+
+  if (splitMode.value === 'percentage') {
+    if (!included) {
+      split.splitPercentage = null
+      // Rescale remaining participants proportionally to sum to 100
+      const remainingSplits = includedSplits.value.filter(s => (s as ExpenseFormSplit).userId !== userId)
+      if (remainingSplits.length > 0) {
+        const currentSum = remainingSplits.reduce((s, x) => s + (x.splitPercentage ?? 0), 0)
+        if (currentSum > 0) {
+          const rescaled = remainingSplits.map(s => Math.round(((s.splitPercentage ?? 0) / currentSum) * 100 * 100) / 100)
+          const rescaledSum = rescaled.reduce((a, b) => a + b, 0)
+          const residual = Math.round((100 - rescaledSum) * 100) / 100
+          rescaled[0] = Math.round((rescaled[0]! + residual) * 100) / 100
+          remainingSplits.forEach((s, i) => {
+            s.splitPercentage = rescaled[i] ?? 0
+          })
+        }
+        else {
+          const pcts = equalPercentages(remainingSplits.length)
+          remainingSplits.forEach((s, i) => {
+            s.splitPercentage = pcts[i] ?? 0
+          })
+        }
+      }
+    }
+    else {
+      const remaining = 100 - includedSplits.value.reduce((s, x) => s + (x.splitPercentage ?? 0), 0)
+      if (remaining > 0) {
+        split.splitPercentage = Math.max(0.01, Math.round(remaining * 100) / 100)
+      }
+      else {
+        const n = includedSplits.value.length
+        const pcts = equalPercentages(n)
+        includedSplits.value.forEach((s, i) => {
+          s.splitPercentage = pcts[i] ?? 0
+        })
+      }
+    }
+    return
+  }
+
+  // Existing exact-mode logic (unchanged)
   if (!model.value.amount) return
-
   if (!included) split.splitAmount = 0
-
-  const includedSplits = model.value.splits!.filter(s => s.included)
-  if (includedSplits.length === 0) return
-
+  const includedSplitsList = model.value.splits!.filter(s => s.included)
+  if (includedSplitsList.length === 0) return
   if (included) {
-    const perPerson = Math.floor(amountMillis.value / includedSplits.length)
+    const perPerson = Math.floor(amountMillis.value / includedSplitsList.length)
     split.splitAmount = fromMillis(perPerson)
-    const others = includedSplits.filter(s => s.userId !== userId)
+    const others = includedSplitsList.filter(s => s.userId !== userId)
     if (others.length > 0) {
       const otherCurrent = others.map(s => toMillis(s.splitAmount ?? 0))
       const rescaled = redistributeMillis(otherCurrent, amountMillis.value - perPerson)
@@ -728,29 +1007,41 @@ const handleSplitToggle = (userId: string, included: boolean): void => {
     }
   }
   else {
-    const currentMillis = includedSplits.map(s => toMillis(s.splitAmount ?? 0))
+    const currentMillis = includedSplitsList.map(s => toMillis(s.splitAmount ?? 0))
     const rescaled = redistributeMillis(currentMillis, amountMillis.value)
-    assignShares(includedSplits, rescaled)
+    assignShares(includedSplitsList, rescaled)
   }
 }
 
 const splitEqually = (): void => {
+  if (splitMode.value === 'percentage') {
+    const splits = isAliasMode.value ? model.value.aliasSplits : model.value.splits
+    if (!splits) return
+    const included = splits.filter(s => s.included)
+    if (included.length === 0) return
+    const pcts = equalPercentages(included.length)
+    included.forEach((s, i) => {
+      s.splitPercentage = pcts[i] ?? 0
+    })
+    return
+  }
+
   if (!model.value.amount) return
 
   if (isAliasMode.value) {
     if (!model.value.aliasSplits) return
-    const includedSplits = model.value.aliasSplits.filter(s => s.included)
-    if (includedSplits.length === 0) return
-    const shares = splitMillis(amountMillis.value, includedSplits.length)
-    assignShares(includedSplits, shares)
+    const included = model.value.aliasSplits.filter(s => s.included)
+    if (included.length === 0) return
+    const shares = splitMillis(amountMillis.value, included.length)
+    assignShares(included, shares)
     return
   }
 
   if (!model.value.splits) return
-  const includedSplits = model.value.splits.filter(s => s.included)
-  if (includedSplits.length === 0) return
-  const shares = splitMillis(amountMillis.value, includedSplits.length)
-  assignShares(includedSplits, shares)
+  const included = model.value.splits.filter(s => s.included)
+  if (included.length === 0) return
+  const shares = splitMillis(amountMillis.value, included.length)
+  assignShares(included, shares)
 }
 
 // Alias split helpers ----------------------------------------------------------
@@ -780,17 +1071,56 @@ const trackAlias = (aliasId: string): void => {
 const handleAliasSplitToggle = (aliasId: string, included: boolean): void => {
   const split = splitByAlias(aliasId)
   split.included = included
+
+  if (splitMode.value === 'percentage') {
+    if (!included) {
+      split.splitPercentage = null
+      // Rescale remaining participants proportionally to sum to 100
+      const remainingSplits = includedSplits.value.filter(s => (s as ExpenseFormAliasSplit).aliasId !== aliasId)
+      if (remainingSplits.length > 0) {
+        const currentSum = remainingSplits.reduce((s, x) => s + (x.splitPercentage ?? 0), 0)
+        if (currentSum > 0) {
+          const rescaled = remainingSplits.map(s => Math.round(((s.splitPercentage ?? 0) / currentSum) * 100 * 100) / 100)
+          const rescaledSum = rescaled.reduce((a, b) => a + b, 0)
+          const residual = Math.round((100 - rescaledSum) * 100) / 100
+          rescaled[0] = Math.round((rescaled[0]! + residual) * 100) / 100
+          remainingSplits.forEach((s, i) => {
+            s.splitPercentage = rescaled[i] ?? 0
+          })
+        }
+        else {
+          const pcts = equalPercentages(remainingSplits.length)
+          remainingSplits.forEach((s, i) => {
+            s.splitPercentage = pcts[i] ?? 0
+          })
+        }
+      }
+    }
+    else {
+      const remaining = 100 - includedSplits.value.reduce((s, x) => s + (x.splitPercentage ?? 0), 0)
+      if (remaining > 0) {
+        split.splitPercentage = Math.max(0.01, Math.round(remaining * 100) / 100)
+      }
+      else {
+        const n = includedSplits.value.length
+        const pcts = equalPercentages(n)
+        includedSplits.value.forEach((s, i) => {
+          s.splitPercentage = pcts[i] ?? 0
+        })
+      }
+    }
+    return
+  }
+
+  // Existing exact-mode logic (unchanged)
   if (!model.value.amount) return
-
   if (!included) split.splitAmount = 0
-
-  const includedSplits = model.value.aliasSplits!.filter(s => s.included)
-  if (includedSplits.length === 0) return
-
+  const includedSplitsList = model.value.aliasSplits!.filter(s => s.included)
+  if (includedSplitsList.length === 0) return
   if (included) {
-    const perAlias = Math.floor(amountMillis.value / includedSplits.length)
+    const perAlias = Math.floor(amountMillis.value / includedSplitsList.length)
     split.splitAmount = fromMillis(perAlias)
-    const others = includedSplits.filter(s => s.aliasId !== aliasId)
+    const others = includedSplitsList.filter(s => s.aliasId !== aliasId)
     if (others.length > 0) {
       const otherCurrent = others.map(s => toMillis(s.splitAmount ?? 0))
       const rescaled = redistributeMillis(otherCurrent, amountMillis.value - perAlias)
@@ -798,9 +1128,9 @@ const handleAliasSplitToggle = (aliasId: string, included: boolean): void => {
     }
   }
   else {
-    const currentMillis = includedSplits.map(s => toMillis(s.splitAmount ?? 0))
+    const currentMillis = includedSplitsList.map(s => toMillis(s.splitAmount ?? 0))
     const rescaled = redistributeMillis(currentMillis, amountMillis.value)
-    assignShares(includedSplits, rescaled)
+    assignShares(includedSplitsList, rescaled)
   }
 }
 
@@ -888,10 +1218,9 @@ const validate = (): ValidationError[] => {
     errors.push({ name: 'paymentModeId', message: t('expenses.paymentModeRequired') })
   }
 
-  const activeSplitList = isAliasMode.value ? model.value.aliasSplits : model.value.splits
   const splitEntityLabel = isAliasMode.value ? t('expenses.alias') : t('expenses.person')
 
-  if (!activeSplitList || activeSplitList.filter(s => s.included).length === 0) {
+  if (activeSplitList.value.length === 0 || activeSplitList.value.filter(s => s.included).length === 0) {
     errors.push({ name: 'splits', message: t('expenses.atLeastOneSplit', { entity: splitEntityLabel }) })
   }
   else if (model.value.amount && remainingMillis.value !== 0) {
@@ -902,6 +1231,10 @@ const validate = (): ValidationError[] => {
         amount: formatCurrency(parseFloat(model.value.amount), { fullPrecision: true }),
       }),
     })
+  }
+
+  if (splitMode.value === 'percentage' && !isPercentageBalanced.value) {
+    errors.push({ name: 'splits', message: t('expenses.mustSumTo100') })
   }
 
   return errors
@@ -923,28 +1256,29 @@ const updateUserSplits = (): void => {
 
   const byId = new Map((model.value.splits || []).map(s => [s.userId, s]))
   model.value.splits = members.map(m =>
-    byId.get(m.userId) ?? { userId: m.userId, included: !isEditMode.value, splitAmount: 0 },
+    byId.get(m.userId) ?? { userId: m.userId, included: !isEditMode.value, splitAmount: 0, splitPercentage: null },
   )
 
-  const includedSplits = model.value.splits.filter(s => s.included)
-  if (amountMillis.value === 0 || includedSplits.length === 0) return
+  const included = model.value.splits.filter(s => s.included)
+  if (amountMillis.value === 0 || included.length === 0) return
+  if (splitMode.value === 'percentage') return
 
-  const currentTotalMillis = includedSplits.reduce(
+  const currentTotalMillis = included.reduce(
     (s, x) => s + toMillis(x.splitAmount ?? 0),
     0,
   )
 
   if (currentTotalMillis === 0) {
-    assignShares(includedSplits, splitMillis(amountMillis.value, includedSplits.length))
+    assignShares(included, splitMillis(amountMillis.value, included.length))
     return
   }
 
   if (currentTotalMillis !== amountMillis.value) {
     const rescaled = redistributeMillis(
-      includedSplits.map(s => toMillis(s.splitAmount ?? 0)),
+      included.map(s => toMillis(s.splitAmount ?? 0)),
       amountMillis.value,
     )
-    assignShares(includedSplits, rescaled)
+    assignShares(included, rescaled)
   }
 }
 
@@ -953,28 +1287,29 @@ const updateAliasSplits = (): void => {
 
   const byId = new Map((model.value.aliasSplits || []).map(s => [s.aliasId, s]))
   model.value.aliasSplits = aliasList.map(a =>
-    byId.get(a.id) ?? { aliasId: a.id, included: !isEditMode.value, splitAmount: 0 },
+    byId.get(a.id) ?? { aliasId: a.id, included: !isEditMode.value, splitAmount: 0, splitPercentage: null },
   )
 
-  const includedSplits = model.value.aliasSplits.filter(s => s.included)
-  if (amountMillis.value === 0 || includedSplits.length === 0) return
+  const included = model.value.aliasSplits.filter(s => s.included)
+  if (amountMillis.value === 0 || included.length === 0) return
+  if (splitMode.value === 'percentage') return
 
-  const currentTotalMillis = includedSplits.reduce(
+  const currentTotalMillis = included.reduce(
     (s, x) => s + toMillis(x.splitAmount ?? 0),
     0,
   )
 
   if (currentTotalMillis === 0) {
-    assignShares(includedSplits, splitMillis(amountMillis.value, includedSplits.length))
+    assignShares(included, splitMillis(amountMillis.value, included.length))
     return
   }
 
   if (currentTotalMillis !== amountMillis.value) {
     const rescaled = redistributeMillis(
-      includedSplits.map(s => toMillis(s.splitAmount ?? 0)),
+      included.map(s => toMillis(s.splitAmount ?? 0)),
       amountMillis.value,
     )
-    assignShares(includedSplits, rescaled)
+    assignShares(included, rescaled)
   }
 }
 
@@ -1001,20 +1336,34 @@ const buildExpensePayload = (): CreateExpensePayload => {
   }
 
   if (isAliasMode.value) {
-    payload.expenseData.aliasSplits = model.value.aliasSplits
-      ? model.value.aliasSplits.filter(s => s.included).map(s => ({
-          aliasId: s.aliasId,
-          splitAmount: parseFloat(String(s.splitAmount)) || 0,
-        }))
-      : []
+    const splits = model.value.aliasSplits?.filter(s => s.included) ?? []
+    if (splitMode.value === 'percentage') {
+      const pcts = splits.map(s => s.splitPercentage ?? 0)
+      const shares = distributeByPercentages(pcts, amountMillis.value)
+      payload.expenseData.aliasSplits = splits
+        .map((s, i) => ({ aliasId: s.aliasId, splitAmount: fromMillis(shares[i] ?? 0) }))
+        .filter(s => s.splitAmount > 0)
+    }
+    else {
+      payload.expenseData.aliasSplits = splits
+        .map(s => ({ aliasId: s.aliasId, splitAmount: parseFloat(String(s.splitAmount)) || 0 }))
+        .filter(s => s.splitAmount > 0)
+    }
   }
   else {
-    payload.expenseData.splits = model.value.splits
-      ? model.value.splits.filter(s => s.included).map(s => ({
-          userId: s.userId,
-          splitAmount: parseFloat(String(s.splitAmount)) || 0,
-        }))
-      : []
+    const splits = model.value.splits?.filter(s => s.included) ?? []
+    if (splitMode.value === 'percentage') {
+      const pcts = splits.map(s => s.splitPercentage ?? 0)
+      const shares = distributeByPercentages(pcts, amountMillis.value)
+      payload.expenseData.splits = splits
+        .map((s, i) => ({ userId: s.userId, splitAmount: fromMillis(shares[i] ?? 0) }))
+        .filter(s => s.splitAmount > 0)
+    }
+    else {
+      payload.expenseData.splits = splits
+        .map(s => ({ userId: s.userId, splitAmount: parseFloat(String(s.splitAmount)) || 0 }))
+        .filter(s => s.splitAmount > 0)
+    }
   }
 
   return payload
