@@ -4,6 +4,17 @@ All notable changes to SplitDuo will be documented in this file.
 
 Generated with [git-cliff](https://git-cliff.org) from Conventional Commits.
 
+## [1.15.0] - 2026-08-24
+
+### Features
+
+- Expense receipt attachments
+- Split expense by percentage
+- User profile picture with initials fallback
+
+### Testing
+
+- Close backend coverage gaps (imports + background jobs)
 ## [1.14.0] - 2026-08-18
 
 ### Bug Fixes
