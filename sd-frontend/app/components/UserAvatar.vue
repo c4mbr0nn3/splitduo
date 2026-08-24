@@ -8,7 +8,10 @@
     :aria-label="displayName"
   >
     <template #default>
-      <span :style="{ backgroundColor: color.bg, color: color.fg }">{{ initials }}</span>
+      <span
+        class="h-full w-full rounded-full flex items-center justify-center"
+        :style="{ backgroundColor: color.bg, color: color.fg }"
+      >{{ initials }}</span>
     </template>
   </UAvatar>
 </template>
