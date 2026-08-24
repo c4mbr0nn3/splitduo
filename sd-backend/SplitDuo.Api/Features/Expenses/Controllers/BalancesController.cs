@@ -21,6 +21,10 @@ public class BalancesController(
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponseDto<List<BalanceDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponseDto<List<AliasBalanceDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> GetBalances(string groupId)
     {
         var currentUserId = GetCurrentUserId();
@@ -75,6 +79,10 @@ public class BalancesController(
     [HttpGet("summary")]
     [ProducesResponseType(typeof(ApiResponseDto<BalanceSummaryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponseDto<AliasBalanceSummaryDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> GetBalanceSummary(string groupId)
     {
         var currentUserId = GetCurrentUserId();

@@ -17,6 +17,10 @@ public class TwoFactorController(
     ILogger<TwoFactorController> logger) : BaseApiController
 {
     [HttpPost("setup/initiate")]
+    [ProducesResponseType(typeof(ApiResponseDto<TwoFactorSetupDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponseDto<TwoFactorSetupDto>>> InitiateSetup()
     {
         var currentUserId = GetCurrentUserId();
@@ -42,6 +46,10 @@ public class TwoFactorController(
     }
 
     [HttpPost("setup/verify")]
+    [ProducesResponseType(typeof(ApiResponseDto<EmptyDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponseDto<EmptyDto>>> VerifySetup([FromBody] VerifyTwoFactorSetupDto request)
     {
         var currentUserId = GetCurrentUserId();
@@ -67,6 +75,10 @@ public class TwoFactorController(
     }
 
     [HttpPost("disable")]
+    [ProducesResponseType(typeof(ApiResponseDto<EmptyDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponseDto<EmptyDto>>> Disable([FromBody] DisableTwoFactorDto request)
     {
         var currentUserId = GetCurrentUserId();
@@ -91,6 +103,10 @@ public class TwoFactorController(
     }
 
     [HttpPost("backup-codes/generate")]
+    [ProducesResponseType(typeof(ApiResponseDto<List<string>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponseDto<List<string>>>> GenerateBackupCodes()
     {
         var currentUserId = GetCurrentUserId();

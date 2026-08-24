@@ -20,6 +20,11 @@ public class ReceiptsController(IReceiptParserService receiptParserService) : Ba
     [Consumes("multipart/form-data")]
     [ServiceFilter<RequiresAiFilter>]
     [EnableRateLimiting("receipt-scan")]
+    [ProducesResponseType(typeof(ApiResponseDto<ParsedReceiptDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status502BadGateway)]
+    [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
     public async Task<ActionResult<ApiResponseDto<ParsedReceiptDto>>> ParseReceipt(IFormFile image)
     {
         if (image is null)

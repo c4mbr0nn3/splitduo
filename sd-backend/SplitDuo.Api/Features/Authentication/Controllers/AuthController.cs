@@ -20,6 +20,9 @@ public class AuthController(
 {
     [EnableRateLimiting("auth")]
     [HttpPost("login")]
+    [ProducesResponseType(typeof(ApiResponseDto<AuthResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<ApiResponseDto<AuthResponseDto>>> Login([FromBody] LoginRequestDto request)
     {
         logger.LogInformation("Login attempt for email: {Email}", request.Email);
@@ -40,6 +43,10 @@ public class AuthController(
     }
 
     [HttpPost("refresh")]
+    [ProducesResponseType(typeof(ApiResponseDto<AuthResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponseDto<AuthResponseDto>>> Refresh([FromBody] RefreshTokenRequestDto request)
     {
         logger.LogInformation("Token refresh attempt");
@@ -61,6 +68,10 @@ public class AuthController(
 
     [EnableRateLimiting("auth")]
     [HttpPost("verify-2fa")]
+    [ProducesResponseType(typeof(ApiResponseDto<AuthResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponseDto<AuthResponseDto>>> VerifyTwoFactor(
         [FromBody] VerifyTwoFactorLoginDto request)
     {
@@ -83,6 +94,10 @@ public class AuthController(
 
     [Authorize]
     [HttpPost("revoke")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> RevokeMyToken([FromBody] RevokeTokenRequestDto request)
     {
         logger.LogInformation("Token revoke attempt");
@@ -109,6 +124,11 @@ public class AuthController(
 
     [Authorize(Policy = "SystemAdmin")]
     [HttpPost("{userGuid}/revoke")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> RevokeAllUserToken(string userGuid)
     {
         logger.LogInformation("Token revoke attempt for user {UserGuid}", userGuid);
@@ -138,6 +158,8 @@ public class AuthController(
 
     [AllowAnonymous]
     [HttpPost("forgot-password")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDto request)
     {
         logger.LogInformation("Password reset request for email: {Email}", request.Email);
@@ -157,6 +179,8 @@ public class AuthController(
 
     [AllowAnonymous]
     [HttpGet("validate-reset-token")]
+    [ProducesResponseType(typeof(ApiResponseDto<bool>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ApiResponseDto<bool>>> ValidateResetToken([FromQuery] string email,
         [FromQuery] string token)
     {
@@ -179,6 +203,8 @@ public class AuthController(
 
     [AllowAnonymous]
     [HttpPost("reset-password")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult> ResetPassword([FromBody] ResetPasswordRequestDto request)
     {
         logger.LogInformation("Password reset attempt for email: {Email}", request.Email);

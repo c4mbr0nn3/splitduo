@@ -14,6 +14,12 @@ namespace SplitDuo.Api.Features.Exports.Controllers;
 public class ExportsController(IExportsService exportsService, IGroupsService groupsService) : BaseApiController
 {
     [HttpGet("groups/{groupId}/export/csv")]
+    [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK, "text/csv")]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> ExportToCsv(string groupId)
     {
         var user = await GetCurrentUserAsync();

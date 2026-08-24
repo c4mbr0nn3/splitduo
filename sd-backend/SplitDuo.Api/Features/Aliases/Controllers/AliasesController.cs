@@ -20,6 +20,11 @@ public class AliasesController(
     ICacheInvalidator cacheInvalidator) : BaseApiController
 {
     [HttpGet("groups/{groupId}/aliases")]
+    [ProducesResponseType(typeof(ApiResponseDto<List<AliasDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponseDto<List<AliasDto>>>> ListAliases(string groupId)
     {
         var currentUserId = GetCurrentUserId();
@@ -31,6 +36,12 @@ public class AliasesController(
     }
 
     [HttpPost("groups/{groupId}/aliases")]
+    [ProducesResponseType(typeof(ApiResponseDto<AliasDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ApiResponseDto<AliasDto>>> CreateAlias(string groupId,
         [FromBody] CreateAliasRequestDto request)
     {
@@ -50,6 +61,12 @@ public class AliasesController(
     }
 
     [HttpPost("groups/{groupId}/aliases/finalize")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult> FinalizeAliasSetup(string groupId)
     {
         var currentUserId = GetCurrentUserId();
@@ -68,6 +85,12 @@ public class AliasesController(
     }
 
     [HttpPut("aliases/{aliasId}")]
+    [ProducesResponseType(typeof(ApiResponseDto<AliasDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ApiResponseDto<AliasDto>>> UpdateAlias(string aliasId,
         [FromBody] UpdateAliasRequestDto request)
     {
@@ -87,6 +110,12 @@ public class AliasesController(
     }
 
     [HttpDelete("aliases/{aliasId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult> DeleteAlias(string aliasId)
     {
         var currentUserId = GetCurrentUserId();
@@ -112,6 +141,12 @@ public class AliasesController(
     }
 
     [HttpPost("aliases/{aliasId}/members")]
+    [ProducesResponseType(typeof(ApiResponseDto<AliasDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ApiResponseDto<AliasDto>>> AssignMember(string aliasId,
         [FromBody] AssignAliasMemberRequestDto request)
     {
@@ -131,6 +166,12 @@ public class AliasesController(
     }
 
     [HttpDelete("aliases/{aliasId}/members/{userId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult> RemoveMember(string aliasId, string userId)
     {
         var currentUserId = GetCurrentUserId();

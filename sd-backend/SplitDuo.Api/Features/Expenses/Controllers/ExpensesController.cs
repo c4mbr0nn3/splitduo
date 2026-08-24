@@ -20,6 +20,11 @@ public class ExpensesController(
     ILogger<ExpensesController> logger) : BaseApiController
 {
     [HttpGet]
+    [ProducesResponseType(typeof(PaginatedResponseDto<ExpenseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<PaginatedResponseDto<ExpenseDto>>> GetGroupExpenses(
         string groupId,
         [FromQuery] int page = 1,
@@ -41,6 +46,12 @@ public class ExpensesController(
     }
 
     [HttpPost]
+    [ProducesResponseType(typeof(ApiResponseDto<ExpenseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ApiResponseDto<ExpenseDto>>> CreateExpense(string groupId,
         [FromBody] CreateExpenseRequestDto request)
     {
@@ -62,6 +73,11 @@ public class ExpensesController(
     }
 
     [HttpGet("{expenseId}")]
+    [ProducesResponseType(typeof(ApiResponseDto<ExpenseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponseDto<ExpenseDto>>> GetExpense(string groupId, string expenseId)
     {
         var currentUserId = GetCurrentUserId();
@@ -73,6 +89,12 @@ public class ExpensesController(
     }
 
     [HttpPut("{expenseId}")]
+    [ProducesResponseType(typeof(ApiResponseDto<ExpenseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ApiResponseDto<ExpenseDto>>> UpdateExpense(string groupId, string expenseId,
         [FromBody] UpdateExpenseRequestDto request)
     {
@@ -94,6 +116,11 @@ public class ExpensesController(
     }
 
     [HttpDelete("{expenseId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteExpense(string groupId, string expenseId)
     {
         logger.LogWarning("Deleting expense: {ExpenseId} in group: {GroupId}", expenseId, groupId);

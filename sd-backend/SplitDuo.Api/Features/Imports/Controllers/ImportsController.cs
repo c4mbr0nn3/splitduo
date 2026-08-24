@@ -23,6 +23,11 @@ public class ImportsController(
     IImportValidatorService validatorService) : BaseApiController
 {
     [HttpGet]
+    [ProducesResponseType(typeof(PaginatedResponseDto<ImportStatusDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<PaginatedResponseDto<ImportStatusDto>>> GetGroupImports(
         string groupId,
         [FromQuery] int page = 1,
@@ -38,6 +43,13 @@ public class ImportsController(
     }
 
     [HttpPost("analyze")]
+    [ProducesResponseType(typeof(ApiResponseDto<ImportStatusDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ApiResponseDto<ImportStatusDto>>> AnalyzeImportFile(
         string groupId,
         [FromForm] ImportRequestDto request)
@@ -94,6 +106,12 @@ public class ImportsController(
     }
 
     [HttpPost]
+    [ProducesResponseType(typeof(ApiResponseDto<ImportStatusDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ApiResponseDto<ImportStatusDto>>> ImportData(
         string groupId,
         ImportMappingDto request)
