@@ -40,6 +40,7 @@ interface FlattenedMember {
   lastName?: string | null
   email?: string
   fullName?: string | null
+  hasAvatar?: boolean
   role: string
   aliasName?: string
 }
