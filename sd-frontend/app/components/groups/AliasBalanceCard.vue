@@ -16,11 +16,10 @@
             v-if="balance.members?.length"
             class="flex items-center gap-1.5 flex-wrap mt-1"
           >
-            <UAvatar
+            <UserAvatar
               v-for="member in visibleMembers"
               :key="member.id"
-              :alt="`${member.firstName} ${member.lastName || ''}`.trim()"
-              icon="i-lucide-user"
+              :user="member as UserBasicInfo"
               size="xs"
               class="shrink-0"
             />
@@ -73,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import type { AliasBalance } from '~/types/domain'
+import type { AliasBalance, UserBasicInfo } from '~/types/domain'
 
 interface Props {
   balance: AliasBalance

@@ -379,7 +379,14 @@
     "copyToClipboard": "Copy to clipboard",
     "changePassword": "Change Password",
     "unableToLoad": "Unable to load profile information",
-    "retry": "Retry"
+    "retry": "Retry",
+    "avatar": {
+      "description": "Upload a profile picture to personalize your account.",
+      "upload": "Upload",
+      "remove": "Remove",
+      "removeConfirm": "Remove profile picture?",
+      "removeConfirmDescription": "Your profile picture will be removed and replaced with your initials."
+    }
   },
   "twoFactor": {
     "title": "Two-Factor Authentication",
@@ -638,6 +645,12 @@
       "deleted": "Receipt deleted",
       "deleteFailed": "Failed to delete receipt",
       "autoUploadFailed": "Receipt could not be attached automatically. You can upload it manually."
+    },
+    "avatar": {
+      "uploaded": "Profile picture updated",
+      "uploadFailed": "Failed to upload profile picture",
+      "deleted": "Profile picture removed",
+      "deleteFailed": "Failed to remove profile picture"
     },
     "imports": {
       "invalidFormat": "Invalid {fieldName} format received from server",

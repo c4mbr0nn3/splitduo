@@ -49,6 +49,18 @@ public class UsersService(
             .ToListAsync();
 
         var response = users.Select(x => new UserDto(x)).ToList();
+
+        var userIds = users.Select(u => u.Id).ToList();
+        var avatarUserIds = await unitOfWork.UserAvatars
+            .Where(a => userIds.Contains(a.UserId))
+            .Select(a => a.UserId)
+            .ToHashSetAsync();
+
+        foreach (var dto in response)
+        {
+            dto.HasAvatar = avatarUserIds.Contains(dto.OriginalId);
+        }
+
         return Result<List<UserDto>>.Success(response);
     }
 
@@ -224,7 +236,10 @@ public class UsersService(
         if (request.LastName != null)
             user.LastName = request.LastName;
 
-        return Result<UserDto>.Success(new UserDto(user));
+        var dto = new UserDto(user);
+        dto.HasAvatar = await unitOfWork.UserAvatars.AnyAsync(a => a.UserId == user.Id);
+
+        return Result<UserDto>.Success(dto);
     }
 
     public async Task<Result<UpdateUserSettingsResponseDto>> UpdateCurrentUserSettingsAsync(Guid userGuid, UpdateUserSettingsRequestDto request)
@@ -323,9 +338,13 @@ public class UsersService(
         var user = await unitOfWork.Users
             .FirstOrDefaultAsync(u => u.Guid == userGuid && u.DeletedAt == null);
 
-        return user == null
-            ? Result<UserDto>.NotFound(loc["UserNotFound"])
-            : Result<UserDto>.Success(new UserDto(user));
+        if (user == null)
+            return Result<UserDto>.NotFound(loc["UserNotFound"]);
+
+        var dto = new UserDto(user);
+        dto.HasAvatar = await unitOfWork.UserAvatars.AnyAsync(a => a.UserId == user.Id);
+
+        return Result<UserDto>.Success(dto);
     }
 
     public async Task<Result<UserDto>> UpdateUserAsync(string userId, UpdateUserRequestDto request)
@@ -366,7 +385,11 @@ public class UsersService(
             user.LastName = request.LastName;
 
         if (!request.GlobalRole.HasValue || user.GlobalRole == request.GlobalRole.Value)
-            return Result<UserDto>.Success(new UserDto(user));
+        {
+            var dto = new UserDto(user);
+            dto.HasAvatar = await unitOfWork.UserAvatars.AnyAsync(a => a.UserId == user.Id);
+            return Result<UserDto>.Success(dto);
+        }
 
         if (!Enum.IsDefined(request.GlobalRole.Value))
             return Result<UserDto>.BadRequest(loc["InvalidRoleValue"]);
@@ -387,7 +410,10 @@ public class UsersService(
 
         user.GlobalRole = request.GlobalRole.Value;
 
-        return Result<UserDto>.Success(new UserDto(user));
+        var updatedDto = new UserDto(user);
+        updatedDto.HasAvatar = await unitOfWork.UserAvatars.AnyAsync(a => a.UserId == user.Id);
+
+        return Result<UserDto>.Success(updatedDto);
     }
 
     public async Task<Result> DeleteUserAsync(string userId)

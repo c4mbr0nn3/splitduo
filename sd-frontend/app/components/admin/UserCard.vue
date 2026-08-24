@@ -12,9 +12,8 @@
           <!-- User Header -->
           <div class="flex items-start">
             <div class="flex items-center gap-3 min-w-0">
-              <UAvatar
-                :alt="user.fullName || `${user.firstName} ${user.lastName || ''}`.trim()"
-                icon="i-lucide-user"
+              <UserAvatar
+                :user="user"
                 size="lg"
                 class="shrink-0"
               />

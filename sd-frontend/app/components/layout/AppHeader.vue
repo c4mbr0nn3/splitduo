@@ -37,8 +37,9 @@
       >
         <template #header>
           <div class="flex items-center">
-            <UAvatar
-              icon="i-lucide-user"
+            <UserAvatar
+              v-if="user"
+              :user="user"
               size="xl"
             />
             <div class="ml-3">

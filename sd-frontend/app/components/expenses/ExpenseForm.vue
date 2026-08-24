@@ -296,11 +296,10 @@
                   class="flex items-center gap-2 min-w-0 text-left"
                   @click="handleSplitToggle(member.userId, !splitByUser(member.userId).included)"
                 >
-                  <UAvatar
-                    icon="i-lucide-user"
+                  <UserAvatar
+                    :user="member.user as UserBasicInfo"
                     size="sm"
                     :class="splitByUser(member.userId).included ? 'ring-2 ring-primary bg-primary/10 text-primary' : 'bg-muted/10 text-muted opacity-60'"
-                    :alt="`${member.user.firstName} ${member.user.lastName}`"
                   />
                   <span
                     class="text-sm truncate"
@@ -496,7 +495,7 @@
 </template>
 
 <script setup lang="ts">
-import type { GroupMember, CreateExpenseSplit, CreateExpenseAliasSplit, SplitMode } from '~/types/domain'
+import type { GroupMember, CreateExpenseSplit, CreateExpenseAliasSplit, SplitMode, UserBasicInfo } from '~/types/domain'
 
 const { t } = useI18n()
 

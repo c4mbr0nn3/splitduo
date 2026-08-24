@@ -149,6 +149,29 @@ public class ExpensesService(
             return new ExpenseDto(expense, expenseSplits, expenseAliasSplits, attachmentCount);
         }).ToList();
 
+        // Batch avatar lookup for all users referenced by this page of expenses
+        var expenseUserIds = expenses.Select(e => e.PaidBy)
+            .Concat(splits.Select(s => s.UserId))
+            .Distinct()
+            .ToList();
+        var avatarUserIds = await unitOfWork.UserAvatars
+            .Where(a => expenseUserIds.Contains(a.UserId))
+            .Select(a => a.UserId)
+            .ToHashSetAsync();
+
+        foreach (var (expense, dto) in expenses.Zip(expenseDtos))
+        {
+            dto.PaidByUser.HasAvatar = avatarUserIds.Contains(expense.PaidBy);
+
+            var expenseSplits = splitsByExpense.ContainsKey(expense.Id)
+                ? splitsByExpense[expense.Id]
+                : [];
+            for (var i = 0; i < expenseSplits.Count; i++)
+            {
+                dto.Splits[i].User.HasAvatar = avatarUserIds.Contains(expenseSplits[i].UserId);
+            }
+        }
+
         var pagination = new PaginationDto
         {
             Page = page,
@@ -323,6 +346,7 @@ public class ExpensesService(
             }).ToList();
 
             var expenseDto = new ExpenseDto(expense, null, aliasSplitsWithAlias);
+            await SetHasAvatarAsync(expenseDto, expense, null);
             return Result<ExpenseDto>.Success(expenseDto);
         }
         else
@@ -422,6 +446,7 @@ public class ExpensesService(
 
             // Create response DTO
             var expenseDto = new ExpenseDto(expense, splitsWithUsers);
+            await SetHasAvatarAsync(expenseDto, expense, splitsWithUsers);
             return Result<ExpenseDto>.Success(expenseDto);
         }
     }
@@ -482,6 +507,7 @@ public class ExpensesService(
             .CountAsync(ea => ea.ExpenseId == expense.Id);
 
         var expenseDto = new ExpenseDto(expense, splits, aliasSplits, attachmentCount);
+        await SetHasAvatarAsync(expenseDto, expense, splits);
 
         return Result<ExpenseDto>.Success(expenseDto);
     }
@@ -751,6 +777,7 @@ public class ExpensesService(
 
         // Return with in-memory splits (avoids EF Core identity resolution issue)
         var expenseDto = new ExpenseDto(expense, newSplits, newAliasSplits, attachmentCount);
+        await SetHasAvatarAsync(expenseDto, expense, newSplits);
         return Result<ExpenseDto>.Success(expenseDto);
     }
 
@@ -816,5 +843,26 @@ public class ExpensesService(
         }*/
 
         return Result.Success();
+    }
+
+    private async Task SetHasAvatarAsync(ExpenseDto expenseDto, Expense expense, List<ExpenseSplit>? splits)
+    {
+        var userIds = splits?.Select(s => s.UserId).ToList() ?? [];
+        userIds.Add(expense.PaidBy);
+
+        var avatarUserIds = await unitOfWork.UserAvatars
+            .Where(a => userIds.Contains(a.UserId))
+            .Select(a => a.UserId)
+            .ToHashSetAsync();
+
+        expenseDto.PaidByUser.HasAvatar = avatarUserIds.Contains(expense.PaidBy);
+
+        if (splits != null)
+        {
+            for (var i = 0; i < splits.Count; i++)
+            {
+                expenseDto.Splits[i].User.HasAvatar = avatarUserIds.Contains(splits[i].UserId);
+            }
+        }
     }
 }

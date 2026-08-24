@@ -2,9 +2,8 @@
   <UCard variant="outline">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3 min-w-0">
-        <UAvatar
-          :alt="member.fullName || `${member.firstName} ${member.lastName || ''}`.trim()"
-          icon="i-lucide-user"
+        <UserAvatar
+          :user="member"
           size="md"
           class="shrink-0"
         />

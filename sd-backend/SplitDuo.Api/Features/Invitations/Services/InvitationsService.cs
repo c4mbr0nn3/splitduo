@@ -106,6 +106,8 @@ public class InvitationsService(
                 GroupName = group.Name, GroupGuid = group.Guid
             }, existingUserLanguage));
 
+            var hasAvatar = await unitOfWork.UserAvatars.AnyAsync(a => a.UserId == existingUser.Id);
+
             return Result<SendInvitationResponseDto>.Success(new SendInvitationResponseDto
             {
                 Type = "member_added",
@@ -118,7 +120,8 @@ public class InvitationsService(
                         Id = existingUser.Guid.ToString(),
                         Email = existingUser.Email,
                         FirstName = existingUser.FirstName,
-                        LastName = existingUser.LastName
+                        LastName = existingUser.LastName,
+                        HasAvatar = hasAvatar
                     },
                     Role = GroupRole.Member.ToString().ToLowerInvariant(),
                     JoinedAt = groupMember.CreatedAt
@@ -160,6 +163,8 @@ public class InvitationsService(
             RawToken = rawToken
         }, "en"));
 
+        var inviterHasAvatar = await unitOfWork.UserAvatars.AnyAsync(a => a.UserId == currentUser.Id);
+
         return Result<SendInvitationResponseDto>.Success(new SendInvitationResponseDto
         {
             Type = "invitation_sent",
@@ -172,7 +177,8 @@ public class InvitationsService(
                     Id = currentUser.Guid.ToString(),
                     Email = currentUser.Email,
                     FirstName = currentUser.FirstName,
-                    LastName = currentUser.LastName
+                    LastName = currentUser.LastName,
+                    HasAvatar = inviterHasAvatar
                 },
                 GroupName = group.Name,
                 InvitedAt = invitationToken.CreatedAt,
@@ -218,6 +224,12 @@ public class InvitationsService(
             .OrderByDescending(it => it.CreatedAt)
             .ToListAsync();
 
+        var inviterIds = invitations.Select(it => it.InvitedByUserId).ToList();
+        var avatarUserIds = await unitOfWork.UserAvatars
+            .Where(a => inviterIds.Contains(a.UserId))
+            .Select(a => a.UserId)
+            .ToHashSetAsync();
+
         var dtos = invitations.Select(it => new InvitationDto
         {
             Id = it.Guid.ToString(),
@@ -227,7 +239,8 @@ public class InvitationsService(
                 Id = it.InvitedByUser.Guid.ToString(),
                 Email = it.InvitedByUser.Email,
                 FirstName = it.InvitedByUser.FirstName,
-                LastName = it.InvitedByUser.LastName
+                LastName = it.InvitedByUser.LastName,
+                HasAvatar = avatarUserIds.Contains(it.InvitedByUserId)
             },
             GroupName = group.Name,
             InvitedAt = it.CreatedAt,
@@ -301,6 +314,8 @@ public class InvitationsService(
             RawToken = rawToken
         }, "en"));
 
+        var resenderHasAvatar = await unitOfWork.UserAvatars.AnyAsync(a => a.UserId == currentUser.Id);
+
         return Result<InvitationDto>.Success(new InvitationDto
         {
             Id = newInvitation.Guid.ToString(),
@@ -310,7 +325,8 @@ public class InvitationsService(
                 Id = currentUser.Guid.ToString(),
                 Email = currentUser.Email,
                 FirstName = currentUser.FirstName,
-                LastName = currentUser.LastName
+                LastName = currentUser.LastName,
+                HasAvatar = resenderHasAvatar
             },
             GroupName = group.Name,
             InvitedAt = newInvitation.CreatedAt,

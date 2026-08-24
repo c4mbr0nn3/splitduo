@@ -63,9 +63,9 @@ export type Pagination = WithRequired<components['schemas']['PaginationDto'], 'p
 
 // ─── Entity types (re-exported from generated, with required narrowing) ──────
 
-export type User = WithRequired<components['schemas']['UserDto'], 'id' | 'email' | 'firstName' | 'globalRoleId' | 'createdAt' | 'updatedAt' | 'twoFactorEnabled' | 'settings'>
-export type UserBasicInfo = WithRequired<components['schemas']['UserBasicInfoDto'], 'id' | 'firstName'>
-export type UserInfo = WithRequired<components['schemas']['UserInfoDto'], 'id' | 'email' | 'firstName'>
+export type User = WithRequired<components['schemas']['UserDto'], 'id' | 'email' | 'firstName' | 'globalRoleId' | 'createdAt' | 'updatedAt' | 'twoFactorEnabled' | 'settings' | 'hasAvatar'>
+export type UserBasicInfo = WithRequired<components['schemas']['UserBasicInfoDto'], 'id' | 'firstName' | 'hasAvatar'>
+export type UserInfo = WithRequired<components['schemas']['UserInfoDto'], 'id' | 'email' | 'firstName' | 'hasAvatar'>
 export type UserSettings = WithRequired<components['schemas']['UserSettingsDto'], 'theme' | 'uiLanguage'>
 export type UserStats = WithRequired<components['schemas']['UserStatsDto'], 'totalGroups' | 'youOwe' | 'youreOwed'>
 

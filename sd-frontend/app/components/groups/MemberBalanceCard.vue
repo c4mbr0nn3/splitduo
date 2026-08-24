@@ -2,9 +2,8 @@
   <UCard variant="outline">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <UAvatar
-          :alt="`${balance.user.firstName} ${balance.user.lastName || ''}`.trim()"
-          icon="i-lucide-user"
+        <UserAvatar
+          :user="balance.user as UserBasicInfo"
           size="md"
         />
         <p class="font-semibold text-primary">
@@ -40,7 +39,7 @@
 </template>
 
 <script setup lang="ts">
-import type { NormalBalance } from '~/types/domain'
+import type { NormalBalance, UserBasicInfo } from '~/types/domain'
 
 interface Props {
   balance: NormalBalance

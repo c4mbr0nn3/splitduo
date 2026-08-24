@@ -45,6 +45,31 @@ public class AliasesService(
 
         var aliasDtos = aliases.Select(a => new AliasDto(a, a.Members.Where(m => m.DeletedAt == null).ToList())).ToList();
 
+        // Batch avatar lookup for all alias members
+        var aliasMemberIds = aliases
+            .SelectMany(a => a.Members.Where(m => m.DeletedAt == null))
+            .Select(m => m.UserId)
+            .Distinct()
+            .ToList();
+        var avatarUserIds = await unitOfWork.UserAvatars
+            .Where(a => aliasMemberIds.Contains(a.UserId))
+            .Select(a => a.UserId)
+            .ToHashSetAsync();
+
+        var avatarByUserGuid = aliases
+            .SelectMany(a => a.Members.Where(m => m.DeletedAt == null))
+            .Where(m => avatarUserIds.Contains(m.UserId))
+            .Select(m => m.User.Guid)
+            .ToHashSet();
+
+        foreach (var dto in aliasDtos)
+        {
+            foreach (var member in dto.Members)
+            {
+                member.HasAvatar = avatarByUserGuid.Contains(Guid.Parse(member.Id));
+            }
+        }
+
         return Result<List<AliasDto>>.Success(aliasDtos);
     }
 
@@ -151,6 +176,7 @@ public class AliasesService(
         }
 
         var aliasDto = new AliasDto(alias, alias.Members.Where(m => m.DeletedAt == null).ToList());
+        await SetMembersHasAvatarAsync(aliasDto);
         return Result<AliasDto>.Success(aliasDto);
     }
 
@@ -284,6 +310,7 @@ public class AliasesService(
         var updatedMembers = alias.Members.Where(m => m.DeletedAt == null).ToList();
 
         var aliasDto = new AliasDto(alias, updatedMembers);
+        await SetMembersHasAvatarAsync(aliasDto);
         return Result<AliasDto>.Success(aliasDto);
     }
 
@@ -418,5 +445,22 @@ public class AliasesService(
         group.AliasSetupFinalized = true;
 
         return Result.Success();
+    }
+
+    private async Task SetMembersHasAvatarAsync(AliasDto aliasDto)
+    {
+        var memberGuids = aliasDto.Members
+            .Select(m => Guid.Parse(m.Id))
+            .ToList();
+
+        var avatarUserGuids = await unitOfWork.UserAvatars
+            .Where(a => memberGuids.Contains(a.Guid))
+            .Select(a => a.Guid)
+            .ToHashSetAsync();
+
+        foreach (var member in aliasDto.Members)
+        {
+            member.HasAvatar = avatarUserGuids.Contains(Guid.Parse(member.Id));
+        }
     }
 }
