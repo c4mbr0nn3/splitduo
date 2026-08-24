@@ -17,6 +17,12 @@ public class InvitationsController(
     IUnitOfWork unitOfWork) : BaseApiController
 {
     [HttpPost("groups/{groupId}/invitations")]
+    [ProducesResponseType(typeof(ApiResponseDto<SendInvitationResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ApiResponseDto<SendInvitationResponseDto>>> SendInvitation(
         string groupId, [FromBody] SendInvitationRequestDto request)
     {
@@ -33,6 +39,11 @@ public class InvitationsController(
     }
 
     [HttpGet("groups/{groupId}/invitations")]
+    [ProducesResponseType(typeof(ApiResponseDto<List<InvitationDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponseDto<List<InvitationDto>>>> GetGroupInvitations(string groupId)
     {
         var currentUserId = GetCurrentUserId();
@@ -44,6 +55,11 @@ public class InvitationsController(
     }
 
     [HttpPost("groups/{groupId}/invitations/{invitationId}/resend")]
+    [ProducesResponseType(typeof(ApiResponseDto<InvitationDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponseDto<InvitationDto>>> ResendInvitation(
         string groupId, string invitationId)
     {
@@ -60,6 +76,11 @@ public class InvitationsController(
     }
 
     [HttpDelete("groups/{groupId}/invitations/{invitationId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> RevokeInvitation(string groupId, string invitationId)
     {
         var currentUserId = GetCurrentUserId();
@@ -76,6 +97,8 @@ public class InvitationsController(
 
     [HttpGet("invitations/validate")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(ApiResponseDto<ValidateInvitationResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ApiResponseDto<ValidateInvitationResponseDto>>> ValidateToken(
         [FromQuery] string token)
     {
@@ -85,6 +108,8 @@ public class InvitationsController(
 
     [HttpPost("invitations/accept")]
     [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult> AcceptInvitation([FromBody] AcceptInvitationRequestDto request)
     {
         // Service manages its own transaction (needs intermediate save to get User.Id)

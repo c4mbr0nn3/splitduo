@@ -14,6 +14,8 @@ namespace SplitDuo.Api.Features.Categories.Controllers;
 public class CategoriesController : BaseApiController
 {
     [HttpGet]
+    [ProducesResponseType(typeof(ApiResponseDto<List<CategoryDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public ActionResult<ApiResponseDto<List<CategoryDto>>> GetCategories()
     {
         var categories = Enum.GetValues<ExpenseCategory>()

@@ -23,6 +23,9 @@ public class UsersController(
 {
     [HttpGet]
     [Authorize(Policy = "SystemAdmin")]
+    [ProducesResponseType(typeof(ApiResponseDto<List<UserDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<ApiResponseDto<List<UserDto>>>> GetUsers()
     {
         var result = await usersService.GetUsersAsync();
@@ -31,6 +34,9 @@ public class UsersController(
 
     [HttpGet("pending")]
     [Authorize(Policy = "SystemAdmin")]
+    [ProducesResponseType(typeof(ApiResponseDto<List<PendingUserDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<ApiResponseDto<List<PendingUserDto>>>> GetPendingInvitations()
     {
         var result = await invitationsService.GetPendingInvitationsAsync();
@@ -38,6 +44,10 @@ public class UsersController(
     }
 
     [HttpGet("me")]
+    [ProducesResponseType(typeof(ApiResponseDto<UserDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponseDto<UserDto>>> GetCurrentUser()
     {
         var currentUserId = GetCurrentUserId();
@@ -49,6 +59,10 @@ public class UsersController(
     }
 
     [HttpGet("me/stats")]
+    [ProducesResponseType(typeof(ApiResponseDto<UserStatsDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponseDto<UserStatsDto>>> GetUserStats()
     {
         var currentUserId = GetCurrentUserId();
@@ -60,6 +74,10 @@ public class UsersController(
     }
 
     [HttpGet("me/imports")]
+    [ProducesResponseType(typeof(ApiResponseDto<List<ImportStatusDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponseDto<List<ImportStatusDto>>>> GetCurrentUserImports()
     {
         var currentUserId = GetCurrentUserId();
@@ -71,6 +89,11 @@ public class UsersController(
     }
 
     [HttpPut("me")]
+    [ProducesResponseType(typeof(ApiResponseDto<UserDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ApiResponseDto<UserDto>>> UpdateCurrentUser([FromBody] UpdateUserRequestDto request)
     {
         var currentUserId = GetCurrentUserId();
@@ -86,6 +109,10 @@ public class UsersController(
     }
 
     [HttpPut("me/settings")]
+    [ProducesResponseType(typeof(ApiResponseDto<UpdateUserSettingsResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponseDto<UpdateUserSettingsResponseDto>>> UpdateCurrentUserSettings(
         [FromBody] UpdateUserSettingsRequestDto request)
     {
@@ -102,6 +129,10 @@ public class UsersController(
     }
 
     [HttpPut("me/password")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> ChangeCurrentUserPassword(
         [FromBody] ChangePasswordRequestDto request)
     {
@@ -120,6 +151,11 @@ public class UsersController(
     }
 
     [HttpGet("{userId}")]
+    [ProducesResponseType(typeof(ApiResponseDto<UserDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponseDto<UserDto>>> GetUser(string userId)
     {
         var result = await usersService.GetUserAsync(userId);
@@ -127,6 +163,12 @@ public class UsersController(
     }
 
     [HttpPut("{userId}")]
+    [ProducesResponseType(typeof(ApiResponseDto<UserDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ApiResponseDto<UserDto>>> UpdateUser(string userId,
         [FromBody] UpdateUserRequestDto request)
     {
@@ -140,6 +182,11 @@ public class UsersController(
 
     [HttpDelete("{userId}")]
     [Authorize(Policy = "SystemAdmin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteUser(string userId)
     {
         var result = await usersService.DeleteUserAsync(userId);

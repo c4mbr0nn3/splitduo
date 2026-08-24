@@ -14,6 +14,8 @@ namespace SplitDuo.Api.Features.PaymentModes.Controllers;
 public class PaymentModesController : BaseApiController
 {
     [HttpGet]
+    [ProducesResponseType(typeof(ApiResponseDto<List<PaymentModeDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public ActionResult<ApiResponseDto<List<PaymentModeDto>>> GetPaymentModes()
     {
         var paymentModes = Enum.GetValues<PaymentMode>()

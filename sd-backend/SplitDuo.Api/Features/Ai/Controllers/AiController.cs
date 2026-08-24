@@ -13,6 +13,8 @@ namespace SplitDuo.Api.Features.Ai.Controllers;
 public class AiController(IOptions<AiOptions> aiOptions) : BaseApiController
 {
     [HttpGet("status")]
+    [ProducesResponseType(typeof(ApiResponseDto<AiStatusDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public ActionResult<ApiResponseDto<AiStatusDto>> GetStatus()
     {
         var dto = new AiStatusDto { Enabled = aiOptions.Value.IsEnabled };

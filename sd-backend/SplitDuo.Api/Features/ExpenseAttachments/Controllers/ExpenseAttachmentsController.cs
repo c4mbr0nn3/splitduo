@@ -17,6 +17,11 @@ public class ExpenseAttachmentsController(
 {
     [HttpPost]
     [Consumes("multipart/form-data")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponseDto<ExpenseAttachmentDto>>> UploadAttachment(
         string groupId, string expenseId, IFormFile? file)
     {
@@ -33,6 +38,11 @@ public class ExpenseAttachmentsController(
     }
 
     [HttpGet]
+    [ProducesResponseType(typeof(ApiResponseDto<List<ExpenseAttachmentDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponseDto<List<ExpenseAttachmentDto>>>> ListAttachments(
         string groupId, string expenseId)
     {
@@ -45,6 +55,11 @@ public class ExpenseAttachmentsController(
     }
 
     [HttpGet("{attachmentId}")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK, "image/jpeg", "image/png", "image/webp", "application/pdf")]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DownloadAttachment(string groupId, string expenseId, string attachmentId)
     {
         var currentUserId = GetCurrentUserId();
@@ -68,6 +83,11 @@ public class ExpenseAttachmentsController(
     }
 
     [HttpDelete("{attachmentId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteAttachment(string groupId, string expenseId, string attachmentId)
     {
         var currentUserId = GetCurrentUserId();
