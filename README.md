@@ -23,7 +23,7 @@ A focused alternative to Splitwise and Cospend, deployable in one `docker compos
 | Layer      | Technology                                  |
 | ---------- | ------------------------------------------- |
 | Backend    | .NET 10, Entity Framework Core 10           |
-| Frontend   | Vue 3, Nuxt 4, Nuxt UI v4, TailwindCSS v4   |
+| Frontend   | Vue 3, Nuxt 4, Nuxt UI v4, TailwindCSS v4, TypeScript |
 | Database   | PostgreSQL 17                               |
 | Deployment | Single Docker container (multi-stage build) |
 
@@ -47,7 +47,10 @@ Rather than a raw transaction log, SplitDuo computes net balances across the who
 For groups where members act as sub-units (a couple sharing one slot, a household treated as one), turn on alias mode at creation. Members are grouped into named aliases and expenses split by subgroup instead of by person. Balances settle at the alias level.
 
 **AI-powered receipt scanning**
-Point your camera at a receipt and SplitDuo prefills the amount, date, and category. Works with any OpenAI-compatible endpoint — bring your own key, keep your data local.
+Point your camera at a receipt and SplitDuo prefills the amount, date, and category. Works with any OpenAI-compatible endpoint — bring your own key, keep your data local. Scanned receipts are attached to the expense automatically.
+
+**Expense attachments**
+Attach receipts, invoices, or any file to an expense. Files are stored alongside the expense and downloadable at any time.
 
 **Mobile-first, installable**
 The interface is designed for a phone screen first. Add it to your home screen as a PWA and it behaves like a native app — no app store required.
@@ -67,8 +70,11 @@ Per-group dashboard with category, monthly, and per-member breakdowns to see whe
 **Internationalization**
 Full UI translation (English and Italian) with per-user language preference. Locale parity is enforced at build time.
 
+**Email notifications**
+Stay in the loop without checking the app — invitations, new expenses, group changes, 2FA codes, and password resets arrive in your inbox. Full templates in English and Italian.
+
 **Admin panel**
-User management with role-based access — promote users, reset passwords, manage invitations.
+User management with role-based access — promote users, manage invitations, and oversee the instance.
 
 **Fully self-hosted**
 Single Docker container. Your server, your database, your rules.
@@ -116,6 +122,10 @@ Open `http://localhost:3000` — default login is `admin@splitduo.local` / `chan
 - [Invitation System](docs/features/invitation-system.md)
 - [Receipt Scanning](docs/features/receipt-scan/receipt-scan.md)
 - [PWA](docs/features/pwa.md)
+- [User Settings](docs/features/user-settings.md)
+- [Platform Admin Role Management](docs/features/platform-admin-role-management.md)
+- [Member Role Management](docs/features/member-role-management.md)
+- [Adding a Language (i18n)](docs/features/i18n/adding-a-language.md)
 
 ### API
 
