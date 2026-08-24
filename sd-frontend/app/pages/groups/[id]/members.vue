@@ -217,6 +217,7 @@ interface MemberWithRole {
   email: string
   firstName: string
   lastName?: string | null
+  hasAvatar?: boolean
   role: string
 }
 
@@ -306,6 +307,7 @@ const loadGroupMembers = async () => {
           email: item.user?.email || '',
           firstName: item.user?.firstName || '',
           lastName: item.user?.lastName,
+          hasAvatar: item.user?.hasAvatar ?? false,
           role: item.role || 'member',
         }
       })
