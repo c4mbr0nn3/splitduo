@@ -385,6 +385,174 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/users/me/avatar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        file?: components["schemas"]["IFormFile"];
+                    };
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/{userId}/avatar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    userId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "image/jpeg": components["schemas"]["FileContentResult"];
+                        "image/png": components["schemas"]["FileContentResult"];
+                        "image/webp": components["schemas"]["FileContentResult"];
+                    };
+                };
+                /** @description Not Modified */
+                304: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/receipts/parse": {
         parameters: {
             query?: never;
@@ -2687,6 +2855,10 @@ export interface components {
             password: string;
         };
         EmptyDto: Record<string, never>;
+        EntityTagHeaderValue: {
+            tag?: components["schemas"]["StringSegment"];
+            isWeak?: boolean;
+        };
         ExpenseAliasSplitDto: {
             id?: string;
             aliasId?: string;
@@ -2739,6 +2911,16 @@ export interface components {
             splitAmount?: number | string;
             /** Format: double */
             splitPercentage?: null | number | string;
+        };
+        FileContentResult: {
+            /** Format: byte */
+            fileContents?: string;
+            contentType?: null | string;
+            fileDownloadName?: null | string;
+            /** Format: date-time */
+            lastModified?: null | string;
+            entityTag?: null | components["schemas"]["EntityTagHeaderValue"];
+            enableRangeProcessing?: boolean;
         };
         ForgotPasswordRequestDto: {
             email: string;
@@ -2898,6 +3080,14 @@ export interface components {
             /** Format: int64 */
             expiresAt?: number | string;
         };
+        ProblemDetails: {
+            type?: null | string;
+            title?: null | string;
+            /** Format: int32 */
+            status?: null | number | string;
+            detail?: null | string;
+            instance?: null | string;
+        };
         RefreshTokenRequestDto: {
             token: string;
             refreshToken: string;
@@ -2918,6 +3108,15 @@ export interface components {
             type?: string;
             member?: null | components["schemas"]["GroupMemberDto"];
             invitation?: null | components["schemas"]["InvitationDto"];
+        };
+        StringSegment: {
+            buffer?: null | string;
+            /** Format: int32 */
+            offset?: number | string;
+            /** Format: int32 */
+            length?: number | string;
+            value?: null | string;
+            hasValue?: boolean;
         };
         TwoFactorSetupDto: {
             secret?: string;
@@ -2971,6 +3170,7 @@ export interface components {
             id?: string;
             firstName?: string;
             lastName?: null | string;
+            hasAvatar?: boolean;
         };
         UserDto: {
             id?: string;
@@ -2985,6 +3185,7 @@ export interface components {
             updatedAt?: number | string;
             fullName?: null | string;
             twoFactorEnabled?: boolean;
+            hasAvatar?: boolean;
             settings?: components["schemas"]["UserSettingsDto"];
         };
         UserInfoDto: {
@@ -2992,6 +3193,7 @@ export interface components {
             email?: string;
             firstName?: string;
             lastName?: null | string;
+            hasAvatar?: boolean;
         };
         UserSettingsDto: {
             theme?: string;

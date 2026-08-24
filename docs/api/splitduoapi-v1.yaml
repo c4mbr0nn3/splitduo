@@ -235,6 +235,125 @@ paths:
       responses:
         "200":
           description: OK
+  /api/v1/users/me/avatar:
+    put:
+      tags:
+        - UserAvatars
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  $ref: "#/components/schemas/IFormFile"
+        required: true
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+    delete:
+      tags:
+        - UserAvatars
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: Not Found
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /api/v1/users/{userId}/avatar:
+    get:
+      tags:
+        - UserAvatars
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            image/jpeg:
+              schema:
+                $ref: "#/components/schemas/FileContentResult"
+            image/png:
+              schema:
+                $ref: "#/components/schemas/FileContentResult"
+            image/webp:
+              schema:
+                $ref: "#/components/schemas/FileContentResult"
+        "304":
+          description: Not Modified
+        "401":
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: Not Found
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
   /api/v1/receipts/parse:
     post:
       tags:
@@ -2540,6 +2659,13 @@ components:
           type: string
     EmptyDto:
       type: object
+    EntityTagHeaderValue:
+      type: object
+      properties:
+        tag:
+          $ref: "#/components/schemas/StringSegment"
+        isWeak:
+          type: boolean
     ExpenseAliasSplitDto:
       type: object
       properties:
@@ -2678,6 +2804,31 @@ components:
             - number
             - string
           format: double
+    FileContentResult:
+      type: object
+      properties:
+        fileContents:
+          type: string
+          format: byte
+        contentType:
+          type:
+            - "null"
+            - string
+        fileDownloadName:
+          type:
+            - "null"
+            - string
+        lastModified:
+          type:
+            - "null"
+            - string
+          format: date-time
+        entityTag:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/EntityTagHeaderValue"
+        enableRangeProcessing:
+          type: boolean
     ForgotPasswordRequestDto:
       required:
         - email
@@ -3080,6 +3231,32 @@ components:
             - integer
             - string
           format: int64
+    ProblemDetails:
+      type: object
+      properties:
+        type:
+          type:
+            - "null"
+            - string
+        title:
+          type:
+            - "null"
+            - string
+        status:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int32
+        detail:
+          type:
+            - "null"
+            - string
+        instance:
+          type:
+            - "null"
+            - string
     RefreshTokenRequestDto:
       required:
         - token
@@ -3134,6 +3311,31 @@ components:
           oneOf:
             - type: "null"
             - $ref: "#/components/schemas/InvitationDto"
+    StringSegment:
+      type: object
+      properties:
+        buffer:
+          type:
+            - "null"
+            - string
+        offset:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        length:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        value:
+          type:
+            - "null"
+            - string
+        hasValue:
+          type: boolean
     TwoFactorSetupDto:
       type: object
       properties:
@@ -3293,6 +3495,8 @@ components:
           type:
             - "null"
             - string
+        hasAvatar:
+          type: boolean
     UserDto:
       type: object
       properties:
@@ -3330,6 +3534,8 @@ components:
             - string
         twoFactorEnabled:
           type: boolean
+        hasAvatar:
+          type: boolean
         settings:
           $ref: "#/components/schemas/UserSettingsDto"
     UserInfoDto:
@@ -3345,6 +3551,8 @@ components:
           type:
             - "null"
             - string
+        hasAvatar:
+          type: boolean
     UserSettingsDto:
       type: object
       properties:
@@ -3409,6 +3617,7 @@ components:
           type: string
 tags:
   - name: Users
+  - name: UserAvatars
   - name: Receipts
   - name: PaymentModes
   - name: Invitations

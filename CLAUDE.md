@@ -34,6 +34,7 @@ All others optional — see `sd-backend/SplitDuo.Core/Options/Setup/` for full l
 - Test projects exist (`SplitDuo.Tests.Unit`, `SplitDuo.Tests.Integration`) but have no tests yet
 - DB hostname in Docker: `postgres` (Docker network), not localhost
 - Release + CI gotchas: see `docs/agents/release.md` and `docs/agents/ci.md` — read before releasing or touching CI.
+- OpenAPI spec (`docs/api/splitduoapi-v1.yaml`) is auto-generated via Scalar dev UI — never hand-edit it. Run the backend in dev, export from `http://localhost:8080/scalar/v1`, then run `pnpm gen:api` to regenerate frontend types.
 
 ## Task Routing
 

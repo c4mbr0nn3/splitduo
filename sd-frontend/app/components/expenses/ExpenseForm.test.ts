@@ -95,6 +95,9 @@ function mountForm(props: Record<string, unknown> = {}) {
         UTooltip: {
           template: '<div><slot /></div>',
         },
+        UserAvatar: {
+          template: '<div />',
+        },
       },
     },
   })
@@ -188,6 +191,7 @@ async function mountWithMembers(amount = '100') {
       mocks: { $t: (key: string) => key },
       stubs: {
         UTooltip: { template: '<div><slot /></div>' },
+        UserAvatar: { template: '<div />' },
         URadioGroup: {
           props: ['modelValue', 'items', 'variant', 'orientation', 'size'],
           emits: ['update:modelValue'],

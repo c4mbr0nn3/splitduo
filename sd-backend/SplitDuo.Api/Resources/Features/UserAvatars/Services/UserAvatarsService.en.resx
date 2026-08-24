@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+    <xsd:element name="root" msdata:IsDataSet="true"/>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="UserNotFound" xml:space="preserve"><value>User not found.</value></data>
+  <data name="NoFileUploaded" xml:space="preserve"><value>No file was uploaded.</value></data>
+  <data name="FileSizeExceeded" xml:space="preserve"><value>File size exceeds the 200KB limit.</value></data>
+  <data name="FileTypeNotAllowed" xml:space="preserve"><value>File type is not allowed. Only JPG, PNG, and WebP images are accepted.</value></data>
+  <data name="FileContentMismatch" xml:space="preserve"><value>File content does not match its extension.</value></data>
+  <data name="InvalidUserIdFormat" xml:space="preserve"><value>Invalid user ID format.</value></data>
+  <data name="AvatarNotFound" xml:space="preserve"><value>Avatar not found.</value></data>
+</root>

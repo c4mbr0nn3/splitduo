@@ -27,6 +27,7 @@ const user = (overrides: Partial<User> = {}): User => ({
   createdAt: 0,
   updatedAt: 0,
   twoFactorEnabled: false,
+  hasAvatar: false,
   settings: { theme: 'light', uiLanguage: 'en' },
   ...overrides,
 })

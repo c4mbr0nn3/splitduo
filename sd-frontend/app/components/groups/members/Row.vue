@@ -1,9 +1,8 @@
 <template>
   <div class="flex items-center justify-between gap-3 py-2">
     <div class="flex items-center gap-3 min-w-0">
-      <UAvatar
-        :alt="member.fullName || `${member.firstName} ${member.lastName || ''}`.trim()"
-        icon="i-lucide-user"
+      <UserAvatar
+        :user="member"
         size="sm"
         class="shrink-0"
       />

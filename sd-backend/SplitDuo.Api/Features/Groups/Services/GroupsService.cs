@@ -464,6 +464,12 @@ public class GroupsService(
             .OrderBy(gm => gm.CreatedAt)
             .ToListAsync();
 
+        var memberUserIds = members.Select(m => m.User.Id).ToList();
+        var avatarUserIds = await unitOfWork.UserAvatars
+            .Where(a => memberUserIds.Contains(a.UserId))
+            .Select(a => a.UserId)
+            .ToHashSetAsync();
+
         var memberDtos = members.Select(member => new GroupMemberDto
         {
             GroupId = group.Guid.ToString(),
@@ -473,7 +479,8 @@ public class GroupsService(
                 Id = member.User.Guid.ToString(),
                 Email = member.User.Email,
                 FirstName = member.User.FirstName,
-                LastName = member.User.LastName
+                LastName = member.User.LastName,
+                HasAvatar = avatarUserIds.Contains(member.User.Id)
             },
             Role = member.Role.ToString().ToLowerInvariant(),
             JoinedAt = member.CreatedAt
@@ -557,6 +564,8 @@ public class GroupsService(
             groupMember.Alias = singletonAlias;
         }
 
+        var hasAvatar = await unitOfWork.UserAvatars.AnyAsync(a => a.UserId == userToAdd.Id);
+
         var memberDto = new GroupMemberDto
         {
             GroupId = group.Guid.ToString(),
@@ -566,7 +575,8 @@ public class GroupsService(
                 Id = userToAdd.Guid.ToString(),
                 Email = userToAdd.Email,
                 FirstName = userToAdd.FirstName,
-                LastName = userToAdd.LastName
+                LastName = userToAdd.LastName,
+                HasAvatar = hasAvatar
             },
             Role = role.ToString().ToLowerInvariant(),
             JoinedAt = groupMember.CreatedAt
@@ -740,6 +750,8 @@ public class GroupsService(
 
         targetMember.Role = newRole;
 
+        var hasAvatar = await unitOfWork.UserAvatars.AnyAsync(a => a.UserId == targetUser.Id);
+
         var memberDto = new GroupMemberDto
         {
             GroupId = group.Guid.ToString(),
@@ -749,7 +761,8 @@ public class GroupsService(
                 Id = targetUser.Guid.ToString(),
                 Email = targetUser.Email,
                 FirstName = targetUser.FirstName,
-                LastName = targetUser.LastName
+                LastName = targetUser.LastName,
+                HasAvatar = hasAvatar
             },
             Role = newRole.ToString().ToLowerInvariant(),
             JoinedAt = targetMember.CreatedAt

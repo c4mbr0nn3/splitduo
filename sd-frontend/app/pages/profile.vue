@@ -32,6 +32,49 @@
           class="sd-surface"
           :ui="{ body: 'p-4 sm:p-5' }"
         >
+          <div class="flex items-center gap-4">
+            <UserAvatar
+              :user="user"
+              size="3xl"
+            />
+            <div class="space-y-2">
+              <p class="text-sm text-muted">
+                {{ $t('profile.avatar.description') }}
+              </p>
+              <div class="flex gap-2">
+                <UButton
+                  :label="$t('profile.avatar.upload')"
+                  icon="i-lucide-upload"
+                  size="sm"
+                  :loading="avatarLoading"
+                  @click="triggerFileInput"
+                />
+                <UButton
+                  v-if="user.hasAvatar"
+                  :label="$t('profile.avatar.remove')"
+                  icon="i-lucide-trash-2"
+                  color="error"
+                  variant="outline"
+                  size="sm"
+                  :loading="avatarLoading"
+                  @click="confirmRemoveAvatar"
+                />
+              </div>
+              <input
+                ref="fileInput"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                class="hidden"
+                @change="onFileSelected"
+              >
+            </div>
+          </div>
+        </UCard>
+
+        <UCard
+          class="sd-surface"
+          :ui="{ body: 'p-4 sm:p-5' }"
+        >
           <p class="text-sm font-medium text-highlighted">
             {{ $t('profile.preferences') }}
           </p>
@@ -155,6 +198,46 @@ const { t } = useI18n()
 
 const { user, isLoading } = useAuth()
 const { copy, copied } = useClipboard()
+const { uploadAvatar, deleteAvatar, isLoading: avatarLoading } = useUserAvatar()
+const modal = useModal()
+const fileInput = ref<HTMLInputElement | null>(null)
+
+const triggerFileInput = () => {
+  fileInput.value?.click()
+}
+
+const onFileSelected = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
+  try {
+    await uploadAvatar(file)
+    await useAuth().initialize() // refresh user data (hasAvatar flag)
+  }
+  catch {
+    // Error shown via toast by the composable
+  }
+  target.value = '' // reset input so the same file can be re-selected
+}
+
+const confirmRemoveAvatar = async () => {
+  const confirmed = await modal.error({
+    title: t('profile.avatar.removeConfirm'),
+    content: t('profile.avatar.removeConfirmDescription'),
+    confirmText: t('profile.avatar.remove'),
+    cancelText: t('common.cancel'),
+  })
+
+  if (!confirmed) return
+
+  try {
+    await deleteAvatar()
+    await useAuth().initialize() // refresh user data (hasAvatar flag)
+  }
+  catch {
+    // Error shown via toast by the composable
+  }
+}
 
 // Password change modal state
 const isPasswordModalOpen = ref(false)

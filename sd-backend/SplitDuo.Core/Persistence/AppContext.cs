@@ -18,6 +18,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Expense> Expenses { get; set; }
     public DbSet<ExpenseSplit> ExpenseSplits { get; set; }
     public DbSet<ExpenseAttachment> ExpenseAttachments { get; set; }
+    public DbSet<UserAvatar> UserAvatars { get; set; }
     public DbSet<Group> Groups { get; set; }
     public DbSet<GroupMember> GroupMembers { get; set; }
     public DbSet<Import> Imports { get; set; }

@@ -66,11 +66,14 @@ public class AuthenticationService(
         // Check if 2FA is enabled for this user
         if (user.TwoFactorEnabled)
         {
+            var userDto = new UserDto(user);
+            userDto.HasAvatar = await unitOfWork.UserAvatars.AnyAsync(a => a.UserId == user.Id);
+
             return Result<AuthResponseDto>.Success(new AuthResponseDto
             {
                 RequiresTwoFactor = true,
                 TwoFactorChallengeToken = tokenGenerator.GenerateChallengeToken(user.Guid),
-                User = new UserDto(user)
+                User = userDto
             });
         }
 
@@ -171,13 +174,16 @@ public class AuthenticationService(
 
         unitOfWork.RefreshTokens.Add(refreshToken);
 
+        var userDto = new UserDto(user);
+        userDto.HasAvatar = await unitOfWork.UserAvatars.AnyAsync(a => a.UserId == user.Id);
+
         var authResponse = new AuthResponseDto
         {
             Token = token,
             RefreshToken = refreshTokenValue,
             ExpiresAt = expiresAt,
             RequiresTwoFactor = false,
-            User = new UserDto(user)
+            User = userDto
         };
 
         return Result<AuthResponseDto>.Success(authResponse);
@@ -275,12 +281,15 @@ public class AuthenticationService(
 
             unitOfWork.RefreshTokens.Add(newRefreshToken);
 
+            var refreshedUserDto = new UserDto(user);
+            refreshedUserDto.HasAvatar = await unitOfWork.UserAvatars.AnyAsync(a => a.UserId == user.Id);
+
             var authResponse = new AuthResponseDto
             {
                 Token = newAccessToken,
                 RefreshToken = newRefreshTokenValue,
                 ExpiresAt = expiresAt,
-                User = new UserDto(user)
+                User = refreshedUserDto
             };
 
             return Result<AuthResponseDto>.Success(authResponse);

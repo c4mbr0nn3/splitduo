@@ -14,6 +14,7 @@ public class UserDto
     public long UpdatedAt { get; set; }
     public string FullName => $"{FirstName} {LastName ?? ""}";
     public bool TwoFactorEnabled { get; set; }
+    public bool HasAvatar { get; set; }
     public UserSettingsDto Settings { get; set; } = new();
 
     [JsonIgnore] public int OriginalId { get; set; }

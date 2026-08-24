@@ -379,7 +379,14 @@
     "copyToClipboard": "Copia negli appunti",
     "changePassword": "Cambia Password",
     "unableToLoad": "Impossibile caricare le informazioni del profilo",
-    "retry": "Riprova"
+    "retry": "Riprova",
+    "avatar": {
+      "description": "Carica una foto profilo per personalizzare il tuo account.",
+      "upload": "Carica",
+      "remove": "Rimuovi",
+      "removeConfirm": "Rimuovere la foto profilo?",
+      "removeConfirmDescription": "La tua foto profilo verrà rimossa e sostituita con le tue iniziali."
+    }
   },
   "twoFactor": {
     "title": "Autenticazione a Due Fattori",
@@ -638,6 +645,12 @@
       "deleted": "Ricevuta eliminata",
       "deleteFailed": "Eliminazione ricevuta fallita",
       "autoUploadFailed": "Impossibile allegare la ricevuta automaticamente. Puoi caricarla manualmente."
+    },
+    "avatar": {
+      "uploaded": "Foto profilo aggiornata",
+      "uploadFailed": "Impossibile caricare la foto profilo",
+      "deleted": "Foto profilo rimossa",
+      "deleteFailed": "Impossibile rimuovere la foto profilo"
     },
     "imports": {
       "invalidFormat": "Formato {fieldName} non valido ricevuto dal server",

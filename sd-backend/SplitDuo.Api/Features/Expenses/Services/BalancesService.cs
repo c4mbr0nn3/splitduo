@@ -275,6 +275,12 @@ public class BalancesService(
 
         var balances = new Dictionary<int, BalanceDto>();
 
+        var balanceMemberIds = groupMembers.Select(m => m.Id).ToList();
+        var avatarUserIds = await unitOfWork.UserAvatars
+            .Where(a => balanceMemberIds.Contains(a.UserId))
+            .Select(a => a.UserId)
+            .ToHashSetAsync();
+
         // Initialize balances for all group members
         foreach (var member in groupMembers)
         {
@@ -285,7 +291,8 @@ public class BalancesService(
                 {
                     Id = member.Guid.ToString(),
                     FirstName = member.FirstName,
-                    LastName = member.LastName
+                    LastName = member.LastName,
+                    HasAvatar = avatarUserIds.Contains(member.Id)
                 },
                 Balance = 0,
                 TotalPaid = 0,
@@ -374,6 +381,16 @@ public class BalancesService(
         // Build a dictionary keyed by alias Id
         var aliasBalances = new Dictionary<int, AliasBalanceDto>();
 
+        var aliasMemberIds = allAliases
+            .SelectMany(a => a.Members.Where(m => m.DeletedAt == null))
+            .Select(m => m.UserId)
+            .Distinct()
+            .ToList();
+        var aliasAvatarUserIds = await unitOfWork.UserAvatars
+            .Where(a => aliasMemberIds.Contains(a.UserId))
+            .Select(a => a.UserId)
+            .ToHashSetAsync();
+
         foreach (var alias in allAliases)
         {
             var activeMembers = alias.Members.Where(m => m.DeletedAt == null).ToList();
@@ -390,7 +407,8 @@ public class BalancesService(
                 {
                     Id = m.User.Guid.ToString(),
                     FirstName = m.User.FirstName,
-                    LastName = m.User.LastName
+                    LastName = m.User.LastName,
+                    HasAvatar = aliasAvatarUserIds.Contains(m.UserId)
                 }).ToList()
             };
         }
