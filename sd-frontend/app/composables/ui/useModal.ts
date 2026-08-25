@@ -22,6 +22,7 @@ export interface ModalOptions {
  * Provides convenience methods for common dialog types
  */
 export default function useModal() {
+  const { t } = useI18n()
   // Create modal overlay factory
   const overlay = useOverlay()
   const modal = overlay.create(GenericModal)
@@ -39,8 +40,8 @@ export default function useModal() {
         color: 'primary',
         icon: '',
         iconColor: '',
-        confirmText: 'Confirm',
-        cancelText: 'Cancel',
+        confirmText: t('common.confirm'),
+        cancelText: t('common.cancel'),
         confirmColor: '',
         cancelColor: 'neutral',
         loading: false,
@@ -61,8 +62,8 @@ export default function useModal() {
   const confirm = async (options: Partial<ModalOptions> = {}): Promise<boolean | null> => {
     return await open({
       color: 'primary',
-      confirmText: 'Confirm',
-      cancelText: 'Cancel',
+      confirmText: t('common.confirm'),
+      cancelText: t('common.cancel'),
       ...options,
     })
   }
@@ -75,8 +76,8 @@ export default function useModal() {
     return await open({
       color: 'secondary',
       icon: 'i-lucide-info',
-      confirmText: 'OK',
-      cancelText: 'Cancel',
+      confirmText: t('common.ok'),
+      cancelText: t('common.cancel'),
       ...options,
     })
   }
@@ -89,8 +90,8 @@ export default function useModal() {
     return await open({
       color: 'success',
       icon: 'i-lucide-check-circle',
-      confirmText: 'OK',
-      cancelText: 'Cancel',
+      confirmText: t('common.ok'),
+      cancelText: t('common.cancel'),
       ...options,
     })
   }
@@ -103,8 +104,8 @@ export default function useModal() {
     return await open({
       color: 'warning',
       icon: 'i-lucide-alert-triangle',
-      confirmText: 'OK',
-      cancelText: 'Cancel',
+      confirmText: t('common.ok'),
+      cancelText: t('common.cancel'),
       ...options,
     })
   }
@@ -117,8 +118,8 @@ export default function useModal() {
     return await open({
       color: 'error',
       icon: 'i-lucide-x-circle',
-      confirmText: 'OK',
-      cancelText: 'Cancel',
+      confirmText: t('common.ok'),
+      cancelText: t('common.cancel'),
       ...options,
     })
   }

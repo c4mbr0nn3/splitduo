@@ -18,13 +18,13 @@
         </div>
         <div>
           <p class="text-sm text-muted">
-            {{ isAliasMode ? $t('stats.yourAlias', { name: balance.aliasName || '—' }) : $t('stats.yourNetBalance') }}
+            {{ isAliasMode ? $t('stats.yourAlias', { name: balance.aliasName || $t('members.unnamedAlias') }) : $t('stats.yourNetBalance') }}
           </p>
           <p
             class="font-bold text-2xl"
             :class="Number(balance.balance) >= 0 ? 'text-success' : 'text-error'"
           >
-            {{ Number(balance.balance) >= 0 ? '+' : '' }}{{ formatAmount(balance.balance) }} €
+            {{ Number(balance.balance) >= 0 ? '+' : '' }}{{ formatCurrency(balance.balance) }}
           </p>
         </div>
       </div>
@@ -36,7 +36,7 @@
           {{ isAliasMode ? $t('stats.aliasPaid') : $t('stats.youPaid') }}
         </p>
         <p class="font-semibold text-success">
-          {{ formatAmount(balance.totalPaid) }} €
+          {{ formatCurrency(balance.totalPaid) }}
         </p>
       </div>
       <div class="text-center">
@@ -44,7 +44,7 @@
           {{ isAliasMode ? $t('stats.aliasOwes') : $t('stats.youOwe') }}
         </p>
         <p class="font-semibold text-warning">
-          {{ formatAmount(balance.totalOwed) }} €
+          {{ formatCurrency(balance.totalOwed) }}
         </p>
       </div>
     </div>
@@ -52,6 +52,8 @@
 </template>
 
 <script setup lang="ts">
+import { formatCurrency } from '~/utils/currency'
+
 interface BalanceDisplay {
   balance: number
   totalPaid: number

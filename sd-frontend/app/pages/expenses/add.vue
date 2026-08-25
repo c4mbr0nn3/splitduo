@@ -1,17 +1,42 @@
 <template>
-  <ExpensesExpenseForm
-    v-model="expenseFormData"
-    :title="$t('expenses.addNew')"
-    :submit-label="$t('expenses.addExpense')"
-    :pre-selected-group-id="preSelectedGroupId"
-    :loading="isCreating"
-    show-add-more
-    @submit="onSubmit"
-    @add-more="onAddMore"
-    @cancel="goBack"
-    @add-attachment="onAddAttachment"
-    @remove-attachment="onRemoveAttachment"
-  />
+  <div class="flex flex-col items-center justify-center py-6 sm:py-8">
+    <UiLoadingSpinner
+      v-if="pageLoading"
+      :text="$t('expenses.loading')"
+    />
+
+    <UiEmptyState
+      v-else-if="loadError"
+      icon="i-lucide-receipt"
+      :title="$t('groups.unableToLoad')"
+    >
+      <template #action>
+        <UButton
+          color="primary"
+          variant="outline"
+          size="sm"
+          @click="retryLoad"
+        >
+          {{ $t('groups.retry') }}
+        </UButton>
+      </template>
+    </UiEmptyState>
+
+    <ExpensesExpenseForm
+      v-else
+      v-model="expenseFormData"
+      :title="$t('expenses.addNew')"
+      :submit-label="$t('expenses.addExpense')"
+      :pre-selected-group-id="preSelectedGroupId"
+      :loading="isCreating"
+      show-add-more
+      @submit="onSubmit"
+      @add-more="onAddMore"
+      @cancel="goBack"
+      @add-attachment="onAddAttachment"
+      @remove-attachment="onRemoveAttachment"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -43,6 +68,43 @@ onUnmounted(() => clearReceiptImage())
 const preSelectedGroupId = computed<string | null>(() => {
   const id = route.query.groupId || route.params.groupId
   return id ? String(id) : null
+})
+
+// Page-level gate: wait for group data before rendering the form
+const { fetchGroups, fetchGroup } = useGroups()
+const pageLoading = ref(true)
+const loadError = ref(false)
+
+const retryLoad = async () => {
+  loadError.value = false
+  pageLoading.value = true
+  try {
+    await fetchGroups()
+    if (preSelectedGroupId.value) {
+      await fetchGroup(preSelectedGroupId.value)
+    }
+  }
+  catch {
+    loadError.value = true
+  }
+  finally {
+    pageLoading.value = false
+  }
+}
+
+onMounted(async () => {
+  try {
+    await fetchGroups()
+    if (preSelectedGroupId.value) {
+      await fetchGroup(preSelectedGroupId.value)
+    }
+  }
+  catch {
+    loadError.value = true
+  }
+  finally {
+    pageLoading.value = false
+  }
 })
 
 const getInitialFormData = (): ExpenseFormModel => ({

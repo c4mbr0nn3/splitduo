@@ -1,6 +1,31 @@
 <template>
-  <div class="flex flex-col items-center justify-center py-6 sm:py-8 px-4">
-    <div class="w-full max-w-2xl space-y-4">
+  <div class="flex flex-col items-center justify-center py-6 sm:py-8">
+    <UiLoadingSpinner
+      v-if="pageLoading"
+      :text="$t('expenses.loading')"
+    />
+
+    <UiEmptyState
+      v-else-if="loadError"
+      icon="i-lucide-receipt"
+      :title="$t('groups.unableToLoad')"
+    >
+      <template #action>
+        <UButton
+          color="primary"
+          variant="outline"
+          size="sm"
+          @click="retryLoad"
+        >
+          {{ $t('groups.retry') }}
+        </UButton>
+      </template>
+    </UiEmptyState>
+
+    <div
+      v-else
+      class="w-full max-w-2xl space-y-4"
+    >
       <ExpensesExpenseForm
         v-model="expenseFormData"
         :title="$t('expenses.editExpense')"
@@ -172,10 +197,32 @@ const onSubmit = async (payload: { groupId: string, expenseData: Record<string, 
 
 const { goBack } = useSmartBack(`/groups/${groupId}`)
 
-onMounted(async () => {
-  if (groupId && expenseId) {
-    await fetchExpense(expenseId)
+// Page-level gate: wait for the expense fetch before rendering the form
+const pageLoading = ref(true)
+const loadError = ref(false)
+
+const loadExpense = async () => {
+  pageLoading.value = true
+  loadError.value = false
+  try {
+    if (groupId && expenseId) {
+      await fetchExpense(expenseId)
+    }
   }
+  catch {
+    loadError.value = true
+  }
+  finally {
+    pageLoading.value = false
+  }
+}
+
+const retryLoad = async () => {
+  await loadExpense()
+}
+
+onMounted(async () => {
+  await loadExpense()
 })
 
 useHead({

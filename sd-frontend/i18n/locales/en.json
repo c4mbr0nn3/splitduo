@@ -13,6 +13,7 @@
     "next": "Next",
     "yes": "Yes",
     "no": "No",
+    "ok": "OK",
     "or": "or",
     "updated": "Updated",
     "selectDate": "Select date",
@@ -351,7 +352,8 @@
     "noMembers": "No members",
     "singleton": "singleton",
     "invited": "Invited {date}",
-    "pending": "Pending"
+    "pending": "Pending",
+    "unnamedAlias": "Unnamed alias"
   },
   "profile": {
     "title": "Profile",
@@ -365,7 +367,7 @@
     "light": "Light",
     "dark": "Dark",
     "twoFactorAuth": "Two-Factor Authentication",
-    "twoFactorEnabled": "Enabled — your account is protected.",
+    "twoFactorEnabled": "Enabled. Your account is protected.",
     "twoFactorNotEnabled": "Not enabled.",
     "on": "On",
     "off": "Off",
@@ -478,6 +480,10 @@
     "importDate": "Import Date:",
     "duration": "Duration:",
     "importFailed": "Import Failed",
+    "analysisFailed": {
+      "title": "Analysis failed",
+      "description": "The file could not be analyzed. Check the format and try again."
+    },
     "configurationRequired": "Configuration Required",
     "configurationDescription": "File analysis is complete. Click 'Configure' to set up mappings and continue with the import.",
     "configure": "Configure",
@@ -489,7 +495,7 @@
     "cospendFormat": "Upload a Cospend .csv file (max 10MB)",
     "splitDuoFormat": "Upload a SplitDuo .csv file with columns: Date, Title, Description, Amount, PaidByEmail, Category, PaymentMode, Owers (max 10MB)",
     "splitwiseFormat": "Upload a Splitwise .csv export file (max 10MB)",
-    "splitDuoAliasFormat": "Upload a SplitDuo Alias .csv file (aliases, members, expenses sections) — max 10MB",
+    "splitDuoAliasFormat": "Upload a SplitDuo Alias .csv file (aliases, members, expenses sections) - max 10MB",
     "genericFormat": "Upload a file (max 10MB)",
     "fileSizeError": "File size must be less than 10MB",
     "fileTypeError": "Please select a {type} file for {importType} import",
@@ -548,7 +554,7 @@
     "noEmail": "No email"
   },
   "pwa": {
-    "offline": "You're offline — some features may be unavailable",
+    "offline": "You're offline. Some features may be unavailable.",
     "installApp": "Install App",
     "updateAvailable": "Update Available",
     "backOnline": "Back online"
@@ -579,7 +585,7 @@
   },
   "settle": {
     "title": "Settle Up",
-    "titleForGroup": "Settle Up — {name}",
+    "titleForGroup": "Settle Up: {name}",
     "loading": "Loading settlements...",
     "allSettled": "All settled up",
     "allSettledSubtitle": "No one owes anyone in this group",
@@ -588,7 +594,7 @@
     "youOweLabel": "You owe",
     "owedToYou": "Owed to you",
     "someone": "someone",
-    "summaryLine": "{count} settlements · {amount} € total",
+    "summaryLine": "{count} settlements · {amount} total",
     "viewAll": "View settlements"
   },
   "changePassword": {

@@ -22,12 +22,6 @@
           <p class="min-w-0 text-2xl font-semibold sd-tabular text-highlighted truncate">
             {{ numericValue }}
           </p>
-          <span
-            v-if="props.type === 'currency'"
-            class="shrink-0 text-base font-medium text-muted"
-          >
-            €
-          </span>
         </div>
       </div>
     </div>
@@ -35,6 +29,8 @@
 </template>
 
 <script setup lang="ts">
+import { formatCurrency } from '~/utils/currency'
+
 interface StatData {
   label: string
   value: number | string
@@ -56,7 +52,7 @@ const statsLabel = computed(() => props.stats.label)
 
 const numericValue = computed(() => {
   const v = props.stats.value || 0
-  return props.type === 'currency' ? formatAmount(v) : v
+  return props.type === 'currency' ? formatCurrency(v) : v
 })
 
 const tone = computed(() => props.stats.color || props.color)

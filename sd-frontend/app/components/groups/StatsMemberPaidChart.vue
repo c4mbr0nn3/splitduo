@@ -2,7 +2,7 @@
   <UCard v-if="balances.length > 0">
     <template #header>
       <p class="font-semibold">
-        Paid by Member
+        {{ t('stats.paidByMember') }}
       </p>
     </template>
     <div class="p-1">
@@ -18,12 +18,14 @@
 
 <script setup lang="ts">
 import type { NormalBalance } from '~/types/domain'
+import { formatCurrency } from '~/utils/currency'
 
 interface Props {
   balances: NormalBalance[]
 }
 const props = defineProps<Props>()
 
+const { t } = useI18n()
 const { primaryColor, themeMode } = useChartTheme()
 
 const series = computed(() => [{
@@ -40,7 +42,7 @@ const chartOptions = computed(() => ({
   theme: { mode: themeMode.value },
   chart: { background: 'transparent', toolbar: { show: false } },
   tooltip: {
-    y: { formatter: (val: number) => `€ ${val.toFixed(2)}` },
+    y: { formatter: (val: number) => formatCurrency(val) },
   },
 }))
 </script>

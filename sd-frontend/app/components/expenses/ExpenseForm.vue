@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col items-center justify-center py-6 sm:py-8 px-4">
+  <div class="flex flex-col items-center justify-center py-6 sm:py-8">
     <UCard class="w-full max-w-2xl">
       <template #header>
         <div class="flex items-center justify-between">
@@ -430,7 +430,6 @@
             >
               <UButton
                 type="submit"
-                variant="subtle"
                 :label="submitLabel"
                 :loading="loading"
                 :disabled="!canSubmit"

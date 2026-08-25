@@ -1,5 +1,5 @@
 <template>
-  <div class="py-6 px-4 sm:py-8 flex flex-col items-center">
+  <div class="py-6 sm:py-8 flex flex-col items-center">
     <UCard class="w-full max-w-2xl">
       <template #header>
         <UiCardHeader
@@ -62,7 +62,7 @@
             <!-- QR code — rendered from uqr SVG string -->
             <div
               v-if="qrSvg"
-              class="flex justify-center p-4 rounded-xl bg-white border border-neutral-200 dark:border-neutral-700 shadow-[var(--sd-card-shadow)]"
+              class="flex justify-center p-4 rounded-xl bg-[oklch(98.5%_0_0)] border border-default shadow-[var(--sd-card-shadow)]"
               v-html="qrSvg"
             />
 

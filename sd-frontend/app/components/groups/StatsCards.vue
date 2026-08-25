@@ -17,7 +17,7 @@
               {{ $t('stats.totalExpenses') }}
             </p>
             <p class="font-bold text-xl text-primary sd-tabular">
-              {{ totalExpenses || 0 }}
+              {{ formatCurrency(totalExpenses) }}
             </p>
           </div>
         </div>
@@ -34,7 +34,7 @@
               {{ $t('stats.groupTotal') }}
             </p>
             <p class="font-bold text-xl text-success sd-tabular">
-              {{ formatAmount(groupTotal) }} €
+              {{ formatCurrency(groupTotal) }}
             </p>
           </div>
         </div>
@@ -70,6 +70,8 @@
 </template>
 
 <script setup lang="ts">
+import { formatCurrency } from '~/utils/currency'
+
 interface Props {
   totalExpenses?: number
   groupTotal?: number

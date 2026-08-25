@@ -13,6 +13,7 @@
     "next": "Avanti",
     "yes": "Sì",
     "no": "No",
+    "ok": "OK",
     "or": "o",
     "updated": "Aggiornato",
     "selectDate": "Seleziona data",
@@ -351,7 +352,8 @@
     "noMembers": "Nessun membro",
     "singleton": "individuale",
     "invited": "Invitato {date}",
-    "pending": "In sospeso"
+    "pending": "In sospeso",
+    "unnamedAlias": "Alias senza nome"
   },
   "profile": {
     "title": "Profilo",
@@ -365,7 +367,7 @@
     "light": "Chiaro",
     "dark": "Scuro",
     "twoFactorAuth": "Autenticazione a Due Fattori",
-    "twoFactorEnabled": "Attivata — il tuo account è protetto.",
+    "twoFactorEnabled": "Attiva. Il tuo account è protetto.",
     "twoFactorNotEnabled": "Non attivata.",
     "on": "Attivo",
     "off": "Disattivo",
@@ -478,6 +480,10 @@
     "importDate": "Data Importazione:",
     "duration": "Durata:",
     "importFailed": "Importazione Fallita",
+    "analysisFailed": {
+      "title": "Analisi non riuscita",
+      "description": "Impossibile analizzare il file. Controlla il formato e riprova."
+    },
     "configurationRequired": "Configurazione Richiesta",
     "configurationDescription": "L'analisi del file è completa. Clicca 'Configura' per impostare le mappature e continuare con l'importazione.",
     "configure": "Configura",
@@ -489,7 +495,7 @@
     "cospendFormat": "Carica un file Cospend .csv (max 10MB)",
     "splitDuoFormat": "Carica un file SplitDuo .csv con colonne: Data, Titolo, Descrizione, Importo, PaidByEmail, Categoria, MetodoPagamento, Debitori (max 10MB)",
     "splitwiseFormat": "Carica un file di esportazione Splitwise .csv (max 10MB)",
-    "splitDuoAliasFormat": "Carica un file SplitDuo Alias .csv (sezioni sottogruppi, membri, spese) — max 10MB",
+    "splitDuoAliasFormat": "Carica un file SplitDuo Alias .csv (sezioni sottogruppi, membri, spese) - max 10MB",
     "genericFormat": "Carica un file (max 10MB)",
     "fileSizeError": "La dimensione del file deve essere inferiore a 10MB",
     "fileTypeError": "Seleziona un file {type} per l'importazione {importType}",
@@ -548,7 +554,7 @@
     "noEmail": "Nessuna email"
   },
   "pwa": {
-    "offline": "Sei offline — alcune funzionalità potrebbero non essere disponibili",
+    "offline": "Sei offline. Alcune funzionalità potrebbero non essere disponibili.",
     "installApp": "Installa App",
     "updateAvailable": "Aggiornamento Disponibile",
     "backOnline": "Di nuovo online"
@@ -557,8 +563,8 @@
     "title": "Statistiche",
     "monthlySpending": "Spese Mensili",
     "spending": "Spese",
-    "paidByMember": "Pagato per Membro",
-    "spendingByCategory": "Spese per Categoria",
+    "paidByMember": "Pagato da ciascun membro",
+    "spendingByCategory": "Spese per categoria",
     "totalExpenses": "Spese Totali",
     "groupTotal": "Totale Gruppo",
     "settleUp": "Pareggia",
@@ -579,7 +585,7 @@
   },
   "settle": {
     "title": "Salda i conti",
-    "titleForGroup": "Salda i conti — {name}",
+    "titleForGroup": "Salda: {name}",
     "loading": "Caricamento saldi...",
     "allSettled": "Tutto saldato",
     "allSettledSubtitle": "Nessuno deve nulla in questo gruppo",
@@ -588,7 +594,7 @@
     "youOweLabel": "Devi a",
     "owedToYou": "Ti spetta",
     "someone": "qualcuno",
-    "summaryLine": "{count} saldi · {amount} € totali",
+    "summaryLine": "{count} saldi · {amount} in totale",
     "viewAll": "Vedi i saldi"
   },
   "changePassword": {

@@ -18,6 +18,7 @@
 
 <script setup lang="ts">
 import type { MonthlyStat } from '~/types/domain'
+import { formatCurrency } from '~/utils/currency'
 
 const { t, locale } = useI18n()
 
@@ -50,7 +51,7 @@ const chartOptions = computed(() => ({
   chart: { background: 'transparent', toolbar: { show: false } },
   dataLabels: { enabled: false },
   tooltip: {
-    y: { formatter: (val: number) => `€ ${val.toFixed(2)}` },
+    y: { formatter: (val: number) => formatCurrency(val) },
   },
 }))
 </script>
