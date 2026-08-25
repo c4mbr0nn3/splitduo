@@ -40,7 +40,7 @@
               class="font-bold text-lg sd-tabular shrink-0"
               :class="item.isOutgoing ? 'text-warning' : 'text-success'"
             >
-              {{ formatAmount(item.amount) }} €
+              {{ formatCurrency(item.amount) }}
             </p>
           </div>
         </UCard>
@@ -77,7 +77,7 @@
               </div>
             </div>
             <p class="font-bold text-lg text-highlighted sd-tabular shrink-0">
-              {{ formatAmount(item.amount) }} €
+              {{ formatCurrency(item.amount) }}
             </p>
           </div>
         </UCard>
@@ -88,6 +88,7 @@
 
 <script setup lang="ts">
 import type { BalanceSuggestion, AliasSettlementSuggestion } from '~/types/domain'
+import { formatCurrency } from '~/utils/currency'
 
 interface Props {
   suggestions: BalanceSuggestion[] | AliasSettlementSuggestion[]
@@ -165,8 +166,4 @@ const yourSuggestions = computed(() =>
 const otherSuggestions = computed(() =>
   normalized.value.filter(item => !item.isOutgoing && !item.isIncoming),
 )
-
-const formatAmount = (amount: number) => {
-  return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount)
-}
 </script>

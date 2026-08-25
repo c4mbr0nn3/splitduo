@@ -114,7 +114,7 @@ export default defineNuxtConfig({
       dir: 'ltr',
       categories: ['finance', 'productivity'],
       theme_color: '#14b8a6',
-      background_color: '#ffffff',
+      background_color: '#FAFAFA',
       display: 'standalone',
       display_override: ['standalone', 'minimal-ui'],
       icons: [

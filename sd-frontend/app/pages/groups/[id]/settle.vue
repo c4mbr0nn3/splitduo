@@ -60,6 +60,7 @@
 
 <script setup lang="ts">
 import type { BalanceSuggestion, AliasSettlementSuggestion, NormalBalance } from '~/types/domain'
+import { formatCurrency } from '~/utils/currency'
 
 definePageMeta({
   middleware: 'auth',
@@ -101,15 +102,11 @@ const totalSettlementAmount = computed(() =>
   activeSuggestions.value.reduce((total, s) => total + (Number(s.amount) || 0), 0),
 )
 
-const formatAmount = (amount: number) => {
-  return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount)
-}
-
 const summaryLine = computed(() => {
   const count = activeSuggestions.value.length
   return t('settle.summaryLine', {
     count,
-    amount: formatAmount(totalSettlementAmount.value),
+    amount: formatCurrency(totalSettlementAmount.value),
   })
 })
 

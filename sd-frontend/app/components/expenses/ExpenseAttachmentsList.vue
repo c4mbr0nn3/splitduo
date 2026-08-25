@@ -2,7 +2,7 @@
   <div class="space-y-3">
     <div
       v-if="attachments.length === 0 && !isLoading"
-      class="text-sm text-neutral-500"
+      class="text-sm text-muted"
     >
       {{ $t('expenses.attachments.empty') }}
     </div>
@@ -29,11 +29,11 @@
           >
           <div
             v-else
-            class="size-16 rounded-lg bg-neutral-100 flex items-center justify-center"
+            class="size-16 rounded-lg bg-muted flex items-center justify-center"
           >
             <UIcon
               name="i-lucide-file-text"
-              class="size-8 text-neutral-400"
+              class="size-8 text-dimmed"
             />
           </div>
         </button>

@@ -20,12 +20,14 @@ const props = withDefaults(defineProps<Props>(), {
   color: 'primary',
   icon: '',
   iconColor: '',
-  confirmText: 'Confirm',
-  cancelText: 'Cancel',
+  confirmText: '',
+  cancelText: '',
   confirmColor: '',
   cancelColor: 'neutral',
   loading: false,
 })
+
+const { t } = useI18n()
 
 const emit = defineEmits<{
   close: [value: boolean]
@@ -38,6 +40,8 @@ const isProcessing = ref(false)
 // Compute actual colors with fallbacks
 const actualConfirmColor = computed(() => props.confirmColor || props.color)
 const actualIconColor = computed(() => props.iconColor || props.color)
+const actualConfirmText = computed(() => props.confirmText || t('common.confirm'))
+const actualCancelText = computed(() => props.cancelText || t('common.cancel'))
 
 const handleCancel = () => {
   if (isProcessing.value) return
@@ -96,8 +100,9 @@ const handleClose = () => {
     <template #body>
       <div
         v-if="content"
-        v-html="content"
-      />
+      >
+        {{ content }}
+      </div>
     </template>
 
     <template #footer>
@@ -109,7 +114,7 @@ const handleClose = () => {
           class="ml-auto"
           @click="handleCancel"
         >
-          {{ cancelText }}
+          {{ actualCancelText }}
         </UButton>
         <UButton
           :color="actualConfirmColor"
@@ -117,7 +122,7 @@ const handleClose = () => {
           :disabled="isProcessing || loading"
           @click="handleConfirm"
         >
-          {{ confirmText }}
+          {{ actualConfirmText }}
         </UButton>
       </div>
     </template>

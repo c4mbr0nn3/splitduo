@@ -36,7 +36,7 @@
         class="font-bold text-lg shrink-0"
         :class="Number(balance.balance) >= 0 ? 'text-success' : 'text-error'"
       >
-        {{ Number(balance.balance) >= 0 ? '+' : '' }}{{ formatAmount(balance.balance) }} €
+        {{ Number(balance.balance) >= 0 ? '+' : '' }}{{ formatCurrency(balance.balance) }}
       </span>
     </div>
     <div class="grid grid-cols-2 gap-4 text-center mt-3">
@@ -45,7 +45,7 @@
           {{ $t('stats.paid') }}
         </p>
         <p class="font-semibold text-success sd-tabular">
-          {{ formatAmount(balance.totalPaid) }} €
+          {{ formatCurrency(balance.totalPaid) }}
         </p>
       </div>
       <div>
@@ -53,7 +53,7 @@
           {{ $t('stats.owes') }}
         </p>
         <p class="font-semibold text-warning sd-tabular">
-          {{ formatAmount(balance.totalOwed) }} €
+          {{ formatCurrency(balance.totalOwed) }}
         </p>
       </div>
     </div>
@@ -73,6 +73,7 @@
 
 <script setup lang="ts">
 import type { AliasBalance, UserBasicInfo } from '~/types/domain'
+import { formatCurrency } from '~/utils/currency'
 
 interface Props {
   balance: AliasBalance

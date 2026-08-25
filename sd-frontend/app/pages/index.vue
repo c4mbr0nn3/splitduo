@@ -22,7 +22,7 @@
       <UCard
         class="w-full transition duration-300 ease-out hover:-translate-y-0.5"
         :ui="{
-          root: 'rounded-2xl bg-default ring-1 ring-default shadow-[var(--sd-card-shadow)] hover:shadow-[var(--sd-card-shadow-hover)]',
+          root: 'bg-default ring-1 ring-default shadow-[var(--sd-card-shadow)] hover:shadow-[var(--sd-card-shadow-hover)]',
           header: 'p-0',
           body: 'p-5 sm:p-7',
           footer: 'p-5 sm:px-7 sm:pb-6',

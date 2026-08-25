@@ -82,7 +82,7 @@ const { getAvatarUrl } = useUserAvatar()
 const src = ref<string | null>(null)
 
 const ui = {
-  root: 'ring-1 ring-neutral-200 dark:ring-neutral-700',
+  root: 'ring-1 ring-[var(--sd-surface-border)]',
   fallback: 'font-semibold uppercase tracking-wide',
 }
 

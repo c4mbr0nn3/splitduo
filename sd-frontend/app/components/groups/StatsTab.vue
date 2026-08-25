@@ -1,9 +1,28 @@
 <template>
   <div>
-    <UiLoadingSpinner
+    <div
       v-if="isLoadingStats"
-      :text="$t('stats.loading')"
-    />
+      class="space-y-6"
+    >
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <USkeleton class="h-32" />
+        <USkeleton class="h-32" />
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 items-stretch">
+        <USkeleton class="lg:col-span-2 h-64" />
+        <USkeleton class="h-64" />
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 items-stretch">
+        <USkeleton class="lg:col-span-2 h-64" />
+        <div class="lg:col-span-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
+          <USkeleton class="h-24" />
+          <USkeleton class="h-24" />
+          <USkeleton class="h-24" />
+        </div>
+      </div>
+    </div>
     <div
       v-else-if="groupStats"
       class="space-y-6"

@@ -121,3 +121,20 @@ body {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* Honor reduced-motion: collapse all custom motion to static */
+@media (prefers-reduced-motion: reduce) {
+  .sd-fade-in,
+  .sd-stagger > * {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .sd-surface,
+  .sd-surface-hover,
+  .sd-fade-enter-active,
+  .sd-fade-leave-active {
+    transition: none;
+    transform: none;
+  }
+}

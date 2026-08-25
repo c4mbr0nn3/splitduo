@@ -62,6 +62,13 @@
           size="lg"
           class="w-full justify-center py-2"
         />
+        <UAlert
+          v-if="analysisError"
+          color="error"
+          variant="soft"
+          :title="$t('imports.analysisFailed.title')"
+          :description="$t('imports.analysisFailed.description')"
+        />
         <UFileUpload
           v-model="selectedFile"
           :accept="acceptedFileTypes"
@@ -174,6 +181,7 @@ const currentImport = computed(() => importExport.currentImport.value ? { ...imp
 const group = computed(() => currentGroup.value)
 const selectedImportType = ref(1)
 const selectedFile = ref<File | null>(null)
+const analysisError = ref<string | null>(null)
 type Step = 'upload' | 'analysis' | 'configure' | 'importing'
 const currentStep = ref<Step>('upload')
 
@@ -247,6 +255,7 @@ const validateFile = (file: File) => {
 
 // Watch for file changes and validate
 watch(selectedFile, (newFile) => {
+  analysisError.value = null
   if (newFile) {
     validateFile(newFile)
   }
@@ -268,6 +277,7 @@ const onAnalyze = async () => {
   }
   catch (error: unknown) {
     console.error('Analysis failed:', error)
+    analysisError.value = error instanceof Error ? error.message : String(error)
   }
 }
 

@@ -21,7 +21,7 @@
           color="warning"
           icon="i-lucide-clock"
         >
-          Pending
+          {{ $t('admin.pendingInvitations.pending') }}
         </UBadge>
       </div>
 
@@ -30,7 +30,7 @@
       <!-- Groups -->
       <div class="space-y-2">
         <p class="text-xs uppercase tracking-wide font-medium text-muted">
-          Invited to:
+          {{ $t('admin.pendingInvitations.invitedTo') }}
         </p>
         <div class="flex flex-wrap gap-1.5">
           <UBadge
