@@ -65,11 +65,17 @@ Before modifying these areas, read the corresponding guide:
 - Side project — keep it short. Delete sections that aren't needed. One-liners are fine.
 - **Specs and plans are issue attachments, not repo files** — when a spec or plan document exists, upload it as a file attachment to the GitLab issue (via `gitlab_upload_markdown`), never commit it to the repository. Reference the attachment link in the issue description.
 
+### MR Guidelines
+
+- Use the template at `.gitlab/merge_request_templates/Default.md` (auto-applied to every new MR)
+- Title: `type(scope): message` (same types as commits)
+- Sections: **What** (1-3 sentences) → `Closes #<iid>` → **Done when** (checklist copied verbatim from the linked issue)
+- Side project — keep it short. Squash-on-merge, remove source branch for feature branches.
+
 ### GitLab MCP
 
 - The `gitlab` MCP server (`@zereight/mcp-gitlab`) is configured in `opencode.json` and authenticated via the `GITLAB_PERSONAL_ACCESS_TOKEN` env var (project access token, `api` scope)
 - Use GitLab MCP tools for issues, MRs, pipelines, branches, files, labels — not the CLI
-- MRs that close an issue use `Closes #<iid>` in the description; prefer squash-on-merge for feature branches
 - **Issue → branch → MR workflow**: create the issue first, then branch out (`type/scope-#<iid>`), then create the MR (`Closes #<iid>` in description, squash-on-merge, remove source branch). Assign to the user who will review.
 
 ### Keep CLAUDE.md in Sync
