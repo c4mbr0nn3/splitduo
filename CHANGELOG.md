@@ -4,6 +4,11 @@ All notable changes to SplitDuo will be documented in this file.
 
 Generated with [git-cliff](https://git-cliff.org) from Conventional Commits.
 
+## [1.15.2] - 2026-08-26
+
+### Bug Fixes
+
+- *(ui)* Resolve UI/UX review findings (a11y, i18n, currency, tokens)
 ## [1.15.1] - 2026-08-24
 
 ### Bug Fixes
