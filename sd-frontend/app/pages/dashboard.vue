@@ -28,38 +28,36 @@
       />
     </UCard>
 
-    <!-- Stats Cards -->
-    <UCarousel
-      v-if="!isDesktop"
-      dots
-      class="mb-12"
-      :items="statCards"
-      :ui="{ item: 'basis-full pe-2' }"
-    >
-      <template #default="{ item }">
-        <DashboardStatCard
-          v-bind="item"
-        />
-      </template>
-    </UCarousel>
-
-    <div
-      v-else
-      class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 sd-stagger mb-8"
-    >
-      <template v-if="showSkeleton">
-        <DashboardStatCardSkeleton
-          v-for="i in 4"
+    <!-- Stats: two balance widgets — stacked on mobile, side-by-side on desktop -->
+    <div class="mb-8">
+      <!-- Skeleton: two widget skeletons — stacked on mobile, side-by-side on desktop -->
+      <section
+        v-if="showSkeleton"
+        class="grid grid-cols-1 lg:grid-cols-2 gap-4"
+      >
+        <DashboardBalanceWidgetSkeleton
+          v-for="i in 2"
           :key="i"
         />
-      </template>
-      <template v-else>
-        <DashboardStatCard
-          v-for="card in statCards"
-          :key="card.stats.label"
-          v-bind="card"
+      </section>
+
+      <section
+        v-else
+        class="grid grid-cols-1 lg:grid-cols-2 gap-4 sd-stagger"
+      >
+        <DashboardBalanceWidget
+          :label="t('dashboard.personalGroups')"
+          :groups="Number(stats.individual.groups)"
+          :you-owe="Number(stats.individual.youOwe)"
+          :youre-owed="Number(stats.individual.youreOwed)"
         />
-      </template>
+        <DashboardBalanceWidget
+          :label="t('dashboard.sharedGroups')"
+          :groups="Number(stats.alias.groups)"
+          :you-owe="Number(stats.alias.youOwe)"
+          :youre-owed="Number(stats.alias.youreOwed)"
+        />
+      </section>
     </div>
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <UCard class="lg:col-span-2">
@@ -142,44 +140,17 @@
 </template>
 
 <script setup lang="ts">
-import { useMediaQuery } from '@vueuse/core'
-
 const { t } = useI18n()
 
 const { groups, fetchGroups } = useGroups()
 const { userStats, fetchUserStats } = useUsers()
 
 const showSkeleton = ref(true)
-const isDesktop = useMediaQuery('(min-width: 640px)')
 
-const netBalance = computed(() => Number(userStats.value?.youreOwed || 0) - Number(userStats.value?.youOwe || 0))
-const netBalanceColor = computed(() => netBalance.value > 0 ? 'green' : netBalance.value < 0 ? 'red' : 'teal')
-
-const statCards = computed(() => [
-  {
-    stats: { label: t('dashboard.totalGroups'), value: userStats.value?.totalGroups ?? 0 },
-    icon: 'i-lucide-users',
-    color: 'teal',
-  },
-  {
-    stats: { label: t('dashboard.youOwe'), value: userStats.value?.youOwe ?? 0, color: 'red' },
-    type: 'currency',
-    icon: 'i-lucide-trending-down',
-    color: 'red',
-  },
-  {
-    stats: { label: t('dashboard.youreOwed'), value: userStats.value?.youreOwed ?? 0, color: 'green' },
-    type: 'currency',
-    icon: 'i-lucide-trending-up',
-    color: 'green',
-  },
-  {
-    stats: { label: t('dashboard.netBalance'), value: netBalance.value, color: netBalanceColor.value },
-    type: 'currency',
-    icon: netBalance.value >= 0 ? 'i-lucide-trending-up' : 'i-lucide-trending-down',
-    color: netBalanceColor.value,
-  },
-])
+const stats = computed(() => ({
+  individual: userStats.value?.individual ?? { groups: 0, youOwe: 0, youreOwed: 0 },
+  alias: userStats.value?.alias ?? { groups: 0, youOwe: 0, youreOwed: 0 },
+}))
 
 onMounted(async () => {
   try {

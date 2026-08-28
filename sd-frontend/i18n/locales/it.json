@@ -118,7 +118,10 @@
     "totalGroups": "Gruppi Totali",
     "youOwe": "Devi",
     "youreOwed": "Ti Devono",
-    "netBalance": "Saldo Netto"
+    "netBalance": "Saldo Netto",
+    "personalGroups": "Gruppi personali",
+    "sharedGroups": "Gruppi condivisi",
+    "groupsCount": "{count} gruppo | {count} gruppi"
   },
   "groups": {
     "title": "Gruppi",
@@ -211,7 +214,9 @@
     "inviteUserTitle": "Invita Utente",
     "loadingGroupDetails": "Caricamento dettagli gruppo...",
     "editGroupTitle": "Modifica Gruppo",
-    "membersTitle": "Membri"
+    "membersTitle": "Membri",
+    "aliasSetupNotFinalized": "La configurazione dei sottogruppi deve essere finalizzata prima di aggiungere spese",
+    "finalizeAliases": "Finalizza sottogruppi nelle impostazioni del gruppo"
   },
   "expenses": {
     "title": "Spese",
@@ -263,8 +268,6 @@
     "zoom": "Ingrandisci",
     "close": "Chiudi",
     "scanReceipt": "Scansiona Ricevuta",
-    "aliasSetupNotFinalized": "La configurazione dei sottogruppi deve essere finalizzata prima di aggiungere spese",
-    "finalizeAliases": "Finalizza sottogruppi nelle impostazioni del gruppo",
     "you": "tu",
     "peopleCount": "{count} persone",
     "splitAmong": "Diviso tra: {names}",

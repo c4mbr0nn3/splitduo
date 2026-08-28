@@ -67,7 +67,11 @@ export type User = WithRequired<components['schemas']['UserDto'], 'id' | 'email'
 export type UserBasicInfo = WithRequired<components['schemas']['UserBasicInfoDto'], 'id' | 'firstName' | 'hasAvatar'>
 export type UserInfo = WithRequired<components['schemas']['UserInfoDto'], 'id' | 'email' | 'firstName' | 'hasAvatar'>
 export type UserSettings = WithRequired<components['schemas']['UserSettingsDto'], 'theme' | 'uiLanguage'>
-export type UserStats = WithRequired<components['schemas']['UserStatsDto'], 'totalGroups' | 'youOwe' | 'youreOwed'>
+export type ModeBalance = WithRequired<components['schemas']['ModeBalanceDto'], 'groups' | 'youOwe' | 'youreOwed'>
+export type UserStats = Omit<WithRequired<components['schemas']['UserStatsDto'], 'totalGroups' | 'individual' | 'alias'>, 'individual' | 'alias'> & {
+  individual: ModeBalance
+  alias: ModeBalance
+}
 
 export type Group = WithRequired<components['schemas']['GroupDto'], 'id' | 'name' | 'createdByUserId' | 'memberCount' | 'createdAt' | 'updatedAt' | 'netBalance' | 'useAliases' | 'aliasSetupFinalized'>
 export type GroupMember = WithRequired<components['schemas']['GroupMemberDto'], 'groupId' | 'userId' | 'user' | 'role' | 'joinedAt'>

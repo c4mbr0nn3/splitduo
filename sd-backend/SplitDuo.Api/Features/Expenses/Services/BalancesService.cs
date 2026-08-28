@@ -38,8 +38,8 @@ public class BalancesService(
         // keyed by AliasId, so balances must be computed at the alias level.
         var userMemberships = await unitOfWork.GroupMembers
             .AsNoTracking()
-            .Where(gm => gm.UserId == user.Id)
-            .Join(unitOfWork.Groups.AsNoTracking(),
+            .Where(gm => gm.UserId == user.Id && gm.DeletedAt == null)
+            .Join(unitOfWork.Groups.AsNoTracking().Where(g => g.DeletedAt == null),
                 gm => gm.GroupId, g => g.Id,
                 (gm, g) => new { gm.GroupId, g.UseAliases, gm.AliasId })
             .ToListAsync();
@@ -110,9 +110,11 @@ public class BalancesService(
                 .ToDictionaryAsync(x => (x.GroupId, x.AliasId), x => x.Total)
             : new Dictionary<(int GroupId, int AliasId), decimal>();
 
-        // Sum per-group nets: positive → user is owed, negative → user owes
-        var youOwe = 0m;
-        var youreOwed = 0m;
+        // Sum per-group nets per mode: positive → user is owed, negative → user owes
+        var individualYouOwe = 0m;
+        var individualYoureOwed = 0m;
+        var aliasYouOwe = 0m;
+        var aliasYoureOwed = 0m;
         foreach (var membership in userMemberships)
         {
             decimal net;
@@ -137,15 +139,33 @@ public class BalancesService(
                       - splitByGroup.GetValueOrDefault(membership.GroupId, 0m);
             }
 
-            if (net > 0) youreOwed += net;
-            else youOwe += -net;
+            if (membership.UseAliases)
+            {
+                if (net > 0) aliasYoureOwed += net;
+                else aliasYouOwe += -net;
+            }
+            else
+            {
+                if (net > 0) individualYoureOwed += net;
+                else individualYouOwe += -net;
+            }
         }
 
         var stats = new UserStatsDto
         {
-            TotalGroups = userGroupIds.Count,
-            YouOwe = youOwe,
-            YoureOwed = youreOwed
+            TotalGroups = individualGroupIds.Count + aliasGroupIds.Count,
+            Individual = new ModeBalanceDto
+            {
+                Groups = individualGroupIds.Count,
+                YouOwe = individualYouOwe,
+                YoureOwed = individualYoureOwed
+            },
+            Alias = new ModeBalanceDto
+            {
+                Groups = aliasGroupIds.Count,
+                YouOwe = aliasYouOwe,
+                YoureOwed = aliasYoureOwed
+            }
         };
 
         return Result<UserStatsDto>.Success(stats);

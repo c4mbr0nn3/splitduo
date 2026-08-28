@@ -5724,13 +5724,19 @@ export interface components {
             theme?: string;
             uiLanguage?: string;
         };
-        UserStatsDto: {
+        ModeBalanceDto: {
             /** Format: int32 */
-            totalGroups?: number | string;
+            groups?: number | string;
             /** Format: double */
             youOwe?: number | string;
             /** Format: double */
             youreOwed?: number | string;
+        };
+        UserStatsDto: {
+            /** Format: int32 */
+            totalGroups?: number | string;
+            individual?: components["schemas"]["ModeBalanceDto"];
+            alias?: components["schemas"]["ModeBalanceDto"];
         };
         ValidateInvitationResponseDto: {
             email?: string;
