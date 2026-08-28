@@ -95,8 +95,9 @@ public class UsersProfileTests : IntegrationTest
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserStatsDto>>(ct);
         Assert.Equal(1, body!.Data!.TotalGroups);
-        Assert.Equal(50m, body.Data.Individual.YoureOwed);
-        Assert.Equal(0m, body.Data.Individual.YouOwe);
+        // Gross semantics: YoureOwed = total paid (100), YouOwe = total owed (50)
+        Assert.Equal(100m, body.Data.Individual.YoureOwed);
+        Assert.Equal(50m, body.Data.Individual.YouOwe);
         Assert.Equal(0, body.Data.Alias.Groups);
         Assert.Equal(0m, body.Data.Alias.YouOwe);
         Assert.Equal(0m, body.Data.Alias.YoureOwed);
@@ -183,9 +184,9 @@ public class UsersProfileTests : IntegrationTest
         var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserStatsDto>>(ct);
         Assert.Equal(1, body!.Data!.TotalGroups);
         Assert.Equal(1, body.Data.Alias.Groups);
-        // Alias paid 100, alias owed 50 → net +50 → user is owed 50
-        Assert.Equal(50m, body.Data.Alias.YoureOwed);
-        Assert.Equal(0m, body.Data.Alias.YouOwe);
+        // Gross semantics: alias paid 100, alias owed 50
+        Assert.Equal(100m, body.Data.Alias.YoureOwed);
+        Assert.Equal(50m, body.Data.Alias.YouOwe);
         // Individual mode untouched
         Assert.Equal(0, body.Data.Individual.Groups);
         Assert.Equal(0m, body.Data.Individual.YouOwe);
@@ -231,9 +232,9 @@ public class UsersProfileTests : IntegrationTest
         var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserStatsDto>>(ct);
         Assert.Equal(1, body!.Data!.TotalGroups);
         Assert.Equal(1, body.Data.Individual.Groups);
-        // Admin: paid 100, owed 80 → net +20
-        Assert.Equal(20m, body.Data.Individual.YoureOwed);
-        Assert.Equal(0m, body.Data.Individual.YouOwe);
+        // Gross semantics: Admin paid 100, owed 80
+        Assert.Equal(100m, body.Data.Individual.YoureOwed);
+        Assert.Equal(80m, body.Data.Individual.YouOwe);
         // Alias mode untouched
         Assert.Equal(0, body.Data.Alias.Groups);
         Assert.Equal(0m, body.Data.Alias.YouOwe);
@@ -280,13 +281,13 @@ public class UsersProfileTests : IntegrationTest
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserStatsDto>>(ct);
         Assert.Equal(2, body!.Data!.TotalGroups);
-        // Individual +50, alias +50 → reported separately per mode
+        // Gross semantics per mode: Individual paid 100 / owed 50, Alias paid 100 / owed 50
         Assert.Equal(1, body.Data.Individual.Groups);
-        Assert.Equal(50m, body.Data.Individual.YoureOwed);
-        Assert.Equal(0m, body.Data.Individual.YouOwe);
+        Assert.Equal(100m, body.Data.Individual.YoureOwed);
+        Assert.Equal(50m, body.Data.Individual.YouOwe);
         Assert.Equal(1, body.Data.Alias.Groups);
-        Assert.Equal(50m, body.Data.Alias.YoureOwed);
-        Assert.Equal(0m, body.Data.Alias.YouOwe);
+        Assert.Equal(100m, body.Data.Alias.YoureOwed);
+        Assert.Equal(50m, body.Data.Alias.YouOwe);
         Assert.Equal(body.Data.TotalGroups, body.Data.Individual.Groups + body.Data.Alias.Groups);
     }
 
