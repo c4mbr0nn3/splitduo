@@ -1,6 +1,6 @@
 {
   "name": "splitduo",
-  "version": "1.15.2",
+  "version": "1.15.3",
   "private": true,
   "description": "Dev tooling for the SplitDuo monorepo (changelog generation, etc.). Frontend and backend have their own package manifests.",
   "devDependencies": {
