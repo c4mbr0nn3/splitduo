@@ -75,8 +75,11 @@ public class BalancesService(
         // Alias-mode "paid" per (group, alias): sum of expenses paid by the alias, with
         // COALESCE(PaidByAliasId, payer's current alias) fallback — same semantics as
         // GroupsService.GetUserGroupsAsync and BalancesService.CalculateAliasBalancesAsync.
-        // LEFT JOIN group_members so expenses with null PaidByAliasId (pre-migration data)
-        // are attributed to the payer's current alias.
+        // LEFT JOIN group_members so expenses with null PaidByAliasId are attributed to the
+        // payer's current alias. This fallback is defensive dead code: alias mode was
+        // introduced with PaidByAliasId in a single migration, so no pre-migration expenses
+        // exist. As of issue #31, expense creation validates that payers have aliases, making
+        // null PaidByAliasId impossible in new data.
         var aliasPaidByGroup = aliasGroupIds.Count > 0
             ? await unitOfWork.Expenses
                 .AsNoTracking()
@@ -110,44 +113,43 @@ public class BalancesService(
                 .ToDictionaryAsync(x => (x.GroupId, x.AliasId), x => x.Total)
             : new Dictionary<(int GroupId, int AliasId), decimal>();
 
-        // Sum per-group nets per mode: positive → user is owed, negative → user owes
+        // Gross semantics: YouOwe = total owed across all groups (split share),
+        // YoureOwed = total paid across all groups (expenses paid).
+        // This matches the per-group view (UserBalanceCard shows totalPaid/totalOwed)
+        // and provides actionable gross obligation numbers (vs netting within groups).
         var individualYouOwe = 0m;
         var individualYoureOwed = 0m;
         var aliasYouOwe = 0m;
         var aliasYoureOwed = 0m;
         foreach (var membership in userMemberships)
         {
-            decimal net;
+            decimal paid = 0m;
+            decimal owed = 0m;
+
             if (membership.UseAliases)
             {
-                // Alias-mode: the user's net is their alias's net (paid − owed)
-                if (membership.AliasId == null)
-                {
-                    net = 0m;
-                }
-                else
+                if (membership.AliasId != null)
                 {
                     var aliasId = membership.AliasId.Value;
-                    net = aliasPaidByGroup.GetValueOrDefault((membership.GroupId, aliasId), 0m)
-                          - aliasSplitByGroup.GetValueOrDefault((membership.GroupId, aliasId), 0m);
+                    paid = aliasPaidByGroup.GetValueOrDefault((membership.GroupId, aliasId), 0m);
+                    owed = aliasSplitByGroup.GetValueOrDefault((membership.GroupId, aliasId), 0m);
                 }
             }
             else
             {
-                // Individual-mode: existing per-user computation
-                net = paidByGroup.GetValueOrDefault(membership.GroupId, 0m)
-                      - splitByGroup.GetValueOrDefault(membership.GroupId, 0m);
+                paid = paidByGroup.GetValueOrDefault(membership.GroupId, 0m);
+                owed = splitByGroup.GetValueOrDefault(membership.GroupId, 0m);
             }
 
             if (membership.UseAliases)
             {
-                if (net > 0) aliasYoureOwed += net;
-                else aliasYouOwe += -net;
+                aliasYoureOwed += paid;
+                aliasYouOwe += owed;
             }
             else
             {
-                if (net > 0) individualYoureOwed += net;
-                else individualYouOwe += -net;
+                individualYoureOwed += paid;
+                individualYouOwe += owed;
             }
         }
 
@@ -494,10 +496,11 @@ public class BalancesService(
     /// Expense.PaidByAliasId == alias.Id. This captures the payer's alias at the time
     /// of payment, making paid/owed symmetric and historically accurate.
     ///
-    /// For expenses with null PaidByAliasId (backward compat with pre-migration data),
-    /// falls back to current-membership attribution: looks up the payer's current
-    /// GroupMember.AliasId. This preserves balance correctness for any expenses created
-    /// before the PaidByAliasId migration.
+    /// For expenses with null PaidByAliasId, falls back to current-membership attribution:
+    /// looks up the payer's current GroupMember.AliasId. This fallback is defensive dead
+    /// code: alias mode was introduced with PaidByAliasId in a single migration, so no
+    /// pre-migration expenses exist. As of issue #31, expense creation validates that
+    /// payers have aliases, making null PaidByAliasId impossible in new data.
     ///
     /// TotalOwed per alias = sum of ExpenseAliasSplit.SplitAmount for that alias
     /// (over non-deleted expenses). This naturally includes soft-deleted aliases

@@ -303,6 +303,14 @@ public class ExpensesService(
             var payerMembership = await unitOfWork.GroupMembers
                 .FirstOrDefaultAsync(gm => gm.GroupId == group.Id && gm.UserId == paidByUser.Id && gm.DeletedAt == null);
 
+            // In alias-mode groups, the payer must have an assigned alias before creating
+            // expenses. Without an alias, PaidByAliasId would be null and the expense would
+            // be silently excluded from balance calculations (issue #31).
+            if (payerMembership?.AliasId == null)
+            {
+                return Result<ExpenseDto>.BadRequest(loc["PayerMissingAlias"]);
+            }
+
             // Create expense
             var expense = new Expense
             {
@@ -617,6 +625,15 @@ public class ExpensesService(
             {
                 var newPayerMembership = await unitOfWork.GroupMembers
                     .FirstOrDefaultAsync(gm => gm.GroupId == group.Id && gm.UserId == paidByUser.Id && gm.DeletedAt == null);
+
+                // In alias-mode groups, the payer must have an assigned alias before
+                // updating expenses. Without an alias, PaidByAliasId would be null and the
+                // expense would be silently excluded from balance calculations (issue #31).
+                if (newPayerMembership?.AliasId == null)
+                {
+                    return Result<ExpenseDto>.BadRequest(loc["PayerMissingAlias"]);
+                }
+
                 expense.PaidByAliasId = newPayerMembership?.AliasId;
             }
         }
