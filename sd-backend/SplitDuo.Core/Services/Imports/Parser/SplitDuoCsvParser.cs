@@ -6,7 +6,6 @@ using SplitDuo.Core.Dto.Imports;
 
 namespace SplitDuo.Core.Services.Imports.Parser;
 
-// TODO: this could be a service with DI
 public static class SplitDuoCsvParser
 {
     public static async Task<SplitDuoParseResult> ParseAsync(byte[] file)

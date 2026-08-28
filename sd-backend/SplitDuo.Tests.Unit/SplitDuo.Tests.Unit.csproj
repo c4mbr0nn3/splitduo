@@ -25,5 +25,9 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SplitDuo.Core\SplitDuo.Core.csproj" />
+    <ProjectReference Include="..\SplitDuo.Api\SplitDuo.Api.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 </Project>

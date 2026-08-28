@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SplitDuo.Api.Features.Common.Controllers;
 using SplitDuo.Api.Features.Common.Dto;
+using SplitDuo.Api.Features.Expenses.Services;
 using SplitDuo.Api.Features.Invitations.Dto;
 using SplitDuo.Api.Features.Invitations.Services;
 using SplitDuo.Api.Features.Users.Dto;
@@ -17,6 +18,7 @@ namespace SplitDuo.Api.Features.Users.Controllers;
 [Authorize]
 public class UsersController(
     IUsersService usersService,
+    IBalancesService balancesService,
     IInvitationsService invitationsService,
     IUnitOfWork unitOfWork,
     ILogger<UsersController> logger) : BaseApiController
@@ -69,7 +71,7 @@ public class UsersController(
         if (currentUserId == null)
             return HandleResult(NotAuthenticated<UserStatsDto>());
 
-        var result = await usersService.GetCurrentUserStatsAsync(currentUserId.Value.ToString());
+        var result = await balancesService.GetCurrentUserStatsAsync(currentUserId.Value);
         return HandleResult(result, "Current user stats retrieved successfully");
     }
 

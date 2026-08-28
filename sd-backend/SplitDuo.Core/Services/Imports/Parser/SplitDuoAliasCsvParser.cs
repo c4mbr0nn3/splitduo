@@ -6,7 +6,6 @@ using SplitDuo.Core.Dto.Imports;
 
 namespace SplitDuo.Core.Services.Imports.Parser;
 
-// TODO: this could be a service with DI
 public static class SplitDuoAliasCsvParser
 {
     private static readonly List<string> AliasesHeader = ["name", "is_singleton"];
