@@ -4,6 +4,16 @@ All notable changes to SplitDuo will be documented in this file.
 
 Generated with [git-cliff](https://git-cliff.org) from Conventional Commits.
 
+## [1.15.4] - 2026-08-28
+
+### Bug Fixes
+
+- *(stats)* Gross semantics for YouOwe/YoureOwed + validate unassigned payer in alias mode
+
+### Code Refactoring
+
+- Resolve stale backend TODOs (CSV parsers + user stats relocation)
+- *(stats)* Separate user dashboard stats by alias vs non-alias mode
 ## [1.15.3] - 2026-08-28
 
 ### Bug Fixes
