@@ -5648,7 +5648,7 @@ components:
     GroupStatsDto:
       type: object
       properties:
-        totalExpenses:
+        expenseCount:
           pattern: ^-?(?:0|[1-9]\d*)$
           type:
             - integer

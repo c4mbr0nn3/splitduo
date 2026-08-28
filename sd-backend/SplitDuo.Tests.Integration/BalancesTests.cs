@@ -337,7 +337,7 @@ public class BalancesTests : IntegrationTest
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<GroupStatsDto>>(ct);
         Assert.NotNull(body!.Data);
-        Assert.Equal(2, body.Data!.TotalExpenses);
+        Assert.Equal(2, body.Data!.ExpenseCount);
         Assert.Equal(80m, body.Data.TotalAmount);
         Assert.Equal(2, body.Data.CategoryBreakdown.Count);
         Assert.Contains(body.Data.CategoryBreakdown, c => c.CategoryId == 2 && c.Amount == 50m && c.Count == 1);
@@ -358,7 +358,7 @@ public class BalancesTests : IntegrationTest
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<GroupStatsDto>>(ct);
-        Assert.Equal(0, body!.Data!.TotalExpenses);
+        Assert.Equal(0, body!.Data!.ExpenseCount);
         Assert.Equal(0m, body.Data.TotalAmount);
         Assert.Empty(body.Data.CategoryBreakdown);
         Assert.Empty(body.Data.MonthlyBreakdown);
@@ -464,7 +464,7 @@ public class BalancesTests : IntegrationTest
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<GroupStatsDto>>(ct);
         Assert.NotNull(body!.Data);
-        Assert.Equal(0, body.Data!.TotalExpenses);
+        Assert.Equal(0, body.Data!.ExpenseCount);
         Assert.Equal(0m, body.Data.TotalAmount);
         // Alias-mode groups return empty per-user balances (per BalancesService comment)
         Assert.Empty(body.Data.Balances);

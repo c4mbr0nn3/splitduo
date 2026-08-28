@@ -71,7 +71,7 @@ export type UserStats = WithRequired<components['schemas']['UserStatsDto'], 'tot
 
 export type Group = WithRequired<components['schemas']['GroupDto'], 'id' | 'name' | 'createdByUserId' | 'memberCount' | 'createdAt' | 'updatedAt' | 'netBalance' | 'useAliases' | 'aliasSetupFinalized'>
 export type GroupMember = WithRequired<components['schemas']['GroupMemberDto'], 'groupId' | 'userId' | 'user' | 'role' | 'joinedAt'>
-export type GroupStats = WithRequired<components['schemas']['GroupStatsDto'], 'totalExpenses' | 'totalAmount' | 'balances' | 'categoryBreakdown' | 'monthlyBreakdown'>
+export type GroupStats = WithRequired<components['schemas']['GroupStatsDto'], 'expenseCount' | 'totalAmount' | 'balances' | 'categoryBreakdown' | 'monthlyBreakdown'>
 export type CategoryStat = WithRequired<components['schemas']['CategoryStatDto'], 'categoryId' | 'categoryName' | 'amount' | 'count'>
 export type MonthlyStat = WithRequired<components['schemas']['MonthlyStatDto'], 'year' | 'month' | 'amount' | 'count'>
 
