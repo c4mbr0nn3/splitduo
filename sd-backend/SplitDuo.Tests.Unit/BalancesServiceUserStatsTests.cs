@@ -70,8 +70,13 @@ public class BalancesServiceUserStatsTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal(0, result.Value!.TotalGroups);
-        Assert.Equal(0m, result.Value.YouOwe);
-        Assert.Equal(0m, result.Value.YoureOwed);
+        Assert.Equal(0, result.Value.Individual.Groups);
+        Assert.Equal(0m, result.Value.Individual.YouOwe);
+        Assert.Equal(0m, result.Value.Individual.YoureOwed);
+        Assert.Equal(0, result.Value.Alias.Groups);
+        Assert.Equal(0m, result.Value.Alias.YouOwe);
+        Assert.Equal(0m, result.Value.Alias.YoureOwed);
+        Assert.Equal(result.Value.TotalGroups, result.Value.Individual.Groups + result.Value.Alias.Groups);
     }
 
     #endregion
@@ -129,8 +134,12 @@ public class BalancesServiceUserStatsTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal(1, result.Value!.TotalGroups);
-        Assert.Equal(50m, result.Value.YoureOwed);
-        Assert.Equal(0m, result.Value.YouOwe);
+        Assert.Equal(50m, result.Value.Individual.YoureOwed);
+        Assert.Equal(0m, result.Value.Individual.YouOwe);
+        Assert.Equal(0, result.Value.Alias.Groups);
+        Assert.Equal(0m, result.Value.Alias.YouOwe);
+        Assert.Equal(0m, result.Value.Alias.YoureOwed);
+        Assert.Equal(result.Value.TotalGroups, result.Value.Individual.Groups + result.Value.Alias.Groups);
     }
 
     #endregion
@@ -155,8 +164,13 @@ public class BalancesServiceUserStatsTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal(1, result.Value!.TotalGroups);
-        Assert.Equal(50m, result.Value.YoureOwed);
-        Assert.Equal(0m, result.Value.YouOwe);
+        Assert.Equal(1, result.Value.Alias.Groups);
+        Assert.Equal(50m, result.Value.Alias.YoureOwed);
+        Assert.Equal(0m, result.Value.Alias.YouOwe);
+        Assert.Equal(0, result.Value.Individual.Groups);
+        Assert.Equal(0m, result.Value.Individual.YouOwe);
+        Assert.Equal(0m, result.Value.Individual.YoureOwed);
+        Assert.Equal(result.Value.TotalGroups, result.Value.Individual.Groups + result.Value.Alias.Groups);
     }
 
     #endregion
@@ -181,8 +195,13 @@ public class BalancesServiceUserStatsTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal(1, result.Value!.TotalGroups);
-        Assert.Equal(50m, result.Value.YoureOwed);
-        Assert.Equal(0m, result.Value.YouOwe);
+        Assert.Equal(1, result.Value.Alias.Groups);
+        Assert.Equal(50m, result.Value.Alias.YoureOwed);
+        Assert.Equal(0m, result.Value.Alias.YouOwe);
+        Assert.Equal(0, result.Value.Individual.Groups);
+        Assert.Equal(0m, result.Value.Individual.YouOwe);
+        Assert.Equal(0m, result.Value.Individual.YoureOwed);
+        Assert.Equal(result.Value.TotalGroups, result.Value.Individual.Groups + result.Value.Alias.Groups);
     }
 
     #endregion

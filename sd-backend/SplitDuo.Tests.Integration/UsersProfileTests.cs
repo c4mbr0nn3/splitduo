@@ -60,8 +60,12 @@ public class UsersProfileTests : IntegrationTest
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserStatsDto>>(ct);
         Assert.Equal(0, body!.Data!.TotalGroups);
-        Assert.Equal(0m, body.Data.YouOwe);
-        Assert.Equal(0m, body.Data.YoureOwed);
+        Assert.Equal(0, body.Data.Individual.Groups);
+        Assert.Equal(0m, body.Data.Individual.YouOwe);
+        Assert.Equal(0m, body.Data.Individual.YoureOwed);
+        Assert.Equal(0, body.Data.Alias.Groups);
+        Assert.Equal(0m, body.Data.Alias.YouOwe);
+        Assert.Equal(0m, body.Data.Alias.YoureOwed);
     }
 
     [Fact]
@@ -91,8 +95,12 @@ public class UsersProfileTests : IntegrationTest
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserStatsDto>>(ct);
         Assert.Equal(1, body!.Data!.TotalGroups);
-        Assert.Equal(50m, body.Data.YoureOwed);
-        Assert.Equal(0m, body.Data.YouOwe);
+        Assert.Equal(50m, body.Data.Individual.YoureOwed);
+        Assert.Equal(0m, body.Data.Individual.YouOwe);
+        Assert.Equal(0, body.Data.Alias.Groups);
+        Assert.Equal(0m, body.Data.Alias.YouOwe);
+        Assert.Equal(0m, body.Data.Alias.YoureOwed);
+        Assert.Equal(body.Data.TotalGroups, body.Data.Individual.Groups + body.Data.Alias.Groups);
     }
 
     [Fact]
@@ -158,12 +166,6 @@ public class UsersProfileTests : IntegrationTest
     [Fact]
     public async Task GetUserStats_AliasMode_ReturnsCorrectBalances()
     {
-        // BUG: alias-mode balances ignored — see issue #16.
-        // GetCurrentUserStatsAsync only computes individual-mode balances (paid_by +
-        // expense_splits). Alias-mode groups never create ExpenseSplit rows, so the
-        // alias-paid amount is counted but the alias-owed amount is not, inflating
-        // YoureOwed. This test asserts the CORRECT alias-level behavior and is
-        // EXPECTED TO FAIL until the bug is fixed.
         var ct = TestContext.Current.CancellationToken;
         var (adminClient, groupId, adminId, aliasId, user2SingletonAliasId) = await SetupFinalizedAliasGroupAsync();
 
@@ -180,9 +182,15 @@ public class UsersProfileTests : IntegrationTest
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserStatsDto>>(ct);
         Assert.Equal(1, body!.Data!.TotalGroups);
+        Assert.Equal(1, body.Data.Alias.Groups);
         // Alias paid 100, alias owed 50 → net +50 → user is owed 50
-        Assert.Equal(50m, body.Data.YoureOwed);
-        Assert.Equal(0m, body.Data.YouOwe);
+        Assert.Equal(50m, body.Data.Alias.YoureOwed);
+        Assert.Equal(0m, body.Data.Alias.YouOwe);
+        // Individual mode untouched
+        Assert.Equal(0, body.Data.Individual.Groups);
+        Assert.Equal(0m, body.Data.Individual.YouOwe);
+        Assert.Equal(0m, body.Data.Individual.YoureOwed);
+        Assert.Equal(body.Data.TotalGroups, body.Data.Individual.Groups + body.Data.Alias.Groups);
     }
 
     [Fact]
@@ -222,18 +230,23 @@ public class UsersProfileTests : IntegrationTest
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserStatsDto>>(ct);
         Assert.Equal(1, body!.Data!.TotalGroups);
+        Assert.Equal(1, body.Data.Individual.Groups);
         // Admin: paid 100, owed 80 → net +20
-        Assert.Equal(20m, body.Data.YoureOwed);
-        Assert.Equal(0m, body.Data.YouOwe);
+        Assert.Equal(20m, body.Data.Individual.YoureOwed);
+        Assert.Equal(0m, body.Data.Individual.YouOwe);
+        // Alias mode untouched
+        Assert.Equal(0, body.Data.Alias.Groups);
+        Assert.Equal(0m, body.Data.Alias.YouOwe);
+        Assert.Equal(0m, body.Data.Alias.YoureOwed);
+        Assert.Equal(body.Data.TotalGroups, body.Data.Individual.Groups + body.Data.Alias.Groups);
     }
 
     [Fact]
-    public async Task GetUserStats_MixedMode_CombinesBothCorrectly()
+    public async Task GetUserStats_MixedMode_SeparatesByModeCorrectly()
     {
-        // BUG: alias-mode balances ignored — see issue #16.
-        // The alias-mode group contributes paid but 0 owed, so the combined stats are
-        // wrong. This test asserts the CORRECT combined behavior and is EXPECTED TO
-        // FAIL until the bug is fixed.
+        // Stats are now split per mode: individual-mode and alias-mode groups are
+        // reported independently (Individual / Alias sub-objects) rather than
+        // collapsed into flat totals. See issue #29.
         var ct = TestContext.Current.CancellationToken;
         var client = await CreateAuthenticatedClientAsync();
         var admin = await client.GetCurrentUserAsync();
@@ -267,9 +280,14 @@ public class UsersProfileTests : IntegrationTest
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserStatsDto>>(ct);
         Assert.Equal(2, body!.Data!.TotalGroups);
-        // Individual +50, alias +50 → total owed 100
-        Assert.Equal(100m, body.Data.YoureOwed);
-        Assert.Equal(0m, body.Data.YouOwe);
+        // Individual +50, alias +50 → reported separately per mode
+        Assert.Equal(1, body.Data.Individual.Groups);
+        Assert.Equal(50m, body.Data.Individual.YoureOwed);
+        Assert.Equal(0m, body.Data.Individual.YouOwe);
+        Assert.Equal(1, body.Data.Alias.Groups);
+        Assert.Equal(50m, body.Data.Alias.YoureOwed);
+        Assert.Equal(0m, body.Data.Alias.YouOwe);
+        Assert.Equal(body.Data.TotalGroups, body.Data.Individual.Groups + body.Data.Alias.Groups);
     }
 
     #endregion

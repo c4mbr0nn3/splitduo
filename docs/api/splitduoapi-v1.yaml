@@ -6309,10 +6309,10 @@ components:
           type: string
         uiLanguage:
           type: string
-    UserStatsDto:
+    ModeBalanceDto:
       type: object
       properties:
-        totalGroups:
+        groups:
           pattern: ^-?(?:0|[1-9]\d*)$
           type:
             - integer
@@ -6330,6 +6330,19 @@ components:
             - number
             - string
           format: double
+    UserStatsDto:
+      type: object
+      properties:
+        totalGroups:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        individual:
+          $ref: "#/components/schemas/ModeBalanceDto"
+        alias:
+          $ref: "#/components/schemas/ModeBalanceDto"
     ValidateInvitationResponseDto:
       type: object
       properties:

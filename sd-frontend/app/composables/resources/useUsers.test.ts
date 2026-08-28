@@ -48,8 +48,8 @@ const importStatus = (overrides: Partial<ImportStatus> = {}): ImportStatus => ({
 
 const userStats = (overrides: Partial<UserStats> = {}): UserStats => ({
   totalGroups: 3,
-  youOwe: 25,
-  youreOwed: 40,
+  individual: { groups: 2, youOwe: 25, youreOwed: 40 },
+  alias: { groups: 1, youOwe: 0, youreOwed: 0 },
   ...overrides,
 })
 
