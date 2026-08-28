@@ -113,7 +113,8 @@ public class BalancesService(
             $"groupstats:group:{groupGuidStr}",
             async ct =>
             {
-                var totalExpenses = await unitOfWork.Expenses
+                // ExpenseCount = number of expense records; TotalAmount = summed currency
+                var expenseCount = await unitOfWork.Expenses
                     .CountAsync(e => e.GroupId == group.Id && e.DeletedAt == null, ct);
 
                 var totalAmount = await unitOfWork.Expenses
@@ -167,7 +168,7 @@ public class BalancesService(
 
                 return new GroupStatsDto
                 {
-                    TotalExpenses = totalExpenses,
+                    ExpenseCount = expenseCount,
                     TotalAmount = totalAmount,
                     Balances = balances,
                     CategoryBreakdown = categoryBreakdown,

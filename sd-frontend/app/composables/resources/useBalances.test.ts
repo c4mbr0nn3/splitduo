@@ -93,7 +93,7 @@ const aliasBalanceSummary = (overrides: Partial<AliasBalanceSummary> = {}): Alia
 })
 
 const groupStats = (overrides: Partial<GroupStats> = {}): GroupStats => ({
-  totalExpenses: 5,
+  expenseCount: 5,
   totalAmount: 100,
   balances: [normalBalance()],
   categoryBreakdown: [],

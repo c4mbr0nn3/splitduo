@@ -20,7 +20,9 @@ public class MonthlyStatDto
 
 public class GroupStatsDto
 {
-    public int TotalExpenses { get; set; }
+    /// <summary>Number of non-deleted expense records in the group (count, not currency).</summary>
+    public int ExpenseCount { get; set; }
+    /// <summary>Sum of all non-deleted expense amounts in the group (currency).</summary>
     public decimal TotalAmount { get; set; }
     public List<BalanceDto> Balances { get; set; } = [];
     public List<CategoryStatDto> CategoryBreakdown { get; set; } = [];

@@ -565,7 +565,7 @@
     "spending": "Spending",
     "paidByMember": "Paid by Member",
     "spendingByCategory": "Spending by Category",
-    "totalExpenses": "Total Expenses",
+    "expenseCount": "Expense Count",
     "groupTotal": "Group Total",
     "settleUp": "Settle up",
     "noStatsAvailable": "No stats available",

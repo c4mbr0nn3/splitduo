@@ -28,7 +28,7 @@
       class="space-y-6"
     >
       <GroupsStatsCards
-        :total-expenses="Number(groupStats.totalExpenses)"
+        :expense-count="Number(groupStats.expenseCount)"
         :group-total="Number(groupStats.totalAmount)"
         :is-alias-mode="isAliasMode"
       />

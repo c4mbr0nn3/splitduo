@@ -5477,7 +5477,7 @@ export interface components {
         };
         GroupStatsDto: {
             /** Format: int32 */
-            totalExpenses?: number | string;
+            expenseCount?: number | string;
             /** Format: double */
             totalAmount?: number | string;
             balances?: components["schemas"]["BalanceDto"][];

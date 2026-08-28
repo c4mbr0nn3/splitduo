@@ -12,7 +12,7 @@
         />
         <GroupsStatsCards
           class="lg:col-span-3"
-          :total-expenses="Number(expensePagination.total)"
+          :expense-count="Number(expensePagination.total)"
           :group-total="getGroupTotal()"
           :group-id="props.groupId"
           :is-alias-mode="isAliasMode"

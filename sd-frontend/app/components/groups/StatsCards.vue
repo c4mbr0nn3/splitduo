@@ -14,10 +14,10 @@
           </div>
           <div>
             <p class="text-sm text-muted">
-              {{ $t('stats.totalExpenses') }}
+              {{ $t('stats.expenseCount') }}
             </p>
             <p class="font-bold text-xl text-primary sd-tabular">
-              {{ formatCurrency(totalExpenses) }}
+              {{ expenseCount }}
             </p>
           </div>
         </div>
@@ -72,14 +72,16 @@
 <script setup lang="ts">
 import { formatCurrency } from '~/utils/currency'
 
+// expenseCount = number of expense records (plain integer, not currency)
+// groupTotal = summed currency amount of all expenses
 interface Props {
-  totalExpenses?: number
+  expenseCount?: number
   groupTotal?: number
   groupId?: string | null
   isAliasMode?: boolean
 }
 withDefaults(defineProps<Props>(), {
-  totalExpenses: 0,
+  expenseCount: 0,
   groupTotal: 0,
   groupId: null,
   isAliasMode: false,

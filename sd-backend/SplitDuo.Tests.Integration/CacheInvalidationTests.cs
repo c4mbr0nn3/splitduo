@@ -97,7 +97,7 @@ public class CacheHitMissTests : IntegrationTest
 
         Assert.Equal(HttpStatusCode.OK, response1.StatusCode);
         Assert.Equal(HttpStatusCode.OK, response2.StatusCode);
-        Assert.Equal(body1!.Data!.TotalExpenses, body2!.Data!.TotalExpenses);
+        Assert.Equal(body1!.Data!.ExpenseCount, body2!.Data!.ExpenseCount);
         Assert.Equal(body1.Data.TotalAmount, body2.Data.TotalAmount);
         Assert.Equal(body1.Data.CategoryBreakdown.Count, body2.Data.CategoryBreakdown.Count);
     }
@@ -212,14 +212,14 @@ public class CacheInvalidationTests : IntegrationTest
         var warmResponse = await client.GetAsync($"/api/v1/groups/{group.Id}/stats", ct);
         warmResponse.EnsureSuccessStatusCode();
         var warm = await warmResponse.Content.ReadFromJsonAsync<ApiResponseDto<GroupStatsDto>>(ct);
-        Assert.Equal(0, warm!.Data!.TotalExpenses);
+        Assert.Equal(0, warm!.Data!.ExpenseCount);
 
         await client.CreateExpenseAsync(group.Id, admin.Id, amount: 50m, categoryId: 2, expenseDate: "2025-01-15");
 
         var afterFirstResponse = await client.GetAsync($"/api/v1/groups/{group.Id}/stats", ct);
         afterFirstResponse.EnsureSuccessStatusCode();
         var afterFirst = await afterFirstResponse.Content.ReadFromJsonAsync<ApiResponseDto<GroupStatsDto>>(ct);
-        Assert.Equal(1, afterFirst!.Data!.TotalExpenses);
+        Assert.Equal(1, afterFirst!.Data!.ExpenseCount);
         Assert.Equal(50m, afterFirst.Data.TotalAmount);
 
         // Second expense — must invalidate the cached stats
@@ -228,7 +228,7 @@ public class CacheInvalidationTests : IntegrationTest
         var afterSecondResponse = await client.GetAsync($"/api/v1/groups/{group.Id}/stats", ct);
         afterSecondResponse.EnsureSuccessStatusCode();
         var afterSecond = await afterSecondResponse.Content.ReadFromJsonAsync<ApiResponseDto<GroupStatsDto>>(ct);
-        Assert.Equal(2, afterSecond!.Data!.TotalExpenses);
+        Assert.Equal(2, afterSecond!.Data!.ExpenseCount);
         Assert.Equal(80m, afterSecond.Data.TotalAmount);
     }
 

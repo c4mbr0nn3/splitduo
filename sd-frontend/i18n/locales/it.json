@@ -565,7 +565,7 @@
     "spending": "Spese",
     "paidByMember": "Pagato da ciascun membro",
     "spendingByCategory": "Spese per categoria",
-    "totalExpenses": "Spese Totali",
+    "expenseCount": "Numero Spese",
     "groupTotal": "Totale Gruppo",
     "settleUp": "Pareggia",
     "noStatsAvailable": "Nessuna statistica disponibile",
