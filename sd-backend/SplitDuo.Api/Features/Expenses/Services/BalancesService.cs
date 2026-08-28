@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
+using Microsoft.Extensions.Localization;
 using SplitDuo.Api.Features.Common.Dto;
 using SplitDuo.Api.Features.Expenses.Dto;
 using SplitDuo.Api.Features.Groups.Dto;
+using SplitDuo.Api.Features.Users.Dto;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Enums;
 using SplitDuo.Core.Persistence;
@@ -16,12 +18,139 @@ public interface IBalancesService
     Task<Result<BalanceSummaryDto>> GetBalanceSummaryAsync(string groupId, Guid currentUserId);
     Task<Result<AliasBalanceSummaryDto>> GetAliasBalanceSummaryAsync(string groupId, Guid currentUserId);
     Task<Result<GroupStatsDto>> GetGroupStatsAsync(string groupId, Guid currentUserId);
+    Task<Result<UserStatsDto>> GetCurrentUserStatsAsync(Guid currentUserId);
 }
 
 public class BalancesService(
     IUnitOfWork unitOfWork,
-    HybridCache cache) : IBalancesService
+    HybridCache cache,
+    IStringLocalizer<BalancesService> loc) : IBalancesService
 {
+    public async Task<Result<UserStatsDto>> GetCurrentUserStatsAsync(Guid currentUserId)
+    {
+        var user = await unitOfWork.Users
+            .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
+
+        if (user == null) return Result<UserStatsDto>.NotFound(loc["UserNotFound"]);
+
+        // Fetch the user's group memberships with mode info (individual vs alias).
+        // Alias-mode groups never create ExpenseSplit rows — they use ExpenseAliasSplit
+        // keyed by AliasId, so balances must be computed at the alias level.
+        var userMemberships = await unitOfWork.GroupMembers
+            .AsNoTracking()
+            .Where(gm => gm.UserId == user.Id)
+            .Join(unitOfWork.Groups.AsNoTracking(),
+                gm => gm.GroupId, g => g.Id,
+                (gm, g) => new { gm.GroupId, g.UseAliases, gm.AliasId })
+            .ToListAsync();
+
+        var userGroupIds = userMemberships.Select(m => m.GroupId).ToList();
+        var individualGroupIds = userMemberships.Where(m => !m.UseAliases).Select(m => m.GroupId).ToList();
+        var aliasGroupIds = userMemberships.Where(m => m.UseAliases).Select(m => m.GroupId).ToList();
+
+        // Per-group: how much the user paid (INDIVIDUAL MODE ONLY)
+        var paidByGroup = individualGroupIds.Count > 0
+            ? await unitOfWork.Expenses
+                .AsNoTracking()
+                .Where(e => individualGroupIds.Contains(e.GroupId) && e.PaidBy == user.Id && e.DeletedAt == null)
+                .GroupBy(e => e.GroupId)
+                .Select(g => new { GroupId = g.Key, Total = g.Sum(e => e.Amount) })
+                .ToDictionaryAsync(x => x.GroupId, x => x.Total)
+            : new Dictionary<int, decimal>();
+
+        // Per-group: how much of the user's split share (INDIVIDUAL MODE ONLY)
+        var splitByGroup = individualGroupIds.Count > 0
+            ? await unitOfWork.ExpenseSplits
+                .AsNoTracking()
+                .Where(es => es.UserId == user.Id)
+                .Join(unitOfWork.Expenses.AsNoTracking().Where(e => e.DeletedAt == null),
+                    es => es.ExpenseId, e => e.Id,
+                    (es, e) => new { e.GroupId, es.SplitAmount })
+                .Where(x => individualGroupIds.Contains(x.GroupId))
+                .GroupBy(x => x.GroupId)
+                .Select(g => new { GroupId = g.Key, Total = g.Sum(x => x.SplitAmount) })
+                .ToDictionaryAsync(x => x.GroupId, x => x.Total)
+            : new Dictionary<int, decimal>();
+
+        // Alias-mode "paid" per (group, alias): sum of expenses paid by the alias, with
+        // COALESCE(PaidByAliasId, payer's current alias) fallback — same semantics as
+        // GroupsService.GetUserGroupsAsync and BalancesService.CalculateAliasBalancesAsync.
+        // LEFT JOIN group_members so expenses with null PaidByAliasId (pre-migration data)
+        // are attributed to the payer's current alias.
+        var aliasPaidByGroup = aliasGroupIds.Count > 0
+            ? await unitOfWork.Expenses
+                .AsNoTracking()
+                .Where(e => aliasGroupIds.Contains(e.GroupId) && e.DeletedAt == null)
+                .GroupJoin(
+                    unitOfWork.GroupMembers.AsNoTracking()
+                        .Where(gm => gm.DeletedAt == null && gm.AliasId != null),
+                    e => new { e.GroupId, e.PaidBy },
+                    gm => new { GroupId = gm.GroupId, PaidBy = gm.UserId },
+                    (e, gms) => new { e, gms })
+                .SelectMany(
+                    x => x.gms.DefaultIfEmpty(),
+                    (x, gm) => new { x.e.GroupId, AliasId = x.e.PaidByAliasId ?? (gm == null ? null : gm.AliasId), x.e.Amount })
+                .Where(x => x.AliasId != null)
+                .GroupBy(x => new { x.GroupId, x.AliasId })
+                .Select(g => new { g.Key.GroupId, g.Key.AliasId, Total = g.Sum(x => x.Amount) })
+                .ToDictionaryAsync(x => (x.GroupId, x.AliasId!.Value), x => x.Total)
+            : new Dictionary<(int GroupId, int AliasId), decimal>();
+
+        // Alias-mode "owed" per (group, alias): sum of ExpenseAliasSplit.SplitAmount
+        // over non-deleted expenses (same pattern as GroupsService.GetUserGroupsAsync)
+        var aliasSplitByGroup = aliasGroupIds.Count > 0
+            ? await unitOfWork.ExpenseAliasSplits
+                .AsNoTracking()
+                .Join(unitOfWork.Expenses.AsNoTracking()
+                        .Where(e => aliasGroupIds.Contains(e.GroupId) && e.DeletedAt == null),
+                    eas => eas.ExpenseId, e => e.Id,
+                    (eas, e) => new { e.GroupId, eas.AliasId, eas.SplitAmount })
+                .GroupBy(x => new { x.GroupId, x.AliasId })
+                .Select(g => new { g.Key.GroupId, g.Key.AliasId, Total = g.Sum(x => x.SplitAmount) })
+                .ToDictionaryAsync(x => (x.GroupId, x.AliasId), x => x.Total)
+            : new Dictionary<(int GroupId, int AliasId), decimal>();
+
+        // Sum per-group nets: positive → user is owed, negative → user owes
+        var youOwe = 0m;
+        var youreOwed = 0m;
+        foreach (var membership in userMemberships)
+        {
+            decimal net;
+            if (membership.UseAliases)
+            {
+                // Alias-mode: the user's net is their alias's net (paid − owed)
+                if (membership.AliasId == null)
+                {
+                    net = 0m;
+                }
+                else
+                {
+                    var aliasId = membership.AliasId.Value;
+                    net = aliasPaidByGroup.GetValueOrDefault((membership.GroupId, aliasId), 0m)
+                          - aliasSplitByGroup.GetValueOrDefault((membership.GroupId, aliasId), 0m);
+                }
+            }
+            else
+            {
+                // Individual-mode: existing per-user computation
+                net = paidByGroup.GetValueOrDefault(membership.GroupId, 0m)
+                      - splitByGroup.GetValueOrDefault(membership.GroupId, 0m);
+            }
+
+            if (net > 0) youreOwed += net;
+            else youOwe += -net;
+        }
+
+        var stats = new UserStatsDto
+        {
+            TotalGroups = userGroupIds.Count,
+            YouOwe = youOwe,
+            YoureOwed = youreOwed
+        };
+
+        return Result<UserStatsDto>.Success(stats);
+    }
+
     public async Task<Result<List<BalanceDto>>> GetBalancesAsync(string groupId, Guid currentUserId)
     {
         if (!Guid.TryParse(groupId, out var groupGuid))
