@@ -195,6 +195,7 @@ public class SplitDuoImportsService(
                     PaidBy = payerUser.Id,
                     ExpenseDate = exp.ParsedDate,
                     Category = category,
+                    ExpenseTypeId = category == ExpenseCategory.Settlement ? (int)ExpenseType.Settlement : (int)ExpenseType.Normal,
                     PaymentMode = paymentMode,
                     ImportId = importId
                 };

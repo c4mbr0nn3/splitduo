@@ -36,4 +36,6 @@
   <data name="CannotChangeSplitTypeToUser" xml:space="preserve"><value>Cannot change an alias-split expense to user splits</value></data>
   <data name="CannotChangeSplitTypeToAlias" xml:space="preserve"><value>Cannot change a user-split expense to alias splits</value></data>
   <data name="PayerMissingAlias" xml:space="preserve"><value>The payer must be assigned to a subgroup before creating expenses in this group.</value></data>
+  <data name="CannotUseSettlementCategory" xml:space="preserve"><value>The Settlement category is reserved for settlements and cannot be used for expenses</value></data>
+  <data name="CannotUpdateSettlement" xml:space="preserve"><value>Settlements cannot be updated; delete and recreate the settlement instead</value></data>
 </root>

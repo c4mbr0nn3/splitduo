@@ -19,6 +19,7 @@ public class CategoriesController : BaseApiController
     public ActionResult<ApiResponseDto<List<CategoryDto>>> GetCategories()
     {
         var categories = Enum.GetValues<ExpenseCategory>()
+            .Where(c => c != ExpenseCategory.Settlement)
             .Select(c => new CategoryDto(c))
             .ToList();
 

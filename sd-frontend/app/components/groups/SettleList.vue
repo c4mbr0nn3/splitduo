@@ -6,44 +6,49 @@
         {{ $t('settle.yourSettlements') }}
       </h2>
       <div class="space-y-2">
-        <UCard
+        <NuxtLink
           v-for="item in yourSuggestions"
           :key="item.key"
-          variant="soft"
-          :ui="{ body: 'p-3' }"
+          :to="item.link"
+          class="block"
         >
-          <div class="flex items-center gap-3">
-            <div
-              class="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
-              :class="item.isOutgoing ? 'bg-warning/10' : 'bg-success/10'"
-            >
-              <UIcon
-                :name="item.isOutgoing ? 'i-lucide-trending-down' : 'i-lucide-trending-up'"
-                class="w-5 h-5"
-                :class="item.isOutgoing ? 'text-warning' : 'text-success'"
-              />
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-sm text-muted">
-                {{ item.isOutgoing ? $t('settle.youOweLabel') : $t('settle.owedToYou') }}
-              </p>
-              <div class="flex items-center gap-2 flex-wrap">
-                <span class="font-semibold text-highlighted truncate">{{ item.fromLabel }}</span>
+          <UCard
+            variant="soft"
+            :ui="{ body: 'p-3' }"
+          >
+            <div class="flex items-center gap-3">
+              <div
+                class="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+                :class="item.isOutgoing ? 'bg-warning/10' : 'bg-success/10'"
+              >
                 <UIcon
-                  name="i-lucide-arrow-right"
-                  class="w-4 h-4 text-dimmed shrink-0"
+                  :name="item.isOutgoing ? 'i-lucide-trending-down' : 'i-lucide-trending-up'"
+                  class="w-5 h-5"
+                  :class="item.isOutgoing ? 'text-warning' : 'text-success'"
                 />
-                <span class="font-semibold text-highlighted truncate">{{ item.toLabel }}</span>
               </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm text-muted">
+                  {{ item.isOutgoing ? $t('settle.youOweLabel') : $t('settle.owedToYou') }}
+                </p>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="font-semibold text-highlighted truncate">{{ item.fromLabel }}</span>
+                  <UIcon
+                    name="i-lucide-arrow-right"
+                    class="w-4 h-4 text-dimmed shrink-0"
+                  />
+                  <span class="font-semibold text-highlighted truncate">{{ item.toLabel }}</span>
+                </div>
+              </div>
+              <p
+                class="font-bold text-lg sd-tabular shrink-0"
+                :class="item.isOutgoing ? 'text-warning' : 'text-success'"
+              >
+                {{ formatCurrency(item.amount) }}
+              </p>
             </div>
-            <p
-              class="font-bold text-lg sd-tabular shrink-0"
-              :class="item.isOutgoing ? 'text-warning' : 'text-success'"
-            >
-              {{ formatCurrency(item.amount) }}
-            </p>
-          </div>
-        </UCard>
+          </UCard>
+        </NuxtLink>
       </div>
     </div>
 
@@ -53,34 +58,39 @@
         {{ $t('settle.otherSettlements') }}
       </h2>
       <div class="space-y-2">
-        <UCard
+        <NuxtLink
           v-for="item in otherSuggestions"
           :key="item.key"
-          variant="soft"
-          :ui="{ body: 'p-3' }"
+          :to="item.link"
+          class="block"
         >
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-elevated flex items-center justify-center shrink-0">
-              <UIcon
-                name="i-lucide-arrow-right-left"
-                class="w-5 h-5 text-dimmed"
-              />
-            </div>
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2 flex-wrap">
-                <span class="font-semibold text-highlighted truncate">{{ item.fromLabel }}</span>
+          <UCard
+            variant="soft"
+            :ui="{ body: 'p-3' }"
+          >
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-elevated flex items-center justify-center shrink-0">
                 <UIcon
-                  name="i-lucide-arrow-right"
-                  class="w-4 h-4 text-dimmed shrink-0"
+                  name="i-lucide-arrow-right-left"
+                  class="w-5 h-5 text-dimmed"
                 />
-                <span class="font-semibold text-highlighted truncate">{{ item.toLabel }}</span>
               </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="font-semibold text-highlighted truncate">{{ item.fromLabel }}</span>
+                  <UIcon
+                    name="i-lucide-arrow-right"
+                    class="w-4 h-4 text-dimmed shrink-0"
+                  />
+                  <span class="font-semibold text-highlighted truncate">{{ item.toLabel }}</span>
+                </div>
+              </div>
+              <p class="font-bold text-lg text-highlighted sd-tabular shrink-0">
+                {{ formatCurrency(item.amount) }}
+              </p>
             </div>
-            <p class="font-bold text-lg text-highlighted sd-tabular shrink-0">
-              {{ formatCurrency(item.amount) }}
-            </p>
-          </div>
-        </UCard>
+          </UCard>
+        </NuxtLink>
       </div>
     </div>
   </div>
@@ -91,6 +101,7 @@ import type { BalanceSuggestion, AliasSettlementSuggestion } from '~/types/domai
 import { formatCurrency } from '~/utils/currency'
 
 interface Props {
+  groupId: string
   suggestions: BalanceSuggestion[] | AliasSettlementSuggestion[]
   currentUserId: string
   isAliasMode: boolean
@@ -112,6 +123,11 @@ interface NormalizedSuggestion {
   amount: number
   isOutgoing: boolean
   isIncoming: boolean
+  fromUserId?: string
+  toUserId?: string
+  fromAliasId?: string
+  toAliasId?: string
+  link: string
 }
 
 const isAliasSuggestion = (s: BalanceSuggestion | AliasSettlementSuggestion): s is AliasSettlementSuggestion => {
@@ -141,6 +157,9 @@ const normalize = (s: BalanceSuggestion | AliasSettlementSuggestion, index: numb
       amount: Number(s.amount) || 0,
       isOutgoing: isCurrentUserDebtor(s),
       isIncoming: isCurrentUserCreditor(s),
+      fromAliasId: s.fromAliasId,
+      toAliasId: s.toAliasId,
+      link: `/groups/${props.groupId}/settle/confirm?fromAlias=${s.fromAliasId}&toAlias=${s.toAliasId}&amount=${s.amount}`,
     }
   }
 
@@ -152,6 +171,9 @@ const normalize = (s: BalanceSuggestion | AliasSettlementSuggestion, index: numb
     amount: Number(normal.amount) || 0,
     isOutgoing: isCurrentUserDebtor(normal),
     isIncoming: isCurrentUserCreditor(normal),
+    fromUserId: normal.fromUserId,
+    toUserId: normal.toUserId,
+    link: `/groups/${props.groupId}/settle/confirm?from=${normal.fromUserId}&to=${normal.toUserId}&amount=${normal.amount}`,
   }
 }
 

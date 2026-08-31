@@ -786,6 +786,332 @@ paths:
             text/json:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
+  /api/v1/groups/{groupId}/settlements:
+    get:
+      tags:
+        - Settlements
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+            format: int32
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+            format: int32
+            default: 20
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/PaginatedResponseDtoOfSettlementDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedResponseDtoOfSettlementDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedResponseDtoOfSettlementDto"
+        "400":
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: Not Found
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+    post:
+      tags:
+        - Settlements
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSettlementRequestDto"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/CreateSettlementRequestDto"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/CreateSettlementRequestDto"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfSettlementDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfSettlementDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfSettlementDto"
+        "201":
+          description: Created
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfSettlementDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfSettlementDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfSettlementDto"
+        "400":
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: Not Found
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /api/v1/groups/{groupId}/settlements/{settlementId}:
+    get:
+      tags:
+        - Settlements
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: settlementId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfSettlementDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfSettlementDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfSettlementDto"
+        "400":
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: Not Found
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+    delete:
+      tags:
+        - Settlements
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: settlementId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: Not Found
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
   /api/v1/receipts/parse:
     post:
       tags:
@@ -5093,6 +5419,23 @@ components:
           oneOf:
             - type: "null"
             - $ref: "#/components/schemas/ApiErrorDto"
+    ApiResponseDtoOfSettlementDto:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/SettlementDto"
+        message:
+          type:
+            - "null"
+            - string
+        error:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/ApiErrorDto"
     ApiResponseDtoOfTwoFactorSetupDto:
       type: object
       properties:
@@ -5377,6 +5720,48 @@ components:
             - string
         useAliases:
           type: boolean
+    CreateSettlementRequestDto:
+      required:
+        - fromUserId
+        - amount
+        - date
+      type: object
+      properties:
+        fromUserId:
+          type: string
+        toUserId:
+          type:
+            - "null"
+            - string
+        fromAliasId:
+          type:
+            - "null"
+            - string
+        toAliasId:
+          type:
+            - "null"
+            - string
+        amount:
+          minimum: 0.01
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+          format: double
+        date:
+          type: string
+        description:
+          maxLength: 500
+          type:
+            - "null"
+            - string
+        paymentModeId:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int32
     DisableTwoFactorDto:
       required:
         - password
@@ -5476,6 +5861,12 @@ components:
             - string
           format: int32
         paymentModeId:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        expenseTypeId:
           pattern: ^-?(?:0|[1-9]\d*)$
           type:
             - integer
@@ -5814,6 +6205,27 @@ components:
         password:
           minLength: 8
           type: string
+    ModeBalanceDto:
+      type: object
+      properties:
+        groups:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        youOwe:
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+          format: double
+        youreOwed:
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+          format: double
     MonthlyStatDto:
       type: object
       properties:
@@ -5869,6 +6281,25 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ImportStatusDto"
+        pagination:
+          $ref: "#/components/schemas/PaginationDto"
+        message:
+          type:
+            - "null"
+            - string
+        error:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/ApiErrorDto"
+    PaginatedResponseDtoOfSettlementDto:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/SettlementDto"
         pagination:
           $ref: "#/components/schemas/PaginationDto"
         message:
@@ -6060,6 +6491,77 @@ components:
           oneOf:
             - type: "null"
             - $ref: "#/components/schemas/InvitationDto"
+    SettlementDto:
+      type: object
+      properties:
+        id:
+          type: string
+        groupId:
+          type: string
+        fromUserId:
+          type: string
+        fromUser:
+          $ref: "#/components/schemas/UserBasicInfoDto"
+        toUserId:
+          type:
+            - "null"
+            - string
+        toUser:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/UserBasicInfoDto"
+        amount:
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+          format: double
+        date:
+          type: string
+        description:
+          type:
+            - "null"
+            - string
+        expenseTypeId:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        paymentModeId:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        paidByAliasId:
+          type:
+            - "null"
+            - string
+        paidByAliasName:
+          type:
+            - "null"
+            - string
+        toAliasId:
+          type:
+            - "null"
+            - string
+        toAliasName:
+          type:
+            - "null"
+            - string
+        createdAt:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int64
+        updatedAt:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int64
     StringSegment:
       type: object
       properties:
@@ -6309,27 +6811,6 @@ components:
           type: string
         uiLanguage:
           type: string
-    ModeBalanceDto:
-      type: object
-      properties:
-        groups:
-          pattern: ^-?(?:0|[1-9]\d*)$
-          type:
-            - integer
-            - string
-          format: int32
-        youOwe:
-          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
-          type:
-            - number
-            - string
-          format: double
-        youreOwed:
-          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
-          type:
-            - number
-            - string
-          format: double
     UserStatsDto:
       type: object
       properties:
@@ -6380,6 +6861,7 @@ components:
 tags:
   - name: Users
   - name: UserAvatars
+  - name: Settlements
   - name: Receipts
   - name: PaymentModes
   - name: Invitations

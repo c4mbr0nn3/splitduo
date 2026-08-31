@@ -121,7 +121,11 @@
     "netBalance": "Net Balance",
     "personalGroups": "Personal groups",
     "sharedGroups": "Shared groups",
-    "groupsCount": "{count} group | {count} groups"
+    "groupsCount": "{count} group | {count} groups",
+    "settleUp": "Settle Up",
+    "settleUpPickGroup": "Choose a group to settle up in",
+    "settleUpLoading": "Finding what you owe...",
+    "settleUpFailed": "Couldn't load settlement suggestions"
   },
   "groups": {
     "title": "Groups",
@@ -220,6 +224,7 @@
   },
   "expenses": {
     "title": "Expenses",
+    "settlementBadge": "Settlement",
     "addNew": "Add New Expense",
     "addExpense": "Add Expense",
     "editExpense": "Edit Expense",
@@ -268,7 +273,7 @@
     "zoom": "Zoom",
     "close": "Close",
     "scanReceipt": "Scan Receipt",
-    "you": "you",
+    "you": "You",
     "peopleCount": "{count} people",
     "splitAmong": "Split among: {names}",
     "deleteTitle": "Delete Expense",
@@ -598,7 +603,31 @@
     "owedToYou": "Owed to you",
     "someone": "someone",
     "summaryLine": "{count} settlements · {amount} total",
-    "viewAll": "View settlements"
+    "viewAll": "View settlements",
+    "historyTitle": "Recent settlements",
+    "historyEmpty": "No settlements recorded yet",
+    "confirmTitle": "Confirm settlement",
+    "confirmSubtitle": "Review and record this payment",
+    "recordSettlement": "Record settlement",
+    "fromLabel": "From (payer)",
+    "toLabel": "To (recipient)",
+    "selectFrom": "Select who paid",
+    "selectTo": "Select who received",
+    "amountPlaceholder": "0.00",
+    "fromRequired": "Select the payer",
+    "toRequired": "Select the recipient",
+    "cannotSettleSelf": "Payer and recipient must be different",
+    "amountRequired": "Enter an amount greater than zero",
+    "dateRequired": "Select a date",
+    "amountLabel": "Amount",
+    "descriptionLabel": "Description (optional)",
+    "paymentModeLabel": "Payment mode",
+    "dateLabel": "Date",
+    "confirmButton": "Confirm settlement",
+    "invalidParams": "Invalid settlement details",
+    "deleteTitle": "Delete settlement",
+    "deleteConfirm": "Are you sure you want to delete this settlement?",
+    "deleteButton": "Delete"
   },
   "changePassword": {
     "title": "Change Password",
@@ -732,6 +761,13 @@
       "loadFailed": "Failed to load balances",
       "summaryLoadFailed": "Failed to load balance summary",
       "statsLoadFailed": "Failed to load group stats"
+    },
+    "settlements": {
+      "loadFailed": "Failed to load settlements",
+      "created": "Settlement recorded successfully",
+      "createFailed": "Failed to record settlement",
+      "deleted": "Settlement deleted successfully",
+      "deleteFailed": "Failed to delete settlement"
     },
     "aliases": {
       "loadFailed": "Failed to load subgroups",

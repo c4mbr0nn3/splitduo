@@ -36,4 +36,6 @@
   <data name="CannotChangeSplitTypeToUser" xml:space="preserve"><value>Impossibile cambiare una spesa con suddivisione alias in suddivisione utenti</value></data>
   <data name="CannotChangeSplitTypeToAlias" xml:space="preserve"><value>Impossibile cambiare una spesa con suddivisione utenti in suddivisione alias</value></data>
   <data name="PayerMissingAlias" xml:space="preserve"><value>Il pagatore deve essere assegnato a un sottogruppo prima di creare spese in questo gruppo.</value></data>
+  <data name="CannotUseSettlementCategory" xml:space="preserve"><value>La categoria Regolamento è riservata ai regolamenti e non può essere utilizzata per le spese</value></data>
+  <data name="CannotUpdateSettlement" xml:space="preserve"><value>I regolamenti non possono essere modificati; elimina e ricrea il regolamento</value></data>
 </root>

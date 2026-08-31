@@ -13,6 +13,7 @@ export { default as useInvitations } from '@/composables/resources/useInvitation
 export { default as useAiStatus } from '@/composables/resources/useAiStatus'
 export { default as usePaymentModes } from '@/composables/resources/usePaymentModes'
 export { default as useReceiptScan } from '@/composables/resources/useReceiptScan'
+export { default as useSettlements } from '@/composables/resources/useSettlements'
 export { default as useUsers } from '@/composables/resources/useUsers'
 export { default as useAliases } from '@/composables/resources/useAliases'
 export { default as useUserSettings } from '@/composables/resources/useUserSettings'

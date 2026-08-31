@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+    <xsd:element name="root" msdata:IsDataSet="true"/>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="InvalidGroupIdFormat" xml:space="preserve"><value>Formato ID gruppo non valido</value></data>
+  <data name="InvalidSettlementIdFormat" xml:space="preserve"><value>Formato ID regolamento non valido</value></data>
+  <data name="UserNotAuthenticated" xml:space="preserve"><value>Utente non autenticato</value></data>
+  <data name="GroupNotFound" xml:space="preserve"><value>Gruppo non trovato</value></data>
+  <data name="AccessNotAllowed" xml:space="preserve"><value>L'accesso a questo gruppo non è consentito</value></data>
+  <data name="FromUserNotFound" xml:space="preserve"><value>Utente mittente non trovato</value></data>
+  <data name="ToUserNotFound" xml:space="preserve"><value>Utente destinatario non trovato</value></data>
+  <data name="FromUserNotMember" xml:space="preserve"><value>L'utente mittente non è un membro di questo gruppo</value></data>
+  <data name="ToUserNotMember" xml:space="preserve"><value>L'utente destinatario non è un membro di questo gruppo</value></data>
+  <data name="FromAliasNotFound" xml:space="preserve"><value>Alias mittente non trovato</value></data>
+  <data name="ToAliasNotFound" xml:space="preserve"><value>Alias destinatario non trovato</value></data>
+  <data name="AliasSetupNotFinalized" xml:space="preserve"><value>La configurazione degli alias non è finalizzata</value></data>
+  <data name="PayerMissingAlias" xml:space="preserve"><value>Il pagatore non ha questo alias assegnato nel gruppo</value></data>
+  <data name="SettlementAmountMustBePositive" xml:space="preserve"><value>L'importo del regolamento deve essere maggiore di zero</value></data>
+  <data name="InvalidExpensePaymentMode" xml:space="preserve"><value>Modalità di pagamento non valida</value></data>
+  <data name="InvalidSettlementDateFormat" xml:space="preserve"><value>Formatto data del regolamento non valido</value></data>
+  <data name="SettlementNotFound" xml:space="preserve"><value>Regolamento non trovato</value></data>
+  <data name="SettlementDefaultTitle" xml:space="preserve"><value>Regolamento</value></data>
+</root>

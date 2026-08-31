@@ -25,6 +25,7 @@
         size="lg"
         block
         class="justify-start"
+        @click="action.onClick?.()"
       />
     </UCard>
 
@@ -133,9 +134,12 @@
           size="lg"
           block
           class="justify-start"
+          @click="action.onClick?.()"
         />
       </UCard>
     </div>
+
+    <DashboardSettleUpModal v-model:open="showSettleUp" />
   </div>
 </template>
 
@@ -146,6 +150,7 @@ const { groups, fetchGroups } = useGroups()
 const { userStats, fetchUserStats } = useUsers()
 
 const showSkeleton = ref(true)
+const showSettleUp = ref(false)
 
 const stats = computed(() => ({
   individual: userStats.value?.individual ?? { groups: 0, youOwe: 0, youreOwed: 0 },
@@ -174,7 +179,7 @@ const viewAllGroups = () => {
   navigateTo('/groups')
 }
 
-const quickActions = computed(() => [
+const quickActions = computed<{ id: string, label: string, icon: string, to?: string, onClick?: () => void }[]>(() => [
   {
     id: 'create-group',
     label: t('dashboard.createNewGroup'),
@@ -187,7 +192,13 @@ const quickActions = computed(() => [
     icon: 'i-lucide-receipt',
     to: '/expenses/add',
   },
-])
+  {
+    id: 'settle-up',
+    label: t('dashboard.settleUp'),
+    icon: 'i-lucide-arrow-right-left',
+    onClick: () => { showSettleUp.value = true },
+  },
+].filter(a => a.id !== 'settle-up' || groups.value.length > 0))
 
 useHead({
   title: computed(() => t('dashboard.title')),

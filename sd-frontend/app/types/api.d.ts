@@ -949,6 +949,331 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/groups/{groupId}/settlements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    page?: number | string;
+                    limit?: number | string;
+                };
+                header?: never;
+                path: {
+                    groupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["PaginatedResponseDtoOfSettlementDto"];
+                        "application/json": components["schemas"]["PaginatedResponseDtoOfSettlementDto"];
+                        "text/json": components["schemas"]["PaginatedResponseDtoOfSettlementDto"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateSettlementRequestDto"];
+                    "text/json": components["schemas"]["CreateSettlementRequestDto"];
+                    "application/*+json": components["schemas"]["CreateSettlementRequestDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfSettlementDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfSettlementDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfSettlementDto"];
+                    };
+                };
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfSettlementDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfSettlementDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfSettlementDto"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/{groupId}/settlements/{settlementId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                    settlementId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfSettlementDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfSettlementDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfSettlementDto"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                    settlementId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/receipts/parse": {
         parameters: {
             query?: never;
@@ -5265,6 +5590,12 @@ export interface components {
             message?: null | string;
             error?: null | components["schemas"]["ApiErrorDto"];
         };
+        ApiResponseDtoOfSettlementDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["SettlementDto"];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
         ApiResponseDtoOfTwoFactorSetupDto: {
             success?: boolean;
             data?: null | components["schemas"]["TwoFactorSetupDto"];
@@ -5368,6 +5699,18 @@ export interface components {
             description?: null | string;
             useAliases?: boolean;
         };
+        CreateSettlementRequestDto: {
+            fromUserId: string;
+            toUserId?: null | string;
+            fromAliasId?: null | string;
+            toAliasId?: null | string;
+            /** Format: double */
+            amount: number | string;
+            date: string;
+            description?: null | string;
+            /** Format: int32 */
+            paymentModeId?: null | number | string;
+        };
         DisableTwoFactorDto: {
             password: string;
         };
@@ -5411,6 +5754,8 @@ export interface components {
             categoryId?: number | string;
             /** Format: int32 */
             paymentModeId?: number | string;
+            /** Format: int32 */
+            expenseTypeId?: number | string;
             splits?: components["schemas"]["ExpenseSplitDto"][];
             aliasSplits?: null | components["schemas"]["ExpenseAliasSplitDto"][];
             /** Format: int32 */
@@ -5541,6 +5886,14 @@ export interface components {
             email: string;
             password: string;
         };
+        ModeBalanceDto: {
+            /** Format: int32 */
+            groups?: number | string;
+            /** Format: double */
+            youOwe?: number | string;
+            /** Format: double */
+            youreOwed?: number | string;
+        };
         MonthlyStatDto: {
             /** Format: int32 */
             year?: number | string;
@@ -5561,6 +5914,13 @@ export interface components {
         PaginatedResponseDtoOfImportStatusDto: {
             success?: boolean;
             data?: components["schemas"]["ImportStatusDto"][];
+            pagination?: components["schemas"]["PaginationDto"];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        PaginatedResponseDtoOfSettlementDto: {
+            success?: boolean;
+            data?: components["schemas"]["SettlementDto"][];
             pagination?: components["schemas"]["PaginationDto"];
             message?: null | string;
             error?: null | components["schemas"]["ApiErrorDto"];
@@ -5633,6 +5993,30 @@ export interface components {
             type?: string;
             member?: null | components["schemas"]["GroupMemberDto"];
             invitation?: null | components["schemas"]["InvitationDto"];
+        };
+        SettlementDto: {
+            id?: string;
+            groupId?: string;
+            fromUserId?: string;
+            fromUser?: components["schemas"]["UserBasicInfoDto"];
+            toUserId?: null | string;
+            toUser?: null | components["schemas"]["UserBasicInfoDto"];
+            /** Format: double */
+            amount?: number | string;
+            date?: string;
+            description?: null | string;
+            /** Format: int32 */
+            expenseTypeId?: number | string;
+            /** Format: int32 */
+            paymentModeId?: number | string;
+            paidByAliasId?: null | string;
+            paidByAliasName?: null | string;
+            toAliasId?: null | string;
+            toAliasName?: null | string;
+            /** Format: int64 */
+            createdAt?: number | string;
+            /** Format: int64 */
+            updatedAt?: number | string;
         };
         StringSegment: {
             buffer?: null | string;
@@ -5723,14 +6107,6 @@ export interface components {
         UserSettingsDto: {
             theme?: string;
             uiLanguage?: string;
-        };
-        ModeBalanceDto: {
-            /** Format: int32 */
-            groups?: number | string;
-            /** Format: double */
-            youOwe?: number | string;
-            /** Format: double */
-            youreOwed?: number | string;
         };
         UserStatsDto: {
             /** Format: int32 */

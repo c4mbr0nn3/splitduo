@@ -266,10 +266,10 @@ public class BalancesService(
             {
                 // ExpenseCount = number of expense records; TotalAmount = summed currency
                 var expenseCount = await unitOfWork.Expenses
-                    .CountAsync(e => e.GroupId == group.Id && e.DeletedAt == null, ct);
+                    .CountAsync(e => e.GroupId == group.Id && e.DeletedAt == null && e.ExpenseTypeId != (int)ExpenseType.Settlement, ct);
 
                 var totalAmount = await unitOfWork.Expenses
-                    .Where(e => e.GroupId == group.Id && e.DeletedAt == null)
+                    .Where(e => e.GroupId == group.Id && e.DeletedAt == null && e.ExpenseTypeId != (int)ExpenseType.Settlement)
                     .SumAsync(e => (decimal?)e.Amount, ct) ?? 0m;
 
                 List<BalanceDto> balances;
@@ -288,7 +288,7 @@ public class BalancesService(
                 }
 
                 var categoryData = await unitOfWork.Expenses
-                    .Where(e => e.GroupId == group.Id && e.DeletedAt == null)
+                    .Where(e => e.GroupId == group.Id && e.DeletedAt == null && e.ExpenseTypeId != (int)ExpenseType.Settlement)
                     .GroupBy(e => e.CategoryId)
                     .Select(g => new { CategoryId = g.Key, Amount = g.Sum(e => (decimal?)e.Amount) ?? 0m, Count = g.Count() })
                     .OrderByDescending(x => x.Amount)
@@ -304,7 +304,7 @@ public class BalancesService(
                     }).ToList();
 
                 var monthlyData = await unitOfWork.Expenses
-                    .Where(e => e.GroupId == group.Id && e.DeletedAt == null)
+                    .Where(e => e.GroupId == group.Id && e.DeletedAt == null && e.ExpenseTypeId != (int)ExpenseType.Settlement)
                     .GroupBy(e => new { e.ExpenseDate.Year, e.ExpenseDate.Month })
                     .Select(g => new
                     {
