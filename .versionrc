@@ -7,6 +7,10 @@
     {
       "filename": "VERSION",
       "type": "plain-text"
+    },
+    {
+      "filename": "sd-frontend/package.json",
+      "type": "json"
     }
   ],
   "skip": {

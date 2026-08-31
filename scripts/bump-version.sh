@@ -189,11 +189,12 @@ if [[ "$DRY_RUN" == true ]]; then
     echo -e "${YELLOW}[DRY-RUN MODE]${NC}"
     echo ""
     echo "The following changes would be made:"
-    echo "  1. commit-and-tag-version bumps package.json + VERSION: $CURRENT_VERSION → $NEW_VERSION"
-    echo "  2. Create commit: 'chore: bump version to $NEW_VERSION'"
-    echo "  3. Create tag: $TAG_NAME"
-    echo "  4. Generate changelog entry for $TAG_NAME (git-cliff) and amend commit"
-    echo "  5. Push to remote: origin/$(git rev-parse --abbrev-ref HEAD)"
+    echo "  1. commit-and-tag-version bumps package.json + VERSION + sd-frontend/package.json: $CURRENT_VERSION → $NEW_VERSION"
+    echo "  2. Sync backend (Directory.Build.props) + OpenAPI spec versions to $NEW_VERSION"
+    echo "  3. Create commit: 'chore: bump version to $NEW_VERSION'"
+    echo "  4. Create tag: $TAG_NAME"
+    echo "  5. Generate changelog entry for $TAG_NAME (git-cliff) and amend commit"
+    echo "  6. Push to remote: origin/$(git rev-parse --abbrev-ref HEAD)"
     echo ""
     echo -e "${GREEN}✓${NC} Dry-run completed (no changes made)"
     exit 0
@@ -206,11 +207,12 @@ confirm_action() {
     fi
 
     echo "Ready to:"
-    echo "  1. commit-and-tag-version bumps package.json + VERSION: $CURRENT_VERSION → $NEW_VERSION"
-    echo "  2. Create commit: 'chore: bump version to $NEW_VERSION'"
-    echo "  3. Create tag: $TAG_NAME"
-    echo "  4. Generate changelog entry for $TAG_NAME (git-cliff) and amend commit"
-    echo "  5. Push to remote: origin/$(git rev-parse --abbrev-ref HEAD)"
+    echo "  1. commit-and-tag-version bumps package.json + VERSION + sd-frontend/package.json: $CURRENT_VERSION → $NEW_VERSION"
+    echo "  2. Sync backend (Directory.Build.props) + OpenAPI spec versions to $NEW_VERSION"
+    echo "  3. Create commit: 'chore: bump version to $NEW_VERSION'"
+    echo "  4. Create tag: $TAG_NAME"
+    echo "  5. Generate changelog entry for $TAG_NAME (git-cliff) and amend commit"
+    echo "  6. Push to remote: origin/$(git rev-parse --abbrev-ref HEAD)"
     echo ""
     read -p "Continue? [y/N] " -n 1 -r
     echo ""
@@ -252,17 +254,24 @@ rollback() {
 # Set trap for rollback on error
 trap rollback EXIT
 
-# 1. Run commit-and-tag-version to bump package.json + VERSION on disk.
+# 1. Run commit-and-tag-version to bump package.json + VERSION + sd-frontend/package.json on disk.
 #    Changelog/commit/tag are skipped — we handle those ourselves below
 #    so we can fold the git-cliff changelog into the bump commit.
 echo -e "${YELLOW}Running commit-and-tag-version...${NC}"
 pnpm exec commit-and-tag-version \
     $CATV_RELEASE_ARG \
     --skip.changelog --skip.commit --skip.tag
-echo -e "${GREEN}✓${NC} Bumped package.json + VERSION"
+echo -e "${GREEN}✓${NC} Bumped package.json + VERSION + sd-frontend/package.json"
+
+# 1b. Sync backend assembly version and OpenAPI spec version with the new release version.
+BACKEND_PROPS="sd-backend/Directory.Build.props"
+API_SPEC="docs/api/splitduoapi-v1.yaml"
+sed -i -E "s|<Version>[0-9]+\.[0-9]+\.[0-9]+</Version>|<Version>$NEW_VERSION</Version>|" "$BACKEND_PROPS"
+sed -i -E "s|^(  version: )[0-9]+\.[0-9]+\.[0-9]+$|\1$NEW_VERSION|" "$API_SPEC"
+echo -e "${GREEN}✓${NC} Synced $BACKEND_PROPS + $API_SPEC to $NEW_VERSION"
 
 # 2. Stage and commit the version bump.
-git add package.json "$VERSION_FILE"
+git add package.json "$VERSION_FILE" sd-frontend/package.json sd-backend/Directory.Build.props docs/api/splitduoapi-v1.yaml
 git commit -m "chore: bump version to $NEW_VERSION"
 COMMIT_CREATED=true
 echo -e "${GREEN}✓${NC} Committed version bump"

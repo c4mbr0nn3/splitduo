@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <!-- Single source of truth for backend version; bumped by scripts/bump-version.sh -->
+    <Version>1.15.4</Version>
+  </PropertyGroup>
+</Project>

@@ -37,7 +37,13 @@ public static class ApiProgramExtensions
     {
         builder.AddInfrastructure();
         builder.Services.AddControllers();
-        builder.Services.AddOpenApi();
+        builder.Services.AddOpenApi(options =>
+            options.AddDocumentTransformer((document, _, _) =>
+            {
+                // Keep info.version in the generated OpenAPI spec in sync with the release version
+                document.Info.Version = typeof(ApiProgramExtensions).Assembly.GetName().Version?.ToString(3) ?? "1.0.0";
+                return Task.CompletedTask;
+            }));
 
         // Register API layer services
         builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();

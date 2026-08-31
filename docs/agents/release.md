@@ -5,13 +5,14 @@
 ## Version Sources of Truth
 
 - `VERSION` and `package.json` `version` are co-sources of truth for the current release version.
-- Kept in sync by `scripts/bump-version.sh` — **do not edit either manually**.
+- The release version is additionally stamped into `sd-backend/Directory.Build.props` (`<Version>`), `sd-frontend/package.json` (`version`), and `docs/api/splitduoapi-v1.yaml` (`info.version`).
+- Kept in sync by `scripts/bump-version.sh` — **do not edit any of these manually**.
 
 ## Release Workflow
 
 Run `./scripts/bump-version.sh [major|minor|patch|--auto]` — it orchestrates:
 
-1. `commit-and-tag-version` (bumps `package.json` + `VERSION` together)
+1. `commit-and-tag-version` bumps `package.json` + `VERSION` + `sd-frontend/package.json`, and the script syncs backend + OpenAPI spec versions
 2. `git-cliff` (regenerates `CHANGELOG.md` from Conventional Commits)
 3. Commits, tags `vX.Y.Z`, and pushes to trigger GitLab CI
 
