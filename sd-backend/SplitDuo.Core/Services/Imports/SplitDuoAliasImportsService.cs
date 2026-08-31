@@ -230,6 +230,7 @@ public class SplitDuoAliasImportsService(
                     PaidBy = payerMembership.UserId,
                     ExpenseDate = exp.ParsedDate,
                     Category = category,
+                    ExpenseTypeId = category == ExpenseCategory.Settlement ? (int)ExpenseType.Settlement : (int)ExpenseType.Normal,
                     PaymentMode = paymentMode,
                     ImportId = importId,
                     PaidByAliasId = payerMembership.AliasId

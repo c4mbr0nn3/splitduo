@@ -12,6 +12,7 @@ namespace SplitDuo.Core.Domain.Entities;
 [Index(nameof(PaidBy), nameof(ExpenseDate))]
 [Index(nameof(GroupId), nameof(CategoryId), nameof(ExpenseDate))]
 [Index(nameof(GroupId), nameof(PaymentModeId), nameof(ExpenseDate))]
+[Index(nameof(GroupId), nameof(ExpenseTypeId), nameof(ExpenseDate))]
 [Index(nameof(ExpenseDate))]
 [Index(nameof(DeletedAt))]
 public class Expense : AuditableAndSoftDeletableEntity
@@ -28,6 +29,7 @@ public class Expense : AuditableAndSoftDeletableEntity
     [Column("payment_mode_id")] public int PaymentModeId { get; set; }
     [Column("import_id")] public int? ImportId { get; set; }
     [Column("paid_by_alias_id")] public int? PaidByAliasId { get; set; }
+    [Column("expense_type_id")] public int ExpenseTypeId { get; set; }
 
     [ForeignKey(nameof(GroupId))] public virtual Group Group { get; set; } = null!;
     [ForeignKey(nameof(PaidBy))] public virtual User PaidByUser { get; set; } = null!;
@@ -48,5 +50,12 @@ public class Expense : AuditableAndSoftDeletableEntity
     {
         get => (PaymentMode)PaymentModeId;
         set => PaymentModeId = (int)value;
+    }
+
+    [NotMapped]
+    public ExpenseType Type
+    {
+        get => (ExpenseType)ExpenseTypeId;
+        set => ExpenseTypeId = (int)value;
     }
 }

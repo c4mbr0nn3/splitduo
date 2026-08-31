@@ -4,6 +4,7 @@ using Microsoft.Extensions.Localization;
 using SplitDuo.Api.Features.ExpenseAttachments.Dto;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Entities;
+using SplitDuo.Core.Domain.Enums;
 using SplitDuo.Core.Persistence;
 
 namespace SplitDuo.Api.Features.ExpenseAttachments.Services;
@@ -57,6 +58,11 @@ public class ExpenseAttachmentsService(
 
         if (expense == null)
             return Result<ExpenseAttachmentDto>.NotFound(loc["ExpenseNotFound"]);
+
+        if (expense.ExpenseTypeId == (int)ExpenseType.Settlement)
+        {
+            return Result<ExpenseAttachmentDto>.BadRequest(loc["CannotAttachToSettlement"]);
+        }
 
         if (file is null || file.Length == 0)
             return Result<ExpenseAttachmentDto>.BadRequest(loc["NoFileUploaded"]);

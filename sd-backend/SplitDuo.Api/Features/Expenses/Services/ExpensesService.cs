@@ -238,6 +238,11 @@ public class ExpensesService(
             return Result<ExpenseDto>.BadRequest(loc["InvalidExpenseCategory"]);
         }
 
+        if (category == ExpenseCategory.Settlement)
+        {
+            return Result<ExpenseDto>.BadRequest(loc["CannotUseSettlementCategory"]);
+        }
+
         // Parse and validate payment mode
         if (!Enum.TryParse(request.PaymentModeId.ToString(), true, out PaymentMode paymentMode) ||
             !Enum.IsDefined(paymentMode))
@@ -556,6 +561,11 @@ public class ExpensesService(
         if (expense == null)
             return Result<ExpenseDto>.NotFound(loc["ExpenseNotFound"]);
 
+        if (expense.ExpenseTypeId == (int)ExpenseType.Settlement)
+        {
+            return Result<ExpenseDto>.Conflict(loc["CannotUpdateSettlement"]);
+        }
+
         // Update basic properties
         if (!string.IsNullOrWhiteSpace(request.Title))
             expense.Title = request.Title;
@@ -581,6 +591,11 @@ public class ExpensesService(
                 !Enum.IsDefined(category))
             {
                 return Result<ExpenseDto>.BadRequest(loc["InvalidExpenseCategory"]);
+            }
+
+            if (category == ExpenseCategory.Settlement)
+            {
+                return Result<ExpenseDto>.BadRequest(loc["CannotUseSettlementCategory"]);
             }
 
             expense.Category = category;

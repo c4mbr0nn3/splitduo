@@ -12,5 +12,6 @@ public enum ExpenseCategory
     Travel = 8,
     Shopping = 9,
     Housing = 10,
-    Dining = 11
+    Dining = 11,
+    Settlement = 12
 }

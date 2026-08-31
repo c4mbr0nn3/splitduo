@@ -15,6 +15,7 @@ public class ExpenseDto
     public string ExpenseDate { get; set; } = "";
     public int CategoryId { get; set; }
     public int PaymentModeId { get; set; }
+    public int ExpenseTypeId { get; set; }
     public List<ExpenseSplitDto> Splits { get; set; } = [];
     public List<ExpenseAliasSplitDto>? AliasSplits { get; set; }
     public int AttachmentCount { get; set; }
@@ -47,6 +48,7 @@ public class ExpenseDto
         ExpenseDate = expense.ExpenseDate.ToString("yyyy-MM-dd");
         CategoryId = expense.CategoryId;
         PaymentModeId = expense.PaymentModeId;
+        ExpenseTypeId = expense.ExpenseTypeId;
         CreatedAt = expense.CreatedAt;
         UpdatedAt = expense.UpdatedAt;
 

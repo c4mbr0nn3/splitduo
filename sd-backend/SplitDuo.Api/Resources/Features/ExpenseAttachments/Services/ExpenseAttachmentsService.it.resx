@@ -22,4 +22,5 @@
   <data name="FileContentMismatch" xml:space="preserve"><value>Il contenuto del file non corrisponde al tipo dichiarato</value></data>
   <data name="DuplicateAttachment" xml:space="preserve"><value>Questo file è già stato allegato a questa spesa</value></data>
   <data name="AttachmentLimitReached" xml:space="preserve"><value>Raggiunto il limite massimo di 5 allegati per spesa</value></data>
+  <data name="CannotAttachToSettlement" xml:space="preserve"><value>Non è possibile aggiungere allegati ai regolamenti</value></data>
 </root>

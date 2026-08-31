@@ -121,7 +121,11 @@
     "netBalance": "Saldo Netto",
     "personalGroups": "Gruppi personali",
     "sharedGroups": "Gruppi condivisi",
-    "groupsCount": "{count} gruppo | {count} gruppi"
+    "groupsCount": "{count} gruppo | {count} gruppi",
+    "settleUp": "Regola conti",
+    "settleUpPickGroup": "Scegli un gruppo in cui regolare i conti",
+    "settleUpLoading": "Ricerca dei debiti in corso...",
+    "settleUpFailed": "Impossibile caricare i suggerimenti"
   },
   "groups": {
     "title": "Gruppi",
@@ -220,6 +224,7 @@
   },
   "expenses": {
     "title": "Spese",
+    "settlementBadge": "Regolamento",
     "addNew": "Aggiungi Nuova Spesa",
     "addExpense": "Aggiungi Spesa",
     "editExpense": "Modifica Spesa",
@@ -268,7 +273,7 @@
     "zoom": "Ingrandisci",
     "close": "Chiudi",
     "scanReceipt": "Scansiona Ricevuta",
-    "you": "tu",
+    "you": "Tu",
     "peopleCount": "{count} persone",
     "splitAmong": "Diviso tra: {names}",
     "deleteTitle": "Elimina Spesa",
@@ -598,7 +603,31 @@
     "owedToYou": "Ti spetta",
     "someone": "qualcuno",
     "summaryLine": "{count} saldi · {amount} in totale",
-    "viewAll": "Vedi i saldi"
+    "viewAll": "Vedi i saldi",
+    "historyTitle": "Regolamenti recenti",
+    "historyEmpty": "Nessun regolamento registrato",
+    "confirmTitle": "Conferma regolamento",
+    "confirmSubtitle": "Verifica e registra questo pagamento",
+    "recordSettlement": "Registra regolamento",
+    "fromLabel": "Da (pagante)",
+    "toLabel": "A (beneficiario)",
+    "selectFrom": "Seleziona chi ha pagato",
+    "selectTo": "Seleziona chi ha ricevuto",
+    "amountPlaceholder": "0,00",
+    "fromRequired": "Seleziona il pagante",
+    "toRequired": "Seleziona il beneficiario",
+    "cannotSettleSelf": "Pagante e beneficiario devono essere diversi",
+    "amountRequired": "Inserisci un importo maggiore di zero",
+    "dateRequired": "Seleziona una data",
+    "amountLabel": "Importo",
+    "descriptionLabel": "Descrizione (facoltativa)",
+    "paymentModeLabel": "Modalità di pagamento",
+    "dateLabel": "Data",
+    "confirmButton": "Conferma regolamento",
+    "invalidParams": "Dettagli del regolamento non validi",
+    "deleteTitle": "Elimina regolamento",
+    "deleteConfirm": "Eliminare questo regolamento?",
+    "deleteButton": "Elimina"
   },
   "changePassword": {
     "title": "Cambia Password",
@@ -732,6 +761,13 @@
       "loadFailed": "Impossibile caricare i saldi",
       "summaryLoadFailed": "Impossibile caricare il riepilogo dei saldi",
       "statsLoadFailed": "Impossibile caricare le statistiche del gruppo"
+    },
+    "settlements": {
+      "loadFailed": "Caricamento dei regolamenti non riuscito",
+      "created": "Regolamento registrato",
+      "createFailed": "Registrazione del regolamento non riuscita",
+      "deleted": "Regolamento eliminato",
+      "deleteFailed": "Eliminazione del regolamento non riuscita"
     },
     "aliases": {
       "loadFailed": "Impossibile caricare i sottogruppi",

@@ -22,4 +22,5 @@
   <data name="FileContentMismatch" xml:space="preserve"><value>File content does not match the declared type</value></data>
   <data name="DuplicateAttachment" xml:space="preserve"><value>This file has already been attached to this expense</value></data>
   <data name="AttachmentLimitReached" xml:space="preserve"><value>Maximum of 5 attachments per expense reached</value></data>
+  <data name="CannotAttachToSettlement" xml:space="preserve"><value>Attachments cannot be added to settlements</value></data>
 </root>
