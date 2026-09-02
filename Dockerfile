@@ -39,6 +39,19 @@ RUN dotnet publish SplitDuo.Api/SplitDuo.Api.csproj -c Release -o /app/publish -
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS runtime
 WORKDIR /app
 
+# OCI image annotations (https://github.com/opencontainers/image-spec/blob/main/annotations.md)
+ARG APP_VERSION
+ARG GIT_REVISION
+ARG BUILD_DATE
+LABEL org.opencontainers.image.title="SplitDuo" \
+      org.opencontainers.image.description="Expense splitting app for small groups — couples, housemates, travel companions, or anyone sharing costs" \
+      org.opencontainers.image.version="${APP_VERSION}" \
+      org.opencontainers.image.revision="${GIT_REVISION}" \
+      org.opencontainers.image.created="${BUILD_DATE}" \
+      org.opencontainers.image.source="https://gitlab.com/j1mm0/splitduo" \
+      org.opencontainers.image.url="https://gitlab.com/j1mm0/splitduo" \
+      org.opencontainers.image.licenses="MIT"
+
 # Copy backend application
 COPY --from=backend-build /app/publish ./
 

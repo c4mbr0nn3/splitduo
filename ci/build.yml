@@ -21,6 +21,8 @@ variables:
     - docker buildx build
       --platform linux/$ARCH
       --build-arg APP_VERSION=$VERSION
+      --build-arg GIT_REVISION=$CI_COMMIT_SHA
+      --build-arg BUILD_DATE=$CI_COMMIT_TIMESTAMP
       --build-arg BUILDKIT_INLINE_CACHE=1
       --cache-from $IMAGE_NAME:latest
       -t $IMAGE_NAME:temp-$ARCH
