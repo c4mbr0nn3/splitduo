@@ -56,9 +56,10 @@ merge_manifest:
     - build_arm64
   image: docker:28
   before_script:
+    - apk add --no-cache curl
     - echo $DOCKER_HUB_PASSWORD | docker login -u $DOCKER_HUB_USERNAME --password-stdin
   script:
-    # Merge per-arch temp tags into multi-arch manifests
+    # Merge per-arch temp tags into a single multi-arch manifest
     - |
       if [[ "$CI_COMMIT_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+.*$ ]]; then
         VERSION_TAG=${CI_COMMIT_TAG#v}
@@ -72,6 +73,35 @@ merge_manifest:
         docker buildx imagetools create -t $IMAGE_NAME:$BRANCH_TAG $IMAGE_NAME:temp-amd64 $IMAGE_NAME:temp-arm64
         echo "Pushed branch multi-arch manifest: $BRANCH_TAG"
       fi
+    # Delete temporary per-arch tags from Docker Hub
+    - |
+      TOKEN_RESPONSE=$(curl -s -X POST https://hub.docker.com/v2/auth/token -H "Content-Type: application/json" -d "{\"identifier\":\"$DOCKER_HUB_USERNAME\",\"secret\":\"$DOCKER_HUB_PASSWORD\"}")
+      ACCESS_TOKEN=$(echo "$TOKEN_RESPONSE" | sed -n 's/.*"access_token":"\([^"]*\)".*/\1/p')
+      if [ -z "$ACCESS_TOKEN" ]; then
+        echo "ERROR: failed to obtain Docker Hub access token (check DOCKER_HUB_USERNAME / DOCKER_HUB_PASSWORD)"
+        exit 1
+      fi
+      for TAG in temp-amd64 temp-arm64; do
+        STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE "https://hub.docker.com/v2/repositories/$IMAGE_NAME/tags/$TAG/" -H "Authorization: Bearer $ACCESS_TOKEN")
+        case "$STATUS" in
+          200|204)
+            echo "Deleted $IMAGE_NAME:$TAG"
+            ;;
+          404)
+            echo "$IMAGE_NAME:$TAG already removed"
+            ;;
+          401)
+            echo "ERROR: unauthorized deleting $IMAGE_NAME:$TAG (check PAT permissions)"
+            exit 1
+            ;;
+          403)
+            echo "WARNING: forbidden deleting $IMAGE_NAME:$TAG (PAT may lack 'Delete' permission); continuing"
+            ;;
+          *)
+            echo "WARNING: unexpected HTTP $STATUS deleting $IMAGE_NAME:$TAG; continuing"
+            ;;
+        esac
+      done
   after_script:
     - docker logout
   rules:

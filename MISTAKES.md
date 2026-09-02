@@ -24,3 +24,13 @@ When the same root cause appears 3+ times, graduate it into AGENTS.md / CLAUDE.m
 - Verify slot/prop names against the installed component source (`node_modules/@nuxt/ui/dist/runtime/components/*.vue`) before specifying them in a plan — docs may lag the installed version.
 - Typecheck passing does not prove template correctness: slot names and dynamic template structure need runtime/browser verification for UI changes.
 - Any UI change gets at least one live browser check before commit (a11y snapshot or DOM query), even when lint/typecheck/tests are green.
+
+## 2026-09-02 — Plan bug: assumed `curl` exists in `docker:28` image
+
+**What happened:** The temp-tag-cleanup plan assumed `docker:28` (Alpine) ships `curl` and used it in `merge_manifest` for the Docker Hub API calls. First branch pipeline failed with `curl: not found` — the official `docker` image is a minimal Alpine with the Docker CLI/buildx only; `curl` is not included.
+
+**Root cause:** Third instance of the same root cause as the entries above: a claim about a tool/library ("the image contains curl, sed, grep") entered the plan without runtime verification. Ironically, `sed` extraction was chosen deliberately to *avoid* `jq` for this exact reason, while the bigger assumption (`curl` itself) went unchecked. The repo already contained the counter-evidence: `ci/release.yml` runs `apk add --no-cache curl` in its jobs.
+
+**Prevention:**
+- Never assume a CLI tool exists inside a CI image — verify against the image's Dockerfile or an actual run (`docker run --rm docker:28 which curl`), or grep the repo's own CI jobs for how they obtain the tool.
+- For CI script changes, the cheapest verification is running the script body locally in the same image before pushing (`docker run --rm -it docker:28 sh`).
