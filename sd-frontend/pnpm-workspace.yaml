@@ -1,3 +1,12 @@
+supportedArchitectures:
+  os:
+    - current
+    - linux
+  cpu:
+    - current
+    - x64
+    - arm64
+
 overrides:
   nanoid: 3.3.18
 
