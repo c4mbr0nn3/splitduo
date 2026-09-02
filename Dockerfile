@@ -1,7 +1,7 @@
 # Multi-stage Dockerfile for SplitDuo application
 
 # Stage 1: Build frontend (Nuxt.js)
-FROM node:22-alpine AS frontend-build
+FROM --platform=$BUILDPLATFORM node:22-alpine AS frontend-build
 
 # Accept version as build argument
 ARG APP_VERSION

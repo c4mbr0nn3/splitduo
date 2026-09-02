@@ -1,47 +1,81 @@
-# Build and push Docker images to Docker Hub
+# Build and push multi-arch Docker images to Docker Hub
 # SplitDuo CI — build stage
+# Phase 2: native per-arch builds on GitLab.com SaaS runners + manifest merge
 
 image: docker:28
-
-services:
-  - docker:28-dind
 
 variables:
   DOCKER_DRIVER: overlay2
   DOCKER_TLS_CERTDIR: "/certs"
   IMAGE_NAME: "j1mm0/splitduo"
 
-build_and_push:
+.build_template:
   stage: build
   before_script:
     - echo $DOCKER_HUB_PASSWORD | docker login -u $DOCKER_HUB_USERNAME --password-stdin
+    - docker context create tls-env
+    - docker buildx create --use --driver docker-container tls-env
   script:
-    # Extract version and build with version arg
     - VERSION=$(cat VERSION)
-    - docker build --build-arg APP_VERSION=$VERSION -t $IMAGE_NAME:temp .
-
-    # Handle version tags (only on main branch)
-    - |
-      if [[ "$CI_COMMIT_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+.*$ ]]; then
-        VERSION_TAG=${CI_COMMIT_TAG#v}
-        docker tag $IMAGE_NAME:temp $IMAGE_NAME:$VERSION_TAG
-        docker tag $IMAGE_NAME:temp $IMAGE_NAME:latest
-        docker push $IMAGE_NAME:$VERSION_TAG
-        docker push $IMAGE_NAME:latest
-        echo "Pushed version $VERSION_TAG and latest tags"
-      fi
-
-    # Handle dev branch pushes (any branch except main)
-    - |
-      if [[ -z "$CI_COMMIT_TAG" ]] && [[ "$CI_COMMIT_REF_NAME" != "main" ]]; then
-        BRANCH_TAG=$(echo $CI_COMMIT_REF_NAME | sed 's/[^a-zA-Z0-9._-]/-/g')
-        docker tag $IMAGE_NAME:temp $IMAGE_NAME:$BRANCH_TAG
-        docker push $IMAGE_NAME:$BRANCH_TAG
-        echo "Pushed branch tag: $BRANCH_TAG"
-      fi
-
+    - ARCH=${CI_JOB_NAME#build_}
+    - docker buildx build
+      --platform linux/$ARCH
+      --build-arg APP_VERSION=$VERSION
+      --build-arg BUILDKIT_INLINE_CACHE=1
+      --cache-from $IMAGE_NAME:latest
+      -t $IMAGE_NAME:temp-$ARCH
+      --push
+      .
+  after_script:
+    - docker logout
   rules:
     - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+.*$/
       when: on_success
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "main"
+      when: on_success
+
+build_amd64:
+  extends: .build_template
+  tags:
+    - hetzner
+  services:
+    - docker:28-dind
+
+build_arm64:
+  extends: .build_template
+  tags:
+    - saas-linux-small-arm64
+  services:
+    - name: docker:28-dind
+      command: ["--mtu=1400"]
+
+merge_manifest:
+  stage: build
+  needs:
+    - build_amd64
+    - build_arm64
+  image: docker:28
+  before_script:
+    - echo $DOCKER_HUB_PASSWORD | docker login -u $DOCKER_HUB_USERNAME --password-stdin
+  script:
+    # Merge per-arch temp tags into multi-arch manifests
+    - |
+      if [[ "$CI_COMMIT_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+.*$ ]]; then
+        VERSION_TAG=${CI_COMMIT_TAG#v}
+        docker buildx imagetools create -t $IMAGE_NAME:$VERSION_TAG $IMAGE_NAME:temp-amd64 $IMAGE_NAME:temp-arm64
+        docker buildx imagetools create -t $IMAGE_NAME:latest $IMAGE_NAME:temp-amd64 $IMAGE_NAME:temp-arm64
+        echo "Pushed version $VERSION_TAG and latest multi-arch manifests"
+      fi
+    - |
+      if [[ -z "$CI_COMMIT_TAG" ]] && [[ "$CI_COMMIT_REF_NAME" != "main" ]]; then
+        BRANCH_TAG=$(echo $CI_COMMIT_REF_NAME | sed 's/[^a-zA-Z0-9._-]/-/g')
+        docker buildx imagetools create -t $IMAGE_NAME:$BRANCH_TAG $IMAGE_NAME:temp-amd64 $IMAGE_NAME:temp-arm64
+        echo "Pushed branch multi-arch manifest: $BRANCH_TAG"
+      fi
   after_script:
     - docker logout
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+.*$/
+      when: on_success
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "main"
+      when: on_success
