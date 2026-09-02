@@ -35,6 +35,7 @@ All others optional — see `sd-backend/SplitDuo.Core/Options/Setup/` for full l
 - DB hostname in Docker: `postgres` (Docker network), not localhost
 - Release + CI gotchas: see `docs/agents/release.md` and `docs/agents/ci.md` — read before releasing or touching CI.
 - OpenAPI spec (`docs/api/splitduoapi-v1.yaml`) is auto-generated via Scalar dev UI — never hand-edit it. Run the backend in dev, export from `http://localhost:8080/scalar/v1`, then run `pnpm gen:api` to regenerate frontend types.
+- Never assume a CLI tool exists inside a CI image — `docker:28` does NOT include `curl` (see `ci/release.yml` for the `apk add --no-cache curl` precedent). Verify tools with a local `docker run --rm <image> which <tool>` before planning CI scripts that use them.
 
 ## Task Routing
 
