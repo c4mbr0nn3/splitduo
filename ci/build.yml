@@ -20,6 +20,8 @@ variables:
     - ARCH=${CI_JOB_NAME#build_}
     - docker buildx build
       --platform linux/$ARCH
+      --provenance=mode=max
+      --sbom=true
       --build-arg APP_VERSION=$VERSION
       --build-arg GIT_REVISION=$CI_COMMIT_SHA
       --build-arg BUILD_DATE=$CI_COMMIT_TIMESTAMP

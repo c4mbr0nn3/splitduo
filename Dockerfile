@@ -3,6 +3,9 @@
 # Stage 1: Build frontend (Nuxt.js)
 FROM --platform=$BUILDPLATFORM node:22-alpine AS frontend-build
 
+# Include this stage's packages in the SBOM attestation
+ARG BUILDKIT_SBOM_SCAN_STAGE=true
+
 # Accept version as build argument
 ARG APP_VERSION
 ENV NUXT_PUBLIC_APP_VERSION=${APP_VERSION}
@@ -21,6 +24,10 @@ RUN pnpm generate
 
 # Stage 2: Build backend (.NET 10)
 FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS backend-build
+
+# Include this stage's packages in the SBOM attestation
+ARG BUILDKIT_SBOM_SCAN_STAGE=true
+
 WORKDIR /app/backend
 
 # Copy solution and project files
