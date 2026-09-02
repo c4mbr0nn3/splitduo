@@ -4,6 +4,12 @@ All notable changes to SplitDuo will be documented in this file.
 
 Generated with [git-cliff](https://git-cliff.org) from Conventional Commits.
 
+## [1.16.0] - 2026-09-02
+
+### Features
+
+- *(settlements)* Typed-expense settlements with API, settle UX, tests
+- *(release)* Sync backend, frontend and api spec versions on release
 ## [1.15.4] - 2026-08-28
 
 ### Bug Fixes
