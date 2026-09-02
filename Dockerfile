@@ -45,6 +45,8 @@ ARG GIT_REVISION
 ARG BUILD_DATE
 LABEL org.opencontainers.image.title="SplitDuo" \
       org.opencontainers.image.description="Expense splitting app for small groups — couples, housemates, travel companions, or anyone sharing costs" \
+      org.opencontainers.image.authors="Francesco Zorzi" \
+      org.opencontainers.image.documentation="https://gitlab.com/j1mm0/splitduo#readme" \
       org.opencontainers.image.version="${APP_VERSION}" \
       org.opencontainers.image.revision="${GIT_REVISION}" \
       org.opencontainers.image.created="${BUILD_DATE}" \
