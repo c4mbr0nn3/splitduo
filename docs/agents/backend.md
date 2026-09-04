@@ -14,7 +14,7 @@
 
 ## Structure
 
-- `SplitDuo.Api/Features/` — vertical slices: `Aliases`, `Authentication`, `Categories`, `Common`, `Expenses`, `Exports`, `Groups`, `Imports`, `Invitations`, `PaymentModes`, `Receipts`, `Settlements`, `Users`, `Ai`
+- `SplitDuo.Api/Features/` — vertical slices: `Aliases`, `Authentication`, `Categories`, `Common`, `Expenses`, `Exports`, `Groups`, `Imports`, `Invitations`, `PaymentModes`, `Receipts`, `Settlements`, `System`, `Users`, `Ai`
 - Each slice: `Controllers/`, `Dto/`, optionally `Services/`
 - `SplitDuo.Core/` — `Domain/` (entities, enums, interfaces), `Persistence/` (AppContext, UnitOfWork, interceptors), `Services/` (background jobs, imports, exports, email), `Options/` (IConfigureOptions pattern)
 - `Common/Result.cs` — Result<T> pattern
@@ -36,6 +36,12 @@ Services **do not** call `SaveChangesAsync()` — the controller does, after che
 
 ### DTO Mapping
 Manual mapping — no AutoMapper. DTOs have constructors that accept entities. **ID convention**: Entities have `int Id` (DB primary key) + `Guid Guid` (API-facing). DTOs expose `Guid` as `string`.
+
+### Admin System Notifications
+`Features/System/` — `GET`/`POST api/v1/admin/notifications` (SystemAdmin policy). To add a notification type: implement `INotificationProvider` (returns `{Type, TargetKey, Payload}`), register it in DI — `AdminNotificationsController` aggregates all providers and filters per-user dismissals (stored in jsonb `UserSettings.DismissedNotifications`, pruned on write). First provider: update check (`UpdateCheckBackgroundService` polls Docker Hub tags with GitHub raw `VERSION` fallback, daily; opt out via `SD_UPDATE_CHECK_DISABLED=true`).
+- `ICurrentVersionProvider` is the single source for the running version — never call `Assembly.GetEntryAssembly()` for version checks elsewhere
+- Dismissals are pending-only (404 for non-pending) + length-validated + capped (64 entries) — see `NotificationDismissalHelper`
+- `SplitDuo.Tests.Unit` has no `InternalsVisibleTo` — keep test seams public
 
 ## Entity Model
 

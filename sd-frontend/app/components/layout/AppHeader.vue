@@ -69,10 +69,17 @@
 </template>
 
 <script setup lang="ts">
+import type { BadgeProps } from '@nuxt/ui'
+
 const { t } = useI18n()
 const { user, isGlobalAdmin } = useAuth()
 const { settings, update: updateUserSettings } = useUserSettings()
+const { notifications } = useSystemNotifications()
 const colorMode = useColorMode()
+
+const updateNotification = computed(() =>
+  notifications.value.find(n => n.type === 'update-available'),
+)
 
 const route = useRoute()
 
@@ -114,6 +121,16 @@ const navigationItems = computed(() => {
       label: t('nav.admin'),
       icon: 'i-lucide-shield-user',
       active: route.path.startsWith('/admin'),
+      ...(updateNotification.value
+        ? {
+            badge: {
+              label: '1',
+              color: 'primary',
+              variant: 'solid',
+              size: 'sm',
+            } satisfies BadgeProps,
+          }
+        : {}),
     })
   }
 

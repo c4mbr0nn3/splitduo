@@ -786,6 +786,124 @@ paths:
             text/json:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
+  /api/v1/admin/notifications:
+    get:
+      tags:
+        - AdminNotifications
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfListOfAdminNotificationDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfListOfAdminNotificationDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfListOfAdminNotificationDto"
+        "401":
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /api/v1/admin/notifications/dismiss:
+    post:
+      tags:
+        - AdminNotifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DismissNotificationRequestDto"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/DismissNotificationRequestDto"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/DismissNotificationRequestDto"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfObject"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfObject"
+        "400":
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: Not Found
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
   /api/v1/groups/{groupId}/settlements:
     get:
       tags:
@@ -4830,6 +4948,18 @@ components:
           type: string
         role:
           type: string
+    AdminNotificationDto:
+      required:
+        - type
+        - targetKey
+        - payload
+      type: object
+      properties:
+        type:
+          type: string
+        targetKey:
+          type: string
+        payload: {}
     AiStatusDto:
       type: object
       properties:
@@ -5157,6 +5287,25 @@ components:
           oneOf:
             - type: "null"
             - $ref: "#/components/schemas/ApiErrorDto"
+    ApiResponseDtoOfListOfAdminNotificationDto:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type:
+            - "null"
+            - array
+          items:
+            $ref: "#/components/schemas/AdminNotificationDto"
+        message:
+          type:
+            - "null"
+            - string
+        error:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/ApiErrorDto"
     ApiResponseDtoOfListOfAliasBalanceDto:
       type: object
       properties:
@@ -5377,6 +5526,20 @@ components:
             - array
           items:
             $ref: "#/components/schemas/UserDto"
+        message:
+          type:
+            - "null"
+            - string
+        error:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/ApiErrorDto"
+    ApiResponseDtoOfObject:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data: {}
         message:
           type:
             - "null"
@@ -5768,6 +5931,16 @@ components:
       type: object
       properties:
         password:
+          type: string
+    DismissNotificationRequestDto:
+      required:
+        - type
+        - targetKey
+      type: object
+      properties:
+        type:
+          type: string
+        targetKey:
           type: string
     EmptyDto:
       type: object
@@ -6861,6 +7034,7 @@ components:
 tags:
   - name: Users
   - name: UserAvatars
+  - name: AdminNotifications
   - name: Settlements
   - name: Receipts
   - name: PaymentModes

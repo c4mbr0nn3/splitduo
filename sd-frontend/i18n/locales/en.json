@@ -567,6 +567,12 @@
     "updateAvailable": "Update Available",
     "backOnline": "Back online"
   },
+  "notifications": {
+    "updateAvailable": "New version available",
+    "updateFromTo": "v{current} → v{latest}",
+    "viewRelease": "View release",
+    "dismiss": "Dismiss"
+  },
   "stats": {
     "title": "Stats",
     "monthlySpending": "Monthly Spending",

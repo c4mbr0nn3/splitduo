@@ -21,6 +21,7 @@ using SplitDuo.Api.Features.UserAvatars.Services;
 using SplitDuo.Api.Features.Aliases.Services;
 using SplitDuo.Api.Features.Groups.Services;
 using SplitDuo.Api.Features.Invitations.Services;
+using SplitDuo.Api.Features.System.Services;
 using SplitDuo.Core.Domain.Enums;
 using SplitDuo.Api.Features.Users.Services;
 using SplitDuo.Core.Extensions;
@@ -62,6 +63,18 @@ public static class ApiProgramExtensions
         builder.Services.AddScoped<IBalancesService, BalancesService>();
         builder.Services.AddScoped<IExportsService, SplitDuoExportsService>();
         builder.Services.AddScoped<IImportValidatorService, ImportValidatorServiceService>();
+
+        // Admin system notifications
+        builder.Services.AddSingleton<ICurrentVersionProvider, AssemblyCurrentVersionProvider>();
+        builder.Services.AddSingleton<UpdateCheckState>();
+        builder.Services.AddSingleton<UpdateNotificationProvider>();
+        builder.Services.AddSingleton<INotificationProvider>(sp => sp.GetRequiredService<UpdateNotificationProvider>());
+        // Named client registers IHttpClientFactory; plain singleton for the service itself
+        // (must not be scoped: consumed by the singleton UpdateCheckBackgroundService).
+        builder.Services.AddHttpClient("VersionFeed",
+            client => client.Timeout = TimeSpan.FromSeconds(10));
+        builder.Services.AddSingleton<IVersionFeedService, VersionFeedService>();
+        builder.Services.AddHostedService<UpdateCheckBackgroundService>();
 
         // Register keyed services
         builder.Services.AddKeyedScoped<IImportsService, CospendImportsService>(ImportType.Cospend);

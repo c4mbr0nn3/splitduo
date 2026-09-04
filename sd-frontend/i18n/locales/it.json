@@ -567,6 +567,12 @@
     "updateAvailable": "Aggiornamento Disponibile",
     "backOnline": "Di nuovo online"
   },
+  "notifications": {
+    "updateAvailable": "Nuova versione disponibile",
+    "updateFromTo": "v{current} → v{latest}",
+    "viewRelease": "Vedi la release",
+    "dismiss": "Ignora"
+  },
   "stats": {
     "title": "Statistiche",
     "monthlySpending": "Spese Mensili",

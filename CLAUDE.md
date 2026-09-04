@@ -31,7 +31,7 @@ All others optional — see `sd-backend/SplitDuo.Core/Options/Setup/` for full l
 
 - Frontend dev proxies to `:8080`, not `:5000` — backend runs on 8080 (see `launchSettings.json`)
 - EF migrations: run from `SplitDuo.Api` project (`--startup-project SplitDuo.Api`)
-- Test projects exist (`SplitDuo.Tests.Unit`, `SplitDuo.Tests.Integration`) but have no tests yet
+- Test projects: `SplitDuo.Tests.Unit` (xunit) and `SplitDuo.Tests.Integration` (Testcontainers — needs Docker)
 - DB hostname in Docker: `postgres` (Docker network), not localhost
 - Release + CI gotchas: see `docs/agents/release.md` and `docs/agents/ci.md` — read before releasing or touching CI.
 - OpenAPI spec (`docs/api/splitduoapi-v1.yaml`) is auto-generated via Scalar dev UI — never hand-edit it. Run the backend in dev, export from `http://localhost:8080/scalar/v1`, then run `pnpm gen:api` to regenerate frontend types.
