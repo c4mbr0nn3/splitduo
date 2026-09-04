@@ -6,6 +6,12 @@
       class="mb-6"
     />
 
+    <!-- System update banner (admins only, when a new version is available) -->
+    <SystemUpdateBanner
+      v-if="isGlobalAdmin && updateNotification"
+      :notification="updateNotification"
+    />
+
     <!-- Quick Actions (mobile only) -->
     <UCard
       class="sd-surface h-fit lg:hidden mb-8"
@@ -148,6 +154,12 @@ const { t } = useI18n()
 
 const { groups, fetchGroups } = useGroups()
 const { userStats, fetchUserStats } = useUsers()
+const { isGlobalAdmin } = useAuth()
+const { notifications, fetchSystemNotifications } = useSystemNotifications()
+
+const updateNotification = computed(() =>
+  notifications.value.find(n => n.type === 'update-available'),
+)
 
 const showSkeleton = ref(true)
 const showSettleUp = ref(false)
@@ -161,6 +173,7 @@ onMounted(async () => {
   try {
     await withMinDuration(async () => {
       await Promise.all([fetchGroups({ limit: 3 }), fetchUserStats()])
+      await fetchSystemNotifications()
     })
   }
   catch (error: unknown) {

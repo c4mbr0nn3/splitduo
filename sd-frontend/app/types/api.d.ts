@@ -949,6 +949,152 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfListOfAdminNotificationDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfListOfAdminNotificationDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfListOfAdminNotificationDto"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/notifications/dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["DismissNotificationRequestDto"];
+                    "text/json": components["schemas"]["DismissNotificationRequestDto"];
+                    "application/*+json": components["schemas"]["DismissNotificationRequestDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfObject"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfObject"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfObject"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/groups/{groupId}/settlements": {
         parameters: {
             query?: never;
@@ -5383,6 +5529,11 @@ export interface components {
             userEmail: string;
             role?: string;
         };
+        AdminNotificationDto: {
+            type: string;
+            targetKey: string;
+            payload: unknown;
+        };
         AiStatusDto: {
             enabled?: boolean;
         };
@@ -5506,6 +5657,12 @@ export interface components {
             message?: null | string;
             error?: null | components["schemas"]["ApiErrorDto"];
         };
+        ApiResponseDtoOfListOfAdminNotificationDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["AdminNotificationDto"][];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
         ApiResponseDtoOfListOfAliasBalanceDto: {
             success?: boolean;
             data?: null | components["schemas"]["AliasBalanceDto"][];
@@ -5575,6 +5732,12 @@ export interface components {
         ApiResponseDtoOfListOfUserDto: {
             success?: boolean;
             data?: null | components["schemas"]["UserDto"][];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfObject: {
+            success?: boolean;
+            data?: unknown;
             message?: null | string;
             error?: null | components["schemas"]["ApiErrorDto"];
         };
@@ -5713,6 +5876,10 @@ export interface components {
         };
         DisableTwoFactorDto: {
             password: string;
+        };
+        DismissNotificationRequestDto: {
+            type: string;
+            targetKey: string;
         };
         EmptyDto: Record<string, never>;
         EntityTagHeaderValue: {

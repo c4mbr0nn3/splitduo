@@ -104,6 +104,11 @@ export type TwoFactorSetup = WithRequired<components['schemas']['TwoFactorSetupD
 export type ParsedReceipt = WithRequired<components['schemas']['ParsedReceiptDto'], 'title' | 'amount' | 'expenseDate'>
 export type AiStatus = WithRequired<components['schemas']['AiStatusDto'], 'enabled'>
 
+// ─── System notifications (admin) ─────────────────────────────────────────────
+
+export type AdminNotification = WithRequired<components['schemas']['AdminNotificationDto'], 'type' | 'targetKey' | 'payload'>
+export type DismissNotificationRequest = components['schemas']['DismissNotificationRequestDto']
+
 // ─── Balance types (alias-mode union) ────────────────────────────────────────
 
 export type NormalBalance = WithRequired<components['schemas']['BalanceDto'], 'userId' | 'user' | 'balance' | 'totalPaid' | 'totalOwed'>
