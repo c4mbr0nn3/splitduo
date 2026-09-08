@@ -40,8 +40,6 @@ variables:
 
 build_amd64:
   extends: .build_template
-  tags:
-    - hetzner
   services:
     - docker:28-dind
 
