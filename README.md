@@ -43,6 +43,9 @@ Add expenses, pick a split, move on. SplitDuo handles the arithmetic — proport
 **Settlement-aware balances**
 Rather than a raw transaction log, SplitDuo computes net balances across the whole group and surfaces clear settlement suggestions — minimizing the number of transfers needed to settle up.
 
+**Recurring expenses**
+Rent, subscriptions, gym memberships — set it once and forget it. Define a template with a split and a schedule (weekly, monthly, or custom intervals), and SplitDuo generates the expenses automatically. Pause when you need to; on resume you choose whether to backfill missed periods or skip them. Generated expenses can require approval before they hit group balances, so nothing lands unnoticed.
+
 **Alias mode for subgroup splitting**
 For groups where members act as sub-units (a couple sharing one slot, a household treated as one), turn on alias mode at creation. Members are grouped into named aliases and expenses split by subgroup instead of by person. Balances settle at the alias level.
 

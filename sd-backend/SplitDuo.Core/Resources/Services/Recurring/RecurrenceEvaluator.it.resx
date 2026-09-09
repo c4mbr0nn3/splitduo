@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+    <xsd:element name="root" msdata:IsDataSet="true"/>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="WeeklyOn" xml:space="preserve"><value>Settimanale il {0}</value></data>
+  <data name="MonthlyOnThe" xml:space="preserve"><value>Mensile il {0}</value></data>
+  <data name="EveryNWeeksOn" xml:space="preserve"><value>Ogni {0} settimane il {1}</value></data>
+  <data name="EveryNMonthsOnThe" xml:space="preserve"><value>Ogni {0} mesi il {1}</value></data>
+  <data name="UseOrdinalSuffixes" xml:space="preserve"><value>false</value></data>
+  <data name="WeekdayMonday" xml:space="preserve"><value>lunedì</value></data>
+  <data name="WeekdayTuesday" xml:space="preserve"><value>martedì</value></data>
+  <data name="WeekdayWednesday" xml:space="preserve"><value>mercoledì</value></data>
+  <data name="WeekdayThursday" xml:space="preserve"><value>giovedì</value></data>
+  <data name="WeekdayFriday" xml:space="preserve"><value>venerdì</value></data>
+  <data name="WeekdaySaturday" xml:space="preserve"><value>sabato</value></data>
+  <data name="WeekdaySunday" xml:space="preserve"><value>domenica</value></data>
+</root>

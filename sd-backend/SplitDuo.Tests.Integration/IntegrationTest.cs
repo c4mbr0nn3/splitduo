@@ -25,7 +25,20 @@ public abstract class IntegrationTest : IAsyncLifetime
         });
     }
 
-    public virtual ValueTask InitializeAsync() => ValueTask.CompletedTask;
+    public virtual ValueTask InitializeAsync()
+    {
+        // Reset the shared fake clock to real wall-clock before EVERY test so a test
+        // that advances time cannot leak that offset into the next test.
+        Factory.TimeProvider.SetUtcNow(DateTimeOffset.UtcNow);
+        return ValueTask.CompletedTask;
+    }
+
+    /// <summary>Advances the shared fake clock. Use only in time-dependent tests.</summary>
+    protected void AdvanceTime(TimeSpan by) => Factory.TimeProvider.Advance(by);
+
+    /// <summary>The current (fake) UTC "today" as the job and MapTemplate see it.</summary>
+    protected DateOnly JobToday =>
+        DateOnly.FromDateTime(Factory.TimeProvider.GetUtcNow().UtcDateTime);
 
     public virtual async ValueTask DisposeAsync()
     {

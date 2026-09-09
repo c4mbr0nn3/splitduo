@@ -1420,6 +1420,1012 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/groups/{groupId}/recurring-expenses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    includeInactive?: boolean;
+                };
+                header?: never;
+                path: {
+                    groupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfListOfRecurringExpenseTemplateDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfListOfRecurringExpenseTemplateDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfListOfRecurringExpenseTemplateDto"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateRecurringExpenseTemplateDto"];
+                    "text/json": components["schemas"]["CreateRecurringExpenseTemplateDto"];
+                    "application/*+json": components["schemas"]["CreateRecurringExpenseTemplateDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfRecurringExpenseTemplateDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfRecurringExpenseTemplateDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfRecurringExpenseTemplateDto"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/{groupId}/recurring-expenses/{templateId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                    templateId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfRecurringExpenseTemplateDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfRecurringExpenseTemplateDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfRecurringExpenseTemplateDto"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                    templateId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateRecurringExpenseTemplateDto"];
+                    "text/json": components["schemas"]["UpdateRecurringExpenseTemplateDto"];
+                    "application/*+json": components["schemas"]["UpdateRecurringExpenseTemplateDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfRecurringExpenseTemplateDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfRecurringExpenseTemplateDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfRecurringExpenseTemplateDto"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                    templateId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/{groupId}/recurring-expenses/{templateId}/toggle-active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                    templateId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ToggleActiveRequestDto"];
+                    "text/json": components["schemas"]["ToggleActiveRequestDto"];
+                    "application/*+json": components["schemas"]["ToggleActiveRequestDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfRecurringExpenseTemplateDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfRecurringExpenseTemplateDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfRecurringExpenseTemplateDto"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/{groupId}/recurring-expenses/{templateId}/resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                    templateId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ResumeRecurringExpenseTemplateDto"];
+                    "text/json": components["schemas"]["ResumeRecurringExpenseTemplateDto"];
+                    "application/*+json": components["schemas"]["ResumeRecurringExpenseTemplateDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfRecurringExpenseTemplateDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfRecurringExpenseTemplateDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfRecurringExpenseTemplateDto"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/{groupId}/recurring-expenses/instances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    templateId?: string;
+                    status?: string;
+                    page?: number | string;
+                    limit?: number | string;
+                };
+                header?: never;
+                path: {
+                    groupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["PaginatedResponseDtoOfRecurringExpenseInstanceDto"];
+                        "application/json": components["schemas"]["PaginatedResponseDtoOfRecurringExpenseInstanceDto"];
+                        "text/json": components["schemas"]["PaginatedResponseDtoOfRecurringExpenseInstanceDto"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/{groupId}/recurring-expenses/{templateId}/instances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    status?: string;
+                    page?: number | string;
+                    limit?: number | string;
+                };
+                header?: never;
+                path: {
+                    groupId: string;
+                    templateId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["PaginatedResponseDtoOfRecurringExpenseInstanceDto"];
+                        "application/json": components["schemas"]["PaginatedResponseDtoOfRecurringExpenseInstanceDto"];
+                        "text/json": components["schemas"]["PaginatedResponseDtoOfRecurringExpenseInstanceDto"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/{groupId}/recurring-expenses/instances/{instanceId}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                    instanceId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": null | components["schemas"]["ApproveRecurringExpenseInstanceDto"];
+                    "text/json": null | components["schemas"]["ApproveRecurringExpenseInstanceDto"];
+                    "application/*+json": null | components["schemas"]["ApproveRecurringExpenseInstanceDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfExpenseDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfExpenseDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfExpenseDto"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/{groupId}/recurring-expenses/instances/{instanceId}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                    instanceId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/{groupId}/recurring-expenses/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["RecurrencePreviewRequestDto"];
+                    "text/json": components["schemas"]["RecurrencePreviewRequestDto"];
+                    "application/*+json": components["schemas"]["RecurrencePreviewRequestDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfRecurrencePreviewResponseDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfRecurrencePreviewResponseDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfRecurrencePreviewResponseDto"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/receipts/parse": {
         parameters: {
             query?: never;
@@ -5723,6 +6729,12 @@ export interface components {
             message?: null | string;
             error?: null | components["schemas"]["ApiErrorDto"];
         };
+        ApiResponseDtoOfListOfRecurringExpenseTemplateDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["RecurringExpenseTemplateDto"][];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
         ApiResponseDtoOfListOfstring: {
             success?: boolean;
             data?: null | string[];
@@ -5744,6 +6756,18 @@ export interface components {
         ApiResponseDtoOfParsedReceiptDto: {
             success?: boolean;
             data?: null | components["schemas"]["ParsedReceiptDto"];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfRecurrencePreviewResponseDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["RecurrencePreviewResponseDto"];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfRecurringExpenseTemplateDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["RecurringExpenseTemplateDto"];
             message?: null | string;
             error?: null | components["schemas"]["ApiErrorDto"];
         };
@@ -5788,6 +6812,13 @@ export interface components {
             data?: null | components["schemas"]["ValidateInvitationResponseDto"];
             message?: null | string;
             error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApproveRecurringExpenseInstanceDto: {
+            /** Format: double */
+            amount?: null | number | string;
+            expenseDate?: null | string;
+            splits?: null | components["schemas"]["RecurringExpenseSplitDto"][];
+            aliasSplits?: null | components["schemas"]["RecurringExpenseAliasSplitDto"][];
         };
         AssignAliasMemberRequestDto: {
             userId: string;
@@ -5861,6 +6892,41 @@ export interface components {
             name: string;
             description?: null | string;
             useAliases?: boolean;
+        };
+        CreateRecurringExpenseAliasSplitDto: {
+            aliasId: string;
+            /** Format: double */
+            splitAmount: number | string;
+        };
+        CreateRecurringExpenseSplitDto: {
+            userId: string;
+            /** Format: double */
+            splitAmount: number | string;
+        };
+        CreateRecurringExpenseTemplateDto: {
+            title: string;
+            description?: null | string;
+            /** Format: double */
+            amount: number | string;
+            /** Format: int32 */
+            categoryId?: number | string;
+            /** Format: int32 */
+            paymentModeId?: number | string;
+            paidByUserId: string;
+            paidByAliasId?: null | string;
+            /** Format: int32 */
+            recurrenceMode: number | string;
+            /** Format: int32 */
+            weekdays: number | string;
+            /** Format: int32 */
+            dayOfMonth?: null | number | string;
+            /** Format: int32 */
+            interval?: null | number | string;
+            anchorDate: string;
+            endDate?: null | string;
+            requiresApproval?: boolean;
+            splits?: components["schemas"]["CreateRecurringExpenseSplitDto"][];
+            aliasSplits?: null | components["schemas"]["CreateRecurringExpenseAliasSplitDto"][];
         };
         CreateSettlementRequestDto: {
             fromUserId: string;
@@ -6085,6 +7151,13 @@ export interface components {
             message?: null | string;
             error?: null | components["schemas"]["ApiErrorDto"];
         };
+        PaginatedResponseDtoOfRecurringExpenseInstanceDto: {
+            success?: boolean;
+            data?: components["schemas"]["RecurringExpenseInstanceDto"][];
+            pagination?: components["schemas"]["PaginationDto"];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
         PaginatedResponseDtoOfSettlementDto: {
             success?: boolean;
             data?: components["schemas"]["SettlementDto"][];
@@ -6140,6 +7213,92 @@ export interface components {
             detail?: null | string;
             instance?: null | string;
         };
+        RecurrencePreviewRequestDto: {
+            /** Format: int32 */
+            recurrenceMode: number | string;
+            /** Format: int32 */
+            weekdays: number | string;
+            /** Format: int32 */
+            dayOfMonth?: null | number | string;
+            /** Format: int32 */
+            interval?: null | number | string;
+            anchorDate: string;
+            endDate?: null | string;
+        };
+        RecurrencePreviewResponseDto: {
+            nextOccurrences?: string[];
+            summary?: string;
+        };
+        RecurringExpenseAliasSplitDto: {
+            aliasId?: string;
+            /** Format: double */
+            splitAmount?: number | string;
+        };
+        RecurringExpenseInstanceDto: {
+            id?: string;
+            templateId?: string;
+            templateTitle?: string;
+            periodDate?: string;
+            /** Format: int32 */
+            status?: number | string;
+            /** Format: double */
+            amount?: number | string;
+            approvedBy?: null | string;
+            /** Format: int64 */
+            approvedAt?: null | number | string;
+            expenseId?: null | string;
+            splits?: components["schemas"]["RecurringExpenseSplitDto"][];
+            aliasSplits?: null | components["schemas"]["RecurringExpenseAliasSplitDto"][];
+            /** Format: int64 */
+            createdAt?: number | string;
+        };
+        RecurringExpenseSplitDto: {
+            userId?: string;
+            /** Format: double */
+            splitAmount?: number | string;
+        };
+        RecurringExpenseTemplateDto: {
+            id?: string;
+            groupId?: string;
+            ownerId?: string;
+            title?: string;
+            description?: null | string;
+            /** Format: double */
+            amount?: number | string;
+            /** Format: int32 */
+            categoryId?: number | string;
+            /** Format: int32 */
+            paymentModeId?: number | string;
+            paidByUserId?: string;
+            paidByAliasId?: null | string;
+            /** Format: int32 */
+            recurrenceMode?: number | string;
+            /** Format: int32 */
+            weekdays?: number | string;
+            /** Format: int32 */
+            dayOfMonth?: null | number | string;
+            /** Format: int32 */
+            interval?: null | number | string;
+            anchorDate?: string;
+            endDate?: null | string;
+            requiresApproval?: boolean;
+            isActive?: boolean;
+            pausedReason?: null | string;
+            /** Format: int32 */
+            missedCount?: number | string;
+            skippedPeriodDates?: string[];
+            resumeFrom?: null | string;
+            nextOccurrence?: null | string;
+            summary?: string;
+            splits?: components["schemas"]["RecurringExpenseSplitDto"][];
+            aliasSplits?: null | components["schemas"]["RecurringExpenseAliasSplitDto"][];
+            /** Format: int32 */
+            pendingCount?: number | string;
+            /** Format: int64 */
+            createdAt?: number | string;
+            /** Format: int64 */
+            updatedAt?: number | string;
+        };
         RefreshTokenRequestDto: {
             token: string;
             refreshToken: string;
@@ -6149,6 +7308,9 @@ export interface components {
             token: string;
             newPassword: string;
             confirmPassword: string;
+        };
+        ResumeRecurringExpenseTemplateDto: {
+            strategy?: string;
         };
         RevokeTokenRequestDto: {
             refreshToken: string;
@@ -6194,6 +7356,9 @@ export interface components {
             value?: null | string;
             hasValue?: boolean;
         };
+        ToggleActiveRequestDto: {
+            isActive: boolean;
+        };
         TwoFactorSetupDto: {
             secret?: string;
             qrCodeUri?: string;
@@ -6227,6 +7392,31 @@ export interface components {
         UpdateGroupRequestDto: {
             name?: null | string;
             description?: null | string;
+        };
+        UpdateRecurringExpenseTemplateDto: {
+            title: string;
+            description?: null | string;
+            /** Format: double */
+            amount: number | string;
+            /** Format: int32 */
+            categoryId?: number | string;
+            /** Format: int32 */
+            paymentModeId?: number | string;
+            paidByUserId: string;
+            paidByAliasId?: null | string;
+            /** Format: int32 */
+            recurrenceMode: number | string;
+            /** Format: int32 */
+            weekdays: number | string;
+            /** Format: int32 */
+            dayOfMonth?: null | number | string;
+            /** Format: int32 */
+            interval?: null | number | string;
+            anchorDate: string;
+            endDate?: null | string;
+            requiresApproval?: boolean;
+            splits?: components["schemas"]["CreateRecurringExpenseSplitDto"][];
+            aliasSplits?: null | components["schemas"]["CreateRecurringExpenseAliasSplitDto"][];
         };
         UpdateUserRequestDto: {
             firstName?: null | string;

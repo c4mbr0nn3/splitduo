@@ -183,6 +183,15 @@ export type CreateExpenseAliasSplit = components['schemas']['CreateExpenseAliasS
 export type UpdateExpenseRequest = components['schemas']['UpdateExpenseRequestDto']
 export type UpdateExpenseSplit = components['schemas']['UpdateExpenseSplitDto']
 
+export type RecurringExpenseTemplate = WithRequired<components['schemas']['RecurringExpenseTemplateDto'], 'id' | 'groupId' | 'ownerId' | 'title' | 'amount' | 'paidByUserId' | 'recurrenceMode' | 'weekdays' | 'anchorDate' | 'isActive'>
+export type RecurringExpenseInstance = WithRequired<components['schemas']['RecurringExpenseInstanceDto'], 'id' | 'templateId' | 'templateTitle' | 'periodDate' | 'status' | 'amount' | 'createdAt'>
+export type RecurringExpenseSplit = WithRequired<components['schemas']['RecurringExpenseSplitDto'], 'userId' | 'splitAmount'>
+export type RecurringExpenseAliasSplit = WithRequired<components['schemas']['RecurringExpenseAliasSplitDto'], 'aliasId' | 'splitAmount'>
+export type RecurrencePreviewResponse = WithRequired<components['schemas']['RecurrencePreviewResponseDto'], 'nextOccurrences' | 'summary'>
+
+/** Resume strategy for a paused recurring-expense template. */
+export type ResumeStrategy = 'backfill' | 'skip'
+
 export type CreateSettlementRequest = components['schemas']['CreateSettlementRequestDto']
 
 export type CreateAliasRequest = components['schemas']['CreateAliasRequestDto']
@@ -191,6 +200,14 @@ export type AssignAliasMemberRequest = components['schemas']['AssignAliasMemberR
 
 export type SendInvitationRequest = components['schemas']['SendInvitationRequestDto']
 export type AcceptInvitationRequest = components['schemas']['AcceptInvitationRequestDto']
+
+export type CreateRecurringExpenseTemplateRequest = components['schemas']['CreateRecurringExpenseTemplateDto']
+export type UpdateRecurringExpenseTemplateRequest = components['schemas']['UpdateRecurringExpenseTemplateDto']
+export type ApproveRecurringExpenseInstanceRequest = components['schemas']['ApproveRecurringExpenseInstanceDto']
+export type ResumeRecurringExpenseTemplateRequest = components['schemas']['ResumeRecurringExpenseTemplateDto']
+export type RecurrencePreviewRequest = components['schemas']['RecurrencePreviewRequestDto']
+export type CreateRecurringExpenseSplit = components['schemas']['CreateRecurringExpenseSplitDto']
+export type CreateRecurringExpenseAliasSplit = components['schemas']['CreateRecurringExpenseAliasSplitDto']
 
 export type ImportMapping = components['schemas']['ImportMappingDto']
 

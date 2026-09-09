@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Hosting;
+using SplitDuo.Tests.Integration.Support;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,6 +31,12 @@ public class SplitDuoApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         .Build();
 
     private Respawner _respawner = null!;
+
+    // Shared fake clock. Reset to real wall-clock before every test (see
+    // IntegrationTest.InitializeAsync); time-dependent tests advance it deliberately.
+    // ResettableFakeTimeProvider (not Microsoft's FakeTimeProvider) so the reset can
+    // also go BACKWARD after a test has advanced the clock.
+    public ResettableFakeTimeProvider TimeProvider { get; } = new();
 
     public string ConnectionString => _dbContainer.GetConnectionString();
 
@@ -127,6 +134,12 @@ public class SplitDuoApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
                             && d.ImplementationType?.Name == "DataSeederService")
                 .ToList();
             foreach (var d in seeder) services.Remove(d);
+
+            // --- C4: Swap TimeProvider for the shared FakeTimeProvider ---
+            var tpDescriptor = services.SingleOrDefault(
+                d => d.ServiceType == typeof(TimeProvider));
+            if (tpDescriptor != null) services.Remove(tpDescriptor);
+            services.AddSingleton<TimeProvider>(TimeProvider);
         });
     }
 

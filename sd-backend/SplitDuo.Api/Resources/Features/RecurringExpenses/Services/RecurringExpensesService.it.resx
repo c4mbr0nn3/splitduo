@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+    <xsd:element name="root" msdata:IsDataSet="true"/>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="InvalidGroupIdFormat" xml:space="preserve"><value>Formato ID gruppo non valido</value></data>
+  <data name="InvalidTemplateIdFormat" xml:space="preserve"><value>Formato ID modello non valido</value></data>
+  <data name="InvalidInstanceIdFormat" xml:space="preserve"><value>Formato ID istanza non valido</value></data>
+  <data name="InvalidDateFormat" xml:space="preserve"><value>Formato data non valido</value></data>
+  <data name="InvalidRecurrenceMode" xml:space="preserve"><value>Modalità di ricorrenza non valida</value></data>
+  <data name="InvalidExpenseCategory" xml:space="preserve"><value>Categoria spesa non valida</value></data>
+  <data name="InvalidExpensePaymentMode" xml:space="preserve"><value>Modalità di pagamento non valida</value></data>
+  <data name="InvalidInstanceStatus" xml:space="preserve"><value>Stato istanza non valido</value></data>
+  <data name="InvalidResumeStrategy" xml:space="preserve"><value>Strategia di ripristino non valida</value></data>
+  <data name="TemplateNotFound" xml:space="preserve"><value>Modello di spesa ricorrente non trovato</value></data>
+  <data name="InstanceNotFound" xml:space="preserve"><value>Istanza di spesa ricorrente non trovata</value></data>
+  <data name="InstanceNotPendingApproval" xml:space="preserve"><value>Questa istanza non è in attesa di approvazione</value></data>
+  <data name="OnlyOwnerOrAdminCanModify" xml:space="preserve"><value>Solo il proprietario del modello o un amministratore del gruppo può modificarlo</value></data>
+  <data name="UserNotAuthenticated" xml:space="preserve"><value>Utente non autenticato</value></data>
+  <data name="GroupNotFound" xml:space="preserve"><value>Gruppo non trovato</value></data>
+  <data name="AccessNotAllowed" xml:space="preserve"><value>Accesso a questo gruppo non consentito</value></data>
+  <data name="PaidByUserNotFound" xml:space="preserve"><value>Pagatore non trovato</value></data>
+  <data name="PaidByUserNotMember" xml:space="preserve"><value>Il pagatore non è membro di questo gruppo</value></data>
+  <data name="InvalidPaidByUserIdFormat" xml:space="preserve"><value>Formato ID pagatore non valido</value></data>
+  <data name="EndDateBeforeAnchor" xml:space="preserve"><value>La data di fine non può essere precedente alla data di inizio</value></data>
+  <data name="InvalidAliasId" xml:space="preserve"><value>Formato ID alias non valido</value></data>
+  <data name="AliasNotInGroup" xml:space="preserve"><value>L'alias {0} non appartiene a questo gruppo</value></data>
+  <data name="PayerMissingAlias" xml:space="preserve"><value>Il pagatore deve essere assegnato a un sottogruppo prima di creare spese ricorrenti in questo gruppo.</value></data>
+  <data name="AliasSplitRequired" xml:space="preserve"><value>È richiesta almeno una suddivisione alias per i gruppi in modalità alias</value></data>
+  <data name="DuplicateAliasesInSplits" xml:space="preserve"><value>Alias duplicati trovati nelle suddivisioni: {0}</value></data>
+  <data name="InvalidAliasIdInSplit" xml:space="preserve"><value>Formato ID alias non valido nella suddivisione: {0}</value></data>
+  <data name="AliasNotFoundInSplit" xml:space="preserve"><value>Alias non trovato o eliminato: {0}</value></data>
+  <data name="SplitAmountMustBePositive" xml:space="preserve"><value>L'importo della suddivisione deve essere maggiore di zero</value></data>
+  <data name="SplitAmountsDoNotSum" xml:space="preserve"><value>Gli importi suddivisi ({0:F2}) non corrispondono all'importo della spesa ({1:F2})</value></data>
+  <data name="ExpenseSplitRequired" xml:space="preserve"><value>È richiesta almeno una suddivisione della spesa</value></data>
+  <data name="DuplicateUsersInSplits" xml:space="preserve"><value>Utenti duplicati trovati nelle suddivisioni: {0}</value></data>
+  <data name="InvalidUserIdInSplit" xml:space="preserve"><value>Formato ID utente non valido nella suddivisione: {0}</value></data>
+  <data name="UserNotFoundInSplit" xml:space="preserve"><value>Utente non trovato nella suddivisione: {0}</value></data>
+  <data name="UserNotMemberInSplit" xml:space="preserve"><value>L'utente {0} {1} non è membro di questo gruppo</value></data>
+  <data name="WeeklyModeRequiresWeekday" xml:space="preserve"><value>La modalità settimanale richiede almeno un giorno della settimana.</value></data>
+  <data name="WeekdaysOutOfRange" xml:space="preserve"><value>I giorni della settimana contengono valori fuori dall'intervallo lunedì..domenica.</value></data>
+  <data name="InvalidDayOfMonth" xml:space="preserve"><value>La modalità mensile richiede un giorno del mese compreso tra 1 e 31.</value></data>
+  <data name="InvalidInterval" xml:space="preserve"><value>Le modalità a intervalli richiedono un intervallo di almeno 1.</value></data>
+  <data name="UnknownRecurrenceMode" xml:space="preserve"><value>Modalità di ricorrenza sconosciuta.</value></data>
+</root>

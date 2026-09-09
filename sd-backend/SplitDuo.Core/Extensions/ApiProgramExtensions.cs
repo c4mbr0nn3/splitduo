@@ -18,6 +18,7 @@ using SplitDuo.Core.Persistence;
 using SplitDuo.Core.Persistence.Interceptors;
 using SplitDuo.Core.Services;
 using SplitDuo.Core.Services.BackgroundJobs;
+using SplitDuo.Core.Services.Expenses;
 
 namespace SplitDuo.Core.Extensions;
 
@@ -89,6 +90,7 @@ public static class ApiProgramExtensions
             builder.Services.AddScoped<ISmtpService, SmtpService>();
             builder.Services.AddScoped<INotificationService, EmailNotificationService>();
             builder.Services.AddScoped<IEmailTemplateProvider, EmailTemplateProvider>();
+            builder.Services.AddScoped<IExpenseCreationService, ExpenseCreationService>();
 
             // Caching
             builder.Services.AddMemoryCache(o => o.SizeLimit = 10_000);
@@ -154,6 +156,13 @@ public static class ApiProgramExtensions
                     .ForJob(refreshTokenCleanupJobKey)
                     .WithIdentity("RefreshTokenCleanupTrigger")
                     .WithCronSchedule("0 0 3 * * ?")); // every day at 03:00
+
+                var recurringExpenseGenerationJobKey = new JobKey("RecurringExpenseGenerationJob");
+                q.AddJob<RecurringExpenseGenerationJob>(opts => opts.WithIdentity(recurringExpenseGenerationJobKey));
+                q.AddTrigger(opts => opts
+                    .ForJob(recurringExpenseGenerationJobKey)
+                    .WithIdentity("RecurringExpenseGenerationTrigger")
+                    .WithCronSchedule("0 */5 * ? * *")); // every 5 minutes
             });
 
             builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);

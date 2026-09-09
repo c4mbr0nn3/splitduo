@@ -33,6 +33,7 @@
         :pre-selected-group-id="groupId"
         :expense-id="expenseId"
         :loading="isUpdating"
+        :orphaned-splits="orphanedSplits"
         @submit="onSubmit"
         @cancel="goBack"
         @add-attachment="onAddAttachment"
@@ -59,7 +60,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Expense, SplitMode } from '~/types/domain'
+import type { Expense, GroupMember, SplitMode } from '~/types/domain'
 
 interface ExpenseFormModel {
   expenseId?: string
@@ -96,6 +97,7 @@ const groupId = String(route.params.id)
 const expenseId = route.params.expenseId ? String(route.params.expenseId) : undefined
 
 const { currentExpense, fetchExpense, updateExpense } = useExpenses(groupId)
+const { fetchGroupMembers } = useGroups()
 
 // Create the attachments composable at setup scope so Nuxt context (useApi,
 // useI18n, useNotifications) is available — calling it inside an async event
@@ -178,7 +180,18 @@ const mapAliasSplits = (aliasSplits: { aliasId?: string, splitAmount?: number | 
   })
 }
 
-const onSubmit = async (payload: { groupId: string, expenseData: Record<string, unknown> }) => {
+// Splits saved for members who have since left the group. Stays [] until both
+// the expense and the member list are loaded (avoids flagging every split as
+// orphaned during the fetch race).
+const groupMembers = ref<GroupMember[]>([])
+const orphanedSplits = computed<SplitItem[]>(() => {
+  const e = currentExpense.value as unknown as Expense | null
+  if (!e || groupMembers.value.length === 0) return []
+  return (mapSplits(e.splits) || [])
+    .filter(s => s.userId && !groupMembers.value.some(m => m.userId === s.userId))
+})
+
+const onSubmit = async (payload: { groupId: string, expenseData: Record<string, unknown> }): Promise<void> => {
   const { expenseData } = payload
   isUpdating.value = true
   try {
@@ -206,7 +219,11 @@ const loadExpense = async () => {
   loadError.value = false
   try {
     if (groupId && expenseId) {
-      await fetchExpense(expenseId)
+      const [members] = await Promise.all([
+        fetchGroupMembers(groupId),
+        fetchExpense(expenseId),
+      ])
+      groupMembers.value = members ?? []
     }
   }
   catch {

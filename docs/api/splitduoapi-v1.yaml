@@ -1230,6 +1230,1017 @@ paths:
             text/json:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
+  /api/v1/groups/{groupId}/recurring-expenses:
+    get:
+      tags:
+        - RecurringExpenses
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: includeInactive
+          in: query
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfListOfRecurringExpenseTemplateDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfListOfRecurringExpenseTemplateDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfListOfRecurringExpenseTemplateDto"
+        "400":
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: Not Found
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+    post:
+      tags:
+        - RecurringExpenses
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRecurringExpenseTemplateDto"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/CreateRecurringExpenseTemplateDto"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/CreateRecurringExpenseTemplateDto"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfRecurringExpenseTemplateDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfRecurringExpenseTemplateDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfRecurringExpenseTemplateDto"
+        "400":
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: Not Found
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /api/v1/groups/{groupId}/recurring-expenses/{templateId}:
+    get:
+      tags:
+        - RecurringExpenses
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: templateId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfRecurringExpenseTemplateDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfRecurringExpenseTemplateDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfRecurringExpenseTemplateDto"
+        "400":
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: Not Found
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+    put:
+      tags:
+        - RecurringExpenses
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: templateId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRecurringExpenseTemplateDto"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRecurringExpenseTemplateDto"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/UpdateRecurringExpenseTemplateDto"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfRecurringExpenseTemplateDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfRecurringExpenseTemplateDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfRecurringExpenseTemplateDto"
+        "400":
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: Not Found
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+    delete:
+      tags:
+        - RecurringExpenses
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: templateId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: Not Found
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /api/v1/groups/{groupId}/recurring-expenses/{templateId}/toggle-active:
+    post:
+      tags:
+        - RecurringExpenses
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: templateId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ToggleActiveRequestDto"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/ToggleActiveRequestDto"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/ToggleActiveRequestDto"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfRecurringExpenseTemplateDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfRecurringExpenseTemplateDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfRecurringExpenseTemplateDto"
+        "400":
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: Not Found
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /api/v1/groups/{groupId}/recurring-expenses/{templateId}/resume:
+    post:
+      tags:
+        - RecurringExpenses
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: templateId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResumeRecurringExpenseTemplateDto"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/ResumeRecurringExpenseTemplateDto"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/ResumeRecurringExpenseTemplateDto"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfRecurringExpenseTemplateDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfRecurringExpenseTemplateDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfRecurringExpenseTemplateDto"
+        "400":
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: Not Found
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /api/v1/groups/{groupId}/recurring-expenses/instances:
+    get:
+      tags:
+        - RecurringExpenses
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: templateId
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+            format: int32
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+            format: int32
+            default: 20
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/PaginatedResponseDtoOfRecurringExpenseInstanceDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedResponseDtoOfRecurringExpenseInstanceDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedResponseDtoOfRecurringExpenseInstanceDto"
+        "400":
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: Not Found
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /api/v1/groups/{groupId}/recurring-expenses/{templateId}/instances:
+    get:
+      tags:
+        - RecurringExpenses
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: templateId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+            format: int32
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+            format: int32
+            default: 20
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/PaginatedResponseDtoOfRecurringExpenseInstanceDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedResponseDtoOfRecurringExpenseInstanceDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedResponseDtoOfRecurringExpenseInstanceDto"
+        "400":
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: Not Found
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /api/v1/groups/{groupId}/recurring-expenses/instances/{instanceId}/approve:
+    post:
+      tags:
+        - RecurringExpenses
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instanceId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - type: "null"
+                - $ref: "#/components/schemas/ApproveRecurringExpenseInstanceDto"
+          text/json:
+            schema:
+              oneOf:
+                - type: "null"
+                - $ref: "#/components/schemas/ApproveRecurringExpenseInstanceDto"
+          application/*+json:
+            schema:
+              oneOf:
+                - type: "null"
+                - $ref: "#/components/schemas/ApproveRecurringExpenseInstanceDto"
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfExpenseDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfExpenseDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfExpenseDto"
+        "400":
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: Not Found
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "409":
+          description: Conflict
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /api/v1/groups/{groupId}/recurring-expenses/instances/{instanceId}/reject:
+    post:
+      tags:
+        - RecurringExpenses
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instanceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: Not Found
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "409":
+          description: Conflict
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /api/v1/groups/{groupId}/recurring-expenses/preview:
+    post:
+      tags:
+        - RecurringExpenses
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecurrencePreviewRequestDto"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/RecurrencePreviewRequestDto"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/RecurrencePreviewRequestDto"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfRecurrencePreviewResponseDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfRecurrencePreviewResponseDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfRecurrencePreviewResponseDto"
+        "400":
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
   /api/v1/receipts/parse:
     post:
       tags:
@@ -5496,6 +6507,25 @@ components:
           oneOf:
             - type: "null"
             - $ref: "#/components/schemas/ApiErrorDto"
+    ApiResponseDtoOfListOfRecurringExpenseTemplateDto:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type:
+            - "null"
+            - array
+          items:
+            $ref: "#/components/schemas/RecurringExpenseTemplateDto"
+        message:
+          type:
+            - "null"
+            - string
+        error:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/ApiErrorDto"
     ApiResponseDtoOfListOfstring:
       type: object
       properties:
@@ -5557,6 +6587,40 @@ components:
           oneOf:
             - type: "null"
             - $ref: "#/components/schemas/ParsedReceiptDto"
+        message:
+          type:
+            - "null"
+            - string
+        error:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/ApiErrorDto"
+    ApiResponseDtoOfRecurrencePreviewResponseDto:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/RecurrencePreviewResponseDto"
+        message:
+          type:
+            - "null"
+            - string
+        error:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/ApiErrorDto"
+    ApiResponseDtoOfRecurringExpenseTemplateDto:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/RecurringExpenseTemplateDto"
         message:
           type:
             - "null"
@@ -5684,6 +6748,32 @@ components:
           oneOf:
             - type: "null"
             - $ref: "#/components/schemas/ApiErrorDto"
+    ApproveRecurringExpenseInstanceDto:
+      type: object
+      properties:
+        amount:
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - "null"
+            - number
+            - string
+          format: double
+        expenseDate:
+          type:
+            - "null"
+            - string
+        splits:
+          type:
+            - "null"
+            - array
+          items:
+            $ref: "#/components/schemas/RecurringExpenseSplitDto"
+        aliasSplits:
+          type:
+            - "null"
+            - array
+          items:
+            $ref: "#/components/schemas/RecurringExpenseAliasSplitDto"
     AssignAliasMemberRequestDto:
       required:
         - userId
@@ -5883,6 +6973,120 @@ components:
             - string
         useAliases:
           type: boolean
+    CreateRecurringExpenseAliasSplitDto:
+      required:
+        - aliasId
+        - splitAmount
+      type: object
+      properties:
+        aliasId:
+          type: string
+        splitAmount:
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+          format: double
+    CreateRecurringExpenseSplitDto:
+      required:
+        - userId
+        - splitAmount
+      type: object
+      properties:
+        userId:
+          type: string
+        splitAmount:
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+          format: double
+    CreateRecurringExpenseTemplateDto:
+      required:
+        - title
+        - amount
+        - paidByUserId
+        - recurrenceMode
+        - weekdays
+        - anchorDate
+      type: object
+      properties:
+        title:
+          maxLength: 255
+          type: string
+        description:
+          type:
+            - "null"
+            - string
+        amount:
+          minimum: 0.01
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+          format: double
+        categoryId:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        paymentModeId:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        paidByUserId:
+          type: string
+        paidByAliasId:
+          type:
+            - "null"
+            - string
+        recurrenceMode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        weekdays:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        dayOfMonth:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int32
+        interval:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int32
+        anchorDate:
+          type: string
+        endDate:
+          type:
+            - "null"
+            - string
+        requiresApproval:
+          type: boolean
+        splits:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreateRecurringExpenseSplitDto"
+        aliasSplits:
+          type:
+            - "null"
+            - array
+          items:
+            $ref: "#/components/schemas/CreateRecurringExpenseAliasSplitDto"
     CreateSettlementRequestDto:
       required:
         - fromUserId
@@ -6464,6 +7668,25 @@ components:
           oneOf:
             - type: "null"
             - $ref: "#/components/schemas/ApiErrorDto"
+    PaginatedResponseDtoOfRecurringExpenseInstanceDto:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/RecurringExpenseInstanceDto"
+        pagination:
+          $ref: "#/components/schemas/PaginationDto"
+        message:
+          type:
+            - "null"
+            - string
+        error:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/ApiErrorDto"
     PaginatedResponseDtoOfSettlementDto:
       type: object
       properties:
@@ -6610,6 +7833,257 @@ components:
           type:
             - "null"
             - string
+    RecurrencePreviewRequestDto:
+      required:
+        - recurrenceMode
+        - weekdays
+        - anchorDate
+      type: object
+      properties:
+        recurrenceMode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        weekdays:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        dayOfMonth:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int32
+        interval:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int32
+        anchorDate:
+          type: string
+        endDate:
+          type:
+            - "null"
+            - string
+    RecurrencePreviewResponseDto:
+      type: object
+      properties:
+        nextOccurrences:
+          type: array
+          items:
+            type: string
+        summary:
+          type: string
+    RecurringExpenseAliasSplitDto:
+      type: object
+      properties:
+        aliasId:
+          type: string
+        splitAmount:
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+          format: double
+    RecurringExpenseInstanceDto:
+      type: object
+      properties:
+        id:
+          type: string
+        templateId:
+          type: string
+        templateTitle:
+          type: string
+        periodDate:
+          type: string
+        status:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        amount:
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+          format: double
+        approvedBy:
+          type:
+            - "null"
+            - string
+        approvedAt:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int64
+        expenseId:
+          type:
+            - "null"
+            - string
+        splits:
+          type: array
+          items:
+            $ref: "#/components/schemas/RecurringExpenseSplitDto"
+        aliasSplits:
+          type:
+            - "null"
+            - array
+          items:
+            $ref: "#/components/schemas/RecurringExpenseAliasSplitDto"
+        createdAt:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int64
+    RecurringExpenseSplitDto:
+      type: object
+      properties:
+        userId:
+          type: string
+        splitAmount:
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+          format: double
+    RecurringExpenseTemplateDto:
+      type: object
+      properties:
+        id:
+          type: string
+        groupId:
+          type: string
+        ownerId:
+          type: string
+        title:
+          type: string
+        description:
+          type:
+            - "null"
+            - string
+        amount:
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+          format: double
+        categoryId:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        paymentModeId:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        paidByUserId:
+          type: string
+        paidByAliasId:
+          type:
+            - "null"
+            - string
+        recurrenceMode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        weekdays:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        dayOfMonth:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int32
+        interval:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int32
+        anchorDate:
+          type: string
+        endDate:
+          type:
+            - "null"
+            - string
+        requiresApproval:
+          type: boolean
+        isActive:
+          type: boolean
+        pausedReason:
+          type:
+            - "null"
+            - string
+        missedCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        skippedPeriodDates:
+          type: array
+          items:
+            type: string
+        resumeFrom:
+          type:
+            - "null"
+            - string
+        nextOccurrence:
+          type:
+            - "null"
+            - string
+        summary:
+          type: string
+        splits:
+          type: array
+          items:
+            $ref: "#/components/schemas/RecurringExpenseSplitDto"
+        aliasSplits:
+          type:
+            - "null"
+            - array
+          items:
+            $ref: "#/components/schemas/RecurringExpenseAliasSplitDto"
+        pendingCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        createdAt:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int64
+        updatedAt:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int64
     RefreshTokenRequestDto:
       required:
         - token
@@ -6636,6 +8110,11 @@ components:
           minLength: 8
           type: string
         confirmPassword:
+          type: string
+    ResumeRecurringExpenseTemplateDto:
+      type: object
+      properties:
+        strategy:
           type: string
     RevokeTokenRequestDto:
       required:
@@ -6760,6 +8239,13 @@ components:
             - string
         hasValue:
           type: boolean
+    ToggleActiveRequestDto:
+      required:
+        - isActive
+      type: object
+      properties:
+        isActive:
+          type: boolean
     TwoFactorSetupDto:
       type: object
       properties:
@@ -6866,6 +8352,92 @@ components:
           type:
             - "null"
             - string
+    UpdateRecurringExpenseTemplateDto:
+      required:
+        - title
+        - amount
+        - paidByUserId
+        - recurrenceMode
+        - weekdays
+        - anchorDate
+      type: object
+      properties:
+        title:
+          maxLength: 255
+          type: string
+        description:
+          type:
+            - "null"
+            - string
+        amount:
+          minimum: 0.01
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+          format: double
+        categoryId:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        paymentModeId:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        paidByUserId:
+          type: string
+        paidByAliasId:
+          type:
+            - "null"
+            - string
+        recurrenceMode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        weekdays:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        dayOfMonth:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int32
+        interval:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int32
+        anchorDate:
+          type: string
+        endDate:
+          type:
+            - "null"
+            - string
+        requiresApproval:
+          type: boolean
+        splits:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreateRecurringExpenseSplitDto"
+        aliasSplits:
+          type:
+            - "null"
+            - array
+          items:
+            $ref: "#/components/schemas/CreateRecurringExpenseAliasSplitDto"
     UpdateUserRequestDto:
       type: object
       properties:
@@ -7036,6 +8608,7 @@ tags:
   - name: UserAvatars
   - name: AdminNotifications
   - name: Settlements
+  - name: RecurringExpenses
   - name: Receipts
   - name: PaymentModes
   - name: Invitations

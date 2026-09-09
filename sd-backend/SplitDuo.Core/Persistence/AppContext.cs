@@ -30,4 +30,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<AiCallLog> AiCallLogs { get; set; }
     public DbSet<Alias> Aliases { get; set; }
     public DbSet<ExpenseAliasSplit> ExpenseAliasSplits { get; set; }
+    public DbSet<RecurringExpenseTemplate> RecurringExpenseTemplates { get; set; }
+    public DbSet<RecurringExpenseTemplateSplit> RecurringExpenseTemplateSplits { get; set; }
+    public DbSet<RecurringExpenseTemplateAliasSplit> RecurringExpenseTemplateAliasSplits { get; set; }
+    public DbSet<RecurringExpenseInstance> RecurringExpenseInstances { get; set; }
+    public DbSet<RecurringExpenseInstanceSplit> RecurringExpenseInstanceSplits { get; set; }
+    public DbSet<RecurringExpenseInstanceAliasSplit> RecurringExpenseInstanceAliasSplits { get; set; }
 }

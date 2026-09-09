@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+    <xsd:element name="root" msdata:IsDataSet="true"/>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="AliasSetupNotFinalized" xml:space="preserve"><value>La configurazione degli alias deve essere finalizzata prima di creare spese</value></data>
+  <data name="AliasSplitRequired" xml:space="preserve"><value>È richiesta almeno una suddivisione alias per i gruppi in modalità alias</value></data>
+  <data name="DuplicateAliasesInSplits" xml:space="preserve"><value>Alias duplicati trovati nelle suddivisioni: {0}</value></data>
+  <data name="InvalidAliasIdInSplit" xml:space="preserve"><value>Formato ID alias non valido nella suddivisione: {0}</value></data>
+  <data name="AliasNotFoundInSplit" xml:space="preserve"><value>Alias non trovato o eliminato: {0}</value></data>
+  <data name="AliasNotInGroup" xml:space="preserve"><value>L'alias {0} non appartiene a questo gruppo</value></data>
+  <data name="SplitAmountMustBePositive" xml:space="preserve"><value>L'importo della suddivisione deve essere maggiore di zero</value></data>
+  <data name="SplitAmountsDoNotSum" xml:space="preserve"><value>Gli importi suddivisi ({0:F2}) non corrispondono all'importo della spesa ({1:F2})</value></data>
+  <data name="ExpenseSplitRequired" xml:space="preserve"><value>È richiesta almeno una suddivisione della spesa</value></data>
+  <data name="DuplicateUsersInSplits" xml:space="preserve"><value>Utenti duplicati trovati nelle suddivisioni: {0}</value></data>
+  <data name="InvalidUserIdInSplit" xml:space="preserve"><value>Formato ID utente non valido nella suddivisione: {0}</value></data>
+  <data name="UserNotFoundInSplit" xml:space="preserve"><value>Utente non trovato nella suddivisione: {0}</value></data>
+  <data name="UserNotMemberInSplit" xml:space="preserve"><value>L'utente {0} {1} non è membro di questo gruppo</value></data>
+  <data name="PayerMissingAlias" xml:space="preserve"><value>Il pagatore deve essere assegnato a un sottogruppo prima di creare spese in questo gruppo.</value></data>
+</root>
