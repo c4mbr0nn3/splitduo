@@ -8,6 +8,7 @@ using SplitDuo.Api.Features.Expenses.Services;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Persistence;
+using SplitDuo.Core.Services.Expenses;
 using Xunit;
 
 namespace SplitDuo.Tests.Unit;
@@ -46,8 +47,14 @@ public class ExpensesServicePayerAliasTests
         return loc;
     }
 
-    private static ExpensesService CreateService(AppDbContext context) =>
-        new(new UnitOfWork(context), Substitute.For<TimeProvider>(), CreateLocalizer());
+    private static ExpensesService CreateService(AppDbContext context)
+    {
+        var unitOfWork = new UnitOfWork(context);
+        var creationService = new ExpenseCreationService(
+            unitOfWork, Substitute.For<IStringLocalizer<ExpenseCreationService>>());
+
+        return new(unitOfWork, Substitute.For<TimeProvider>(), creationService, CreateLocalizer());
+    }
 
     [Fact]
     public async Task CreateExpense_AliasMode_PayerWithoutAlias_ReturnsBadRequest()

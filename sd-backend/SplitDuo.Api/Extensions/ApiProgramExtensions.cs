@@ -15,6 +15,7 @@ using SplitDuo.Api.Features.Authentication.Services;
 using SplitDuo.Api.Features.Receipts.Services;
 using SplitDuo.Api.Features.Common.Services;
 using SplitDuo.Api.Features.Expenses.Services;
+using SplitDuo.Api.Features.RecurringExpenses.Services;
 using SplitDuo.Api.Features.Settlements.Services;
 using SplitDuo.Api.Features.ExpenseAttachments.Services;
 using SplitDuo.Api.Features.UserAvatars.Services;
@@ -57,6 +58,7 @@ public static class ApiProgramExtensions
         builder.Services.AddScoped<IAliasesService, AliasesService>();
         builder.Services.AddScoped<IInvitationsService, InvitationsService>();
         builder.Services.AddScoped<IExpensesService, ExpensesService>();
+        builder.Services.AddScoped<IRecurringExpensesService, RecurringExpensesService>();
         builder.Services.AddScoped<ISettlementsService, SettlementsService>();
         builder.Services.AddScoped<IExpenseAttachmentsService, ExpenseAttachmentsService>();
         builder.Services.AddScoped<IUserAvatarsService, UserAvatarsService>();

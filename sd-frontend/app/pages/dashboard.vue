@@ -13,27 +13,10 @@
     />
 
     <!-- Quick Actions (mobile only) -->
-    <UCard
-      class="sd-surface h-fit lg:hidden mb-8"
-      :ui="{ body: 'p-4 sm:p-5 space-y-3' }"
-    >
-      <p class="text-xs font-medium text-muted uppercase tracking-wide">
-        {{ $t('dashboard.quickActions') }}
-      </p>
-      <UButton
-        v-for="(action, index) in quickActions"
-        :key="action.id"
-        :to="action.to"
-        :icon="action.icon"
-        :label="action.label"
-        :variant="index === 0 ? 'solid' : 'outline'"
-        :color="index === 0 ? 'primary' : 'neutral'"
-        size="lg"
-        block
-        class="justify-start"
-        @click="action.onClick?.()"
-      />
-    </UCard>
+    <DashboardQuickActionsCard
+      :actions="quickActions"
+      class="lg:hidden mb-8"
+    />
 
     <!-- Stats: two balance widgets — stacked on mobile, side-by-side on desktop -->
     <div class="mb-8">
@@ -122,34 +105,20 @@
         </div>
       </UCard>
       <!-- Quick Actions (desktop only) -->
-      <UCard
-        class="sd-surface h-fit hidden lg:block"
-        :ui="{ body: 'p-4 sm:p-5 space-y-3' }"
-      >
-        <p class="text-xs font-medium text-muted uppercase tracking-wide">
-          {{ $t('dashboard.quickActions') }}
-        </p>
-        <UButton
-          v-for="(action, index) in quickActions"
-          :key="action.id"
-          :to="action.to"
-          :icon="action.icon"
-          :label="action.label"
-          :variant="index === 0 ? 'solid' : 'outline'"
-          :color="index === 0 ? 'primary' : 'neutral'"
-          size="lg"
-          block
-          class="justify-start"
-          @click="action.onClick?.()"
-        />
-      </UCard>
+      <DashboardQuickActionsCard
+        :actions="quickActions"
+        class="hidden lg:block"
+      />
     </div>
 
     <DashboardSettleUpModal v-model:open="showSettleUp" />
+    <DashboardRecurringModal v-model:open="showRecurring" />
   </div>
 </template>
 
 <script setup lang="ts">
+import type { QuickAction } from '~/components/dashboard/QuickActionsCard.vue'
+
 const { t } = useI18n()
 
 const { groups, fetchGroups } = useGroups()
@@ -163,6 +132,7 @@ const updateNotification = computed(() =>
 
 const showSkeleton = ref(true)
 const showSettleUp = ref(false)
+const showRecurring = ref(false)
 
 const stats = computed(() => ({
   individual: userStats.value?.individual ?? { groups: 0, youOwe: 0, youreOwed: 0 },
@@ -192,13 +162,7 @@ const viewAllGroups = () => {
   navigateTo('/groups')
 }
 
-const quickActions = computed<{ id: string, label: string, icon: string, to?: string, onClick?: () => void }[]>(() => [
-  {
-    id: 'create-group',
-    label: t('dashboard.createNewGroup'),
-    icon: 'i-lucide-plus',
-    to: '/groups/add',
-  },
+const quickActions = computed<QuickAction[]>(() => [
   {
     id: 'add-expense',
     label: t('dashboard.addExpense'),
@@ -211,7 +175,19 @@ const quickActions = computed<{ id: string, label: string, icon: string, to?: st
     icon: 'i-lucide-arrow-right-left',
     onClick: () => { showSettleUp.value = true },
   },
-].filter(a => a.id !== 'settle-up' || groups.value.length > 0))
+  {
+    id: 'recurring',
+    label: t('dashboard.recurringExpense'),
+    icon: 'i-lucide-repeat',
+    onClick: () => { showRecurring.value = true },
+  },
+  {
+    id: 'create-group',
+    label: t('dashboard.createNewGroup'),
+    icon: 'i-lucide-plus',
+    to: '/groups/add',
+  },
+].filter(a => a.id === 'create-group' || groups.value.length > 0))
 
 useHead({
   title: computed(() => t('dashboard.title')),

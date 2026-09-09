@@ -1,9 +1,10 @@
 <template>
   <UInputDate
     ref="inputDate"
-    v-model="calendarValue"
+    :model-value="calendarValue"
     :size="size"
     class="w-full"
+    @update:model-value="calendarValue = ($event as typeof calendarValue)"
   >
     <template #trailing>
       <UPopover :reference="inputDate?.inputsRef?.[3]?.$el">
@@ -39,7 +40,15 @@ const modelValue = defineModel<string | null>({ default: null })
 const inputDate = useTemplateRef('inputDate')
 
 const calendarValue = computed({
-  get: () => (modelValue.value ? parseDate(modelValue.value) : undefined),
+  get: () => {
+    if (!modelValue.value) return undefined
+    try {
+      return parseDate(modelValue.value)
+    }
+    catch {
+      return undefined
+    }
+  },
   set: (val) => { modelValue.value = val ? val.toString() : null },
 })
 </script>

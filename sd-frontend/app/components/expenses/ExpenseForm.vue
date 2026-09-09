@@ -165,7 +165,7 @@
             />
             <div>
               <p class="text-sm font-semibold text-highlighted">
-                {{ $t('expenses.aliasSetupNotFinalized') }}
+                {{ $t('groups.aliasSetupNotFinalized') }}
               </p>
               <UButton
                 :to="`/groups/${effectiveGroupId}/aliases`"
@@ -174,7 +174,7 @@
                 size="xs"
                 class="p-0 h-auto mt-1"
               >
-                {{ $t('expenses.finalizeAliases') }}
+                {{ $t('groups.finalizeAliases') }}
               </UButton>
             </div>
           </div>
@@ -351,6 +351,41 @@
                   />
                 </template>
               </div>
+              <!-- Orphaned splits: saved splits for members who have since left
+                   the group. Display-only — never written into model.value.splits. -->
+              <div
+                v-for="orphan in orphanedSplits"
+                :key="'orphan-' + orphan.userId"
+                class="grid grid-cols-[1fr_auto] items-center gap-3 py-2 border-b border-[var(--sd-surface-border)] last:border-0 opacity-70"
+              >
+                <div class="flex items-center gap-2 min-w-0">
+                  <UAvatar
+                    size="sm"
+                    :alt="$t('recurring.unknownMember')"
+                    :class="'bg-muted/10 text-muted opacity-60'"
+                  />
+                  <span class="min-w-0">
+                    <span class="text-sm truncate block text-muted">
+                      {{ $t('recurring.unknownMember') }}
+                    </span>
+                    <UBadge
+                      variant="soft"
+                      color="warning"
+                      size="xs"
+                      :label="$t('recurring.leftGroup')"
+                      class="mt-0.5"
+                    />
+                  </span>
+                </div>
+                <UInput
+                  :model-value="displayValue('orphan-' + orphan.userId, orphan.splitAmount)"
+                  type="text"
+                  inputmode="decimal"
+                  size="sm"
+                  class="w-24 text-right sd-tabular"
+                  disabled
+                />
+              </div>
             </template>
           </div>
           <!-- Allocation feedback (percentage mode only) -->
@@ -411,6 +446,12 @@
               class="flex justify-between items-center text-success font-semibold"
             >
               <span>{{ $t('expenses.splitsBalanced') }}</span>
+            </div>
+            <div
+              v-if="orphanedTotalMillis > 0"
+              class="text-warning"
+            >
+              {{ $t('recurring.orphanedSplitsRedistributed', { amount: formatCurrency(fromMillis(orphanedTotalMillis), { fullPrecision: true }) }) }}
             </div>
           </div>
         </div>
@@ -498,14 +539,20 @@ import type { GroupMember, CreateExpenseSplit, CreateExpenseAliasSplit, SplitMod
 
 const { t } = useI18n()
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   title: string
   submitLabel: string
   loading?: boolean
   preSelectedGroupId?: string | null
   showAddMore?: boolean
   expenseId?: string | null
-}>()
+  // Splits saved on the expense whose member has since left the group.
+  // Display-only: rendered as disabled orphan rows, never written into the
+  // form model (the backend rejects splits for non-members).
+  orphanedSplits?: ExpenseFormSplit[]
+}>(), {
+  orphanedSplits: () => [],
+})
 
 interface ExpenseFormSplit {
   userId: string
@@ -916,6 +963,11 @@ const remainingMillis = computed(() => amountMillis.value - splitTotalMillis.val
 // Float projections kept for user-facing formatting only — never for comparisons.
 const splitTotal = computed(() => fromMillis(splitTotalMillis.value))
 const remainingAmount = computed(() => fromMillis(remainingMillis.value))
+
+// Sum of amounts saved for members who have since left the group — shown once
+// in the totals block as the amount that was redistributed to remaining members.
+const orphanedTotalMillis = computed(() =>
+  props.orphanedSplits.reduce((total, s) => total + toMillis(s.splitAmount ?? 0), 0))
 
 // Returns a LIVE reference into model.value.splits, creating the entry if
 // missing so v-model mutations in the template are never silently lost.

@@ -14,6 +14,7 @@ namespace SplitDuo.Core.Domain.Entities;
 [Index(nameof(GroupId), nameof(PaymentModeId), nameof(ExpenseDate))]
 [Index(nameof(GroupId), nameof(ExpenseTypeId), nameof(ExpenseDate))]
 [Index(nameof(ExpenseDate))]
+[Index(nameof(RecurringExpenseTemplateId))]
 [Index(nameof(DeletedAt))]
 public class Expense : AuditableAndSoftDeletableEntity
 {
@@ -30,11 +31,13 @@ public class Expense : AuditableAndSoftDeletableEntity
     [Column("import_id")] public int? ImportId { get; set; }
     [Column("paid_by_alias_id")] public int? PaidByAliasId { get; set; }
     [Column("expense_type_id")] public int ExpenseTypeId { get; set; }
+    [Column("recurring_expense_template_id")] public int? RecurringExpenseTemplateId { get; set; }
 
     [ForeignKey(nameof(GroupId))] public virtual Group Group { get; set; } = null!;
     [ForeignKey(nameof(PaidBy))] public virtual User PaidByUser { get; set; } = null!;
     [ForeignKey(nameof(ImportId))] public virtual Import? Import { get; set; }
     [ForeignKey(nameof(PaidByAliasId))] public virtual Alias? PaidByAlias { get; set; }
+    [ForeignKey(nameof(RecurringExpenseTemplateId))] public virtual RecurringExpenseTemplate? RecurringExpenseTemplate { get; set; }
     public virtual ICollection<ExpenseSplit> ExpenseSplits { get; set; } = new List<ExpenseSplit>();
     public virtual ICollection<ExpenseAliasSplit> ExpenseAliasSplits { get; set; } = new List<ExpenseAliasSplit>();
 

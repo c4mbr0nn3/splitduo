@@ -73,7 +73,20 @@ describe('InputDate', () => {
     expect(wrapper.find('[data-segment="year"]').text()).toBe('yyyy')
   })
 
-  it('throws on an invalid date string model value', () => {
-    expect(() => mountInputDate('not-a-date')).toThrow('Invalid ISO 8601 date string')
+  it('renders empty segments when the model value is an invalid date string', () => {
+    // Defensive guard in calendarValue getter: invalid strings resolve to
+    // undefined instead of crashing the component.
+    const wrapper = mountInputDate('not-a-date')
+
+    expect(wrapper.find('[data-segment="month"]').text()).toBe('mm')
+    expect(wrapper.find('[data-segment="day"]').text()).toBe('dd')
+    expect(wrapper.find('[data-segment="year"]').text()).toBe('yyyy')
+  })
+
+  it('updates displayed segments when modelValue changes externally', async () => {
+    const wrapper = mountInputDate('2026-09-05')
+    await wrapper.setProps({ modelValue: '2026-09-04' })
+    await wrapper.vm.$nextTick()
+    expect(wrapper.find('[data-segment="day"]').text()).toBe('4')
   })
 })

@@ -21,11 +21,24 @@ public interface IUnitOfWork : IDisposable, IAsyncDisposable
     DbSet<AiCallLog> AiCallLogs { get; }
     DbSet<Alias> Aliases { get; }
     DbSet<ExpenseAliasSplit> ExpenseAliasSplits { get; }
+    DbSet<RecurringExpenseTemplate> RecurringExpenseTemplates { get; }
+    DbSet<RecurringExpenseTemplateSplit> RecurringExpenseTemplateSplits { get; }
+    DbSet<RecurringExpenseTemplateAliasSplit> RecurringExpenseTemplateAliasSplits { get; }
+    DbSet<RecurringExpenseInstance> RecurringExpenseInstances { get; }
+    DbSet<RecurringExpenseInstanceSplit> RecurringExpenseInstanceSplits { get; }
+    DbSet<RecurringExpenseInstanceAliasSplit> RecurringExpenseInstanceAliasSplits { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task BeginTransactionAsync(CancellationToken cancellationToken = default);
     Task CommitTransactionAsync(CancellationToken cancellationToken = default);
     Task RollbackTransactionAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Discards all tracked/added entities without saving. Used by background jobs to
+    /// recover from a failed save (e.g. unique-constraint violation) without leaking
+    /// poisoned tracked state into subsequent saves.
+    /// </summary>
+    void ClearChangeTracker();
 }
 
 public class UnitOfWork(AppDbContext context) : IUnitOfWork
@@ -47,6 +60,12 @@ public class UnitOfWork(AppDbContext context) : IUnitOfWork
     public DbSet<AiCallLog> AiCallLogs => context.AiCallLogs;
     public DbSet<Alias> Aliases => context.Aliases;
     public DbSet<ExpenseAliasSplit> ExpenseAliasSplits => context.ExpenseAliasSplits;
+    public DbSet<RecurringExpenseTemplate> RecurringExpenseTemplates => context.RecurringExpenseTemplates;
+    public DbSet<RecurringExpenseTemplateSplit> RecurringExpenseTemplateSplits => context.RecurringExpenseTemplateSplits;
+    public DbSet<RecurringExpenseTemplateAliasSplit> RecurringExpenseTemplateAliasSplits => context.RecurringExpenseTemplateAliasSplits;
+    public DbSet<RecurringExpenseInstance> RecurringExpenseInstances => context.RecurringExpenseInstances;
+    public DbSet<RecurringExpenseInstanceSplit> RecurringExpenseInstanceSplits => context.RecurringExpenseInstanceSplits;
+    public DbSet<RecurringExpenseInstanceAliasSplit> RecurringExpenseInstanceAliasSplits => context.RecurringExpenseInstanceAliasSplits;
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -76,6 +95,11 @@ public class UnitOfWork(AppDbContext context) : IUnitOfWork
             await _transaction.DisposeAsync();
             _transaction = null;
         }
+    }
+
+    public void ClearChangeTracker()
+    {
+        context.ChangeTracker.Clear();
     }
 
     public void Dispose()

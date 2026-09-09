@@ -34,6 +34,15 @@
         @click="navigateTo(`/groups/${group.id}/members`)"
       />
 
+      <UButton
+        v-if="group"
+        variant="soft"
+        icon="i-lucide-repeat"
+        size="xs"
+        :label="$t('recurring.title')"
+        @click="navigateTo(`/groups/${group.id}/recurring`)"
+      />
+
       <template v-if="group?.useAliases">
         <UButton
           v-if="group?.aliasSetupFinalized && aliasCount !== null"

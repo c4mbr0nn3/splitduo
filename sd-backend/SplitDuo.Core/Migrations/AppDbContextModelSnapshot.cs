@@ -190,6 +190,10 @@ namespace SplitDuo.Core.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("payment_mode_id");
 
+                    b.Property<int?>("RecurringExpenseTemplateId")
+                        .HasColumnType("integer")
+                        .HasColumnName("recurring_expense_template_id");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("text")
@@ -210,6 +214,8 @@ namespace SplitDuo.Core.Migrations
                     b.HasIndex("ImportId");
 
                     b.HasIndex("PaidByAliasId");
+
+                    b.HasIndex("RecurringExpenseTemplateId");
 
                     b.HasIndex("GroupId", "ExpenseDate");
 
@@ -702,6 +708,348 @@ namespace SplitDuo.Core.Migrations
                     b.ToTable("notifications");
                 });
 
+            modelBuilder.Entity("SplitDuo.Core.Domain.Entities.RecurringExpenseInstance", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric")
+                        .HasColumnName("amount");
+
+                    b.Property<long?>("ApprovedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("approved_at");
+
+                    b.Property<int?>("ApprovedById")
+                        .HasColumnType("integer")
+                        .HasColumnName("approved_by_id");
+
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("created_at");
+
+                    b.Property<long?>("DeletedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<int?>("ExpenseId")
+                        .HasColumnType("integer")
+                        .HasColumnName("expense_id");
+
+                    b.Property<Guid>("Guid")
+                        .HasColumnType("uuid")
+                        .HasColumnName("guid");
+
+                    b.Property<DateOnly>("PeriodDate")
+                        .HasColumnType("date")
+                        .HasColumnName("period_date");
+
+                    b.Property<int>("StatusId")
+                        .HasColumnType("integer")
+                        .HasColumnName("status_id");
+
+                    b.Property<int>("TemplateId")
+                        .HasColumnType("integer")
+                        .HasColumnName("template_id");
+
+                    b.Property<long>("UpdatedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApprovedById");
+
+                    b.HasIndex("DeletedAt");
+
+                    b.HasIndex("ExpenseId");
+
+                    b.HasIndex("Guid");
+
+                    b.HasIndex("TemplateId", "PeriodDate")
+                        .IsUnique();
+
+                    b.HasIndex("TemplateId", "StatusId");
+
+                    b.ToTable("recurring_expense_instances");
+                });
+
+            modelBuilder.Entity("SplitDuo.Core.Domain.Entities.RecurringExpenseInstanceAliasSplit", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AliasId")
+                        .HasColumnType("integer")
+                        .HasColumnName("alias_id");
+
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("created_at");
+
+                    b.Property<int>("InstanceId")
+                        .HasColumnType("integer")
+                        .HasColumnName("instance_id");
+
+                    b.Property<decimal>("SplitAmount")
+                        .HasColumnType("numeric")
+                        .HasColumnName("split_amount");
+
+                    b.Property<long>("UpdatedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AliasId");
+
+                    b.HasIndex("InstanceId");
+
+                    b.ToTable("recurring_expense_instance_alias_splits");
+                });
+
+            modelBuilder.Entity("SplitDuo.Core.Domain.Entities.RecurringExpenseInstanceSplit", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("created_at");
+
+                    b.Property<int>("InstanceId")
+                        .HasColumnType("integer")
+                        .HasColumnName("instance_id");
+
+                    b.Property<decimal>("SplitAmount")
+                        .HasColumnType("numeric")
+                        .HasColumnName("split_amount");
+
+                    b.Property<long>("UpdatedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InstanceId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("recurring_expense_instance_splits");
+                });
+
+            modelBuilder.Entity("SplitDuo.Core.Domain.Entities.RecurringExpenseTemplate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric")
+                        .HasColumnName("amount");
+
+                    b.Property<DateOnly>("AnchorDate")
+                        .HasColumnType("date")
+                        .HasColumnName("anchor_date");
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("integer")
+                        .HasColumnName("category_id");
+
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("created_at");
+
+                    b.Property<int?>("DayOfMonth")
+                        .HasColumnType("integer")
+                        .HasColumnName("day_of_month");
+
+                    b.Property<long?>("DeletedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date")
+                        .HasColumnName("end_date");
+
+                    b.Property<int>("GroupId")
+                        .HasColumnType("integer")
+                        .HasColumnName("group_id");
+
+                    b.Property<Guid>("Guid")
+                        .HasColumnType("uuid")
+                        .HasColumnName("guid");
+
+                    b.Property<int?>("Interval")
+                        .HasColumnType("integer")
+                        .HasColumnName("interval");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<int>("OwnerId")
+                        .HasColumnType("integer")
+                        .HasColumnName("owner_id");
+
+                    b.Property<int?>("PaidByAliasId")
+                        .HasColumnType("integer")
+                        .HasColumnName("paid_by_alias_id");
+
+                    b.Property<int>("PaidByUserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("paid_by_user_id");
+
+                    b.Property<string>("PausedReason")
+                        .HasColumnType("text")
+                        .HasColumnName("paused_reason");
+
+                    b.Property<int>("PaymentModeId")
+                        .HasColumnType("integer")
+                        .HasColumnName("payment_mode_id");
+
+                    b.Property<int>("RecurrenceModeId")
+                        .HasColumnType("integer")
+                        .HasColumnName("recurrence_mode_id");
+
+                    b.Property<bool>("RequiresApproval")
+                        .HasColumnType("boolean")
+                        .HasColumnName("requires_approval");
+
+                    b.Property<DateOnly?>("ResumeFrom")
+                        .HasColumnType("date")
+                        .HasColumnName("resume_from");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("title");
+
+                    b.Property<long>("UpdatedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Weekdays")
+                        .HasColumnType("integer")
+                        .HasColumnName("weekdays");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeletedAt");
+
+                    b.HasIndex("Guid");
+
+                    b.HasIndex("OwnerId");
+
+                    b.HasIndex("PaidByAliasId");
+
+                    b.HasIndex("PaidByUserId");
+
+                    b.HasIndex("GroupId", "IsActive");
+
+                    b.ToTable("recurring_expense_templates");
+                });
+
+            modelBuilder.Entity("SplitDuo.Core.Domain.Entities.RecurringExpenseTemplateAliasSplit", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AliasId")
+                        .HasColumnType("integer")
+                        .HasColumnName("alias_id");
+
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("created_at");
+
+                    b.Property<decimal>("SplitAmount")
+                        .HasColumnType("numeric")
+                        .HasColumnName("split_amount");
+
+                    b.Property<int>("TemplateId")
+                        .HasColumnType("integer")
+                        .HasColumnName("template_id");
+
+                    b.Property<long>("UpdatedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AliasId");
+
+                    b.HasIndex("TemplateId");
+
+                    b.ToTable("recurring_expense_template_alias_splits");
+                });
+
+            modelBuilder.Entity("SplitDuo.Core.Domain.Entities.RecurringExpenseTemplateSplit", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("created_at");
+
+                    b.Property<decimal>("SplitAmount")
+                        .HasColumnType("numeric")
+                        .HasColumnName("split_amount");
+
+                    b.Property<int>("TemplateId")
+                        .HasColumnType("integer")
+                        .HasColumnName("template_id");
+
+                    b.Property<long>("UpdatedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TemplateId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("recurring_expense_template_splits");
+                });
+
             modelBuilder.Entity("SplitDuo.Core.Domain.Entities.RefreshToken", b =>
                 {
                     b.Property<int>("Id")
@@ -951,6 +1299,17 @@ namespace SplitDuo.Core.Migrations
                                 .IsRequired()
                                 .HasMaxLength(8);
 
+                            b1.ComplexCollection(typeof(List<Dictionary<string, object>>), "DismissedNotifications", "SplitDuo.Core.Domain.Entities.User.Settings#UserSettings.DismissedNotifications#DismissedNotification", b2 =>
+                                {
+                                    b2.IsRequired();
+
+                                    b2.Property<string>("TargetKey")
+                                        .IsRequired();
+
+                                    b2.Property<string>("Type")
+                                        .IsRequired();
+                                });
+
                             b1
                                 .ToJson("settings")
                                 .HasColumnType("jsonb");
@@ -1080,6 +1439,10 @@ namespace SplitDuo.Core.Migrations
                         .WithMany()
                         .HasForeignKey("PaidByAliasId");
 
+                    b.HasOne("SplitDuo.Core.Domain.Entities.RecurringExpenseTemplate", "RecurringExpenseTemplate")
+                        .WithMany()
+                        .HasForeignKey("RecurringExpenseTemplateId");
+
                     b.Navigation("Group");
 
                     b.Navigation("Import");
@@ -1087,6 +1450,8 @@ namespace SplitDuo.Core.Migrations
                     b.Navigation("PaidByAlias");
 
                     b.Navigation("PaidByUser");
+
+                    b.Navigation("RecurringExpenseTemplate");
                 });
 
             modelBuilder.Entity("SplitDuo.Core.Domain.Entities.ExpenseAliasSplit", b =>
@@ -1212,6 +1577,138 @@ namespace SplitDuo.Core.Migrations
                     b.Navigation("InvitedByUser");
                 });
 
+            modelBuilder.Entity("SplitDuo.Core.Domain.Entities.RecurringExpenseInstance", b =>
+                {
+                    b.HasOne("SplitDuo.Core.Domain.Entities.User", "ApprovedBy")
+                        .WithMany()
+                        .HasForeignKey("ApprovedById");
+
+                    b.HasOne("SplitDuo.Core.Domain.Entities.Expense", "Expense")
+                        .WithMany()
+                        .HasForeignKey("ExpenseId");
+
+                    b.HasOne("SplitDuo.Core.Domain.Entities.RecurringExpenseTemplate", "Template")
+                        .WithMany()
+                        .HasForeignKey("TemplateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ApprovedBy");
+
+                    b.Navigation("Expense");
+
+                    b.Navigation("Template");
+                });
+
+            modelBuilder.Entity("SplitDuo.Core.Domain.Entities.RecurringExpenseInstanceAliasSplit", b =>
+                {
+                    b.HasOne("SplitDuo.Core.Domain.Entities.Alias", "Alias")
+                        .WithMany()
+                        .HasForeignKey("AliasId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SplitDuo.Core.Domain.Entities.RecurringExpenseInstance", "Instance")
+                        .WithMany()
+                        .HasForeignKey("InstanceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Alias");
+
+                    b.Navigation("Instance");
+                });
+
+            modelBuilder.Entity("SplitDuo.Core.Domain.Entities.RecurringExpenseInstanceSplit", b =>
+                {
+                    b.HasOne("SplitDuo.Core.Domain.Entities.RecurringExpenseInstance", "Instance")
+                        .WithMany()
+                        .HasForeignKey("InstanceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SplitDuo.Core.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Instance");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SplitDuo.Core.Domain.Entities.RecurringExpenseTemplate", b =>
+                {
+                    b.HasOne("SplitDuo.Core.Domain.Entities.Group", "Group")
+                        .WithMany()
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SplitDuo.Core.Domain.Entities.User", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SplitDuo.Core.Domain.Entities.Alias", "PaidByAlias")
+                        .WithMany()
+                        .HasForeignKey("PaidByAliasId");
+
+                    b.HasOne("SplitDuo.Core.Domain.Entities.User", "PaidByUser")
+                        .WithMany()
+                        .HasForeignKey("PaidByUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Group");
+
+                    b.Navigation("Owner");
+
+                    b.Navigation("PaidByAlias");
+
+                    b.Navigation("PaidByUser");
+                });
+
+            modelBuilder.Entity("SplitDuo.Core.Domain.Entities.RecurringExpenseTemplateAliasSplit", b =>
+                {
+                    b.HasOne("SplitDuo.Core.Domain.Entities.Alias", "Alias")
+                        .WithMany()
+                        .HasForeignKey("AliasId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SplitDuo.Core.Domain.Entities.RecurringExpenseTemplate", "Template")
+                        .WithMany("AliasSplits")
+                        .HasForeignKey("TemplateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Alias");
+
+                    b.Navigation("Template");
+                });
+
+            modelBuilder.Entity("SplitDuo.Core.Domain.Entities.RecurringExpenseTemplateSplit", b =>
+                {
+                    b.HasOne("SplitDuo.Core.Domain.Entities.RecurringExpenseTemplate", "Template")
+                        .WithMany("Splits")
+                        .HasForeignKey("TemplateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SplitDuo.Core.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Template");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("SplitDuo.Core.Domain.Entities.RefreshToken", b =>
                 {
                     b.HasOne("SplitDuo.Core.Domain.Entities.User", "User")
@@ -1262,6 +1759,13 @@ namespace SplitDuo.Core.Migrations
                     b.Navigation("Aliases");
 
                     b.Navigation("GroupMembers");
+                });
+
+            modelBuilder.Entity("SplitDuo.Core.Domain.Entities.RecurringExpenseTemplate", b =>
+                {
+                    b.Navigation("AliasSplits");
+
+                    b.Navigation("Splits");
                 });
 #pragma warning restore 612, 618
         }
