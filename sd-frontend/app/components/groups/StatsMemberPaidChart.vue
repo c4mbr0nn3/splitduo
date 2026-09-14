@@ -29,7 +29,7 @@ const { t } = useI18n()
 const { primaryColor, themeMode } = useChartTheme()
 
 const series = computed(() => [{
-  name: 'Paid',
+  name: t('stats.paid'),
   data: props.balances.map(b => Number(b.totalPaid)),
 }])
 
