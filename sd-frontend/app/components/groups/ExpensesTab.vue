@@ -12,7 +12,7 @@
         />
         <GroupsStatsCards
           class="lg:col-span-3"
-          :expense-count="Number(expensePagination.total)"
+          :expense-count="Number(groupStats?.expenseCount ?? 0)"
           :group-total="getGroupTotal()"
           :group-id="props.groupId"
           :is-alias-mode="isAliasMode"
@@ -128,7 +128,7 @@ const router = useRouter()
 const { user } = useAuth()
 const { expenses: rawExpenses, fetchExpenses, pagination: expensePagination } = useExpenses(props.groupId)
 const expenses = computed(() => rawExpenses.value as unknown as Expense[])
-const { balanceSummary, fetchBalanceSummary, isAliasMode, fetchGroup } = useBalances(props.groupId)
+const { balanceSummary, fetchBalanceSummary, groupStats, fetchGroupStats, isAliasMode, fetchGroup } = useBalances(props.groupId)
 const { aliases, fetchAliases } = useAliases()
 const { categories } = useCategories()
 const { isAiEnabled } = useAiStatus()
@@ -271,6 +271,7 @@ onMounted(async () => {
         await fetchAliases(props.groupId)
       }
       await fetchBalanceSummary()
+      await fetchGroupStats()
     })
   }
   finally {
