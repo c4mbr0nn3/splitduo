@@ -13,7 +13,7 @@
         <GroupsStatsCards
           class="lg:col-span-3"
           :expense-count="Number(groupStats?.expenseCount ?? 0)"
-          :group-total="getGroupTotal()"
+          :group-total="Number(groupStats?.totalAmount ?? 0)"
           :group-id="props.groupId"
           :is-alias-mode="isAliasMode"
         />
@@ -219,12 +219,6 @@ const memberOptions = computed(() => {
     })),
   ]
 })
-
-const getGroupTotal = () => {
-  if (!summary.value?.balances) return 0
-  const normalBalances = summary.value.balances as NormalBalance[]
-  return normalBalances.reduce((total, balance) => total + Number(balance.totalPaid), 0)
-}
 
 const addExpense = () => {
   navigateTo(`/expenses/add?groupId=${props.groupId}`)
