@@ -591,6 +591,8 @@
     "noStatsSubtitle": "Aggiungi alcune spese per vedere le statistiche del gruppo",
     "memberBalances": "Saldo Membri",
     "aliasBalances": "Saldo Sottogruppi",
+    "aliasBalancesUnavailable": "Saldi dei sottogruppi non mostrati qui",
+    "aliasBalancesUnavailableSubtitle": "I saldi dei sottogruppi sono disponibili nella pagina Salda i conti",
     "paid": "Pagato",
     "owes": "Deve",
     "yourNetBalance": "Il Tuo Saldo Netto",

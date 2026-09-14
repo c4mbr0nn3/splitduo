@@ -45,7 +45,21 @@
         />
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 items-stretch">
+      <div
+        v-if="isAliasMode && !groupStats.balances?.length"
+        class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 items-stretch"
+      >
+        <UiEmptyState
+          class="lg:col-span-3"
+          icon="i-lucide-users"
+          :title="$t('stats.aliasBalancesUnavailable')"
+          :subtitle="$t('stats.aliasBalancesUnavailableSubtitle')"
+        />
+      </div>
+      <div
+        v-else
+        class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 items-stretch"
+      >
         <GroupsStatsMemberPaidChart
           v-if="groupStats.balances?.length"
           class="lg:col-span-2"
@@ -98,9 +112,12 @@ interface Props {
 }
 const props = defineProps<Props>()
 
-const { groupStats, fetchGroupStats, isLoading: isLoadingStats, isAliasMode } = useBalances(props.groupId)
+const { groupStats, fetchGroupStats, isLoading: isLoadingStats, isAliasMode, fetchGroup } = useBalances(props.groupId)
 
 onMounted(async () => {
-  await fetchGroupStats()
+  // fetchGroup populates currentGroup, which isAliasMode depends on
+  // (useGroups state is per-call, not shared). Kept parallel with
+  // fetchGroupStats so the loading skeleton appears immediately.
+  await Promise.all([fetchGroup(props.groupId), fetchGroupStats()])
 })
 </script>

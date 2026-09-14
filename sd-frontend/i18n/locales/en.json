@@ -591,6 +591,8 @@
     "noStatsSubtitle": "Add some expenses to see group stats",
     "memberBalances": "Member Balances",
     "aliasBalances": "Subgroup Balances",
+    "aliasBalancesUnavailable": "Subgroup balances not shown here",
+    "aliasBalancesUnavailableSubtitle": "Subgroup balances are available on the Settle up page",
     "paid": "Paid",
     "owes": "Owes",
     "yourNetBalance": "Your Net Balance",
