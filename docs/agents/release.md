@@ -30,6 +30,16 @@ Run `./scripts/bump-version.sh [major|minor|patch|--auto]` — it orchestrates:
 - **Do not edit by hand** — manual edits will be overwritten on the next release.
 - Regenerate manually with `pnpm changelog`.
 
+## Release Candidates
+
+Release candidates are triggered by pushing an annotated tag `vX.Y.Z-rc.N` (e.g. `v1.17.0-rc.1`), created by `./scripts/bump-rc.sh [--base X.Y.Z] [-d] [-y]`:
+
+- RC tags are **tag-only**: they never modify `VERSION`/`package.json` and never create a commit.
+- CI publishes Docker tags `:X.Y.Z-rc.N` (immutable) + moving `:rc`. Never `:latest`. No GitLab/GitHub release objects are created — RC visibility is git tags, Docker tags, and the README section only.
+- `cliff.toml` excludes RC tags from `CHANGELOG.md`; their commits appear in the next stable release section.
+
+The stable flow (`bump-version.sh`) is unchanged, and it correctly ignores RC tags when computing the next stable version.
+
 ## Gotchas
 
 - `CHANGELOG.md` is auto-generated — manual edits are overwritten on the next release.

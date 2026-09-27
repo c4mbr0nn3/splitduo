@@ -100,6 +100,28 @@ Open `http://localhost:3000` — default login is `admin@splitduo.local` / `chan
 
 ---
 
+## Release candidates
+
+Release candidates are pre-release builds for testing upcoming changes. They are **not** official or stable releases, may be unstable, and are not recommended for production or for data you care about.
+
+To run one, point the `image:` line in your `docker-compose.yml` at the `rc` tag and start the stack:
+
+```yaml
+services:
+  splitduo-app:
+    image: j1mm0/splitduo:rc
+```
+
+```bash
+docker compose up -d
+```
+
+The `rc` tag always points at the newest release candidate. To pin a specific one instead, use an immutable tag such as `j1mm0/splitduo:1.17.0-rc.1`.
+
+The default `:latest` image tracks the newest stable release and is never a release candidate. Release candidates are not published as releases; the stable `vX.Y.Z` releases remain the official ones.
+
+---
+
 ## Documentation
 
 ### Setup & Operations

@@ -167,6 +167,24 @@ The database volume is preserved, so your data carries over. EF Core applies any
 
 > If you pinned a specific version tag instead of `latest`, edit the `image:` line in `docker-compose.yml` (e.g. `j1mm0/splitduo:1.11.1`) and rerun the commands above. See the [releases page](https://gitlab.com/j1mm0/splitduo/-/releases) for available tags.
 
+### Testing a release candidate
+
+Release candidates are pre-release builds for testing; they are not stable and not recommended for production.
+
+Edit the `image:` line in `docker-compose.yml` to the `rc` tag and recreate the containers:
+
+```yaml
+services:
+  splitduo-app:
+    image: j1mm0/splitduo:rc
+```
+
+```bash
+docker compose pull && docker compose up -d
+```
+
+The `rc` tag always points at the newest release candidate. To pin a specific one instead, use an immutable tag such as `j1mm0/splitduo:1.17.0-rc.1`. The database volume is preserved, so switching an existing instance over keeps your data; to go back to stable, set the `image:` line back to `j1mm0/splitduo:latest` and rerun `docker compose pull && docker compose up -d`.
+
 ---
 
 ## Common operations
