@@ -54,6 +54,7 @@ class FakeImage {
   width = 4000
   height = 3000
   onload: (() => void) | null = null
+  onerror: (() => void) | null = null
   private _src = ''
   get src(): string {
     return this._src
@@ -65,6 +66,23 @@ class FakeImage {
   }
 }
 
+// Variant whose decode fails: setting src fires onerror (undecodable file).
+class ErrorImage {
+  width = 0
+  height = 0
+  onload: (() => void) | null = null
+  onerror: (() => void) | null = null
+  private _src = ''
+  get src(): string {
+    return this._src
+  }
+
+  set src(value: string) {
+    this._src = value
+    this.onerror?.()
+  }
+}
+
 describe('useReceiptScan', () => {
   // The first dynamic import of the module graph pays a one-off transform cost
   // that can exceed the default 5000ms test timeout, so warm it up in beforeAll.
@@ -73,6 +91,9 @@ describe('useReceiptScan', () => {
   })
 
   beforeEach(() => {
+    // Scan state is module-scoped (singleton) — reset the module graph so
+    // phase/error/lastScanFile state does not leak between tests.
+    vi.resetModules()
     vi.clearAllMocks()
     vi.stubGlobal('Image', FakeImage)
   })
@@ -94,7 +115,11 @@ describe('useReceiptScan', () => {
 
       expect(createObjectURLSpy).toHaveBeenCalledWith(expect.any(File))
       expect(revokeObjectURLSpy).toHaveBeenCalledWith('blob:fake-image')
-      expect(apiMock.post).toHaveBeenCalledWith('/receipts/parse', expect.any(FormData))
+      expect(apiMock.post).toHaveBeenCalledWith(
+        '/receipts/parse',
+        expect.any(FormData),
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
+      )
       const formData = apiMock.post.mock.calls[0]?.[1] as FormData
       expect(formData.get('image')).toBeInstanceOf(Blob)
       expect(routerMock.push).toHaveBeenCalledWith({
@@ -120,7 +145,11 @@ describe('useReceiptScan', () => {
 
       await scan.scanReceipt(receiptFile(), 'group-1')
 
-      expect(apiMock.post).toHaveBeenCalledWith('/receipts/parse', expect.any(FormData))
+      expect(apiMock.post).toHaveBeenCalledWith(
+        '/receipts/parse',
+        expect.any(FormData),
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
+      )
       const formData = apiMock.post.mock.calls[0]?.[1] as FormData
       expect(formData.get('image')).toBeInstanceOf(Blob)
       expect(routerMock.push).toHaveBeenCalledWith({
@@ -136,6 +165,7 @@ describe('useReceiptScan', () => {
         },
       })
       expect(scan.isScanning.value).toBe(false)
+      expect(scan.phase.value).toBe('success')
     })
 
     it('omits groupId from the query when no group is provided', async () => {
@@ -174,19 +204,20 @@ describe('useReceiptScan', () => {
       })
     })
 
-    it('shows an error toast and does not navigate when the API call fails', async () => {
+    it('sets scanError + error phase and does not navigate when the API call fails', async () => {
       apiMock.post.mockRejectedValue(new Error('Network down'))
       const { default: useReceiptScan } = await import('./useReceiptScan')
       const scan = useReceiptScan()
 
       await scan.scanReceipt(receiptFile(), 'group-1')
 
-      expect(notificationsMock.showError).toHaveBeenCalledWith('toasts.receipts.scanFailed')
+      expect(scan.scanError.value).not.toBeNull()
+      expect(scan.phase.value).toBe('error')
       expect(routerMock.push).not.toHaveBeenCalled()
       expect(scan.isScanning.value).toBe(false)
     })
 
-    it('shows an error toast and does not navigate when the response is unsuccessful', async () => {
+    it('sets scanError + error phase and does not navigate when the response is unsuccessful', async () => {
       apiMock.post.mockResolvedValue({
         success: false,
         data: null,
@@ -197,7 +228,8 @@ describe('useReceiptScan', () => {
 
       await scan.scanReceipt(receiptFile(), 'group-1')
 
-      expect(notificationsMock.showError).toHaveBeenCalledWith('toasts.receipts.scanFailed')
+      expect(scan.scanError.value).not.toBeNull()
+      expect(scan.phase.value).toBe('error')
       expect(routerMock.push).not.toHaveBeenCalled()
     })
 
@@ -222,6 +254,90 @@ describe('useReceiptScan', () => {
       await pending
 
       expect(scan.isScanning.value).toBe(false)
+    })
+
+    it('resets phase to idle and clears error when cancelled mid-flight (AbortError rejection)', async () => {
+      const abortError = new Error('The operation was aborted')
+      abortError.name = 'AbortError'
+      let rejectScan: (reason: unknown) => void = () => {}
+      apiMock.post.mockImplementation(() => new Promise((_resolve, reject) => {
+        rejectScan = reject
+      }))
+      const { default: useReceiptScan } = await import('./useReceiptScan')
+      const scan = useReceiptScan()
+
+      const pending = scan.scanReceipt(receiptFile(), 'group-1')
+      // Let compression settle so the POST is issued and phase is 'analyzing'
+      await new Promise(resolve => setTimeout(resolve, 0))
+      expect(scan.phase.value).toBe('analyzing')
+
+      scan.cancelScan()
+      rejectScan(abortError)
+      await pending
+
+      expect(scan.phase.value).toBe('idle')
+      expect(scan.scanError.value).toBeNull()
+      expect(routerMock.push).not.toHaveBeenCalled()
+    })
+
+    it('cancelScan aborts the signal passed to post', async () => {
+      const holder: { signal?: AbortSignal } = {}
+      apiMock.post.mockImplementation((_endpoint: string, _body: unknown, options?: { signal?: AbortSignal }) => {
+        holder.signal = options?.signal
+        return new Promise(() => {}) // never resolves — represents in-flight
+      })
+      const { default: useReceiptScan } = await import('./useReceiptScan')
+      const scan = useReceiptScan()
+
+      void scan.scanReceipt(receiptFile(), 'group-1')
+      await new Promise(resolve => setTimeout(resolve, 0))
+
+      expect(holder.signal).toBeInstanceOf(AbortSignal)
+      expect(holder.signal?.aborted).toBe(false)
+      scan.cancelScan()
+      expect(holder.signal?.aborted).toBe(true)
+    })
+
+    it('retryScan re-invokes post with the same file + groupId', async () => {
+      apiMock.post.mockResolvedValue({ success: true, data: parsedReceipt })
+      const { default: useReceiptScan } = await import('./useReceiptScan')
+      const scan = useReceiptScan()
+
+      await scan.scanReceipt(receiptFile(), 'group-1')
+      apiMock.post.mockClear()
+      await scan.retryScan()
+
+      expect(apiMock.post).toHaveBeenCalledTimes(1)
+      expect(apiMock.post).toHaveBeenCalledWith(
+        '/receipts/parse',
+        expect.any(FormData),
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
+      )
+    })
+
+    it('ignores a second concurrent scanReceipt call (re-entrancy guard)', async () => {
+      apiMock.post.mockImplementation(() => new Promise(() => {})) // never resolves
+      const { default: useReceiptScan } = await import('./useReceiptScan')
+      const scan = useReceiptScan()
+
+      void scan.scanReceipt(receiptFile(), 'group-1')
+      await new Promise(resolve => setTimeout(resolve, 0))
+      await scan.scanReceipt(receiptFile(), 'group-2')
+
+      expect(apiMock.post).toHaveBeenCalledTimes(1)
+    })
+
+    it('enters error phase and skips post when the image fails to decode (img.onerror)', async () => {
+      vi.stubGlobal('Image', ErrorImage)
+      const { default: useReceiptScan } = await import('./useReceiptScan')
+      const scan = useReceiptScan()
+
+      await scan.scanReceipt(receiptFile(), 'group-1')
+
+      expect(scan.phase.value).toBe('error')
+      expect(scan.scanError.value).not.toBeNull()
+      expect(apiMock.post).not.toHaveBeenCalled()
+      expect(routerMock.push).not.toHaveBeenCalled()
     })
   })
 })

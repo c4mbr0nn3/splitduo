@@ -278,6 +278,7 @@
     "zoom": "Ingrandisci",
     "close": "Chiudi",
     "scanReceipt": "Scansiona Ricevuta",
+    "scan": { "title": "Scansione ricevuta", "preparing": "Preparazione immagine…", "analyzing": "Analisi della ricevuta con AI…", "analyzingHint": "Di solito richiede qualche secondo.", "success": "Ricevuta analizzata", "successHint": "Apertura del modulo spesa…", "errorTitle": "Impossibile scansionare la ricevuta", "errorHint": "Verifica che la foto sia nitida e ben illuminata, poi riprova.", "cancel": "Annulla", "imageAlt": "Foto della ricevuta in scansione" },
     "you": "Tu",
     "peopleCount": "{count} persone",
     "splitAmong": "Diviso tra: {names}",
