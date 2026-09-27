@@ -278,6 +278,7 @@
     "zoom": "Zoom",
     "close": "Close",
     "scanReceipt": "Scan Receipt",
+    "scan": { "title": "Scanning receipt", "preparing": "Preparing image…", "analyzing": "Analyzing receipt with AI…", "analyzingHint": "This usually takes a few seconds.", "success": "Receipt analyzed", "successHint": "Opening the expense form…", "errorTitle": "Couldn't scan this receipt", "errorHint": "Check the photo is sharp and well lit, then try again.", "cancel": "Cancel", "imageAlt": "Receipt photo being scanned" },
     "you": "You",
     "peopleCount": "{count} people",
     "splitAmong": "Split among: {names}",

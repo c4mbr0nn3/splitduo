@@ -89,8 +89,8 @@ export default function useApi() {
     getPaginated: <T>(endpoint: string, params?: Record<string, unknown>): Promise<PaginatedEnvelope<T>> =>
       request<PaginatedEnvelope<T>>(endpoint, { method: 'GET', params } as Parameters<typeof $fetch.raw>[1]) as unknown as Promise<PaginatedEnvelope<T>>,
 
-    post: <T>(endpoint: string, body?: unknown): Promise<ApiEnvelope<T>> =>
-      request<T>(endpoint, { method: 'POST', body } as Parameters<typeof $fetch.raw>[1]),
+    post: <T>(endpoint: string, body?: unknown, options?: { signal?: AbortSignal }): Promise<ApiEnvelope<T>> =>
+      request<T>(endpoint, { method: 'POST', body, signal: options?.signal } as Parameters<typeof $fetch.raw>[1]),
 
     put: <T>(endpoint: string, body?: unknown): Promise<ApiEnvelope<T>> =>
       request<T>(endpoint, { method: 'PUT', body } as Parameters<typeof $fetch.raw>[1]),
