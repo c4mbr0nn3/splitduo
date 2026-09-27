@@ -58,6 +58,12 @@ Before modifying these areas, read the corresponding guide:
 - Types: `feat`, `fix`, `refactor`, `docs`, `chore`, `style`, `perf`, `test`, `ci`, `build`
 - No body, no footer. **Never commit or push without explicit user approval.**
 
+### Dependency Upgrades
+
+- Triage every bump before applying it: patch/minor inside the declared range is **mechanical**; a semver major (or a runtime-critical package, or a surface with no test coverage) is **breaking**.
+- Both lanes end on the same floor: the area's full gate set passes and the contract the code depends on is verified before commit. Never commit a bump with gates red.
+- For the breaking-lane workflow, use the `upgrade-dependencies` skill.
+
 ### Issue Guidelines
 
 - Use the template at `.gitlab/issue_templates/Default.md` (available in GitLab's "Open" dropdown)

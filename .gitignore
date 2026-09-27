@@ -1,7 +1,9 @@
-**/.claude
+**/.claude/*
+!**/.claude/skills/
 **/trash
 **/.serena
 .agents/
+__pycache__/
 
 # Dev tooling (git-cliff changelog generator)
 node_modules/
