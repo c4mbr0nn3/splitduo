@@ -85,8 +85,10 @@ Options pattern via `IConfigureOptions<T>` in `Core/Options/Setup/`. Env vars ov
 | Job | Schedule | Purpose |
 |---|---|---|
 | `EmailNotificationProcessingJob` | Every 2 minutes | Send queued emails (max 3 retries) |
+| `RecurringExpenseGenerationJob` | Every 5 minutes | Generate due recurring expense instances (idempotent per period) |
 | `EmailNotificationPruneJob` | Daily 01:00 | Delete sent emails > 30 days |
 | `LogCleanupJob` | Daily 02:00 | Delete old Serilog DB entries |
+| `RefreshTokenCleanupJob` | Daily 03:00 | Delete expired refresh tokens |
 | `TempFileCleanupJob` | Daily 04:00 | Delete orphaned temp files |
 | `ImportProcessingJob` | On-demand | Process CSV import (triggered by user action) |
 

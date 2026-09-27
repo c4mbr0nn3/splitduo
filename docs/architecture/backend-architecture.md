@@ -640,9 +640,13 @@ The following services are needed to implement the core features outlined in the
 
 #### Background Jobs
 
-- **LogCleanupJob** - Background service for log maintenance _(implemented)_
 - **EmailNotificationProcessingJob** - Background service for processing email notifications _(implemented)_
+- **RecurringExpenseGenerationJob** - Background service for generating due recurring expense instances _(implemented)_
 - **EmailNotificationPruneJob** - Background service for pruning old email notifications _(implemented)_
+- **LogCleanupJob** - Background service for log maintenance _(implemented)_
+- **RefreshTokenCleanupJob** - Background service for deleting expired refresh tokens _(implemented)_
+- **TempFileCleanupJob** - Background service for cleaning up orphaned temp files _(implemented)_
+- **ImportProcessingJob** - On-demand job for processing CSV imports _(implemented)_
 
 #### Service Implementation Guidelines
 
