@@ -8,6 +8,8 @@
 # Release commits (chore: bump version to …) are skipped on the main branch
 # because the same commit is also tagged vX.Y.Z, which triggers an identical
 # tag pipeline — running both would duplicate the work on unchanged code.
+# The tag rule matches stable vX.Y.Z AND RC vX.Y.Z-rc.N tags (RC is a release
+# gate too).
 
 stages:
   - verify
@@ -21,7 +23,7 @@ lint:
   script:
     - cd sd-frontend && pnpm install --frozen-lockfile && pnpm lint
   rules:
-    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+.*$/
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+(-rc\.\d+)?$/
       when: on_success
     - if: '$CI_COMMIT_BRANCH == "main" && $CI_COMMIT_MESSAGE =~ /chore: bump version to \d+\.\d+\.\d+/'
       when: never
@@ -39,7 +41,7 @@ typecheck:
   script:
     - cd sd-frontend && pnpm install --frozen-lockfile && pnpm typecheck
   rules:
-    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+.*$/
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+(-rc\.\d+)?$/
       when: on_success
     - if: '$CI_COMMIT_BRANCH == "main" && $CI_COMMIT_MESSAGE =~ /chore: bump version to \d+\.\d+\.\d+/'
       when: never
@@ -57,7 +59,7 @@ frontend-unit-tests:
   script:
     - cd sd-frontend && pnpm install --frozen-lockfile && pnpm test -- --coverage
   rules:
-    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+.*$/
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+(-rc\.\d+)?$/
       when: on_success
     - if: '$CI_COMMIT_BRANCH == "main" && $CI_COMMIT_MESSAGE =~ /chore: bump version to \d+\.\d+\.\d+/'
       when: never
@@ -80,7 +82,7 @@ frontend-contract:
   script:
     - cd sd-frontend && pnpm install --frozen-lockfile && pnpm test:contract
   rules:
-    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+.*$/
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+(-rc\.\d+)?$/
       when: on_success
     - if: '$CI_COMMIT_BRANCH == "main" && $CI_COMMIT_MESSAGE =~ /chore: bump version to \d+\.\d+\.\d+/'
       when: never
@@ -113,7 +115,7 @@ unit-tests:
     - mv coverage/Cobertura.xml "$CI_PROJECT_DIR/coverage-unit.xml"
     - mv SplitDuo.Tests.Unit/test-results.xml "$CI_PROJECT_DIR/junit-results-unit.xml"
   rules:
-    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+.*$/
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+(-rc\.\d+)?$/
       when: on_success
     - if: '$CI_COMMIT_BRANCH == "main" && $CI_COMMIT_MESSAGE =~ /chore: bump version to \d+\.\d+\.\d+/'
       when: never

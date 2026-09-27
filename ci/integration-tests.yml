@@ -10,8 +10,8 @@
 # runs in the job container with normal internet access to nuget.org. dind is
 # only used as the Docker daemon for Testcontainers, reached over TCP.
 #
-# Auto on version tags (release gate); manual with allow_failure everywhere
-# else.
+# Auto on version tags (release gate) — stable vX.Y.Z and RC vX.Y.Z-rc.N
+# (RC is a release gate too); manual with allow_failure everywhere else.
 
 stages:
   - test
@@ -63,8 +63,9 @@ integration-tests:
     - mv coverage/Cobertura.xml "$CI_PROJECT_DIR/coverage-integration.xml"
     - mv SplitDuo.Tests.Integration/test-results.xml "$CI_PROJECT_DIR/junit-results-integration.xml"
   rules:
-    # Auto on version tags — integration tests are a release gate.
-    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+.*$/
+    # Auto on version tags (stable vX.Y.Z or RC vX.Y.Z-rc.N) — integration
+    # tests are a release gate for both.
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+(-rc\.\d+)?$/
       when: on_success
     # Release commits (chore: bump version to …) are skipped on main — the
     # same commit is tagged vX.Y.Z, which triggers the tag pipeline above.

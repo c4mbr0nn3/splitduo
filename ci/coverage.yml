@@ -7,7 +7,8 @@
 # the README badge reflects real combined coverage instead of whichever test
 # job happened to report last.
 #
-# Runs only when both upstream jobs ran automatically (main + tags). On MRs
+# Runs only when both upstream jobs ran automatically (main + tags, where
+# tags cover stable vX.Y.Z and RC vX.Y.Z-rc.N). On MRs
 # integration-tests is manual, so this job stays manual too — no partial
 # aggregate is published.
 
@@ -23,7 +24,7 @@ aggregate-coverage:
     - job: integration-tests
       artifacts: true
   rules:
-    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+.*$/
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+(-rc\.\d+)?$/
       when: on_success
     - if: '$CI_COMMIT_BRANCH == "main" && $CI_COMMIT_MESSAGE =~ /chore: bump version to \d+\.\d+\.\d+/'
       when: never

@@ -29,7 +29,8 @@
 #
 # Auto on version tags (release gate) and main pushes; manual with
 # allow_failure on MRs and other branches so contributors can opt in without
-# blocking their pipeline on a pre-existing finding.
+# blocking their pipeline on a pre-existing finding. The tag rule matches
+# stable vX.Y.Z AND RC vX.Y.Z-rc.N tags (RC is a release gate too).
 
 stages:
   - verify
@@ -43,7 +44,7 @@ security:trivy:
   script:
     - trivy fs . --severity HIGH,CRITICAL --format table --skip-dirs .git --exit-code 1
   rules:
-    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+.*$/
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+(-rc\.\d+)?$/
       when: on_success
     - if: '$CI_COMMIT_BRANCH == "main" && $CI_COMMIT_MESSAGE =~ /chore: bump version to \d+\.\d+\.\d+/'
       when: never
@@ -65,7 +66,7 @@ security:trufflehog:
     - printf '.git\nnode_modules\n.nuxt\n.output\n' > /tmp/exclude-paths.txt
     - trufflehog filesystem . --no-verification --fail --exclude-paths=/tmp/exclude-paths.txt
   rules:
-    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+.*$/
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+(-rc\.\d+)?$/
       when: on_success
     - if: '$CI_COMMIT_BRANCH == "main" && $CI_COMMIT_MESSAGE =~ /chore: bump version to \d+\.\d+\.\d+/'
       when: never

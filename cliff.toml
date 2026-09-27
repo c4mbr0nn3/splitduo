@@ -81,6 +81,10 @@ fail_on_unmatched_commit = false
 link_parsers = []
 # Include only the tags that belong to the current branch.
 use_branch_tags = false
+# Only treat stable vX.Y.Z tags as releases — RC tags (vX.Y.Z-rc.N) are
+# excluded so they never appear in CHANGELOG.md as their own section. Their
+# commits are folded into the next stable release section.
+tag_pattern = "^v[0-9]+\\.[0-9]+\\.[0-9]+$"
 # Order releases topologically instead of chronologically.
 topo_order = false
 # Order commits topologically instead of chronologically.

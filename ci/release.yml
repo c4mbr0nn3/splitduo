@@ -1,8 +1,9 @@
 # GitLab + GitHub Release creation for SplitDuo
 # SplitDuo CI — release stage
 #
-# Creates a GitLab Release and a GitHub Release for every v* tag pushed by
-# scripts/bump-version.sh. The repo is mirrored to GitHub by GitLab
+# Creates a GitLab Release and a GitHub Release for every stable v* tag
+# (vX.Y.Z) pushed by scripts/bump-version.sh. RC tags (vX.Y.Z-rc.N)
+# intentionally create no release. The repo is mirrored to GitHub by GitLab
 # (https://github.com/c4mbr0nn3/splitduo) — tags arrive there automatically,
 # so the GitHub job only needs to create the release object.
 #
@@ -26,7 +27,7 @@ extract_release_notes:
   stage: release
   image: alpine:latest
   rules:
-    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+.*$/
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
       when: on_success
   script:
     - VERSION=${CI_COMMIT_TAG#v}
@@ -53,7 +54,7 @@ create_gitlab_release:
   needs:
     - extract_release_notes
   rules:
-    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+.*$/
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
       when: on_success
   script:
     - echo "Creating GitLab Release for $CI_COMMIT_TAG"
@@ -74,7 +75,7 @@ create_github_release:
   needs:
     - extract_release_notes
   rules:
-    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+.*$/
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
       when: on_success
   before_script:
     - apk add --no-cache curl python3

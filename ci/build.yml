@@ -1,6 +1,18 @@
 # Build and push multi-arch Docker images to Docker Hub
 # SplitDuo CI — build stage
 # Phase 2: native per-arch builds on GitLab.com SaaS runners + manifest merge
+#
+# Tag policy is enforced by an explicit, mutually-exclusive branch in
+# merge_manifest so an RC tag can never publish :latest:
+#   vX.Y.Z-rc.N  -> :X.Y.Z-rc.N + moving :rc   (never :latest)
+#   vX.Y.Z       -> :X.Y.Z + :latest
+#   branch       -> :<sanitized-branch>        (manual pipelines only)
+#
+# RC tags are tag-only and are never written to ./VERSION, so tag pipelines
+# derive APP_VERSION from $CI_COMMIT_TAG; branch pipelines fall back to VERSION.
+#
+# Per-arch scratch tags are namespaced with $CI_PIPELINE_ID so a stable
+# pipeline and an RC pipeline can never overwrite each other's temp images.
 
 image: docker:28
 
@@ -16,7 +28,14 @@ variables:
     - docker context create tls-env
     - docker buildx create --use --driver docker-container tls-env
   script:
-    - VERSION=$(cat VERSION)
+    # Derive the app version: tag pipelines (stable and RC) use the tag,
+    # branch pipelines use the VERSION file.
+    - |
+      if [ -n "$CI_COMMIT_TAG" ]; then
+        VERSION="${CI_COMMIT_TAG#v}"
+      else
+        VERSION=$(cat VERSION)
+      fi
     - ARCH=${CI_JOB_NAME#build_}
     - docker buildx build
       --platform linux/$ARCH
@@ -27,13 +46,13 @@ variables:
       --build-arg BUILD_DATE=$CI_COMMIT_TIMESTAMP
       --build-arg BUILDKIT_INLINE_CACHE=1
       --cache-from $IMAGE_NAME:latest
-      -t $IMAGE_NAME:temp-$ARCH
+      -t $IMAGE_NAME:temp-$ARCH-$CI_PIPELINE_ID
       --push
       .
   after_script:
     - docker logout
   rules:
-    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+.*$/
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+(-rc\.\d+)?$/
       when: on_success
     - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "main"
       when: manual
@@ -61,18 +80,30 @@ merge_manifest:
     - apk add --no-cache curl
     - echo $DOCKER_HUB_PASSWORD | docker login -u $DOCKER_HUB_USERNAME --password-stdin
   script:
-    # Merge per-arch temp tags into a single multi-arch manifest
+    # Merge per-arch temp images into a single multi-arch manifest.
+    # The tag decision is an explicit mutually-exclusive branch: the RC case
+    # (checked first) publishes :rc and a version tag and can never reach the
+    # stable branch that pushes :latest.
     - |
-      if [[ "$CI_COMMIT_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+.*$ ]]; then
-        VERSION_TAG=${CI_COMMIT_TAG#v}
-        docker buildx imagetools create -t $IMAGE_NAME:$VERSION_TAG $IMAGE_NAME:temp-amd64 $IMAGE_NAME:temp-arm64
-        docker buildx imagetools create -t $IMAGE_NAME:latest $IMAGE_NAME:temp-amd64 $IMAGE_NAME:temp-arm64
-        echo "Pushed version $VERSION_TAG and latest multi-arch manifests"
-      fi
-    - |
-      if [[ -z "$CI_COMMIT_TAG" ]] && [[ "$CI_COMMIT_REF_NAME" != "main" ]]; then
+      SRC="$IMAGE_NAME:temp-amd64-$CI_PIPELINE_ID $IMAGE_NAME:temp-arm64-$CI_PIPELINE_ID"
+      if [ -n "$CI_COMMIT_TAG" ]; then
+        if echo "$CI_COMMIT_TAG" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$'; then
+          VERSION_TAG=${CI_COMMIT_TAG#v}
+          docker buildx imagetools create -t $IMAGE_NAME:$VERSION_TAG $SRC
+          docker buildx imagetools create -t $IMAGE_NAME:rc $SRC
+          echo "Pushed RC manifests: $VERSION_TAG + rc"
+        elif echo "$CI_COMMIT_TAG" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+          VERSION_TAG=${CI_COMMIT_TAG#v}
+          docker buildx imagetools create -t $IMAGE_NAME:$VERSION_TAG $SRC
+          docker buildx imagetools create -t $IMAGE_NAME:latest $SRC
+          echo "Pushed stable manifests: $VERSION_TAG + latest"
+        else
+          echo "Unrecognized tag '$CI_COMMIT_TAG' — refusing to publish"
+          exit 1
+        fi
+      elif [ "$CI_COMMIT_REF_NAME" != "main" ]; then
         BRANCH_TAG=$(echo $CI_COMMIT_REF_NAME | sed 's/[^a-zA-Z0-9._-]/-/g')
-        docker buildx imagetools create -t $IMAGE_NAME:$BRANCH_TAG $IMAGE_NAME:temp-amd64 $IMAGE_NAME:temp-arm64
+        docker buildx imagetools create -t $IMAGE_NAME:$BRANCH_TAG $SRC
         echo "Pushed branch multi-arch manifest: $BRANCH_TAG"
       fi
     # Delete temporary per-arch tags from Docker Hub
@@ -83,7 +114,7 @@ merge_manifest:
         echo "ERROR: failed to obtain Docker Hub access token (check DOCKER_HUB_USERNAME / DOCKER_HUB_PASSWORD)"
         exit 1
       fi
-      for TAG in temp-amd64 temp-arm64; do
+      for TAG in temp-amd64-$CI_PIPELINE_ID temp-arm64-$CI_PIPELINE_ID; do
         STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE "https://hub.docker.com/v2/repositories/$IMAGE_NAME/tags/$TAG/" -H "Authorization: Bearer $ACCESS_TOKEN")
         case "$STATUS" in
           200|204)
@@ -107,7 +138,7 @@ merge_manifest:
   after_script:
     - docker logout
   rules:
-    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+.*$/
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+(-rc\.\d+)?$/
       when: on_success
     - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "main"
       when: manual

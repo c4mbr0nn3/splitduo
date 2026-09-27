@@ -345,8 +345,8 @@ created=0
 skipped=0
 failed=0
 for tag in "${TAGS[@]}"; do
-    if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+.*$ ]]; then
-        echo -e "${YELLOW}Skipping $tag (not a v*.*.* tag)${NC}"
+    if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        echo -e "${YELLOW}Skipping $tag (not a stable v*.*.* tag, e.g. RC)${NC}"
         continue
     fi
     rc=0
