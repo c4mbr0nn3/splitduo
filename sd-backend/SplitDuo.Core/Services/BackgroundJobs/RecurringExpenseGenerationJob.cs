@@ -25,7 +25,7 @@ public sealed class RecurringExpenseGenerationJob(
     ICacheInvalidator cacheInvalidator,
     IExpenseCreationService expenseCreationService) : IJob
 {
-    public async Task Execute(IJobExecutionContext context)
+    public async ValueTask Execute(IJobExecutionContext context, CancellationToken cancellationToken = default)
     {
         var today = DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime);
         logger.LogInformation("Starting recurring expense generation for {Date}", today);

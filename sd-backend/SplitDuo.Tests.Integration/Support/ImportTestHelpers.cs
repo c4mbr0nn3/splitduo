@@ -88,6 +88,7 @@ public class TestJobExecutionContext(IScheduler scheduler, IJobDetail jobDetail,
     public bool Recovering => false;
     public TriggerKey RecoveringTriggerKey => new("test");
     public int RefireCount => 0;
+    public int RetryAttempt => 0;
     public JobDataMap JobDataMap => jobDetail.JobDataMap;
     public JobDataMap MergedJobDataMap => jobDetail.JobDataMap;
     public IJob JobInstance => null!;

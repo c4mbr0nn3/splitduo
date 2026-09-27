@@ -117,7 +117,7 @@ public static class ApiProgramExtensions
         {
             builder.Services.AddQuartz(q =>
             {
-                q.SchedulerId = "SplitDuo-Scheduler";
+                q.ConfigureScheduler(s => s.InstanceId = "SplitDuo-Scheduler");
                 q.UseSimpleTypeLoader();
                 q.UseInMemoryStore();
                 q.UseDefaultThreadPool(tp => { tp.MaxConcurrency = 5; });

@@ -9,7 +9,7 @@ namespace SplitDuo.Core.Services.BackgroundJobs;
 [DisallowConcurrentExecution]
 public class LogCleanupJob(ILogger<LogCleanupJob> logger, IOptions<DatabaseOptions> dbOptions) : IJob
 {
-    public async Task Execute(IJobExecutionContext context)
+    public async ValueTask Execute(IJobExecutionContext context, CancellationToken cancellationToken = default)
     {
         try
         {

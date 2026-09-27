@@ -172,6 +172,6 @@ public class TempFileCleanupJobTests
             TestTimeProvider);
 
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => job.Execute(Substitute.For<IJobExecutionContext>()));
+            () => job.Execute(Substitute.For<IJobExecutionContext>()).AsTask());
     }
 }

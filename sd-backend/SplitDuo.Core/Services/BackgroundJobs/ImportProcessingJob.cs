@@ -17,7 +17,7 @@ public class ImportProcessingJob(
     TimeProvider timeProvider,
     ICacheInvalidator cacheInvalidator) : IJob
 {
-    public async Task Execute(IJobExecutionContext context)
+    public async ValueTask Execute(IJobExecutionContext context, CancellationToken cancellationToken = default)
     {
         var importGuid = context.JobDetail.JobDataMap.GetString("ImportGuid");
         var importTypeString = context.JobDetail.JobDataMap.GetString("ImportType");

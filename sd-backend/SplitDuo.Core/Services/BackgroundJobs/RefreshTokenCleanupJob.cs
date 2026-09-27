@@ -11,7 +11,7 @@ public class RefreshTokenCleanupJob(
     IUnitOfWork unitOfWork,
     TimeProvider timeProvider) : IJob
 {
-    public async Task Execute(IJobExecutionContext context)
+    public async ValueTask Execute(IJobExecutionContext context, CancellationToken cancellationToken = default)
     {
         try
         {

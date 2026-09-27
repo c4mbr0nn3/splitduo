@@ -107,7 +107,7 @@ public class EmailNotificationProcessingJobTests
         var job = CreateJob(notificationService, unitOfWork);
 
         var exception = await Assert.ThrowsAsync<Exception>(
-            () => job.Execute(Substitute.For<IJobExecutionContext>()));
+            () => job.Execute(Substitute.For<IJobExecutionContext>()).AsTask());
 
         Assert.Contains("DB error", exception.Message);
         await notificationService.DidNotReceive().SendAsync(Arg.Any<Notification>());
