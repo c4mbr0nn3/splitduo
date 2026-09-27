@@ -59,6 +59,8 @@ variables:
 
 build_amd64:
   extends: .build_template
+  tags:
+    - homelab
   services:
     - docker:28-dind
 
@@ -72,6 +74,8 @@ build_arm64:
 
 merge_manifest:
   stage: build
+  tags:
+    - homelab
   needs:
     - build_amd64
     - build_arm64

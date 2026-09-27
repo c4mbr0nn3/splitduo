@@ -25,6 +25,8 @@ stages:
 # release_notes.md as an artifact they both consume.
 extract_release_notes:
   stage: release
+  tags:
+    - homelab
   image: alpine:latest
   rules:
     - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
@@ -50,6 +52,8 @@ extract_release_notes:
 
 create_gitlab_release:
   stage: release
+  tags:
+    - homelab
   image: registry.gitlab.com/gitlab-org/release-cli:latest
   needs:
     - extract_release_notes
@@ -71,6 +75,8 @@ create_gitlab_release:
 
 create_github_release:
   stage: release
+  tags:
+    - homelab
   image: alpine:latest
   needs:
     - extract_release_notes

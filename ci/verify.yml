@@ -16,6 +16,8 @@ stages:
 
 lint:
   stage: verify
+  tags:
+    - homelab
   interruptible: true
   image: node:22-alpine
   before_script:
@@ -34,6 +36,8 @@ lint:
 
 typecheck:
   stage: verify
+  tags:
+    - homelab
   interruptible: true
   image: node:22-alpine
   before_script:
@@ -52,6 +56,8 @@ typecheck:
 
 frontend-unit-tests:
   stage: test
+  tags:
+    - homelab
   interruptible: true
   image: node:22-alpine
   before_script:
@@ -75,6 +81,8 @@ frontend-unit-tests:
 
 frontend-contract:
   stage: test
+  tags:
+    - homelab
   interruptible: true
   image: node:22-alpine
   before_script:
@@ -93,6 +101,8 @@ frontend-contract:
 
 unit-tests:
   stage: test
+  tags:
+    - homelab
   interruptible: true
   image: mcr.microsoft.com/dotnet/sdk:10.0
   script:

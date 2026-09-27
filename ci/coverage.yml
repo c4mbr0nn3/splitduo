@@ -17,6 +17,8 @@ stages:
 
 aggregate-coverage:
   stage: coverage
+  tags:
+    - homelab
   image: mcr.microsoft.com/dotnet/sdk:10.0
   needs:
     - job: unit-tests

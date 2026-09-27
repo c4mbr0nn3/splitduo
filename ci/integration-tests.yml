@@ -18,6 +18,8 @@ stages:
 
 integration-tests:
   stage: test
+  tags:
+    - homelab
   image: mcr.microsoft.com/dotnet/sdk:10.0
   services:
     # No explicit alias — `docker` is the default alias GitLab assigns. Setting
