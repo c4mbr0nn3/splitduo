@@ -4,8 +4,8 @@
   "private": true,
   "description": "Dev tooling for the SplitDuo monorepo (changelog generation, etc.). Frontend and backend have their own package manifests.",
   "devDependencies": {
-    "commit-and-tag-version": "^13.0.0",
-    "git-cliff": "^2.13.1"
+    "commit-and-tag-version": "^13.2.1",
+    "git-cliff": "^2.14.2"
   },
   "packageManager": "pnpm@11.11.0+sha512.4463f65fd80ed80d69bc1d4bf163ee94f605c7380fc318bb5b2ebe15f8cd12d49c51a4d59e951b401e764d3b6ca751cbf51bc50ed7001a6bcb4935e684c34882",
   "scripts": {
