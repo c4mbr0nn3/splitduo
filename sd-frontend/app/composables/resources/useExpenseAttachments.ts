@@ -1,4 +1,5 @@
 import type { ExpenseAttachment } from '~/types/domain'
+import { compressImageForUpload } from '~/utils/imageCompression'
 
 export default function useExpenseAttachments(groupId: string | Ref<string>, expenseId: string | Ref<string>) {
   const api = useApi()
@@ -30,8 +31,9 @@ export default function useExpenseAttachments(groupId: string | Ref<string>, exp
     if (!groupIdRef.value || !expenseIdRef.value) return null
     isLoading.value = true
     try {
+      const uploadFile = await compressImageForUpload(file)
       const formData = new FormData()
-      formData.append('file', file, file.name)
+      formData.append('file', uploadFile, uploadFile.name)
       const response = await api.post<ExpenseAttachment>(`/groups/${groupIdRef.value}/expenses/${expenseIdRef.value}/attachments`, formData)
       if (response.success && response.data) {
         attachments.value.push(response.data)

@@ -10,6 +10,7 @@ const notificationsMock = vi.hoisted(() => ({
   showError: vi.fn(),
   showSuccess: vi.fn(),
 }))
+const compressMock = vi.hoisted(() => vi.fn())
 
 // useApi / useNotifications are auto-imported inside useExpenseAttachments.ts;
 // mock the composable modules so every API call and toast is controlled from
@@ -18,6 +19,7 @@ const notificationsMock = vi.hoisted(() => ({
 vi.mock('~/composables/api/base', () => ({ default: () => apiMock }))
 vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: tMock }) }))
 vi.mock('~/composables/utils/useNotifications', () => ({ default: () => notificationsMock }))
+vi.mock('~/utils/imageCompression', () => ({ compressImageForUpload: compressMock }))
 
 const attachment = (overrides: Partial<ExpenseAttachment> = {}): ExpenseAttachment => ({
   id: 'attachment-1',
@@ -35,6 +37,7 @@ const uploadFile = (): File => new File(['fake-image-bytes'], 'receipt.jpg', { t
 describe('useExpenseAttachments', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    compressMock.mockImplementation(async (file: File) => file)
   })
 
   afterEach(() => {
@@ -80,6 +83,7 @@ describe('useExpenseAttachments', () => {
       const result = await attachments.uploadAttachment(uploadFile())
 
       expect(apiMock.post).toHaveBeenCalledWith('/groups/group-1/expenses/expense-1/attachments', expect.any(FormData))
+      expect(compressMock).toHaveBeenCalledWith(expect.any(File))
       const formData = apiMock.post.mock.calls[0]?.[1] as FormData
       expect(formData.get('file')).toBeInstanceOf(File)
       expect(attachments.attachments.value).toEqual([attachment()])

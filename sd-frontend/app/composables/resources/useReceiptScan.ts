@@ -1,4 +1,5 @@
 import type { ParsedReceipt } from '~/types/domain'
+import { encodeAsJpeg } from '~/utils/imageCompression'
 
 export type ScanPhase = 'idle' | 'preparing' | 'analyzing' | 'success' | 'error'
 
@@ -32,37 +33,6 @@ export default function useReceiptScan() {
     receiptImageUrl.value = null
   }
 
-  const compressImage = (file: File): Promise<Blob | null> => {
-    return new Promise((resolve) => {
-      const img = new Image()
-      img.onload = () => {
-        const max = 2000
-        let { width, height } = img
-        if (width > max || height > max) {
-          const ratio = Math.min(max / width, max / height)
-          width = Math.round(width * ratio)
-          height = Math.round(height * ratio)
-        }
-        const canvas = document.createElement('canvas')
-        canvas.width = width
-        canvas.height = height
-        const ctx = canvas.getContext('2d')
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, width, height)
-        }
-        URL.revokeObjectURL(img.src)
-        canvas.toBlob((blob) => {
-          resolve(blob)
-        }, 'image/jpeg', 0.8)
-      }
-      img.onerror = () => {
-        URL.revokeObjectURL(img.src)
-        resolve(null)
-      }
-      img.src = URL.createObjectURL(file)
-    })
-  }
-
   const scanReceipt = async (file: File, groupId: string | null = null) => {
     if (isScanning.value) return
     abortController?.abort()
@@ -74,7 +44,7 @@ export default function useReceiptScan() {
     isScanning.value = true
     scanPhase.value = 'preparing'
     try {
-      const compressed = await compressImage(file)
+      const compressed = await encodeAsJpeg(file)
       if (signal.aborted) return
       if (!compressed) {
         scanError.value = t('toasts.receipts.scanFailed')
