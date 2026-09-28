@@ -17,7 +17,8 @@
     "or": "o",
     "updated": "Aggiornato",
     "selectDate": "Seleziona data",
-    "required": "è obbligatorio"
+    "required": "è obbligatorio",
+    "refresh": "Aggiorna"
   },
   "auth": {
     "login": "Accedi",
@@ -481,7 +482,50 @@
     "updated": "Aggiornato {date}",
     "admin": "Amministratore",
     "user": "Utente",
-    "userManagement": "Gestione Utenti"
+    "userManagement": "Gestione Utenti",
+    "title": "Admin",
+    "usersCardSubtitle": "Gestisci gli utenti e gli inviti della piattaforma",
+    "aiCardTitle": "Utilizzo IA",
+    "aiCardSubtitle": "Affidabilità e rendicontazione delle chiamate IA per utente",
+    "ai": {
+      "title": "Utilizzo IA",
+      "subtitle": "Registro di utilizzo delle funzionalità basate su IA",
+      "disabledTitle": "IA non configurata",
+      "disabledSubtitle": "Imposta l'URL base e il modello dell'IA per abilitare le funzionalità IA. Le chiamate storiche compaiono comunque qui sotto.",
+      "configStatus": "Stato",
+      "statusEnabled": "Abilitato",
+      "statusDisabled": "Disabilitato",
+      "configModel": "Modello",
+      "configHost": "Endpoint",
+      "filterDateRange": "Intervallo di date",
+      "filterFrom": "Dal",
+      "filterTo": "Al",
+      "filterStatus": "Stato",
+      "filterUser": "Utente",
+      "filterUserAll": "Tutti gli utenti",
+      "presetLast7": "Ultimi 7 giorni",
+      "presetLast30": "Ultimi 30 giorni",
+      "presetLast90": "Ultimi 90 giorni",
+      "presetAllTime": "Tutto il periodo",
+      "presetCustom": "Personalizzato",
+      "statusAll": "Tutti",
+      "statusSuccess": "Successo",
+      "statusFailure": "Fallimento",
+      "statTotalCalls": "Chiamate totali",
+      "statSuccessRate": "Tasso di successo",
+      "statTotalTokens": "Token totali",
+      "statAvgLatency": "Latenza media",
+      "colTime": "Ora",
+      "colUser": "Utente",
+      "colFeature": "Funzionalità",
+      "colModel": "Modello",
+      "colStatus": "Stato",
+      "colLatency": "Latenza",
+      "colTokens": "Token",
+      "emptyTitle": "Nessuna chiamata IA",
+      "emptyNoRowsSubtitle": "Le chiamate alle funzionalità IA compariranno qui una volta effettuate.",
+      "emptyDisabledSubtitle": "L'IA è disabilitata. Abilitala per iniziare a registrare le chiamate."
+    }
   },
   "imports": {
     "title": "Importazioni Gruppo",
@@ -804,6 +848,11 @@
       "roleUpdateFailed": "Impossibile aggiornare il ruolo utente",
       "tokensRevoked": "Token utente revocati con successo",
       "tokensRevokeFailed": "Impossibile revocare i token utente"
+    },
+    "adminAiUsage": {
+      "loadFailed": "Caricamento dell'utilizzo IA non riuscito",
+      "summaryLoadFailed": "Caricamento del riepilogo dell'utilizzo IA non riuscito",
+      "configLoadFailed": "Caricamento della configurazione IA non riuscito"
     },
     "paymentModes": {
       "loadFailed": "Impossibile caricare i metodi di pagamento"

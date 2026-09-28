@@ -11,6 +11,7 @@ using Serilog;
 using System.ClientModel;
 using OpenAI.Chat;
 using SplitDuo.Api.Features.Ai.Filters;
+using SplitDuo.Api.Features.Ai.Services;
 using SplitDuo.Api.Features.Authentication.Services;
 using SplitDuo.Api.Features.Receipts.Services;
 using SplitDuo.Api.Features.Common.Services;
@@ -99,6 +100,8 @@ public static class ApiProgramExtensions
             return new ChatClient(options.Model!, credential, clientOptions);
         });
         builder.Services.AddScoped<IReceiptParserService, ReceiptParserService>();
+        builder.Services.AddScoped<IAiCallLogger, AiCallLogger>();
+        builder.Services.AddScoped<IAiUsageService, AiUsageService>();
 
         builder.Services.AddHealthChecks()
             .AddNpgSql(

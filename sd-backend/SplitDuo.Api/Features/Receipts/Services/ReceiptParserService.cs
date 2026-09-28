@@ -2,12 +2,12 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Options;
 using OpenAI.Chat;
+using SplitDuo.Api.Features.Ai.Services;
 using SplitDuo.Api.Features.Common.Services;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Domain.Enums;
 using SplitDuo.Core.Options;
-using SplitDuo.Core.Persistence;
 
 namespace SplitDuo.Api.Features.Receipts.Services;
 
@@ -29,7 +29,7 @@ public class ParsedReceiptDto
 public class ReceiptParserService(
     ChatClient chatClient,
     IOptions<AiOptions> aiOptions,
-    IUnitOfWork unitOfWork,
+    IAiCallLogger aiCallLogger,
     IUserContextService userContextService,
     TimeProvider timeProvider) : IReceiptParserService
 {
@@ -68,6 +68,7 @@ public class ReceiptParserService(
     public async Task<Result<ParsedReceiptDto>> ParseReceiptAsync(Stream imageStream)
     {
         var requestedAt = timeProvider.GetUtcNow().ToUnixTimeSeconds();
+        var startTimestamp = timeProvider.GetTimestamp();
         var user = await userContextService.GetCurrentUserAsync();
         if (user is null)
             return Result<ParsedReceiptDto>.Unauthorized("Unauthorized.");
@@ -90,19 +91,19 @@ public class ReceiptParserService(
             var modelOutput = response.Value.Content[0].Text;
             var parsed = ExtractAndParseDto(modelOutput);
 
-            unitOfWork.AiCallLogs.Add(new AiCallLog
-            {
-                UserId = user.Id,
-                RequestedAt = requestedAt,
-                RespondedAt = respondedAt,
-                InputTokens = usage.InputTokenCount,
-                OutputTokens = usage.OutputTokenCount,
-                TotalTokens = usage.TotalTokenCount,
-                Model = _model,
-                Success = parsed is not null,
-                ErrorMessage = parsed is null ? "Failed to parse receipt JSON" : null
-            });
-            await unitOfWork.SaveChangesAsync();
+            var latencyMs = (int)timeProvider.GetElapsedTime(startTimestamp).TotalMilliseconds;
+            await aiCallLogger.LogAsync(new AiCallOutcome(
+                Feature: "receipt_parse",
+                Model: _model,
+                UserId: user.Id,
+                RequestedAt: requestedAt,
+                RespondedAt: respondedAt,
+                LatencyMs: latencyMs,
+                InputTokens: usage.InputTokenCount,
+                OutputTokens: usage.OutputTokenCount,
+                TotalTokens: usage.TotalTokenCount,
+                Success: parsed is not null,
+                ErrorMessage: parsed is null ? "Failed to parse receipt JSON" : null));
 
             return parsed is null
                 ? Result<ParsedReceiptDto>.BadRequest("Failed to parse receipt. Check AI configuration.")
@@ -110,16 +111,19 @@ public class ReceiptParserService(
         }
         catch (Exception ex)
         {
-            unitOfWork.AiCallLogs.Add(new AiCallLog
-            {
-                UserId = user.Id,
-                RequestedAt = requestedAt,
-                RespondedAt = timeProvider.GetUtcNow().ToUnixTimeSeconds(),
-                Model = _model,
-                Success = false,
-                ErrorMessage = ex.Message
-            });
-            await unitOfWork.SaveChangesAsync();
+            var latencyMs = (int)timeProvider.GetElapsedTime(startTimestamp).TotalMilliseconds;
+            await aiCallLogger.LogAsync(new AiCallOutcome(
+                Feature: "receipt_parse",
+                Model: _model,
+                UserId: user.Id,
+                RequestedAt: requestedAt,
+                RespondedAt: timeProvider.GetUtcNow().ToUnixTimeSeconds(),
+                LatencyMs: latencyMs,
+                InputTokens: null,
+                OutputTokens: null,
+                TotalTokens: null,
+                Success: false,
+                ErrorMessage: ex.Message));
 
             return Result<ParsedReceiptDto>.BadRequest("Failed to parse receipt. Check AI configuration.");
         }

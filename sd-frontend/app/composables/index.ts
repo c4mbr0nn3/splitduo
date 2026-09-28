@@ -16,6 +16,7 @@ export { default as useReceiptScan } from '@/composables/resources/useReceiptSca
 export { default as useRecurringExpenses } from '@/composables/resources/useRecurringExpenses'
 export { default as useSettlements } from '@/composables/resources/useSettlements'
 export { default as useUsers } from '@/composables/resources/useUsers'
+export { default as useAdminAiUsage } from '@/composables/resources/useAdminAiUsage'
 export { default as useAliases } from '@/composables/resources/useAliases'
 export { default as useUserSettings } from '@/composables/resources/useUserSettings'
 export { default as useErrorHandling } from '@/composables/utils/useErrorHandling'

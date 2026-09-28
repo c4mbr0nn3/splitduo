@@ -109,6 +109,19 @@ export type AiStatus = WithRequired<components['schemas']['AiStatusDto'], 'enabl
 export type AdminNotification = WithRequired<components['schemas']['AdminNotificationDto'], 'type' | 'targetKey' | 'payload'>
 export type DismissNotificationRequest = components['schemas']['DismissNotificationRequestDto']
 
+// ─── AI usage ledger (admin) ─────────────────────────────────────────────────
+
+export type AiAdminConfig = WithRequired<components['schemas']['AiAdminConfigDto'], 'enabled'>
+export type AiUsageEntry = WithRequired<components['schemas']['AiUsageEntryDto'], 'userId' | 'feature' | 'model' | 'success' | 'requestedAt'>
+export type AiUsageDayBucket = WithRequired<components['schemas']['AiUsageDayBucket'], 'date' | 'calls' | 'inputTokens' | 'outputTokens' | 'totalTokens' | 'failed'>
+export type AiUsageModelBucket = WithRequired<components['schemas']['AiUsageModelBucket'], 'model' | 'calls' | 'inputTokens' | 'outputTokens' | 'totalTokens'>
+export type AiUsageUserBucket = WithRequired<components['schemas']['AiUsageUserBucket'], 'userId' | 'calls' | 'totalTokens'>
+export type AiUsageSummary = Omit<WithRequired<components['schemas']['AiUsageSummaryDto'], 'totalCalls' | 'successfulCalls' | 'failedCalls' | 'successRate' | 'totalInputTokens' | 'totalOutputTokens' | 'totalTokens' | 'byDay' | 'byModel' | 'byUser'>, 'byDay' | 'byModel' | 'byUser'> & {
+  byDay: AiUsageDayBucket[]
+  byModel: AiUsageModelBucket[]
+  byUser: AiUsageUserBucket[]
+}
+
 // ─── Balance types (alias-mode union) ────────────────────────────────────────
 
 export type NormalBalance = WithRequired<components['schemas']['BalanceDto'], 'userId' | 'user' | 'balance' | 'totalPaid' | 'totalOwed'>

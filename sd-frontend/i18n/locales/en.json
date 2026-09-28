@@ -17,7 +17,8 @@
     "or": "or",
     "updated": "Updated",
     "selectDate": "Select date",
-    "required": "is required"
+    "required": "is required",
+    "refresh": "Refresh"
   },
   "auth": {
     "login": "Login",
@@ -481,7 +482,50 @@
     "updated": "Updated {date}",
     "admin": "Admin",
     "user": "User",
-    "userManagement": "User Management"
+    "userManagement": "User Management",
+    "title": "Admin",
+    "usersCardSubtitle": "Manage platform users and invitations",
+    "aiCardTitle": "AI Usage",
+    "aiCardSubtitle": "Reliability and per-user AI-call accountability",
+    "ai": {
+      "title": "AI Usage",
+      "subtitle": "Usage ledger for AI-powered features",
+      "disabledTitle": "AI is not configured",
+      "disabledSubtitle": "Set the AI base URL and model to enable AI features. Historical calls still appear below.",
+      "configStatus": "Status",
+      "statusEnabled": "Enabled",
+      "statusDisabled": "Disabled",
+      "configModel": "Model",
+      "configHost": "Endpoint",
+      "filterDateRange": "Date range",
+      "filterFrom": "From",
+      "filterTo": "To",
+      "filterStatus": "Status",
+      "filterUser": "User",
+      "filterUserAll": "All users",
+      "presetLast7": "Last 7 days",
+      "presetLast30": "Last 30 days",
+      "presetLast90": "Last 90 days",
+      "presetAllTime": "All time",
+      "presetCustom": "Custom",
+      "statusAll": "All",
+      "statusSuccess": "Success",
+      "statusFailure": "Failure",
+      "statTotalCalls": "Total calls",
+      "statSuccessRate": "Success rate",
+      "statTotalTokens": "Total tokens",
+      "statAvgLatency": "Avg latency",
+      "colTime": "Time",
+      "colUser": "User",
+      "colFeature": "Feature",
+      "colModel": "Model",
+      "colStatus": "Status",
+      "colLatency": "Latency",
+      "colTokens": "Tokens",
+      "emptyTitle": "No AI calls yet",
+      "emptyNoRowsSubtitle": "Calls to AI features will appear here once they happen.",
+      "emptyDisabledSubtitle": "AI is disabled. Enable it to start logging calls."
+    }
   },
   "imports": {
     "title": "Group Imports",
@@ -804,6 +848,11 @@
       "roleUpdateFailed": "Failed to update user role",
       "tokensRevoked": "User tokens revoked successfully",
       "tokensRevokeFailed": "Failed to revoke user tokens"
+    },
+    "adminAiUsage": {
+      "loadFailed": "Failed to load AI usage",
+      "summaryLoadFailed": "Failed to load AI usage summary",
+      "configLoadFailed": "Failed to load AI configuration"
     },
     "paymentModes": {
       "loadFailed": "Failed to load payment modes"

@@ -5894,6 +5894,199 @@ paths:
             text/json:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
+  /api/v1/admin/ai/usage:
+    get:
+      tags:
+        - AdminAiUsage
+      parameters:
+        - name: page
+          in: query
+          schema:
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+            format: int32
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+            format: int32
+            default: 20
+        - name: from
+          in: query
+          schema:
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+            format: int64
+        - name: to
+          in: query
+          schema:
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+            format: int64
+        - name: userId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: success
+          in: query
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/PaginatedResponseDtoOfAiUsageEntryDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedResponseDtoOfAiUsageEntryDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedResponseDtoOfAiUsageEntryDto"
+        "401":
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /api/v1/admin/ai/usage/summary:
+    get:
+      tags:
+        - AdminAiUsage
+      parameters:
+        - name: from
+          in: query
+          schema:
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+            format: int64
+        - name: to
+          in: query
+          schema:
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+            format: int64
+        - name: userId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: success
+          in: query
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfAiUsageSummaryDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfAiUsageSummaryDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfAiUsageSummaryDto"
+        "401":
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /api/v1/admin/ai/config:
+    get:
+      tags:
+        - AdminAiUsage
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfAiAdminConfigDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfAiAdminConfigDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfAiAdminConfigDto"
+        "401":
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "403":
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
   /api/v1/ai/status:
     get:
       tags:
@@ -5971,11 +6164,237 @@ components:
         targetKey:
           type: string
         payload: {}
+    AiAdminConfigDto:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        model:
+          type:
+            - "null"
+            - string
+        baseUrlHost:
+          type:
+            - "null"
+            - string
     AiStatusDto:
       type: object
       properties:
         enabled:
           type: boolean
+    AiUsageDayBucket:
+      type: object
+      properties:
+        date:
+          type: string
+        calls:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        inputTokens:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int64
+        outputTokens:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int64
+        totalTokens:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int64
+        failed:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+    AiUsageEntryDto:
+      type: object
+      properties:
+        userId:
+          type: string
+        userDisplayName:
+          type:
+            - "null"
+            - string
+        userEmail:
+          type:
+            - "null"
+            - string
+        feature:
+          type: string
+        model:
+          type: string
+        success:
+          type: boolean
+        errorMessage:
+          type:
+            - "null"
+            - string
+        requestedAt:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int64
+        respondedAt:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int64
+        latencyMs:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int32
+        inputTokens:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int32
+        outputTokens:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int32
+        totalTokens:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int32
+    AiUsageModelBucket:
+      type: object
+      properties:
+        model:
+          type: string
+        calls:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        inputTokens:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int64
+        outputTokens:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int64
+        totalTokens:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int64
+    AiUsageSummaryDto:
+      type: object
+      properties:
+        totalCalls:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        successfulCalls:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        failedCalls:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        successRate:
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$
+          type:
+            - number
+            - string
+          format: double
+        totalInputTokens:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int64
+        totalOutputTokens:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int64
+        totalTokens:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int64
+        avgLatencyMs:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int32
+        byDay:
+          type: array
+          items:
+            $ref: "#/components/schemas/AiUsageDayBucket"
+        byModel:
+          type: array
+          items:
+            $ref: "#/components/schemas/AiUsageModelBucket"
+        byUser:
+          type: array
+          items:
+            $ref: "#/components/schemas/AiUsageUserBucket"
+    AiUsageUserBucket:
+      type: object
+      properties:
+        userId:
+          type: string
+        userEmail:
+          type:
+            - "null"
+            - string
+        calls:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        totalTokens:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int64
     AliasBalanceDto:
       type: object
       properties:
@@ -6079,6 +6498,23 @@ components:
             - array
           items:
             type: string
+    ApiResponseDtoOfAiAdminConfigDto:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/AiAdminConfigDto"
+        message:
+          type:
+            - "null"
+            - string
+        error:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/ApiErrorDto"
     ApiResponseDtoOfAiStatusDto:
       type: object
       properties:
@@ -6088,6 +6524,23 @@ components:
           oneOf:
             - type: "null"
             - $ref: "#/components/schemas/AiStatusDto"
+        message:
+          type:
+            - "null"
+            - string
+        error:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/ApiErrorDto"
+    ApiResponseDtoOfAiUsageSummaryDto:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/AiUsageSummaryDto"
         message:
           type:
             - "null"
@@ -7630,6 +8083,25 @@ components:
             - integer
             - string
           format: int32
+    PaginatedResponseDtoOfAiUsageEntryDto:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AiUsageEntryDto"
+        pagination:
+          $ref: "#/components/schemas/PaginationDto"
+        message:
+          type:
+            - "null"
+            - string
+        error:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/ApiErrorDto"
     PaginatedResponseDtoOfExpenseDto:
       type: object
       properties:
@@ -8622,4 +9094,5 @@ tags:
   - name: Auth
   - name: TwoFactor
   - name: Aliases
+  - name: AdminAiUsage
   - name: Ai

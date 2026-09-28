@@ -117,7 +117,7 @@ const navigationItems = computed(() => {
   // Add admin menu for admin users
   if (isGlobalAdmin.value) {
     items.push({
-      to: '/admin/users',
+      to: '/admin',
       label: t('nav.admin'),
       icon: 'i-lucide-shield-user',
       active: route.path.startsWith('/admin'),

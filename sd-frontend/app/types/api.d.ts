@@ -6471,6 +6471,195 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/ai/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    page?: number | string;
+                    limit?: number | string;
+                    from?: number | string;
+                    to?: number | string;
+                    userId?: string;
+                    success?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["PaginatedResponseDtoOfAiUsageEntryDto"];
+                        "application/json": components["schemas"]["PaginatedResponseDtoOfAiUsageEntryDto"];
+                        "text/json": components["schemas"]["PaginatedResponseDtoOfAiUsageEntryDto"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/ai/usage/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    from?: number | string;
+                    to?: number | string;
+                    userId?: string;
+                    success?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfAiUsageSummaryDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfAiUsageSummaryDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfAiUsageSummaryDto"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/ai/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfAiAdminConfigDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfAiAdminConfigDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfAiAdminConfigDto"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/ai/status": {
         parameters: {
             query?: never;
@@ -6540,8 +6729,87 @@ export interface components {
             targetKey: string;
             payload: unknown;
         };
+        AiAdminConfigDto: {
+            enabled?: boolean;
+            model?: null | string;
+            baseUrlHost?: null | string;
+        };
         AiStatusDto: {
             enabled?: boolean;
+        };
+        AiUsageDayBucket: {
+            date?: string;
+            /** Format: int32 */
+            calls?: number | string;
+            /** Format: int64 */
+            inputTokens?: number | string;
+            /** Format: int64 */
+            outputTokens?: number | string;
+            /** Format: int64 */
+            totalTokens?: number | string;
+            /** Format: int32 */
+            failed?: number | string;
+        };
+        AiUsageEntryDto: {
+            userId?: string;
+            userDisplayName?: null | string;
+            userEmail?: null | string;
+            feature?: string;
+            model?: string;
+            success?: boolean;
+            errorMessage?: null | string;
+            /** Format: int64 */
+            requestedAt?: number | string;
+            /** Format: int64 */
+            respondedAt?: null | number | string;
+            /** Format: int32 */
+            latencyMs?: null | number | string;
+            /** Format: int32 */
+            inputTokens?: null | number | string;
+            /** Format: int32 */
+            outputTokens?: null | number | string;
+            /** Format: int32 */
+            totalTokens?: null | number | string;
+        };
+        AiUsageModelBucket: {
+            model?: string;
+            /** Format: int32 */
+            calls?: number | string;
+            /** Format: int64 */
+            inputTokens?: number | string;
+            /** Format: int64 */
+            outputTokens?: number | string;
+            /** Format: int64 */
+            totalTokens?: number | string;
+        };
+        AiUsageSummaryDto: {
+            /** Format: int32 */
+            totalCalls?: number | string;
+            /** Format: int32 */
+            successfulCalls?: number | string;
+            /** Format: int32 */
+            failedCalls?: number | string;
+            /** Format: double */
+            successRate?: number | string;
+            /** Format: int64 */
+            totalInputTokens?: number | string;
+            /** Format: int64 */
+            totalOutputTokens?: number | string;
+            /** Format: int64 */
+            totalTokens?: number | string;
+            /** Format: int32 */
+            avgLatencyMs?: null | number | string;
+            byDay?: components["schemas"]["AiUsageDayBucket"][];
+            byModel?: components["schemas"]["AiUsageModelBucket"][];
+            byUser?: components["schemas"]["AiUsageUserBucket"][];
+        };
+        AiUsageUserBucket: {
+            userId?: string;
+            userEmail?: null | string;
+            /** Format: int32 */
+            calls?: number | string;
+            /** Format: int64 */
+            totalTokens?: number | string;
         };
         AliasBalanceDto: {
             aliasId?: string;
@@ -6585,9 +6853,21 @@ export interface components {
             message?: string;
             details?: null | string[];
         };
+        ApiResponseDtoOfAiAdminConfigDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["AiAdminConfigDto"];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
         ApiResponseDtoOfAiStatusDto: {
             success?: boolean;
             data?: null | components["schemas"]["AiStatusDto"];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfAiUsageSummaryDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["AiUsageSummaryDto"];
             message?: null | string;
             error?: null | components["schemas"]["ApiErrorDto"];
         };
@@ -7136,6 +7416,13 @@ export interface components {
             amount?: number | string;
             /** Format: int32 */
             count?: number | string;
+        };
+        PaginatedResponseDtoOfAiUsageEntryDto: {
+            success?: boolean;
+            data?: components["schemas"]["AiUsageEntryDto"][];
+            pagination?: components["schemas"]["PaginationDto"];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
         };
         PaginatedResponseDtoOfExpenseDto: {
             success?: boolean;

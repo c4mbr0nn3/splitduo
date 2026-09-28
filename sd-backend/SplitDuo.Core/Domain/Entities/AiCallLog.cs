@@ -19,6 +19,8 @@ public class AiCallLog
     [Column("model"), MaxLength(255)] public string Model { get; set; } = "";
     [Column("success")] public bool Success { get; set; }
     [Column("error_message")] public string? ErrorMessage { get; set; }
+    [Column("feature"), MaxLength(64)] public string Feature { get; set; } = "";
+    [Column("latency_ms")] public int? LatencyMs { get; set; }
 
     [ForeignKey(nameof(UserId))] public virtual User User { get; set; } = null!;
 }
