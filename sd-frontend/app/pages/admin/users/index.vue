@@ -5,16 +5,7 @@
       :title="$t('admin.users')"
       :subtitle="$t('admin.subtitle')"
       class="mb-6"
-    >
-      <template #actions>
-        <UBadge
-          color="neutral"
-          variant="subtle"
-        >
-          v{{ appVersion }}
-        </UBadge>
-      </template>
-    </UiCardHeader>
+    />
 
     <!-- User Stats Cards -->
     <div class="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-8">
@@ -166,8 +157,6 @@ const adminUsers = computed(() => {
 const regularUsers = computed(() => {
   return users.value.filter(user => user.globalRoleId != 2)
 })
-
-const appVersion = computed(() => useRuntimeConfig().public.appVersion)
 
 // Stats objects for StatCard component
 const totalUsersStats = computed(() => ({

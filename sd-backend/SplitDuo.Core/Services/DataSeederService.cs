@@ -22,6 +22,7 @@ public class DataSeederService(IServiceProvider serviceProvider, ILogger<DataSee
 
         await SeedInitialUserAsync(context, appOptions);
         await SeedDemoDataAsync(context, appOptions);
+        await SeedDemoAiCallLogsAsync(context, appOptions);
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
@@ -50,6 +51,107 @@ public class DataSeederService(IServiceProvider serviceProvider, ILogger<DataSee
         await context.SaveChangesAsync();
 
         logger.LogInformation("Initial system admin user created: {Email}", firstUser.Email);
+    }
+
+    private async Task SeedDemoAiCallLogsAsync(AppDbContext context, IOptions<AppOptions> appOptions)
+    {
+        if (!appOptions.Value.SeedDemoData) return;
+        if (await context.AiCallLogs.AnyAsync())
+        {
+            logger.LogInformation("AI call logs already exist, skipping demo AI usage seeding");
+            return;
+        }
+
+        var demoUsers = await context.Users
+            .Where(u => u.Email == "alice@splitduo.demo" || u.Email == "bob@splitduo.demo" ||
+                        u.Email == "clara@splitduo.demo" || u.Email == "sam@splitduo.demo" ||
+                        u.Email == "jamie@splitduo.demo" || u.Email == "tom@splitduo.demo")
+            .Select(u => u.Id)
+            .ToListAsync();
+
+        if (demoUsers.Count == 0)
+        {
+            logger.LogWarning("Demo users not found, skipping demo AI usage seeding");
+            return;
+        }
+
+        var now = timeProvider.GetUtcNow();
+        var random = new Random(20260927); // fixed seed — demo data is reproducible across runs
+
+        var features = new[] { "receipt_parse" };
+        var models = new[] { "gemma-3-27b-it", "qwen2.5-vl-72b-instruct" };
+        // (weight, minMs, maxMs) — most calls fast, a tail of slow ones for the latency average
+        var latencyBands = new[] { (70, 450, 2200), (22, 2200, 9000), (8, 9000, 30000) };
+
+        var logs = new List<AiCallLog>();
+
+        for (var dayOffset = 29; dayOffset >= 0; dayOffset--)
+        {
+            // Roughly 6–20 calls per day, tapering off for the older half of the window.
+            var callCount = random.Next(6, 21) - (dayOffset > 14 ? random.Next(2, 7) : 0);
+            callCount = Math.Max(1, callCount);
+
+            for (var i = 0; i < callCount; i++)
+            {
+                var requestedAtUtc = now
+                    .AddDays(-dayOffset)
+                    .AddHours(-random.Next(0, 24))
+                    .AddMinutes(-random.Next(0, 60))
+                    .AddSeconds(-random.Next(0, 60));
+
+                var requestedAt = requestedAtUtc.ToUnixTimeSeconds();
+                var success = random.NextDouble() > 0.12; // ~12% end-to-end failures
+                var latencyMs = PickLatency(random, latencyBands);
+                var inputTokens = random.Next(700, 2600);
+                var outputTokens = random.Next(40, 420);
+
+                logs.Add(new AiCallLog
+                {
+                    UserId = demoUsers[random.Next(demoUsers.Count)],
+                    Feature = features[random.Next(features.Length)],
+                    Model = models[random.Next(models.Length)],
+                    RequestedAt = requestedAt,
+                    RespondedAt = requestedAt + Math.Max(1, latencyMs / 1000),
+                    LatencyMs = latencyMs,
+                    // Failed calls record no tokens (mirrors the runtime behaviour in ReceiptParserService).
+                    InputTokens = success ? inputTokens : null,
+                    OutputTokens = success ? outputTokens : null,
+                    TotalTokens = success ? inputTokens + outputTokens : null,
+                    Success = success,
+                    ErrorMessage = success ? null : PickErrorMessage(random)
+                });
+            }
+        }
+
+        context.AiCallLogs.AddRange(logs);
+        await context.SaveChangesAsync();
+
+        logger.LogInformation("Demo AI usage seeded: {Count} ai_call_logs rows", logs.Count);
+    }
+
+    private static int PickLatency(Random random, (int Weight, int MinMs, int MaxMs)[] bands)
+    {
+        var totalWeight = bands.Sum(b => b.Weight);
+        var roll = random.Next(0, totalWeight);
+        foreach (var (weight, minMs, maxMs) in bands)
+        {
+            if (roll < weight) return random.Next(minMs, maxMs);
+            roll -= weight;
+        }
+
+        return random.Next(bands[0].MinMs, bands[0].MaxMs);
+    }
+
+    private static string PickErrorMessage(Random random)
+    {
+        var messages = new[]
+        {
+            "Failed to parse receipt JSON",
+            "The operation was canceled.",
+            "Connection refused (the model server was probably restarting)",
+            "Response exceeded the maximum output token count"
+        };
+        return messages[random.Next(messages.Length)];
     }
 
     private async Task SeedDemoDataAsync(AppDbContext context, IOptions<AppOptions> appOptions)

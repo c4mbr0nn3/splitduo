@@ -43,6 +43,12 @@ Manual mapping — no AutoMapper. DTOs have constructors that accept entities. *
 - Dismissals are pending-only (404 for non-pending) + length-validated + capped (64 entries) — see `NotificationDismissalHelper`
 - `SplitDuo.Tests.Unit` has no `InternalsVisibleTo` — keep test seams public
 
+### Admin List-Endpoint Pagination Convention
+Admin/list endpoints follow the `ExpensesService` precedent for query clamps: `if (page < 1) page = 1; if (limit < 1 || limit > 100) limit = 20;` — an out-of-range `limit` **falls back to the default (20)**, it is not clamped to the boundary. Reference: `AiUsageService.GetUsageAsync`.
+
+### Admin Endpoint Integration-Test Scaffolding
+The first admin-endpoint integration test scaffolding lives in `Tests.Integration/AdminAiUsageTests.cs` with `TestDbSeeder` helpers (`GetAdminIntIdAsync`, `GetUserGuidAsync`, `GetUserIntIdAsync`, `SeedAiCallLogAsync`) and the 403/401 pattern (seed a `BaseUser` via `SeedUserAsync`, assert 403; unauthenticated `Client` asserts 401). Copy this style for new admin endpoints.
+
 ## Entity Model
 
 Base classes: `AuditableEntity` (int Id, Guid Guid, long CreatedAt, long UpdatedAt — Unix seconds) → `AuditableAndSoftDeletableEntity` (+ long? DeletedAt).

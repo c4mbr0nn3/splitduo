@@ -126,6 +126,7 @@ The frontend is fully TypeScript — no `.js`/`.jsx` source files. `tsconfig` (N
 - **Semantic colors only**: use Nuxt UI tokens (`success`, `error`, `warning`, `info`, `primary`, `secondary`, `neutral`). Never use raw `text-green-600`, `text-red-600`, `bg-green-100`, `border-gray-*`, etc.
 - **Icons**: Lucide only (`i-lucide-*`). No Heroicons unless a Lucide equivalent is truly missing.
 - **Search input**: list-page search uses `class="w-full sm:w-64 md:w-80"`.
+- **Tables**: first `<UTable>` usage is `pages/admin/ai/index.vue` — define columns as a `computed` (so header labels follow locale switches via `$t()`), use the `#empty` slot for the empty state, and wire `UPagination` to the backend `pagination` envelope.
 - **Empty states**: `UiEmptyState` is used bare; if inside a card, the card uses `variant="ghost"` or `variant="soft"`, never `variant="outline"`.
 - **Toasts**: `useNotifications` passes `duration: 4000` and `position: 'top-center'` to every toast.
 - **Page loading/error**: use `UiLoadingSpinner` for loading and `UiEmptyState` + retry `UButton` for fetch failures.
