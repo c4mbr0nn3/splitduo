@@ -1,0 +1,8 @@
+# Trivy ignore list — see ci/security.yml and scripts/trivy/scan.sh.
+#
+# node-forge CVE-2026-85393 (signature forgery in RSA PKCS#1 v1.5 verification):
+# no fixed version exists upstream — 1.4.0 is the latest release, so the only
+# remedies are an override to a nonexistent patch, a VEX statement, or this
+# ignore. Pulled transitively via listhen -> @nuxt/cli/nitropack -> nuxt.
+# Re-evaluate when listhen or node-forge ships a fix; the exp date forces it.
+CVE-2026-85393 exp:2027-01-31

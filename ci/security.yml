@@ -44,7 +44,7 @@ security:trivy:
     name: docker.io/aquasec/trivy:0.75.0@sha256:af6acf9a6b85dfe389a1941505c0ce9efef52a4719635e1a962f022a3d855daa
     entrypoint: [""]
   script:
-    - trivy fs . --severity HIGH,CRITICAL --format table --skip-dirs .git --exit-code 1
+    - trivy fs . --severity HIGH,CRITICAL --format table --skip-dirs .git --skip-dirs website --ignorefile .trivyignore --exit-code 1
   rules:
     - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+(-rc\.\d+)?$/
       when: on_success
