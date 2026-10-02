@@ -134,8 +134,9 @@ public class BalancesServiceUserStatsTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal(1, result.Value!.TotalGroups);
-        Assert.Equal(100m, result.Value.Individual.YoureOwed);
-        Assert.Equal(50m, result.Value.Individual.YouOwe);
+        // Clamped net: 100 paid - 50 owed = +50 in the single group
+        Assert.Equal(50m, result.Value.Individual.YoureOwed);
+        Assert.Equal(0m, result.Value.Individual.YouOwe);
         Assert.Equal(0, result.Value.Alias.Groups);
         Assert.Equal(0m, result.Value.Alias.YouOwe);
         Assert.Equal(0m, result.Value.Alias.YoureOwed);
@@ -165,8 +166,9 @@ public class BalancesServiceUserStatsTests
         Assert.True(result.IsSuccess);
         Assert.Equal(1, result.Value!.TotalGroups);
         Assert.Equal(1, result.Value.Alias.Groups);
-        Assert.Equal(100m, result.Value.Alias.YoureOwed);
-        Assert.Equal(50m, result.Value.Alias.YouOwe);
+        // Clamped net: 100 paid - 50 owed = +50 for the current alias
+        Assert.Equal(50m, result.Value.Alias.YoureOwed);
+        Assert.Equal(0m, result.Value.Alias.YouOwe);
         Assert.Equal(0, result.Value.Individual.Groups);
         Assert.Equal(0m, result.Value.Individual.YouOwe);
         Assert.Equal(0m, result.Value.Individual.YoureOwed);
@@ -196,8 +198,9 @@ public class BalancesServiceUserStatsTests
         Assert.True(result.IsSuccess);
         Assert.Equal(1, result.Value!.TotalGroups);
         Assert.Equal(1, result.Value.Alias.Groups);
-        Assert.Equal(100m, result.Value.Alias.YoureOwed);
-        Assert.Equal(50m, result.Value.Alias.YouOwe);
+        // Clamped net: 100 paid - 50 owed = +50 for the current alias
+        Assert.Equal(50m, result.Value.Alias.YoureOwed);
+        Assert.Equal(0m, result.Value.Alias.YouOwe);
         Assert.Equal(0, result.Value.Individual.Groups);
         Assert.Equal(0m, result.Value.Individual.YouOwe);
         Assert.Equal(0m, result.Value.Individual.YoureOwed);

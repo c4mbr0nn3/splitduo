@@ -113,10 +113,14 @@ public class BalancesService(
                 .ToDictionaryAsync(x => (x.GroupId, x.AliasId), x => x.Total)
             : new Dictionary<(int GroupId, int AliasId), decimal>();
 
-        // Gross semantics: YouOwe = total owed across all groups (split share),
-        // YoureOwed = total paid across all groups (expenses paid).
-        // This matches the per-group view (UserBalanceCard shows totalPaid/totalOwed)
-        // and provides actionable gross obligation numbers (vs netting within groups).
+        // Clamped-net semantics: per group, net = paid - owed (full ledger, settlements
+        // included). YouOwe aggregates only groups where the user is a net debtor,
+        // YoureOwed only groups where they are a net creditor:
+        //   YouOwe    = Σ_g max(0, -net_g)
+        //   YoureOwed = Σ_g max(0,  net_g)
+        // The widget's net (YoureOwed - YouOwe) therefore equals Σ_g net_g, matching
+        // the sum of the user's per-group balances. Settlements cancel out within the
+        // per-group net instead of inflating both legs.
         var individualYouOwe = 0m;
         var individualYoureOwed = 0m;
         var aliasYouOwe = 0m;
@@ -141,15 +145,16 @@ public class BalancesService(
                 owed = splitByGroup.GetValueOrDefault(membership.GroupId, 0m);
             }
 
+            var net = paid - owed;
             if (membership.UseAliases)
             {
-                aliasYoureOwed += paid;
-                aliasYouOwe += owed;
+                if (net > 0m) aliasYoureOwed += net;
+                else if (net < 0m) aliasYouOwe += -net;
             }
             else
             {
-                individualYoureOwed += paid;
-                individualYouOwe += owed;
+                if (net > 0m) individualYoureOwed += net;
+                else if (net < 0m) individualYouOwe += -net;
             }
         }
 
