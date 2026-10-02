@@ -59,12 +59,14 @@
               {{ $t('twoFactor.scanQRDescription') }}
             </p>
 
-            <!-- QR code — rendered from uqr SVG string -->
+            <!-- QR code — rendered from uqr SVG string (library-generated, not user input) -->
+            <!-- eslint-disable vue/no-v-html -->
             <div
               v-if="qrSvg"
               class="flex justify-center p-4 rounded-xl bg-[oklch(98.5%_0_0)] border border-default shadow-[var(--sd-card-shadow)]"
               v-html="qrSvg"
             />
+            <!-- eslint-enable vue/no-v-html -->
 
             <div class="space-y-1">
               <p class="text-xs text-muted">

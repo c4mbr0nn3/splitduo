@@ -124,8 +124,8 @@ export type AiUsageSummary = Omit<WithRequired<components['schemas']['AiUsageSum
 
 // ─── Balance types (alias-mode union) ────────────────────────────────────────
 
-export type NormalBalance = WithRequired<components['schemas']['BalanceDto'], 'userId' | 'user' | 'balance' | 'totalPaid' | 'totalOwed'>
-export type AliasBalance = WithRequired<components['schemas']['AliasBalanceDto'], 'aliasId' | 'aliasName' | 'balance' | 'totalPaid' | 'totalOwed' | 'members' | 'isSingleton'>
+export type NormalBalance = WithRequired<components['schemas']['BalanceDto'], 'userId' | 'user' | 'balance' | 'totalPaid' | 'totalOwed' | 'expensePaid' | 'expenseShare'>
+export type AliasBalance = WithRequired<components['schemas']['AliasBalanceDto'], 'aliasId' | 'aliasName' | 'balance' | 'totalPaid' | 'totalOwed' | 'expensePaid' | 'expenseShare' | 'members' | 'isSingleton'>
 
 /** Balance entry — normal or alias mode. Narrow via `'aliasId' in b` or `isAliasMode`. */
 export type Balance = NormalBalance | AliasBalance

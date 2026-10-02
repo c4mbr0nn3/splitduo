@@ -30,7 +30,7 @@ const { primaryColor, themeMode } = useChartTheme()
 
 const series = computed(() => [{
   name: t('stats.paid'),
-  data: props.balances.map(b => Number(b.totalPaid)),
+  data: props.balances.map(b => Number(b.expensePaid)),
 }])
 
 const chartOptions = computed(() => ({

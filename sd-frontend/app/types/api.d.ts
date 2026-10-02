@@ -6820,6 +6820,10 @@ export interface components {
             totalPaid?: number | string;
             /** Format: double */
             totalOwed?: number | string;
+            /** Format: double */
+            expensePaid?: number | string;
+            /** Format: double */
+            expenseShare?: number | string;
             members?: components["schemas"]["UserBasicInfoDto"][];
             isSingleton?: boolean;
         };
@@ -7121,6 +7125,10 @@ export interface components {
             totalPaid?: number | string;
             /** Format: double */
             totalOwed?: number | string;
+            /** Format: double */
+            expensePaid?: number | string;
+            /** Format: double */
+            expenseShare?: number | string;
         };
         CategoryDto: {
             /** Format: int32 */
