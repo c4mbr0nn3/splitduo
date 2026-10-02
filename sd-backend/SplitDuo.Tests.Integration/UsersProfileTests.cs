@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using SplitDuo.Api.Features.Aliases.Dto;
 using SplitDuo.Api.Features.Authentication.Dto;
 using SplitDuo.Api.Features.Common.Dto;
+using SplitDuo.Api.Features.Expenses.Dto;
 using SplitDuo.Api.Features.Users.Dto;
 using SplitDuo.Core.Domain.Enums;
 using SplitDuo.Tests.Integration.Support;
@@ -95,9 +96,9 @@ public class UsersProfileTests : IntegrationTest
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserStatsDto>>(ct);
         Assert.Equal(1, body!.Data!.TotalGroups);
-        // Gross semantics: YoureOwed = total paid (100), YouOwe = total owed (50)
-        Assert.Equal(100m, body.Data.Individual.YoureOwed);
-        Assert.Equal(50m, body.Data.Individual.YouOwe);
+        // Clamped net: admin paid 100, owed 50 → per-group net +50
+        Assert.Equal(50m, body.Data.Individual.YoureOwed);
+        Assert.Equal(0m, body.Data.Individual.YouOwe);
         Assert.Equal(0, body.Data.Alias.Groups);
         Assert.Equal(0m, body.Data.Alias.YouOwe);
         Assert.Equal(0m, body.Data.Alias.YoureOwed);
@@ -112,6 +113,141 @@ public class UsersProfileTests : IntegrationTest
         var response = await Client.GetAsync("/api/v1/users/me/stats", ct);
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetUserStats_SettledGroup_ReturnsZeroOwedAndZeroOwe()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var client = await CreateAuthenticatedClientAsync();
+        var group = await client.CreateGroupAsync();
+        var admin = await client.GetCurrentUserAsync();
+
+        var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "stats-settled@localhost");
+        await client.PostAsJsonAsync(
+            $"/api/v1/groups/{group.Id}/members", new { userEmail = memberEmail, role = "member" }, ct);
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
+        var member = await memberClient.GetCurrentUserAsync();
+
+        // Admin pays 100 split 50/50 → admin +50, member -50
+        await client.CreateExpenseAsync(group.Id, admin.Id, amount: 100m,
+            splits: new[]
+            {
+                new { userId = admin.Id, splitAmount = 50m },
+                new { userId = member.Id, splitAmount = 50m },
+            });
+
+        // Member settles 50 to admin → both per-group nets 0
+        await memberClient.CreateSettlementAsync(group.Id, new
+        {
+            fromUserId = member.Id,
+            toUserId = admin.Id,
+            amount = 50m,
+            date = "2025-01-20",
+            description = (string?)null,
+            paymentModeId = (int?)null,
+        });
+
+        // Admin: paid 100, owed 50 (expense share) + 50 (settlement split received) → net 0.
+        // Gross semantics would show 100/100 here — this is the headline regression.
+        var adminResponse = await client.GetAsync("/api/v1/users/me/stats", ct);
+        Assert.Equal(HttpStatusCode.OK, adminResponse.StatusCode);
+        var adminBody = await adminResponse.Content.ReadFromJsonAsync<ApiResponseDto<UserStatsDto>>(ct);
+        Assert.Equal(1, adminBody!.Data!.TotalGroups);
+        Assert.Equal(0m, adminBody.Data.Individual.YoureOwed);
+        Assert.Equal(0m, adminBody.Data.Individual.YouOwe);
+
+        // Member: paid 50 (settlement), owed 50 (expense share) → net 0
+        var memberResponse = await memberClient.GetAsync("/api/v1/users/me/stats", ct);
+        Assert.Equal(HttpStatusCode.OK, memberResponse.StatusCode);
+        var memberBody = await memberResponse.Content.ReadFromJsonAsync<ApiResponseDto<UserStatsDto>>(ct);
+        Assert.Equal(1, memberBody!.Data!.TotalGroups);
+        Assert.Equal(0m, memberBody.Data.Individual.YoureOwed);
+        Assert.Equal(0m, memberBody.Data.Individual.YouOwe);
+    }
+
+    [Fact]
+    public async Task GetUserStats_ThreeGroups_ClampsPerGroup()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var client = await CreateAuthenticatedClientAsync();
+        var admin = await client.GetCurrentUserAsync();
+
+        var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "clamp-member@localhost");
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
+        var member = await memberClient.GetCurrentUserAsync();
+
+        // G1: admin pays 180, splits admin 60 / member 120 → member net -120
+        var g1 = await client.CreateGroupAsync();
+        await client.PostAsJsonAsync(
+            $"/api/v1/groups/{g1.Id}/members", new { userEmail = memberEmail, role = "member" }, ct);
+        await client.CreateExpenseAsync(g1.Id, admin.Id, amount: 180m,
+            splits: new[]
+            {
+                new { userId = admin.Id, splitAmount = 60m },
+                new { userId = member.Id, splitAmount = 120m },
+            });
+
+        // G2: admin pays 90, splits admin 30 / member 60 → member net -60,
+        // then member settles 60 to admin → member net 0
+        var g2 = await client.CreateGroupAsync();
+        await client.PostAsJsonAsync(
+            $"/api/v1/groups/{g2.Id}/members", new { userEmail = memberEmail, role = "member" }, ct);
+        await client.CreateExpenseAsync(g2.Id, admin.Id, amount: 90m,
+            splits: new[]
+            {
+                new { userId = admin.Id, splitAmount = 30m },
+                new { userId = member.Id, splitAmount = 60m },
+            });
+        await memberClient.CreateSettlementAsync(g2.Id, new
+        {
+            fromUserId = member.Id,
+            toUserId = admin.Id,
+            amount = 60m,
+            date = "2025-01-20",
+            description = (string?)null,
+            paymentModeId = (int?)null,
+        });
+
+        // G3: member pays 200, splits admin 100 / member 100 → member net +100
+        var g3 = await client.CreateGroupAsync();
+        await client.PostAsJsonAsync(
+            $"/api/v1/groups/{g3.Id}/members", new { userEmail = memberEmail, role = "member" }, ct);
+        await memberClient.CreateExpenseAsync(g3.Id, member.Id, amount: 200m,
+            splits: new[]
+            {
+                new { userId = admin.Id, splitAmount = 100m },
+                new { userId = member.Id, splitAmount = 100m },
+            });
+
+        // Member's per-group nets: -120, 0, +100 → clamped: YouOwe 120, YoureOwed 100.
+        // A naive cross-group net (-20) would show YouOwe 20 / YoureOwed 0 instead;
+        // gross would show YouOwe 280 / YoureOwed 260.
+        var response = await memberClient.GetAsync("/api/v1/users/me/stats", ct);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserStatsDto>>(ct);
+        Assert.Equal(3, body!.Data!.TotalGroups);
+        Assert.Equal(3, body.Data.Individual.Groups);
+        Assert.Equal(120m, body.Data.Individual.YouOwe);
+        Assert.Equal(100m, body.Data.Individual.YoureOwed);
+        // Widget net invariant: YoureOwed - YouOwe == Σ per-group nets (-120 + 0 + 100)
+        Assert.Equal(-20m, body.Data.Individual.YoureOwed - body.Data.Individual.YouOwe);
+
+        // Cross-check that invariant against the per-group balance view: summing the
+        // member's per-group Balance (-120, 0, +100) must equal the widget net.
+        var memberNetFromGroups = 0m;
+        foreach (var groupId in new[] { g1.Id, g2.Id, g3.Id })
+        {
+            var balancesResponse = await memberClient.GetAsync($"/api/v1/groups/{groupId}/balances", ct);
+            Assert.Equal(HttpStatusCode.OK, balancesResponse.StatusCode);
+            var balances = await balancesResponse.Content.ReadFromJsonAsync<ApiResponseDto<List<BalanceDto>>>(ct);
+            memberNetFromGroups += balances!.Data!.Single(b => b.UserId == member.Id).Balance;
+        }
+        Assert.Equal(body.Data.Individual.YoureOwed - body.Data.Individual.YouOwe, memberNetFromGroups);
+
+        Assert.Equal(0, body.Data.Alias.Groups);
+        Assert.Equal(0m, body.Data.Alias.YouOwe);
+        Assert.Equal(0m, body.Data.Alias.YoureOwed);
     }
 
     #endregion
@@ -184,9 +320,9 @@ public class UsersProfileTests : IntegrationTest
         var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserStatsDto>>(ct);
         Assert.Equal(1, body!.Data!.TotalGroups);
         Assert.Equal(1, body.Data.Alias.Groups);
-        // Gross semantics: alias paid 100, alias owed 50
-        Assert.Equal(100m, body.Data.Alias.YoureOwed);
-        Assert.Equal(50m, body.Data.Alias.YouOwe);
+        // Clamped net: alias paid 100, owed 50 → per-group net +50
+        Assert.Equal(50m, body.Data.Alias.YoureOwed);
+        Assert.Equal(0m, body.Data.Alias.YouOwe);
         // Individual mode untouched
         Assert.Equal(0, body.Data.Individual.Groups);
         Assert.Equal(0m, body.Data.Individual.YouOwe);
@@ -232,9 +368,9 @@ public class UsersProfileTests : IntegrationTest
         var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserStatsDto>>(ct);
         Assert.Equal(1, body!.Data!.TotalGroups);
         Assert.Equal(1, body.Data.Individual.Groups);
-        // Gross semantics: Admin paid 100, owed 80
-        Assert.Equal(100m, body.Data.Individual.YoureOwed);
-        Assert.Equal(80m, body.Data.Individual.YouOwe);
+        // Clamped net: admin paid 100, owed 80 → per-group net +20
+        Assert.Equal(20m, body.Data.Individual.YoureOwed);
+        Assert.Equal(0m, body.Data.Individual.YouOwe);
         // Alias mode untouched
         Assert.Equal(0, body.Data.Alias.Groups);
         Assert.Equal(0m, body.Data.Alias.YouOwe);
@@ -281,14 +417,134 @@ public class UsersProfileTests : IntegrationTest
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserStatsDto>>(ct);
         Assert.Equal(2, body!.Data!.TotalGroups);
-        // Gross semantics per mode: Individual paid 100 / owed 50, Alias paid 100 / owed 50
+        // Clamped net per mode: each single group nets +50
         Assert.Equal(1, body.Data.Individual.Groups);
-        Assert.Equal(100m, body.Data.Individual.YoureOwed);
-        Assert.Equal(50m, body.Data.Individual.YouOwe);
+        Assert.Equal(50m, body.Data.Individual.YoureOwed);
+        Assert.Equal(0m, body.Data.Individual.YouOwe);
         Assert.Equal(1, body.Data.Alias.Groups);
-        Assert.Equal(100m, body.Data.Alias.YoureOwed);
-        Assert.Equal(50m, body.Data.Alias.YouOwe);
+        Assert.Equal(50m, body.Data.Alias.YoureOwed);
+        Assert.Equal(0m, body.Data.Alias.YouOwe);
         Assert.Equal(body.Data.TotalGroups, body.Data.Individual.Groups + body.Data.Alias.Groups);
+    }
+
+    [Fact]
+    public async Task GetUserStats_AliasMode_SettledGroup_ReturnsZeros()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var (adminClient, groupId, adminId, outsiderClient, outsiderId, coupleAliasId, outsiderSingletonAliasId) =
+            await SetupFinalizedAliasGroupWithOutsiderAsync("stats-alias-settled-outsider@localhost");
+
+        // Shared alias pays 100, split 50/50 between the shared alias and the
+        // outsider's singleton: shared alias net +50, outsider singleton net -50.
+        await adminClient.CreateAliasExpenseAsync(groupId, adminId, amount: 100m,
+            aliasSplits: new[]
+            {
+                new { aliasId = coupleAliasId, splitAmount = 50m },
+                new { aliasId = outsiderSingletonAliasId, splitAmount = 50m },
+            });
+
+        // Before settling: outsider singleton paid 0, owed 50 → net -50. This exercises
+        // the alias DEBTOR branch (aliasYouOwe += -net) with a nonzero value; after the
+        // settlement below that path is only reached with net 0.
+        var preSettleResponse = await outsiderClient.GetAsync("/api/v1/users/me/stats", ct);
+        Assert.Equal(HttpStatusCode.OK, preSettleResponse.StatusCode);
+        var preSettleBody = await preSettleResponse.Content.ReadFromJsonAsync<ApiResponseDto<UserStatsDto>>(ct);
+        Assert.Equal(1, preSettleBody!.Data!.Alias.Groups);
+        Assert.Equal(50m, preSettleBody.Data.Alias.YouOwe);
+        Assert.Equal(0m, preSettleBody.Data.Alias.YoureOwed);
+
+        // Outsider settles 50 from their singleton alias to the shared alias.
+        // The payer's current alias must equal fromAliasId (SettlementsService guard),
+        // which holds because the outsider is never reassigned to the shared alias.
+        await outsiderClient.CreateSettlementAsync(groupId, new
+        {
+            fromUserId = outsiderId,
+            toUserId = (string?)null,
+            fromAliasId = outsiderSingletonAliasId,
+            toAliasId = coupleAliasId,
+            amount = 50m,
+            date = "2025-01-20",
+        });
+
+        // Admin's stats are keyed by their current alias (the shared one):
+        // paid 100, owed 50 (expense split) + 50 (settlement split received) → net 0.
+        // Gross semantics would show 100/100 here.
+        var adminResponse = await adminClient.GetAsync("/api/v1/users/me/stats", ct);
+        Assert.Equal(HttpStatusCode.OK, adminResponse.StatusCode);
+        var adminBody = await adminResponse.Content.ReadFromJsonAsync<ApiResponseDto<UserStatsDto>>(ct);
+        Assert.Equal(1, adminBody!.Data!.TotalGroups);
+        Assert.Equal(1, adminBody.Data.Alias.Groups);
+        Assert.Equal(0m, adminBody.Data.Alias.YoureOwed);
+        Assert.Equal(0m, adminBody.Data.Alias.YouOwe);
+        Assert.Equal(0, adminBody.Data.Individual.Groups);
+        Assert.Equal(0m, adminBody.Data.Individual.YouOwe);
+        Assert.Equal(0m, adminBody.Data.Individual.YoureOwed);
+
+        // Outsider's stats are keyed by their singleton alias:
+        // paid 50 (settlement), owed 50 (expense split) → net 0.
+        var outsiderResponse = await outsiderClient.GetAsync("/api/v1/users/me/stats", ct);
+        Assert.Equal(HttpStatusCode.OK, outsiderResponse.StatusCode);
+        var outsiderBody = await outsiderResponse.Content.ReadFromJsonAsync<ApiResponseDto<UserStatsDto>>(ct);
+        Assert.Equal(1, outsiderBody!.Data!.TotalGroups);
+        Assert.Equal(1, outsiderBody.Data.Alias.Groups);
+        Assert.Equal(0m, outsiderBody.Data.Alias.YoureOwed);
+        Assert.Equal(0m, outsiderBody.Data.Alias.YouOwe);
+    }
+
+    /// <summary>
+    /// Creates a finalized alias-mode group with three members: admin and an insider
+    /// assigned to a shared multi-person alias (satisfies the finalize requirement of
+    /// at least one alias with two or more members), plus an outsider who stays on
+    /// their auto-created singleton alias. Returns the admin client, group id, admin
+    /// user id, outsider client, outsider user id, the shared alias id, and the
+    /// outsider's singleton alias id.
+    /// </summary>
+    private async Task<(HttpClient adminClient, string groupId, string adminId,
+        HttpClient outsiderClient, string outsiderId, string coupleAliasId, string outsiderSingletonAliasId)>
+        SetupFinalizedAliasGroupWithOutsiderAsync(string outsiderEmail = "stats-alias-outsider@localhost")
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var adminClient = await CreateAuthenticatedClientAsync();
+        var group = await adminClient.CreateGroupAsync(useAliases: true);
+        var admin = await adminClient.GetCurrentUserAsync();
+
+        var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
+            "stats-alias-insider@localhost", "changeme123", "Insider", "User");
+        await adminClient.PostAsJsonAsync(
+            $"/api/v1/groups/{group.Id}/members", new { userEmail = memberEmail, role = "member" }, ct);
+        var memberClient = await CreateAuthenticatedClientAsync(memberEmail, "changeme123");
+        var member = await memberClient.GetCurrentUserAsync();
+
+        await TestDbSeeder.SeedUserAsync(Factory.Services, outsiderEmail);
+        await adminClient.PostAsJsonAsync(
+            $"/api/v1/groups/{group.Id}/members", new { userEmail = outsiderEmail, role = "member" }, ct);
+        var outsiderClient = await CreateAuthenticatedClientAsync(outsiderEmail, "changeme123");
+        var outsider = await outsiderClient.GetCurrentUserAsync();
+
+        // Capture the outsider's singleton alias before creating the shared alias
+        var aliasesBefore = await adminClient.GetAsync($"/api/v1/groups/{group.Id}/aliases", ct);
+        var aliasesBeforeBody = await aliasesBefore.Content.ReadFromJsonAsync<ApiResponseDto<List<AliasDto>>>(ct);
+        var outsiderSingletonAliasId = aliasesBeforeBody!.Data!
+            .Single(a => a.IsSingleton && a.Members.Any(m => m.Id == outsider.Id)).Id;
+
+        // Shared alias with admin + insider (>= 2 members → finalize allowed)
+        var aliasResponse = await adminClient.PostAsJsonAsync(
+            $"/api/v1/groups/{group.Id}/aliases", new { name = "Couple" }, ct);
+        aliasResponse.EnsureSuccessStatusCode();
+        var aliasBody = await aliasResponse.Content.ReadFromJsonAsync<ApiResponseDto<AliasDto>>(ct);
+        var coupleAliasId = aliasBody!.Data!.Id;
+
+        await adminClient.PostAsJsonAsync(
+            $"/api/v1/aliases/{coupleAliasId}/members", new { userId = admin.Id }, ct);
+        await adminClient.PostAsJsonAsync(
+            $"/api/v1/aliases/{coupleAliasId}/members", new { userId = member.Id }, ct);
+
+        // Finalize so expenses and settlements can be created
+        var finalize = await adminClient.PostAsJsonAsync(
+            $"/api/v1/groups/{group.Id}/aliases/finalize", new { }, ct);
+        finalize.EnsureSuccessStatusCode();
+
+        return (adminClient, group.Id, admin.Id, outsiderClient, outsider.Id, coupleAliasId, outsiderSingletonAliasId);
     }
 
     #endregion
