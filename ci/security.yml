@@ -41,7 +41,7 @@ security:trivy:
     - homelab
   interruptible: true
   image:
-    name: docker.io/aquasec/trivy:0.73.0@sha256:7cced7cae583819fc7806d4cbc0dbbc7cad18b99f7d3e235192e6da8c091045c
+    name: docker.io/aquasec/trivy:0.75.0@sha256:af6acf9a6b85dfe389a1941505c0ce9efef52a4719635e1a962f022a3d855daa
     entrypoint: [""]
   script:
     - trivy fs . --severity HIGH,CRITICAL --format table --skip-dirs .git --exit-code 1
@@ -61,7 +61,7 @@ security:trufflehog:
     - homelab
   interruptible: true
   image:
-    name: docker.io/trufflesecurity/trufflehog:3.96.0@sha256:aa821cf4ace8861c7d096d83818cdf7bb9719028a52d37a52eaad44086a52577
+    name: docker.io/trufflesecurity/trufflehog:3.97.9@sha256:52e67fef4d054ecff5c2ce4b4ae376626d1ef54aa0898b53cac19c25e92e14db
     entrypoint: [""]
   script:
     # Exclude .git (GitLab runner injects a masked CI token into .git/config
