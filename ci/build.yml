@@ -60,7 +60,7 @@ variables:
 build_amd64:
   extends: .build_template
   tags:
-    - homelab
+    - saas-linux-small-amd64
   services:
     - docker:28-dind
 

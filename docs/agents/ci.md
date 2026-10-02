@@ -10,10 +10,10 @@
 
 ## Runner Routing
 
-- Every job is tagged `homelab` so it runs on the private runner and never consumes GitLab.com shared compute minutes.
-- `build_arm64` is the sole exception — it keeps `tags: [saas-linux-small-arm64]` because the homelab runner is amd64-only and a native ARM builder is required.
-- There is **no runner fallback**: a `homelab`-tagged job with the private runner offline stays pending until it returns. This is intentional — untagged jobs would silently run on shared runners and burn minutes.
-- New jobs under `ci/` must declare `tags: [homelab]` (unless genuinely ARM-only). Do not rely on `.build_template` — it carries no tags, so each concrete build job must set its own.
+- Most jobs are tagged `homelab` (private runner) so they never consume GitLab.com shared compute minutes.
+- The Docker build jobs are the exception: `build_amd64` runs on `saas-linux-small-amd64` and `build_arm64` on `saas-linux-small-arm64`. The homelab runner has a degenerate cpuset that triggers a .NET 10.0.12 Server GC init failure (`Failed to create CoreCLR, HRESULT: 0x8013200A` / "affinitize to 0 CPUs") during `dotnet publish`, and it is amd64-only so a native ARM builder is required regardless. Revisit once the SDK bundles a runtime with the fix (dotnet/runtime#133497, expected 10.0.13).
+- There is **no runner fallback**: a job whose tag is not served by an online runner stays pending until that runner returns. Untagged jobs would silently run on shared runners and burn minutes.
+- New jobs under `ci/` must declare `tags: [homelab]` unless they genuinely need a SaaS runner. Do not rely on `.build_template` — it carries no tags, so each concrete build job must set its own.
 
 ## Image Pinning
 
