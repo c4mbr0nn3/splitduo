@@ -23,7 +23,7 @@
     "@iconify-json/lucide": "^1.2.138",
     "@iconify-json/simple-icons": "^1.2.98",
     "@nuxt/ui": "^4.11.3",
-    "@vueuse/core": "^14.4.0",
+    "@vueuse/core": "^15.0.0",
     "apexcharts": "^7.7.0",
     "nuxt": "^4.5.2",
     "uqr": "^0.1.3",
