@@ -175,8 +175,8 @@ const mySummary = computed(() => {
     return my
       ? {
           balance: Number(my.balance) || 0,
-          totalPaid: Number(my.totalPaid) || 0,
-          totalOwed: Number(my.totalOwed) || 0,
+          expensePaid: Number(my.expensePaid) || 0,
+          expenseShare: Number(my.expenseShare) || 0,
           aliasName: my.aliasName,
         }
       : null
@@ -187,8 +187,8 @@ const mySummary = computed(() => {
   return my
     ? {
         balance: Number(my.balance) || 0,
-        totalPaid: Number(my.totalPaid) || 0,
-        totalOwed: Number(my.totalOwed) || 0,
+        expensePaid: Number(my.expensePaid) || 0,
+        expenseShare: Number(my.expenseShare) || 0,
       }
     : null
 })

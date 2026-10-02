@@ -36,7 +36,7 @@
           {{ isAliasMode ? $t('stats.aliasPaid') : $t('stats.youPaid') }}
         </p>
         <p class="font-semibold text-success">
-          {{ formatCurrency(balance.totalPaid) }}
+          {{ formatCurrency(balance.expensePaid) }}
         </p>
       </div>
       <div class="text-center">
@@ -44,7 +44,7 @@
           {{ isAliasMode ? $t('stats.aliasOwes') : $t('stats.youOwe') }}
         </p>
         <p class="font-semibold text-warning">
-          {{ formatCurrency(balance.totalOwed) }}
+          {{ formatCurrency(balance.expenseShare) }}
         </p>
       </div>
     </div>
@@ -56,8 +56,8 @@ import { formatCurrency } from '~/utils/currency'
 
 interface BalanceDisplay {
   balance: number
-  totalPaid: number
-  totalOwed: number
+  expensePaid: number
+  expenseShare: number
   aliasName?: string
 }
 

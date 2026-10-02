@@ -6420,6 +6420,18 @@ components:
             - number
             - string
           format: double
+        expensePaid:
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+          format: double
+        expenseShare:
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+          format: double
         members:
           type: array
           items:
@@ -7275,6 +7287,18 @@ components:
             - string
           format: double
         totalOwed:
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+          format: double
+        expensePaid:
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+          type:
+            - number
+            - string
+          format: double
+        expenseShare:
           pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
           type:
             - number

@@ -448,7 +448,9 @@ public class BalancesService(
                 },
                 Balance = 0,
                 TotalPaid = 0,
-                TotalOwed = 0
+                TotalOwed = 0,
+                ExpensePaid = 0,
+                ExpenseShare = 0
             };
         }
 
@@ -464,10 +466,16 @@ public class BalancesService(
 
         foreach (var expense in expenses)
         {
-            // Add amount paid by user
+            var isSettlement = expense.ExpenseTypeId == (int)ExpenseType.Settlement;
+
+            // Add amount paid by user (full-ledger: includes settlements — netting invariant)
             if (balances.ContainsKey(expense.PaidBy))
             {
                 balances[expense.PaidBy].TotalPaid += expense.Amount;
+                if (!isSettlement)
+                {
+                    balances[expense.PaidBy].ExpensePaid += expense.Amount;
+                }
             }
 
             // Subtract amounts owed by users (from splits) - only for group members
@@ -476,6 +484,10 @@ public class BalancesService(
                 if (balances.ContainsKey(split.UserId))
                 {
                     balances[split.UserId].TotalOwed += split.SplitAmount;
+                    if (!isSettlement)
+                    {
+                        balances[split.UserId].ExpenseShare += split.SplitAmount;
+                    }
                 }
             }
         }
@@ -555,6 +567,8 @@ public class BalancesService(
                 Balance = 0,
                 TotalPaid = 0,
                 TotalOwed = 0,
+                ExpensePaid = 0,
+                ExpenseShare = 0,
                 IsSingleton = alias.IsSingleton ?? false,
                 Members = activeMembers.Select(m => new UserBasicInfoDto
                 {
@@ -604,6 +618,10 @@ public class BalancesService(
             if (payerAliasId.HasValue && aliasBalances.ContainsKey(payerAliasId.Value))
             {
                 aliasBalances[payerAliasId.Value].TotalPaid += expense.Amount;
+                if (expense.ExpenseTypeId != (int)ExpenseType.Settlement)
+                {
+                    aliasBalances[payerAliasId.Value].ExpensePaid += expense.Amount;
+                }
             }
         }
 
@@ -611,6 +629,10 @@ public class BalancesService(
         // (over non-deleted expenses). This naturally includes soft-deleted aliases
         // referenced by historical splits.
         var expenseIds = expenses.Select(e => e.Id).ToHashSet();
+        var settlementExpenseIds = expenses
+            .Where(e => e.ExpenseTypeId == (int)ExpenseType.Settlement)
+            .Select(e => e.Id)
+            .ToHashSet();
 
         var aliasSplits = await unitOfWork.ExpenseAliasSplits
             .Where(eas => expenseIds.Contains(eas.ExpenseId))
@@ -621,6 +643,10 @@ public class BalancesService(
             if (aliasBalances.ContainsKey(split.AliasId))
             {
                 aliasBalances[split.AliasId].TotalOwed += split.SplitAmount;
+                if (!settlementExpenseIds.Contains(split.ExpenseId))
+                {
+                    aliasBalances[split.AliasId].ExpenseShare += split.SplitAmount;
+                }
             }
         }
 

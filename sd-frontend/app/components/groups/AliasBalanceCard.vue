@@ -45,7 +45,7 @@
           {{ $t('stats.paid') }}
         </p>
         <p class="font-semibold text-success sd-tabular">
-          {{ formatCurrency(balance.totalPaid) }}
+          {{ formatCurrency(balance.expensePaid) }}
         </p>
       </div>
       <div>
@@ -53,7 +53,7 @@
           {{ $t('stats.owes') }}
         </p>
         <p class="font-semibold text-warning sd-tabular">
-          {{ formatCurrency(balance.totalOwed) }}
+          {{ formatCurrency(balance.expenseShare) }}
         </p>
       </div>
     </div>

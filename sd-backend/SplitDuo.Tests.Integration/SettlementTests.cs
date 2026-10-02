@@ -493,6 +493,186 @@ public class SettlementTests : IntegrationTest
 
     #endregion
 
+    #region Expense-only reporting fields
+
+    [Fact]
+    public async Task GetBalances_ExpenseOnlyFields_ExcludeSettlements()
+    {
+        var (adminClient, groupId, adminId, user2Id) = await SetupGroupWithTwoMembersAsync();
+
+        // Admin pays 100, split 50/50
+        await adminClient.CreateExpenseAsync(groupId, adminId, amount: 100m,
+            splits: new[]
+            {
+                new { userId = adminId, splitAmount = 50m },
+                new { userId = user2Id, splitAmount = 50m },
+            });
+
+        // User2 settles 20 → admin (creates ExpenseSplit on admin)
+        await adminClient.CreateSettlementAsync(groupId,
+            SettlementPayload(user2Id, adminId, 20m));
+
+        var balances = await GetBalancesAsync(adminClient, groupId);
+
+        var admin = balances.Single(b => b.UserId == adminId);
+        // Full-ledger fields unchanged (existing semantics pinned)
+        Assert.Equal(100m, admin.TotalPaid);
+        Assert.Equal(70m, admin.TotalOwed);
+        Assert.Equal(30m, admin.Balance);
+        // NEW expense-only fields
+        Assert.Equal(100m, admin.ExpensePaid);
+        Assert.Equal(50m, admin.ExpenseShare);
+
+        var user2 = balances.Single(b => b.UserId == user2Id);
+        Assert.Equal(20m, user2.TotalPaid);      // settlement paid-leg included
+        Assert.Equal(50m, user2.TotalOwed);
+        Assert.Equal(-30m, user2.Balance);
+        Assert.Equal(0m, user2.ExpensePaid);     // settlement excluded
+        Assert.Equal(50m, user2.ExpenseShare);
+    }
+
+    [Fact]
+    public async Task GetBalances_NoExpenses_ExpenseOnlyFieldsZero()
+    {
+        var (adminClient, groupId, adminId, user2Id) = await SetupGroupWithTwoMembersAsync();
+
+        var balances = await GetBalancesAsync(adminClient, groupId);
+
+        var admin = balances.Single(b => b.UserId == adminId);
+        Assert.Equal(0m, admin.TotalPaid);
+        Assert.Equal(0m, admin.TotalOwed);
+        Assert.Equal(0m, admin.Balance);
+        Assert.Equal(0m, admin.ExpensePaid);
+        Assert.Equal(0m, admin.ExpenseShare);
+
+        var user2 = balances.Single(b => b.UserId == user2Id);
+        Assert.Equal(0m, user2.TotalPaid);
+        Assert.Equal(0m, user2.TotalOwed);
+        Assert.Equal(0m, user2.Balance);
+        Assert.Equal(0m, user2.ExpensePaid);
+        Assert.Equal(0m, user2.ExpenseShare);
+    }
+
+    [Fact]
+    public async Task GetGroupStats_BalancesCarryExpenseOnlyFields()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var (adminClient, groupId, adminId, user2Id) = await SetupGroupWithTwoMembersAsync();
+
+        // €50 expense (default split: payer covers the full amount) + €30 settlement
+        await adminClient.CreateExpenseAsync(groupId, adminId, amount: 50m,
+            categoryId: 2, expenseDate: "2025-01-15");
+        await adminClient.CreateSettlementAsync(groupId,
+            SettlementPayload(user2Id, adminId, 30m, date: "2025-01-16"));
+
+        var response = await adminClient.GetAsync($"/api/v1/groups/{groupId}/stats", ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<GroupStatsDto>>(ct);
+        Assert.NotNull(body!.Data);
+
+        // Expense-only paid equals the settlement-excluded group total (same response)
+        Assert.Equal(50m, body.Data!.TotalAmount);
+        Assert.Equal(50m, body.Data!.Balances.Sum(b => b.ExpensePaid));
+
+        var admin = body.Data.Balances.Single(b => b.UserId == adminId);
+        Assert.Equal(50m, admin.ExpensePaid);    // settlement excluded
+        Assert.Equal(50m, admin.ExpenseShare);   // default split is payer-full
+
+        var user2 = body.Data.Balances.Single(b => b.UserId == user2Id);
+        Assert.Equal(0m, user2.ExpensePaid);
+        Assert.Equal(0m, user2.ExpenseShare);    // settlement split excluded
+    }
+
+    [Fact]
+    public async Task GetGroupStats_ExpensePaid_DivergesFromTotalAmount_WhenPayerRemoved()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var adminClient = await CreateAuthenticatedClientAsync();
+        var group = await adminClient.CreateGroupAsync();
+        var admin = await adminClient.GetCurrentUserAsync();
+        var (_, user2Id, _) = await SeedSecondMemberAsync(adminClient, group.Id);
+
+        // User2 pays a €40 expense, split 50/50, then is removed from the group.
+        await adminClient.CreateExpenseAsync(group.Id, user2Id, amount: 40m,
+            splits: new[]
+            {
+                new { userId = admin.Id, splitAmount = 20m },
+                new { userId = user2Id, splitAmount = 20m },
+            });
+
+        var removeResponse = await adminClient.DeleteAsync($"/api/v1/groups/{group.Id}/members/{user2Id}", ct);
+        Assert.True(removeResponse.IsSuccessStatusCode,
+            $"member removal failed: {removeResponse.StatusCode}");
+
+        var response = await adminClient.GetAsync($"/api/v1/groups/{group.Id}/stats", ct);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<GroupStatsDto>>(ct);
+        Assert.NotNull(body!.Data);
+
+        // Pinned caveat: the removed payer's paid leg is dropped, so Σ ExpensePaid
+        // diverges from TotalAmount (which still counts the expense).
+        Assert.Equal(40m, body.Data!.TotalAmount);
+        Assert.Equal(0m, body.Data.Balances.Sum(b => b.ExpensePaid));
+        Assert.True(body.Data.Balances.Sum(b => b.ExpensePaid) < body.Data.TotalAmount);
+
+        // Remaining member's expense-only fields are still correct (admin owes the share).
+        var adminBalance = body.Data.Balances.Single(b => b.UserId == admin.Id);
+        Assert.Equal(0m, adminBalance.ExpensePaid);
+        Assert.Equal(20m, adminBalance.ExpenseShare);
+    }
+
+    [Fact]
+    public async Task GetBalances_AliasMode_ExpenseOnlyFields_ExcludeSettlements()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var (adminClient, groupId, adminId, user2Id, adminSingletonAliasId, user2SingletonAliasId, coupleAliasId) =
+            await SetupFinalizedAliasGroupAsync();
+
+        // Couple alias pays 100, split 50/50 between Couple and user2's singleton
+        await adminClient.CreateAliasExpenseAsync(groupId, adminId, amount: 100m,
+            aliasSplits: new[]
+            {
+                new { aliasId = coupleAliasId, splitAmount = 50m },
+                new { aliasId = user2SingletonAliasId, splitAmount = 50m },
+            });
+
+        // Settlement: Couple → user2's singleton, 20
+        await adminClient.CreateSettlementAsync(groupId, new
+        {
+            fromUserId = adminId,
+            toUserId = (string?)null,
+            fromAliasId = coupleAliasId,
+            toAliasId = user2SingletonAliasId,
+            amount = 20m,
+            date = "2025-01-20",
+        });
+
+        var response = await adminClient.GetAsync($"/api/v1/groups/{groupId}/balances", ct);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<List<AliasBalanceDto>>>(ct);
+        Assert.NotNull(body!.Data);
+
+        var couple = body.Data.Single(b => b.AliasId == coupleAliasId);
+        // Full-ledger semantics (settlement: paid leg on payer alias, split on receiver alias)
+        Assert.Equal(120m, couple.TotalPaid);    // 100 expense + 20 settlement paid
+        Assert.Equal(50m, couple.TotalOwed);     // expense share only (settlement split → receiver)
+        Assert.Equal(70m, couple.Balance);
+        // Expense-only fields
+        Assert.Equal(100m, couple.ExpensePaid);  // settlement excluded
+        Assert.Equal(50m, couple.ExpenseShare);  // settlement split excluded
+
+        var singleton = body.Data.Single(b => b.AliasId == user2SingletonAliasId);
+        Assert.Equal(0m, singleton.TotalPaid);
+        Assert.Equal(70m, singleton.TotalOwed);  // 50 expense share + 20 settlement split
+        Assert.Equal(-70m, singleton.Balance);
+        Assert.Equal(0m, singleton.ExpensePaid);
+        Assert.Equal(50m, singleton.ExpenseShare);
+
+    }
+
+    #endregion
+
     #region CSV export / import round trip
 
     [Fact]

@@ -57,6 +57,8 @@ const normalBalance = (overrides: Partial<NormalBalance> = {}): NormalBalance =>
   balance: 10,
   totalPaid: 20,
   totalOwed: 10,
+  expensePaid: 15,
+  expenseShare: 5,
   ...overrides,
 })
 
@@ -66,6 +68,8 @@ const aliasBalance = (overrides: Partial<AliasBalance> = {}): AliasBalance => ({
   balance: 10,
   totalPaid: 20,
   totalOwed: 10,
+  expensePaid: 15,
+  expenseShare: 5,
   members: [{ id: 'user-1', firstName: 'Alice' }],
   isSingleton: false,
   ...overrides,
