@@ -6,6 +6,7 @@ using SplitDuo.Api.Features.Authentication.Dto;
 using SplitDuo.Api.Features.Authentication.Services;
 using SplitDuo.Api.Features.Common.Controllers;
 using SplitDuo.Api.Features.Common.Dto;
+using SplitDuo.Api.Extensions;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Persistence;
 
@@ -42,6 +43,7 @@ public class AuthController(
         return HandleResult(result, "Login successful");
     }
 
+    [EnableRateLimiting(AuthRateLimiting.AuthRefreshPolicyName)]
     [HttpPost("refresh")]
     [ProducesResponseType(typeof(ApiResponseDto<AuthResponseDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -156,6 +158,7 @@ public class AuthController(
         return HandleResult(result, "Token revoked successfully");
     }
 
+    [EnableRateLimiting(AuthRateLimiting.AuthPolicyName)]
     [AllowAnonymous]
     [HttpPost("forgot-password")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -177,6 +180,7 @@ public class AuthController(
             "If your email is registered, you will receive password reset instructions.");
     }
 
+    [EnableRateLimiting(AuthRateLimiting.AuthPolicyName)]
     [AllowAnonymous]
     [HttpGet("validate-reset-token")]
     [ProducesResponseType(typeof(ApiResponseDto<bool>), StatusCodes.Status200OK)]
@@ -201,6 +205,7 @@ public class AuthController(
         return HandleResult(result, "Reset token is valid");
     }
 
+    [EnableRateLimiting(AuthRateLimiting.AuthPolicyName)]
     [AllowAnonymous]
     [HttpPost("reset-password")]
     [ProducesResponseType(StatusCodes.Status200OK)]

@@ -37,6 +37,14 @@ SD_BASE_URL: http://localhost:3000
 ASPNETCORE_ENVIRONMENT: Production
 ```
 
+## Reverse proxy (optional, but required for per-IP rate limiting behind a proxy)
+
+```yaml
+SD_KNOWN_PROXIES: 10.0.0.5,192.168.1.0/24   # trusted proxy IPs and/or CIDRs, comma-separated
+```
+
+Unset (default): `X-Forwarded-For` is ignored (fail-closed). Behind a reverse proxy you **must** set this (and the proxy must forward `X-Forwarded-For`), or per-IP rate limiting on auth endpoints collapses to one shared bucket.
+
 ## Initial admin user
 
 Created on first startup only. First/last name and demo-data seeding are optional.
