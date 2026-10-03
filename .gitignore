@@ -11,6 +11,9 @@ node_modules/
 # opencode (agent working dir — session scratch, images)
 .opencode/
 
+# Local planning scratch (plans/specs live as GitLab issue attachments)
+tasks/
+
 # Backfill script scratch dir (scripts/backfill-releases.sh)
 .backfill-tmp/
 

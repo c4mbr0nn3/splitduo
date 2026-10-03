@@ -4,8 +4,11 @@ using System.ComponentModel.DataAnnotations;
 
 /// <summary>
 /// Per-user UI preferences. Stored as jsonb on the users table.
-/// Add new settings here with a default initializer — no migration needed
-/// for additive changes (System.Text.Json uses CLR defaults for missing keys).
+/// Add new settings here with a default initializer, but any new <b>required</b> member
+/// (scalar or collection) MUST ship a backfill migration for existing rows: EF Core 10
+/// materializes an absent JSON key as null, ignores the CLR initializer, and throws
+/// NullRequiredComplexProperty on save (dotnet/efcore#38625; fixed only in EF Core 12).
+/// See migration 20261003083142_BackfillUserSettingsRequiredKeys.
 /// </summary>
 public class UserSettings
 {
