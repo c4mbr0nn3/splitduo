@@ -5,4 +5,5 @@ public record ExpenseFilterOptions(
     string? EndDate = null,
     string? Category = null,
     string? UserId = null,
-    string? Search = null);
+    string? Search = null,
+    string? AliasId = null);

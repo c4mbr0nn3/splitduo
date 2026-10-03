@@ -33,13 +33,14 @@ public class ExpensesController(
         [FromQuery] string? endDate = null,
         [FromQuery] string? category = null,
         [FromQuery] string? userId = null,
-        [FromQuery] string? search = null)
+        [FromQuery] string? search = null,
+        [FromQuery] string? aliasId = null)
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
             return HandlePaginatedResult(NotAuthenticated<PaginatedResponseDto<ExpenseDto>>());
 
-        var filters = new ExpenseFilterOptions(startDate, endDate, category, userId, search);
+        var filters = new ExpenseFilterOptions(startDate, endDate, category, userId, search, aliasId);
         var result = await expensesService.GetGroupExpensesAsync(groupId, currentUserId.Value, page, limit, filters);
 
         return HandlePaginatedResult(result, "Expenses retrieved successfully");

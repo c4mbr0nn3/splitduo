@@ -25,6 +25,8 @@
   <data name="InvalidAliasIdInSplit" xml:space="preserve"><value>Formato ID alias non valido nella suddivisione: {0}</value></data>
   <data name="AliasNotFoundInSplit" xml:space="preserve"><value>Alias non trovato o eliminato: {0}</value></data>
   <data name="AliasNotInGroup" xml:space="preserve"><value>L'alias {0} non appartiene a questo gruppo</value></data>
+  <data name="InvalidAliasIdFormat" xml:space="preserve"><value>Formato ID alias non valido</value></data>
+  <data name="AliasNotFound" xml:space="preserve"><value>Alias non trovato</value></data>
   <data name="SplitAmountMustBePositive" xml:space="preserve"><value>L'importo della suddivisione deve essere maggiore di zero</value></data>
   <data name="SplitAmountsDoNotSum" xml:space="preserve"><value>Gli importi suddivisi ({0:F2}) non corrispondono all'importo della spesa ({1:F2})</value></data>
   <data name="ExpenseSplitRequired" xml:space="preserve"><value>È richiesta almeno una suddivisione della spesa</value></data>

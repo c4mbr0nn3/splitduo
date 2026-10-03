@@ -51,7 +51,7 @@
       <div>
         <label class="block text-sm font-medium mb-1">{{ $t('expenses.filterPaidBy') }}</label>
         <USelect
-          v-model="filters.userId"
+          v-model="paidById"
           :items="memberOptions"
           class="w-full"
         />
@@ -67,6 +67,7 @@ interface ExpenseFilters {
   endDate?: string
   category?: string
   userId?: string
+  aliasId?: string
 }
 
 interface SelectOption {
@@ -80,8 +81,11 @@ interface Props {
   categoryOptions: SelectOption[]
   memberOptions: SelectOption[]
   activeFilterCount?: number
+  memberField?: 'userId' | 'aliasId'
 }
-defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  memberField: 'userId',
+})
 
 defineEmits<{
   apply: []
@@ -91,4 +95,11 @@ defineEmits<{
 const pendingFilterCount = computed(() =>
   Object.values(filters.value).filter(Boolean).length,
 )
+
+const paidById = computed({
+  get: () => filters.value[props.memberField],
+  set: (value: string | undefined) => {
+    filters.value[props.memberField] = value
+  },
+})
 </script>

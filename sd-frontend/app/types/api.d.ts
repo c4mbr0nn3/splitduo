@@ -4290,6 +4290,7 @@ export interface paths {
                     category?: string;
                     userId?: string;
                     search?: string;
+                    aliasId?: string;
                 };
                 header?: never;
                 path: {

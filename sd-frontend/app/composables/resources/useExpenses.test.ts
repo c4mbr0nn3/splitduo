@@ -93,6 +93,19 @@ describe('useExpenses', () => {
       })
     })
 
+    it('forwards the aliasId filter as its own query param', async () => {
+      apiMock.getPaginated.mockResolvedValue({ success: true, data: [], pagination: pagination() })
+      const expenses = useExpenses('group-1')
+
+      await expenses.fetchExpenses({ aliasId: 'alias-1' })
+
+      expect(apiMock.getPaginated).toHaveBeenCalledWith('/groups/group-1/expenses', {
+        page: 1,
+        limit: 20,
+        aliasId: 'alias-1',
+      })
+    })
+
     it('returns early without calling the API when groupId is empty', async () => {
       const expenses = useExpenses('')
 

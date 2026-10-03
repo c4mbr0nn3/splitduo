@@ -61,6 +61,7 @@
             v-model:filters="pendingFilters"
             :category-options="categoryOptions"
             :member-options="memberOptions"
+            :member-field="isAliasMode ? 'aliasId' : 'userId'"
             :active-filter-count="activeFilterCount"
             @apply="applyFilters"
             @clear="clearFilters"
@@ -141,6 +142,7 @@ const pendingFilters = ref<ExpenseFilters>({
   endDate: typeof route.query.endDate === 'string' ? route.query.endDate : undefined,
   category: typeof route.query.category === 'string' ? route.query.category : undefined,
   userId: typeof route.query.userId === 'string' ? route.query.userId : undefined,
+  aliasId: typeof route.query.aliasId === 'string' ? route.query.aliasId : undefined,
   search: typeof route.query.search === 'string' ? route.query.search : undefined,
 })
 const activeFilters = ref<ExpenseFilters>({ ...pendingFilters.value })
@@ -151,6 +153,7 @@ const buildQuery = (filters: ExpenseFilters, page: number): Record<string, strin
   if (filters.endDate) q.endDate = filters.endDate
   if (filters.category) q.category = filters.category
   if (filters.userId) q.userId = filters.userId
+  if (filters.aliasId) q.aliasId = filters.aliasId
   if (filters.search) q.search = filters.search
   return q
 }
@@ -224,34 +227,53 @@ const addExpense = () => {
   navigateTo(`/expenses/add?groupId=${props.groupId}`)
 }
 
+const isBadRequest = (error: unknown) =>
+  error != null && typeof error === 'object' && (error as { statusCode?: number }).statusCode === 400
+
+// Wrapper around fetchExpenses that survives a 400 from a stale filter URL
+// (e.g. a bookmarked ?aliasId=/?userId= for a since-deleted payer): the backend
+// rejects unknown filters instead of silently ignoring them, so clear the
+// offending member filters, reset the filter state, and retry once unfiltered.
+const fetchExpensesSafely = async (filters: ExpenseFilters) => {
+  try {
+    await fetchExpenses(filters)
+  }
+  catch (error: unknown) {
+    if (!isBadRequest(error)) throw error
+    pendingFilters.value = { ...pendingFilters.value, userId: undefined, aliasId: undefined }
+    activeFilters.value = { ...activeFilters.value, userId: undefined, aliasId: undefined }
+    await fetchExpenses({ ...activeFilters.value, page: currentPage.value })
+  }
+}
+
 const applyFilters = async () => {
   activeFilters.value = { ...pendingFilters.value }
   currentPage.value = 1
   router.push({ query: buildQuery(activeFilters.value, 1) })
-  await fetchExpenses({ ...activeFilters.value, page: 1 })
+  await fetchExpensesSafely({ ...activeFilters.value, page: 1 })
   mobileFiltersOpen.value = false
 }
 
 const clearFilters = async () => {
-  const empty: ExpenseFilters = { startDate: undefined, endDate: undefined, category: undefined, userId: undefined, search: undefined }
+  const empty: ExpenseFilters = { startDate: undefined, endDate: undefined, category: undefined, userId: undefined, aliasId: undefined, search: undefined }
   pendingFilters.value = { ...empty }
   activeFilters.value = { ...empty }
   currentPage.value = 1
   router.push({ query: { tab: 'expenses', page: 1 } })
-  await fetchExpenses({ page: 1 })
+  await fetchExpensesSafely({ page: 1 })
   mobileFiltersOpen.value = false
 }
 
 const onExpenseDeleted = async () => {
   await Promise.all([
-    fetchExpenses({ ...activeFilters.value, page: currentPage.value }),
+    fetchExpensesSafely({ ...activeFilters.value, page: currentPage.value }),
     fetchBalanceSummary(),
   ])
 }
 
 watch(currentPage, async (newPage) => {
   router.push({ query: buildQuery(activeFilters.value, newPage) })
-  await fetchExpenses({ ...activeFilters.value, page: newPage })
+  await fetchExpensesSafely({ ...activeFilters.value, page: newPage })
 }, { immediate: false })
 
 onMounted(async () => {
@@ -259,7 +281,7 @@ onMounted(async () => {
     await withMinDuration(async () => {
       await Promise.all([
         fetchGroup(props.groupId),
-        fetchExpenses({ ...activeFilters.value, page: currentPage.value }),
+        fetchExpensesSafely({ ...activeFilters.value, page: currentPage.value }),
       ])
       if (isAliasMode.value) {
         await fetchAliases(props.groupId)

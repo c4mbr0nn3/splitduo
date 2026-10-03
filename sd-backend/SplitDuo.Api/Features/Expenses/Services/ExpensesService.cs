@@ -77,11 +77,38 @@ public class ExpensesService(
             Enum.TryParse<ExpenseCategory>(filters.Category, true, out var categoryEnum))
             query = query.Where(e => e.CategoryId == (int)categoryEnum);
 
-        if (!string.IsNullOrWhiteSpace(filters.UserId) && Guid.TryParse(filters.UserId, out var userGuid))
+        if (!string.IsNullOrWhiteSpace(filters.UserId))
         {
+            if (!Guid.TryParse(filters.UserId, out var userGuid))
+                return Result<PaginatedResponseDto<ExpenseDto>>.BadRequest(loc["InvalidPaidByUserIdFormat"]);
+
             var user = await unitOfWork.Users.FirstOrDefaultAsync(u => u.Guid == userGuid);
-            if (user != null)
-                query = query.Where(e => e.PaidBy == user.Id);
+            if (user == null)
+                return Result<PaginatedResponseDto<ExpenseDto>>.BadRequest(loc["PaidByUserNotFound"]);
+
+            query = query.Where(e => e.PaidBy == user.Id);
+        }
+
+        if (!string.IsNullOrWhiteSpace(filters.AliasId))
+        {
+            if (!Guid.TryParse(filters.AliasId, out var aliasGuid))
+                return Result<PaginatedResponseDto<ExpenseDto>>.BadRequest(loc["InvalidAliasIdFormat"]);
+
+            // Resolve the alias regardless of DeletedAt: soft-deleted aliases with
+            // historical splits remain filterable, matching BalancesService's
+            // historical PaidByAliasId attribution in the balance summary (the same
+            // source the frontend "Paid by" dropdown is populated from).
+            var alias = await unitOfWork.Aliases
+                .FirstOrDefaultAsync(a => a.Guid == aliasGuid);
+
+            if (alias == null)
+                return Result<PaginatedResponseDto<ExpenseDto>>.BadRequest(loc["AliasNotFound"]);
+
+            if (alias.GroupId != group.Id)
+                return Result<PaginatedResponseDto<ExpenseDto>>.BadRequest(
+                    string.Format(loc["AliasNotInGroup"], filters.AliasId));
+
+            query = query.Where(e => e.PaidByAliasId == alias.Id);
         }
 
         if (!string.IsNullOrWhiteSpace(filters.Search))

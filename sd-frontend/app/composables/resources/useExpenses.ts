@@ -7,6 +7,7 @@ export interface ExpenseFilters {
   endDate?: string
   category?: string
   userId?: string
+  aliasId?: string
   search?: string
 }
 
@@ -41,6 +42,7 @@ export default function useExpenses(groupId: string | Ref<string>) {
         ...(filters.endDate && { endDate: filters.endDate }),
         ...(filters.category && { category: filters.category }),
         ...(filters.userId && { userId: filters.userId }),
+        ...(filters.aliasId && { aliasId: filters.aliasId }),
         ...(filters.search && { search: filters.search }),
       }
 

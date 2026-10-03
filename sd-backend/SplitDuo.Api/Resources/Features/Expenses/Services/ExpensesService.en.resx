@@ -25,6 +25,8 @@
   <data name="InvalidAliasIdInSplit" xml:space="preserve"><value>Invalid alias ID format in split: {0}</value></data>
   <data name="AliasNotFoundInSplit" xml:space="preserve"><value>Alias not found or is deleted: {0}</value></data>
   <data name="AliasNotInGroup" xml:space="preserve"><value>Alias {0} does not belong to this group</value></data>
+  <data name="InvalidAliasIdFormat" xml:space="preserve"><value>Invalid alias ID format</value></data>
+  <data name="AliasNotFound" xml:space="preserve"><value>Alias not found</value></data>
   <data name="SplitAmountMustBePositive" xml:space="preserve"><value>Split amount must be greater than zero</value></data>
   <data name="SplitAmountsDoNotSum" xml:space="preserve"><value>Split amounts ({0:F2}) do not sum up to expense amount ({1:F2})</value></data>
   <data name="ExpenseSplitRequired" xml:space="preserve"><value>At least one expense split is required</value></data>
