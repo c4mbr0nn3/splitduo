@@ -156,7 +156,7 @@ public class AbstractImportServiceTests
 
         Assert.True(result.IsFailure);
         Assert.Equal(HttpStatusCode.InternalServerError, result.StatusCode);
-        Assert.Equal("mapping validation failed", result.Error);
+        Assert.Equal("Failed to update import mappings", result.Error);
     }
 
     #endregion
@@ -204,7 +204,7 @@ public class AbstractImportServiceTests
 
         Assert.True(result.IsFailure);
         Assert.Equal(HttpStatusCode.InternalServerError, result.StatusCode);
-        Assert.Equal("scheduler failed", result.Error);
+        Assert.Equal("Failed to trigger import job", result.Error);
     }
 
     #endregion

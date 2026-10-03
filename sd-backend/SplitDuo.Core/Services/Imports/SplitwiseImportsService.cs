@@ -50,7 +50,7 @@ public class SplitwiseImportsService(
         catch (Exception e)
         {
             Logger.LogError(e, "An error occurred while analyzing Splitwise import file: {FileName}", file.FileName);
-            return Result<ImportAnalysisDto>.InternalServerError($"Failed to analyze file: {e.Message}");
+            return Result<ImportAnalysisDto>.InternalServerError("Failed to analyze import file");
         }
     }
 
@@ -65,7 +65,7 @@ public class SplitwiseImportsService(
         {
             Logger.LogError(e, "An error occurred while processing Splitwise import file for ImportId {ImportId}",
                 importId);
-            return Result<int>.InternalServerError(e.Message);
+            return Result<int>.InternalServerError("Failed to process import file");
         }
     }
 
@@ -225,7 +225,7 @@ public class SplitwiseImportsService(
                 "Error during Splitwise import processing, rolling back transaction for import {ImportId}",
                 importId);
             await UnitOfWork.RollbackTransactionAsync();
-            return Result<int>.InternalServerError($"Import failed: {ex.Message}");
+            return Result<int>.InternalServerError("Import processing failed");
         }
     }
 }

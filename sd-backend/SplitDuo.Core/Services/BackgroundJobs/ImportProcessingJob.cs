@@ -147,7 +147,7 @@ public class ImportProcessingJob(
             import.Duration = (completedTime - startTime).Milliseconds;
             import.Status = ImportStatus.Failed;
             import.TempFile = null;
-            import.ErrorDetails = ex.Message;
+            import.ErrorDetails = "Import processing failed";
 
             logger.LogError(ex, "Import processing failed: {ImportGuid}", import.Guid);
         }
