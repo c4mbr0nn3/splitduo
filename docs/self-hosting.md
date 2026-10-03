@@ -91,6 +91,18 @@ Run Caddy (in a container or as a system service). It will fetch and renew Let's
 
 > SplitDuo does not terminate TLS itself. Whatever proxy you put in front should forward `X-Forwarded-Proto` so the app knows it's behind HTTPS.
 
+### Per-IP rate limiting behind a proxy
+
+SplitDuo rate-limits sensitive endpoints (login, 2FA, password reset) per client IP **and** per account. When a reverse proxy forwards traffic, the app only sees the proxy's IP — unless you tell it which proxies to trust:
+
+```yaml
+SD_KNOWN_PROXIES: 10.0.0.5          # the proxy's IP, or a CIDR like 10.0.0.0/24
+```
+
+- Value: comma-separated IP addresses and/or CIDR ranges of your trusted reverse proxy (e.g. `10.0.0.5,192.168.1.0/24`).
+- The proxy must forward `X-Forwarded-For`; for each request, the **last** hop added by a trusted proxy is taken as the client IP.
+- **If `SD_KNOWN_PROXIES` is unset, forwarded headers are ignored** (fail-closed) — every proxied request then looks like it came from one IP, so per-IP rate limiting collapses to a single shared bucket and legitimate users can trip 429s together. Per-account limiting still works in that case.
+
 ---
 
 ## Optional features
