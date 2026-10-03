@@ -53,9 +53,7 @@ public class AuthenticationService(
 
         if (verificationResult == PasswordVerificationResult.Failed)
         {
-            user.FailedLoginAttempts++;
-            if (user.FailedLoginAttempts >= 5)
-                user.LockoutEnd = timeProvider.GetUtcNow().AddMinutes(15).ToUnixTimeSeconds();
+            await RegisterFailedLoginAsync(user);
             return Result<AuthResponseDto>.Unauthorized(loc["InvalidCredentials"]);
         }
 
@@ -78,6 +76,26 @@ public class AuthenticationService(
         }
 
         return await CompleteLoginAsync(user);
+    }
+
+    /// <summary>
+    /// Records a failed password attempt and persists it immediately. After 5
+    /// consecutive failures the account is locked out for 15 minutes and the
+    /// counter resets to 0 (mirrors ASP.NET Core Identity's AccessFailedAsync).
+    /// The scoped DbContext is otherwise discarded without AuthController saving,
+    /// so the save MUST happen here.
+    /// </summary>
+    private async Task RegisterFailedLoginAsync(User user)
+    {
+        user.FailedLoginAttempts++;
+
+        if (user.FailedLoginAttempts >= 5)
+        {
+            user.LockoutEnd = timeProvider.GetUtcNow().AddMinutes(15).ToUnixTimeSeconds();
+            user.FailedLoginAttempts = 0;
+        }
+
+        await unitOfWork.SaveChangesAsync();
     }
 
     public async Task<Result<AuthResponseDto>> VerifyTwoFactorAndCompleteLoginAsync(VerifyTwoFactorLoginDto request)
