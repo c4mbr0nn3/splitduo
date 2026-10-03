@@ -6,3 +6,10 @@
 # ignore. Pulled transitively via listhen -> @nuxt/cli/nitropack -> nuxt.
 # Re-evaluate when listhen or node-forge ships a fix; the exp date forces it.
 CVE-2026-85393 exp:2027-01-31
+
+# braces CVE-2026-93687 (DoS via stack overflow from deeply nested patterns):
+# no fixed version exists upstream — 3.0.3 is the latest release, so the only
+# remedies are an override to a nonexistent patch, a VEX statement, or this
+# ignore. Pulled transitively via micromatch -> fast-glob -> nuxt/nitropack
+# and @nuxtjs/i18n. Re-evaluate when braces ships a fix; the exp date forces it.
+CVE-2026-93687 exp:2027-01-31
