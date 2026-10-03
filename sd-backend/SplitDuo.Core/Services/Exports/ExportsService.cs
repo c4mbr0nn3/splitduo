@@ -97,7 +97,7 @@ public class SplitDuoExportsService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error exporting expenses for group {GroupId}", groupId);
-            return Result<byte[]>.InternalServerError($"Failed to export expenses: {ex.Message}");
+            return Result<byte[]>.InternalServerError("Failed to export expenses");
         }
     }
 
@@ -211,7 +211,7 @@ public class SplitDuoExportsService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error exporting alias-mode expenses for group {GroupId}", group.Id);
-            return Result<byte[]>.InternalServerError($"Failed to export expenses: {ex.Message}");
+            return Result<byte[]>.InternalServerError("Failed to export expenses");
         }
     }
 }

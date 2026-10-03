@@ -51,7 +51,7 @@ public class CospendImportsService(
         catch (Exception e)
         {
             Logger.LogError(e, "An error occurred while analyzing import file: {FileName}", file.FileName);
-            return Result<ImportAnalysisDto>.InternalServerError($"Failed to analyze file: {e.Message}");
+            return Result<ImportAnalysisDto>.InternalServerError("Failed to analyze import file");
         }
     }
 
@@ -74,7 +74,7 @@ public class CospendImportsService(
         catch (Exception e)
         {
             Logger.LogError(e, "An error occurred while processing import file for ImportId {ImportId}", importId);
-            return Result<int>.InternalServerError(e.Message);
+            return Result<int>.InternalServerError("Failed to process import file");
         }
     }
 
@@ -213,7 +213,7 @@ public class CospendImportsService(
             Logger.LogError(ex, "Error during import processing, rolling back transaction for import {ImportId}",
                 importId);
             await UnitOfWork.RollbackTransactionAsync();
-            return Result<int>.InternalServerError($"Import failed: {ex.Message}");
+            return Result<int>.InternalServerError("Import processing failed");
         }
     }
 

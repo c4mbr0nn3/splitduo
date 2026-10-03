@@ -219,7 +219,9 @@ public sealed class RecurringExpenseGenerationJob(
         }
         catch (Exception ex)
         {
-            await PauseTemplateAsync(template, ex.Message);
+            logger.LogError(ex, "RecurringExpenseGenerationJob: expense creation failed for template {TemplateId}",
+                template.Id);
+            await PauseTemplateAsync(template, "Expense generation failed unexpectedly");
             return;
         }
 

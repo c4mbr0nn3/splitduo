@@ -86,7 +86,7 @@ public abstract class AbstractImportService<T>(
         catch (Exception e)
         {
             Logger.LogError(e, "An error occurred while updating import mappings for {ImportGuid}", importGuid);
-            return Result<ImportStatusDto>.InternalServerError(e.Message);
+            return Result<ImportStatusDto>.InternalServerError("Failed to update import mappings");
         }
     }
 
@@ -125,7 +125,7 @@ public abstract class AbstractImportService<T>(
         catch (Exception e)
         {
             Logger.LogError(e, "An error occurred while triggering import job for {ImportGuid}", importGuid);
-            return Result<ImportStatusDto>.InternalServerError(e.Message);
+            return Result<ImportStatusDto>.InternalServerError("Failed to trigger import job");
         }
     }
 

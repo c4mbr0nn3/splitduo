@@ -349,7 +349,7 @@ public class ImportProcessingJobTests
 
         var importFromDb = context.Imports.Single();
         Assert.Equal((int)ImportStatus.Failed, importFromDb.StatusId);
-        Assert.Equal("Processing exploded", importFromDb.ErrorDetails);
+        Assert.Equal("Import processing failed", importFromDb.ErrorDetails);
         Assert.Null(importFromDb.TempFile);
         Assert.NotNull(importFromDb.CompletedAt);
     }
