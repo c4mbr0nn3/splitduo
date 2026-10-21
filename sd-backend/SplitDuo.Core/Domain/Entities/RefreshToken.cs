@@ -9,8 +9,6 @@ namespace SplitDuo.Core.Domain.Entities;
 [Index(nameof(TokenHash), IsUnique = true)]
 [Index(nameof(UserId), nameof(RevokedAt))]
 [Index(nameof(ExpiresAt))]
-[Index(nameof(JwtId))]
-[Index(nameof(FamilyId))]
 public class RefreshToken : AuditableEntity
 {
     [Column("id"), Key] public int Id { get; set; }

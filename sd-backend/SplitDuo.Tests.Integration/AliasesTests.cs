@@ -464,6 +464,29 @@ public class AliasesTests : IntegrationTest
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
+    [Fact]
+    public async Task AssignMember_MemberWithAvatar_ReturnsHasAvatar()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var (adminClient, groupId, _, user2Id, user2Client) = await SetupAliasGroupWithTwoMembersAsync();
+
+        // user2 uploads an avatar before being assigned
+        var avatarResponse = await user2Client.UploadAvatarAsync(AvatarTestExtensions.PngBytes, "avatar.png");
+        Assert.True(avatarResponse.IsSuccessStatusCode, $"avatar upload failed: {avatarResponse.StatusCode}");
+
+        var aliasId = await CreateAliasAsync(adminClient, groupId, "Couple");
+
+        var response = await adminClient.PostAsJsonAsync(
+            $"/api/v1/aliases/{aliasId}/members", new { userId = user2Id }, ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<AliasDto>>(ct);
+        Assert.NotNull(body!.Data);
+        Assert.Contains(body.Data!.Members, m => m.Id == user2Id && m.HasAvatar);
+        // The assigning admin has no avatar
+        Assert.True(body.Data.Members.Where(m => m.Id != user2Id).All(m => !m.HasAvatar));
+    }
+
     #endregion
 
     #region RemoveMember

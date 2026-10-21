@@ -6,7 +6,7 @@ using SplitDuo.Core.Domain.Base;
 namespace SplitDuo.Core.Domain.Entities;
 
 [Table("expense_attachments")]
-[Index(nameof(Guid))]
+[Index(nameof(Guid), IsUnique = true)]
 [Index(nameof(ExpenseId), nameof(CreatedAt))]
 [Index(nameof(ExpenseId), nameof(FileHash), IsUnique = true)]
 public class ExpenseAttachment : AuditableEntity

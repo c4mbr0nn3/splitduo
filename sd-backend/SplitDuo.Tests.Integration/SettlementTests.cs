@@ -491,6 +491,36 @@ public class SettlementTests : IntegrationTest
         return (adminClient, group.Id, admin.Id, user2.Id, adminSingletonId, user2SingletonId, coupleAliasId);
     }
 
+    [Fact]
+    public async Task GetBalances_SoftDeletedAliasWithSplits_StillIncluded()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var (adminClient, groupId, adminId, _, _, user2SingletonAliasId, coupleAliasId) =
+            await SetupFinalizedAliasGroupAsync();
+
+        // Couple alias pays 100, split 50/50 between Couple and user2's singleton
+        await adminClient.CreateAliasExpenseAsync(groupId, adminId, amount: 100m,
+            aliasSplits: new[]
+            {
+                new { aliasId = coupleAliasId, splitAmount = 50m },
+                new { aliasId = user2SingletonAliasId, splitAmount = 50m },
+            });
+
+        // Soft-delete the Couple alias after it has splits attached
+        var deleteResponse = await adminClient.DeleteAsync($"/api/v1/aliases/{coupleAliasId}", ct);
+        Assert.Equal(HttpStatusCode.OK, deleteResponse.StatusCode);
+
+        var response = await adminClient.GetAsync($"/api/v1/groups/{groupId}/balances", ct);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<List<AliasBalanceDto>>>(ct);
+        Assert.NotNull(body!.Data);
+
+        // The soft-deleted alias's expense share must still appear in the balances
+        var couple = body.Data.Single(b => b.AliasId == coupleAliasId);
+        Assert.Equal(50m, couple.ExpenseShare);
+        Assert.Equal(50m, couple.TotalOwed);
+    }
+
     #endregion
 
     #region Expense-only reporting fields

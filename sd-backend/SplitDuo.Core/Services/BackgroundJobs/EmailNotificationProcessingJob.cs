@@ -24,9 +24,12 @@ public class EmailNotificationProcessingJob(
 
             foreach (var notification in notifications)
             {
-                var sendResult = await notificationService.SendAsync(notification);
-                if (sendResult.IsFailure) continue;
-                await unitOfWork.SaveChangesAsync();
+                await notificationService.SendAsync(notification);
+
+                // Persist after every attempt, not only on success: SendAsync increments
+                // RetryCount and sets ErrorMessage on failure, and that state must survive
+                // the job scope or the notification retries forever and never becomes prunable.
+                await unitOfWork.SaveChangesAsync(cancellationToken);
             }
         }
         catch (Exception ex)

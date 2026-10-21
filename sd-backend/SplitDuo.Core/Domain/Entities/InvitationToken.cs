@@ -7,8 +7,8 @@ namespace SplitDuo.Core.Domain.Entities;
 
 [Table("invitation_tokens")]
 [Index(nameof(TokenHash), IsUnique = true)]
+[Index(nameof(Guid), IsUnique = true)]
 [Index(nameof(Email), nameof(GroupId))]
-[Index(nameof(Email))]
 [Index(nameof(GroupId))]
 public class InvitationToken : AuditableEntity
 {

@@ -454,8 +454,8 @@ public class AliasesService(
             .ToList();
 
         var avatarUserGuids = await unitOfWork.UserAvatars
-            .Where(a => memberGuids.Contains(a.Guid))
-            .Select(a => a.Guid)
+            .Where(a => memberGuids.Contains(a.User.Guid))
+            .Select(a => a.User.Guid)
             .ToHashSetAsync();
 
         foreach (var member in aliasDto.Members)

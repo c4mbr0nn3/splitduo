@@ -7,10 +7,9 @@ using SplitDuo.Core.Domain.Enums;
 namespace SplitDuo.Core.Domain.Entities;
 
 [Table("recurring_expense_instances")]
-[Index(nameof(Guid))]
+[Index(nameof(Guid), IsUnique = true)]
 [Index(nameof(TemplateId), nameof(PeriodDate), IsUnique = true)]
 [Index(nameof(TemplateId), nameof(StatusId))]
-[Index(nameof(DeletedAt))]
 public class RecurringExpenseInstance : AuditableAndSoftDeletableEntity
 {
     [Column("id"), Key] public int Id { get; set; }

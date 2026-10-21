@@ -10,9 +10,8 @@ namespace SplitDuo.Core.Domain.Entities;
 /// IsSingleton in DTOs without counting members. Null = not a singleton.
 /// </summary>
 [Table("aliases")]
-[Index(nameof(Guid))]
+[Index(nameof(Guid), IsUnique = true)]
 [Index(nameof(GroupId))]
-[Index(nameof(DeletedAt))]
 public class Alias : AuditableAndSoftDeletableEntity
 {
     [Column("id"), Key] public int Id { get; set; }

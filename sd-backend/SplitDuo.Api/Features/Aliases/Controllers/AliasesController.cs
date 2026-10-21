@@ -123,9 +123,10 @@ public class AliasesController(
             return HandleResult(NotAuthenticated());
 
         // Look up the alias's group before deletion for cache invalidation
+        Guid.TryParse(aliasId, out var aliasGuid);
         var alias = await unitOfWork.Aliases
             .Include(a => a.Group)
-            .FirstOrDefaultAsync(a => a.Guid.ToString() == aliasId);
+            .FirstOrDefaultAsync(a => a.Guid == aliasGuid);
         var groupGuid = alias?.Group != null ? alias.Group.Guid.ToString() : null;
 
         var result = await aliasesService.DeleteAliasAsync(aliasId, currentUserId.Value);
@@ -179,9 +180,10 @@ public class AliasesController(
             return HandleResult(NotAuthenticated());
 
         // Look up the alias's group before removal for cache invalidation
+        Guid.TryParse(aliasId, out var aliasGuid);
         var alias = await unitOfWork.Aliases
             .Include(a => a.Group)
-            .FirstOrDefaultAsync(a => a.Guid.ToString() == aliasId);
+            .FirstOrDefaultAsync(a => a.Guid == aliasGuid);
         var groupGuid = alias?.Group != null ? alias.Group.Guid.ToString() : null;
 
         var result = await aliasesService.RemoveMemberAsync(aliasId, userId, currentUserId.Value);

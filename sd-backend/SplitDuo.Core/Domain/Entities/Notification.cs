@@ -5,10 +5,6 @@ using Microsoft.EntityFrameworkCore;
 namespace SplitDuo.Core.Domain.Entities;
 
 [Table("notifications")]
-[Index(nameof(SentAt))]
-[Index(nameof(CreatedAt))]
-[Index(nameof(CreatedAt), nameof(SentAt))]
-[Index(nameof(SentAt), nameof(RetryCount))]
 public class Notification
 {
     [Column("id"), Key] public int Id { get; set; }
