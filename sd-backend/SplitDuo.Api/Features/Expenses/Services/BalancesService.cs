@@ -535,7 +535,7 @@ public class BalancesService(
         // Also load soft-deleted aliases that are referenced by non-deleted ExpenseAliasSplit rows
         // (for balance integrity — EXT-003 / edge case "balance with soft-deleted alias")
         var softDeletedAliasIds = await unitOfWork.ExpenseAliasSplits
-            .Where(eas => eas.Expense.DeletedAt == null)
+            .Where(eas => eas.Expense.DeletedAt == null && eas.Expense.GroupId == groupId)
             .Select(eas => eas.AliasId)
             .Distinct()
             .ToListAsync();

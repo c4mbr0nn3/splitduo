@@ -134,6 +134,7 @@ MailKit SMTP. Queue pattern: `INotificationService.EnqueueAsync()` → Notificat
 - **Manual DTO mapping** — no AutoMapper, use constructors that accept entities
 - **Expose Guid, not int** — DTOs use `Guid.ToString()` for IDs
 - **Use `IUnitOfWork`** for data access — don't inject `AppContext` directly in services
+- **Indexes follow query shapes** — simple indexes via `[Index]` on the entity; partial (`HasFilter`) and mixed-sort indexes in `AppDbContext.OnModelCreating`. Add or drop an index only with an `EXPLAIN (ANALYZE, BUFFERS)` plan on realistic data. FK convention indexes (`created_by`, `invited_by_user_id`, …) cannot be removed without dropping the relationship.
 - **Register services in the correct extension class** — Core infra in `Core/Extensions`, feature services in `Api/Extensions`
 - **Use Options pattern** for configuration — never read `IConfiguration` directly in services
 - **Use `INotificationService.EnqueueAsync()`** for emails — never call `SmtpService` directly

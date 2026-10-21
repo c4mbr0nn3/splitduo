@@ -8,8 +8,7 @@ namespace SplitDuo.Core.Domain.Entities;
 
 [Table("users")]
 [Index(nameof(Email), IsUnique = true)]
-[Index(nameof(Guid))]
-[Index(nameof(DeletedAt))]
+[Index(nameof(Guid), IsUnique = true)]
 public class User : AuditableAndSoftDeletableEntity
 {
     [Column("id"), Key] public int Id { get; set; }

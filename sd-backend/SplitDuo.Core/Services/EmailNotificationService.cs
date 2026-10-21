@@ -38,8 +38,8 @@ public class EmailNotificationService(
     {
         var threshold = timeProvider.GetUtcNow().AddDays(-PruneThresholdDays).ToUnixTimeSeconds();
         var notifications = await unitOfWork.Notifications
-            .Where(x => x.SentAt.HasValue || x.RetryCount == MaxRetryCount)
-            .Where(x => x.SentAt < threshold)
+            .Where(x => (x.SentAt.HasValue && x.SentAt < threshold)
+                        || (!x.SentAt.HasValue && x.RetryCount >= MaxRetryCount && x.CreatedAt < threshold))
             .ToListAsync();
 
         return Result<List<Notification>>.Success(notifications);

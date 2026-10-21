@@ -8,9 +8,9 @@ using SplitDuo.Core.Domain.Enums;
 namespace SplitDuo.Core.Domain.Entities;
 
 [Table("imports")]
-[Index(nameof(Guid))]
+[Index(nameof(Guid), IsUnique = true)]
 [Index(nameof(UserId), nameof(ImportDate))]
-[Index(nameof(GroupId), nameof(ImportDate))]
+[Index(nameof(GroupId), nameof(CreatedAt))]
 [Index(nameof(StatusId), nameof(ImportDate))]
 [Index(nameof(GroupId), nameof(FileHash), IsUnique = true)]
 public class Import : AuditableEntity

@@ -9,7 +9,6 @@ namespace SplitDuo.Core.Domain.Entities;
 [Table("group_members")]
 [Index(nameof(UserId))]
 [Index(nameof(GroupId))]
-[Index(nameof(DeletedAt))]
 public class GroupMember : AuditableAndSoftDeletableEntity
 {
     [Column("id"), Key] public int Id { get; set; }

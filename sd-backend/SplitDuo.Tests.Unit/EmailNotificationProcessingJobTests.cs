@@ -76,7 +76,7 @@ public class EmailNotificationProcessingJobTests
     }
 
     [Fact]
-    public async Task Execute_SendFailure_ContinuesToNext()
+    public async Task Execute_SendFailure_PersistsRetryAndContinues()
     {
         var notificationService = Substitute.For<INotificationService>();
         notificationService.GetUnsentNotifications()
@@ -93,7 +93,8 @@ public class EmailNotificationProcessingJobTests
         await job.Execute(Substitute.For<IJobExecutionContext>());
 
         await notificationService.Received(2).SendAsync(Arg.Any<Notification>());
-        await unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+        // RetryCount/ErrorMessage must be flushed for the failed send too.
+        await unitOfWork.Received(2).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]

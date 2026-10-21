@@ -82,9 +82,13 @@ namespace SplitDuo.Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RequestedAt");
-
                     b.HasIndex("UserId");
+
+                    b.HasIndex("RequestedAt", "Id")
+                        .IsDescending();
+
+                    b.HasIndex("Success", "RequestedAt", "Id")
+                        .IsDescending(false, true, true);
 
                     b.ToTable("ai_call_logs");
                 });
@@ -130,11 +134,10 @@ namespace SplitDuo.Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DeletedAt");
-
                     b.HasIndex("GroupId");
 
-                    b.HasIndex("Guid");
+                    b.HasIndex("Guid")
+                        .IsUnique();
 
                     b.ToTable("aliases");
                 });
@@ -215,11 +218,8 @@ namespace SplitDuo.Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DeletedAt");
-
-                    b.HasIndex("ExpenseDate");
-
-                    b.HasIndex("Guid");
+                    b.HasIndex("Guid")
+                        .IsUnique();
 
                     b.HasIndex("ImportId");
 
@@ -227,15 +227,16 @@ namespace SplitDuo.Core.Migrations
 
                     b.HasIndex("RecurringExpenseTemplateId");
 
-                    b.HasIndex("GroupId", "ExpenseDate");
-
                     b.HasIndex("PaidBy", "ExpenseDate");
 
-                    b.HasIndex("GroupId", "CategoryId", "ExpenseDate");
+                    b.HasIndex("GroupId", "CategoryId", "ExpenseDate")
+                        .HasFilter("deleted_at IS NULL");
 
-                    b.HasIndex("GroupId", "ExpenseTypeId", "ExpenseDate");
+                    b.HasIndex("GroupId", "ExpenseDate", "CreatedAt")
+                        .HasFilter("deleted_at IS NULL");
 
-                    b.HasIndex("GroupId", "PaymentModeId", "ExpenseDate");
+                    b.HasIndex("GroupId", "ExpenseTypeId", "ExpenseDate")
+                        .HasFilter("deleted_at IS NULL");
 
                     b.ToTable("expenses");
                 });
@@ -338,7 +339,8 @@ namespace SplitDuo.Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Guid");
+                    b.HasIndex("Guid")
+                        .IsUnique();
 
                     b.HasIndex("ExpenseId", "CreatedAt");
 
@@ -438,9 +440,8 @@ namespace SplitDuo.Core.Migrations
 
                     b.HasIndex("CreatedBy");
 
-                    b.HasIndex("DeletedAt");
-
-                    b.HasIndex("Guid");
+                    b.HasIndex("Guid")
+                        .IsUnique();
 
                     b.ToTable("groups");
                 });
@@ -486,11 +487,12 @@ namespace SplitDuo.Core.Migrations
 
                     b.HasIndex("AliasId");
 
-                    b.HasIndex("DeletedAt");
-
                     b.HasIndex("GroupId");
 
                     b.HasIndex("UserId");
+
+                    b.HasIndex("GroupId", "UserId")
+                        .HasFilter("deleted_at IS NULL");
 
                     b.ToTable("group_members");
                 });
@@ -582,12 +584,13 @@ namespace SplitDuo.Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Guid");
+                    b.HasIndex("Guid")
+                        .IsUnique();
+
+                    b.HasIndex("GroupId", "CreatedAt");
 
                     b.HasIndex("GroupId", "FileHash")
                         .IsUnique();
-
-                    b.HasIndex("GroupId", "ImportDate");
 
                     b.HasIndex("StatusId", "ImportDate");
 
@@ -651,9 +654,10 @@ namespace SplitDuo.Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Email");
-
                     b.HasIndex("GroupId");
+
+                    b.HasIndex("Guid")
+                        .IsUnique();
 
                     b.HasIndex("InvitedByUserId");
 
@@ -707,13 +711,11 @@ namespace SplitDuo.Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatedAt");
+                    b.HasIndex("RetryCount")
+                        .HasFilter("sent_at IS NULL");
 
-                    b.HasIndex("SentAt");
-
-                    b.HasIndex("CreatedAt", "SentAt");
-
-                    b.HasIndex("SentAt", "RetryCount");
+                    b.HasIndex("SentAt")
+                        .HasFilter("sent_at IS NOT NULL");
 
                     b.ToTable("notifications");
                 });
@@ -775,11 +777,13 @@ namespace SplitDuo.Core.Migrations
 
                     b.HasIndex("ApprovedById");
 
-                    b.HasIndex("DeletedAt");
-
                     b.HasIndex("ExpenseId");
 
-                    b.HasIndex("Guid");
+                    b.HasIndex("Guid")
+                        .IsUnique();
+
+                    b.HasIndex("StatusId")
+                        .HasFilter("expense_id IS NULL AND deleted_at IS NULL");
 
                     b.HasIndex("TemplateId", "PeriodDate")
                         .IsUnique();
@@ -969,9 +973,11 @@ namespace SplitDuo.Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DeletedAt");
+                    b.HasIndex("AnchorDate")
+                        .HasFilter("is_active AND deleted_at IS NULL");
 
-                    b.HasIndex("Guid");
+                    b.HasIndex("Guid")
+                        .IsUnique();
 
                     b.HasIndex("OwnerId");
 
@@ -1127,10 +1133,6 @@ namespace SplitDuo.Core.Migrations
 
                     b.HasIndex("ExpiresAt");
 
-                    b.HasIndex("FamilyId");
-
-                    b.HasIndex("JwtId");
-
                     b.HasIndex("TokenHash")
                         .IsUnique();
 
@@ -1202,12 +1204,8 @@ namespace SplitDuo.Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ExpiresAt");
-
                     b.HasIndex("TokenHash")
                         .IsUnique();
-
-                    b.HasIndex("TokenType");
 
                     b.HasIndex("UserId");
 
@@ -1327,12 +1325,11 @@ namespace SplitDuo.Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DeletedAt");
-
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.HasIndex("Guid");
+                    b.HasIndex("Guid")
+                        .IsUnique();
 
                     b.ToTable("users");
                 });
@@ -1396,8 +1393,6 @@ namespace SplitDuo.Core.Migrations
                         .HasColumnName("user_id");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Guid");
 
                     b.HasIndex("UserId")
                         .IsUnique();

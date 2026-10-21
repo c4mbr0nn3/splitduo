@@ -8,8 +8,6 @@ namespace SplitDuo.Core.Domain.Entities;
 [Table("two_factor_tokens")]
 [Index(nameof(UserId))]
 [Index(nameof(TokenHash), IsUnique = true)]
-[Index(nameof(ExpiresAt))]
-[Index(nameof(TokenType))]
 public class TwoFactorToken : AuditableEntity
 {
     [Column("id"), Key] public int Id { get; set; }

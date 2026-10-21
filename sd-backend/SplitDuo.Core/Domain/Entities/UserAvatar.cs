@@ -6,7 +6,6 @@ using SplitDuo.Core.Domain.Base;
 namespace SplitDuo.Core.Domain.Entities;
 
 [Table("user_avatars")]
-[Index(nameof(Guid))]
 [Index(nameof(UserId), IsUnique = true)]
 public class UserAvatar : AuditableEntity
 {

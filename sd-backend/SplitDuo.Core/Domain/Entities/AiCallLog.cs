@@ -6,7 +6,6 @@ namespace SplitDuo.Core.Domain.Entities;
 
 [Table("ai_call_logs")]
 [Index(nameof(UserId))]
-[Index(nameof(RequestedAt))]
 public class AiCallLog
 {
     [Column("id"), Key] public int Id { get; set; }

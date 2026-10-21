@@ -39,7 +39,7 @@ public class ImportProcessingJob(
 
         var import = await unitOfWork.Imports
             .Include(i => i.Group)
-            .FirstOrDefaultAsync(i => i.Guid.ToString() == importGuid);
+            .FirstOrDefaultAsync(i => i.Guid == guid);
 
         if (import == null)
         {
