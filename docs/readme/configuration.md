@@ -4,10 +4,12 @@ Edit `docker-compose.yml` or pass environment variables directly.
 
 ## Required for production
 
+Generate secrets with, e.g., `openssl rand -base64 24`.
+
 ```yaml
-SD_JWT_SECRET_KEY: your-secret-key
+SD_JWT_SECRET_KEY: <generate a strong random string>
 SD_INITIAL_USER_EMAIL: admin@splitduo.local
-SD_INITIAL_USER_PASSWORD: changeme123
+SD_INITIAL_USER_PASSWORD: <generate: openssl rand -base64 24>   # required, min 15 chars
 ```
 
 ## JWT (optional)
@@ -47,7 +49,7 @@ Unset (default): `X-Forwarded-For` is ignored (fail-closed). Behind a reverse pr
 
 ## Initial admin user
 
-Created on first startup only. First/last name and demo-data seeding are optional.
+Created on first startup only. In Production, `SD_INITIAL_USER_PASSWORD` is **required** — it must be at least 15 characters and not a known-weak value, otherwise the app refuses to seed the admin. In Development it falls back to the documented development default (see `docs/readme/development.md`). First/last name and demo-data seeding are optional.
 
 ```yaml
 SD_INITIAL_USER_FIRSTNAME: Admin      # default: Super

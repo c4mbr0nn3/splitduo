@@ -124,7 +124,7 @@ MailKit SMTP. Queue pattern: `INotificationService.EnqueueAsync()` → Notificat
 
 ## Seeding
 
-`DataSeederService` (IHostedService): if no users exist, creates SystemAdmin from AppOptions. Defaults (no env): `admin@splitduo.local` / `changeme123` (firstname "Super", lastname "Admin").
+`DataSeederService` (IHostedService): if no users exist, creates SystemAdmin from AppOptions. In Production it **refuses to seed** (throws `InvalidOperationException`) when `SD_INITIAL_USER_PASSWORD` is missing, shorter than 15 chars, or a known-weak value. Development defaults (no env): `admin@splitduo.local` / `changeme123` (firstname "Super", lastname "Admin").
 
 ## Rules When Modifying This Code
 

@@ -91,12 +91,13 @@ Requires Docker and Docker Compose. The app image is published on [Docker Hub](h
 ```bash
 git clone https://gitlab.com/j1mm0/splitduo.git
 cd splitduo
+printf 'SD_INITIAL_USER_PASSWORD=%s\n' "$(openssl rand -base64 24)" > .env
 docker compose up -d
 ```
 
-Open `http://localhost:3000` — default login is `admin@splitduo.local` / `changeme123`.
+Open `http://localhost:3000` and log in with the admin email (default: `admin@splitduo.local`) and the `SD_INITIAL_USER_PASSWORD` you put in `.env` before starting — compose fails fast without it.
 
-> **Before going to production**: set `SD_JWT_SECRET_KEY` and `SD_INITIAL_USER_PASSWORD` to something you control. See the [self-hosting guide](docs/self-hosting.md) for the full walkthrough.
+> **Before going to production**: a strong `SD_INITIAL_USER_PASSWORD` (min 15 chars, not a known-weak value) is required, and you should set `SD_JWT_SECRET_KEY` to something you control. See the [self-hosting guide](docs/self-hosting.md) for the full walkthrough.
 
 ---
 

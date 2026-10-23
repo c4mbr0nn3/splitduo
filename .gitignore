@@ -17,5 +17,8 @@ tasks/
 # Backfill script scratch dir (scripts/backfill-releases.sh)
 .backfill-tmp/
 
+# Secrets for docker compose (SD_INITIAL_USER_PASSWORD etc.)
+.env
+
 # Marketing website (separate repo)
 website/
