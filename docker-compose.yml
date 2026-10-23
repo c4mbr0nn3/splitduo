@@ -36,7 +36,8 @@ services:
       SD_INITIAL_USER_EMAIL: admin@splitduo.local
       SD_INITIAL_USER_FIRSTNAME: Admin
       SD_INITIAL_USER_LASTNAME: User
-      SD_INITIAL_USER_PASSWORD: changeme123
+      # Required — set in a .env file next to this compose file
+      SD_INITIAL_USER_PASSWORD: ${SD_INITIAL_USER_PASSWORD:?SD_INITIAL_USER_PASSWORD must be set (min 15 chars) - see docs/self-hosting.md}
 
       # JWT Configuration
       SD_JWT_SECRET_KEY: your-super-secret-jwt-key-change-this-in-production

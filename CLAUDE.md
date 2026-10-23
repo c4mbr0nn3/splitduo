@@ -11,7 +11,8 @@ See `docs/agents/backend.md` and `docs/agents/frontend.md` for detailed codebase
 - **Backend**: `cd sd-backend && dotnet run --project SplitDuo.Api` → http://localhost:8080
 - **Frontend**: `cd sd-frontend && pnpm install && pnpm dev` → http://localhost:3000 (proxies API to :8080)
 - **Docker**: `docker compose up -d` → http://localhost:3000
-- Default login: `admin@splitduo.local` / `changeme123`
+- Default login (Development / bare `dotnet run`): `admin@splitduo.local` / `changeme123`
+- Docker Compose runs in Production and requires `SD_INITIAL_USER_PASSWORD` in `.env` (min 15 chars) — see `docs/self-hosting.md`
 
 ## Repo Layout
 

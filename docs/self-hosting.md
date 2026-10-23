@@ -16,40 +16,35 @@ That's it. No .NET SDK, no Node.js, no build tools — the app image is [publish
 
 ---
 
-## Quick start (3 commands)
+## Quick start (4 commands)
 
-The compose file pulls the app image from [Docker Hub](https://hub.docker.com/r/j1mm0/splitduo) — no build step.
+The compose file pulls the app image from [Docker Hub](https://hub.docker.com/r/j1mm0/splitduo) — no build step. Before starting, you must generate an admin password and put it in a `.env` file next to the compose file — compose fails fast if it is missing.
 
 ```bash
 git clone https://gitlab.com/j1mm0/splitduo.git
 cd splitduo
+printf 'SD_INITIAL_USER_PASSWORD=%s\n' "$(openssl rand -base64 24)" > .env
 docker compose up -d
 ```
 
 Open `http://localhost:3000` and log in with:
 
-- **Email:** `admin@splitduo.local`
-- **Password:** `changeme123`
+- **Email:** `admin@splitduo.local` (default — change it via `SD_INITIAL_USER_EMAIL` if you like)
+- **Password:** the value you put in `.env` as `SD_INITIAL_USER_PASSWORD`
 
-You're running SplitDuo. The next section shows how to make it production-safe before you actually use it.
+You're running SplitDuo. See the next section for the other production settings.
 
 ---
 
-## Before you rely on it: change the defaults
+## Before you rely on it: set your secrets
 
-The bundled `docker-compose.yml` ships with placeholder secrets. **Change these before real use** — they protect your JWT tokens and your admin account.
+The admin password is **required at first boot** (as above) and the bundled compose file still ships a placeholder JWT secret. Set `SD_JWT_SECRET_KEY` before real use — it protects your JWT tokens.
 
-Open `docker-compose.yml` and edit the `splitduo-app` environment block:
+Set it in `.env` (or edit `docker-compose.yml`):
 
 ```yaml
   splitduo-app:
     environment:
-      # ...database config above...
-
-      # Initial admin user — created on first startup only
-      SD_INITIAL_USER_EMAIL: you@yourdomain.com
-      SD_INITIAL_USER_PASSWORD: a-long-random-password
-
       # JWT signing key — generate a strong random string
       SD_JWT_SECRET_KEY: a-long-random-string-at-least-32-chars
 ```
@@ -67,7 +62,9 @@ docker compose down
 docker compose up -d
 ```
 
-> The initial admin user is only created on the **first** startup. If you already booted with the defaults and want to change the admin credentials, change them from the in-app admin panel (or reset the database volume and start fresh).
+> The initial admin user is only created on the **first** startup. If you already booted and want to change the admin credentials, change them from the in-app admin panel (or reset the database volume and start fresh).
+>
+> In Production the app refuses to seed the initial admin if `SD_INITIAL_USER_PASSWORD` is missing, shorter than 15 characters, or a known-weak value. In Development it falls back to the documented development default (see `docs/readme/development.md`).
 
 ---
 

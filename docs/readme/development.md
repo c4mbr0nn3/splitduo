@@ -41,5 +41,6 @@ dotnet ef database update --project SplitDuo.Core --startup-project SplitDuo.Api
 
 ## Default logins
 
-- Docker Compose: `admin@splitduo.local` / `changeme123`
-- Bare `dotnet run`: `admin@splitduo.local` / `changeme123`
+**Development only** — these credentials are not valid with the Docker Compose quick start, which runs in Production and therefore requires `SD_INITIAL_USER_PASSWORD` (set in a `.env` file next to the compose file).
+
+- Bare `dotnet run` (Development): `admin@splitduo.local` / `changeme123`

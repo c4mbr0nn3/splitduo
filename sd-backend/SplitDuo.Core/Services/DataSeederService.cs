@@ -11,7 +11,11 @@ using SplitDuo.Core.Persistence;
 
 namespace SplitDuo.Core.Services;
 
-public class DataSeederService(IServiceProvider serviceProvider, ILogger<DataSeederService> logger, TimeProvider timeProvider)
+public class DataSeederService(
+    IServiceProvider serviceProvider,
+    ILogger<DataSeederService> logger,
+    TimeProvider timeProvider,
+    IHostEnvironment hostEnvironment)
     : IHostedService
 {
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -33,6 +37,13 @@ public class DataSeederService(IServiceProvider serviceProvider, ILogger<DataSee
         {
             logger.LogInformation("Users already exist, skipping initial user creation");
             return;
+        }
+
+        var credentialPolicy = BootstrapCredentialPolicy.Evaluate(
+            appOptions.Value.InitialUserPassword, hostEnvironment.IsProduction());
+        if (!credentialPolicy.IsAccepted)
+        {
+            throw new InvalidOperationException(credentialPolicy.ErrorMessage);
         }
 
         using var scope = serviceProvider.CreateScope();
