@@ -53,6 +53,15 @@ Before modifying these areas, read the corresponding guide:
 
 ## Rules
 
+### Code Style
+
+- Write for the next reader: plain code that declares its intent in names and structure, where the obvious three lines beat the dense one-liner.
+- Name things for what they mean, keep control flow flat, and make each step in a function legible on its own.
+- Apply the **Boy Scout rule** with surgical refactors: while touching a file, improve the code around the change — no drive-by rewrites.
+- Comment the **why**: record the design decision and its rationale where the code alone cannot show it, so a choice outlives git history.
+- Comment what the code cannot say: an unclear step, an implicit invariant, a non-obvious trade-off — a comment earns its place by adding meaning the code does not carry.
+- Make each comment self-contained: state the reasoning here rather than pointing at a doc, ticket, or URL that can drift.
+
 ### Commit Guidelines
 
 - Conventional Commits, subject only: `type(scope): message` (≤72 chars, no trailing period)
