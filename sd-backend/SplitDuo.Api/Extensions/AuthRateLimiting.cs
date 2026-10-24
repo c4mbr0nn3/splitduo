@@ -12,13 +12,15 @@ namespace SplitDuo.Api.Extensions;
 
 // SEC-02: two-dimensional rate limiting for auth endpoints.
 // Named policies key on client IP; the GlobalLimiter keys on the (normalized)
-// account email extracted by UseAuthEmailExtraction. Requests without an
-// extracted email get NoLimiter from the global limiter, so only the per-IP
-// dimension applies to non-auth, static, and health requests.
+// account email extracted by UseAuthEmailExtraction. /health and /health/details
+// carry the named "health" policy; /health/live is unlimited. Requests without
+// an extracted email get NoLimiter from the global limiter, so for non-auth,
+// static, and health requests only the per-IP dimension applies.
 public static class AuthRateLimiting
 {
     public const string AuthPolicyName = "auth";
     public const string AuthRefreshPolicyName = "auth-refresh";
+    public const string HealthPolicyName = "health";
     internal const string EmailItemsKey = "SplitDuo.AuthRateLimiting.Email";
 
     public static RateLimiterOptions AddRateLimitingPolicies(this RateLimiterOptions options)
@@ -57,6 +59,20 @@ public static class AuthRateLimiting
                 QueueLimit = 0
             });
         });
+
+        // Deliberately fixed-window: this is an abuse brake, not an account guard,
+        // and 60/min is far above any legitimate probe cadence (container: 2/min,
+        // uptime monitor: 1/min). A boundary burst of 120/min still cannot reach
+        // the database because CachedHealthCheck serves the cached result.
+        options.AddPolicy(HealthPolicyName, httpContext =>
+            RateLimitPartition.GetFixedWindowLimiter(
+                "ip:" + NormalizeIpKey(httpContext.Connection.RemoteIpAddress),
+                _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = 60,
+                    Window = TimeSpan.FromMinutes(1),
+                    QueueLimit = 0,
+                }));
 
         options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(ctx =>
         {

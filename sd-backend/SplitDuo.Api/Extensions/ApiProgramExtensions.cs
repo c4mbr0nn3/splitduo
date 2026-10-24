@@ -1,6 +1,6 @@
-using System.Net.Mime;
 using System.Text.Json;
 using System.Threading.RateLimiting;
+using HealthChecks.NpgSql;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
+using Npgsql;
 using Scalar.AspNetCore;
 using Serilog;
 using System.ClientModel;
@@ -28,6 +29,7 @@ using SplitDuo.Api.Features.Invitations.Services;
 using SplitDuo.Api.Features.System.Services;
 using SplitDuo.Core.Domain.Enums;
 using SplitDuo.Api.Features.Users.Services;
+using SplitDuo.Api.Health;
 using SplitDuo.Core.Extensions;
 using SplitDuo.Core.Factories;
 using SplitDuo.Core.Options;
@@ -105,12 +107,30 @@ public static class ApiProgramExtensions
         builder.Services.AddScoped<IAiCallLogger, AiCallLogger>();
         builder.Services.AddScoped<IAiUsageService, AiUsageService>();
 
+        // DefaultHealthCheckService invokes registration.Factory on every evaluation with a
+        // fresh scope. The cached check MUST be a process-wide singleton, or every request
+        // gets its own empty cache and still opens a database connection (SEC-11).
+        builder.Services.AddSingleton(sp =>
+        {
+            var dbOptions = sp.GetRequiredService<IOptions<DatabaseOptions>>().Value;
+            var connectionString = new NpgsqlConnectionStringBuilder(dbOptions.ConnectionString)
+            {
+                Timeout = 3
+            }.ConnectionString;
+
+            return new CachedHealthCheck(
+                new NpgSqlHealthCheck(new NpgSqlHealthCheckOptions(connectionString)),
+                sp.GetRequiredService<TimeProvider>(),
+                TimeSpan.FromSeconds(10));
+        });
+
         builder.Services.AddHealthChecks()
-            .AddNpgSql(
-                connectionStringFactory: sp =>
-                    sp.GetRequiredService<IOptions<DatabaseOptions>>().Value.ConnectionString,
-                name: "database",
-                tags: ["db", "postgresql"]);
+            .Add(new HealthCheckRegistration(
+                "database",
+                sp => sp.GetRequiredService<CachedHealthCheck>(),
+                failureStatus: HealthStatus.Unhealthy,
+                tags: ["db", "postgresql"],
+                timeout: TimeSpan.FromSeconds(5)));
 
         builder.Services.AddSplitDuoForwardedHeaders();
         builder.Services.AddRateLimiter(opts => opts.AddRateLimitingPolicies());
@@ -136,10 +156,28 @@ public static class ApiProgramExtensions
         contentTypeProvider.Mappings[".webmanifest"] = "application/manifest+json";
         app.UseStaticFiles(new StaticFileOptions { ContentTypeProvider = contentTypeProvider });
 
-        app.MapHealthChecks("/health", new HealthCheckOptions
+        var databaseOnly = new HealthCheckOptions
         {
-            ResponseWriter = WriteHealthCheckResponse
+            Predicate = registration => registration.Tags.Contains("db"),
+            ResponseWriter = HealthResponseWriter.WriteStatusOnly
+        };
+
+        app.MapHealthChecks("/health", databaseOnly)
+            .RequireRateLimiting(AuthRateLimiting.HealthPolicyName);
+
+        app.MapHealthChecks("/health/live", new HealthCheckOptions
+        {
+            Predicate = _ => false,
+            ResponseWriter = HealthResponseWriter.WriteStatusOnly
         });
+
+        app.MapHealthChecks("/health/details", new HealthCheckOptions
+        {
+            Predicate = registration => registration.Tags.Contains("db"),
+            ResponseWriter = HealthResponseWriter.WriteDetailed
+        })
+            .RequireRateLimiting(AuthRateLimiting.HealthPolicyName)
+            .RequireAuthorization("SystemAdmin");
 
         app.UseRequestLocalization();
         app.UseAuthentication();
@@ -150,22 +188,5 @@ public static class ApiProgramExtensions
 
         // Fallback to serve the SPA for client-side routing
         app.MapFallbackToFile("index.html");
-    }
-
-    private static Task WriteHealthCheckResponse(HttpContext context, HealthReport report)
-    {
-        context.Response.ContentType = MediaTypeNames.Application.Json;
-        var result = JsonSerializer.Serialize(new
-        {
-            status = report.Status.ToString(),
-            checks = report.Entries.ToDictionary(
-                e => e.Key,
-                e => new { status = e.Value.Status.ToString(), description = e.Value.Description }),
-            // Intentionally uses DateTimeOffset.UtcNow directly (not TimeProvider): cosmetic
-            // health-check response timestamp with no test value. This is a static method with
-            // no DI-injected dependencies; injecting TimeProvider here would be over-engineering.
-            timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
-        });
-        return context.Response.WriteAsync(result);
     }
 }

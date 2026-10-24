@@ -100,6 +100,25 @@ SD_KNOWN_PROXIES: 10.0.0.5          # the proxy's IP, or a CIDR like 10.0.0.0/24
 - The proxy must forward `X-Forwarded-For`; for each request, the **last** hop added by a trusted proxy is taken as the client IP.
 - **If `SD_KNOWN_PROXIES` is unset, forwarded headers are ignored** (fail-closed) — every proxied request then looks like it came from one IP, so per-IP rate limiting collapses to a single shared bucket and legitimate users can trip 429s together. Per-account limiting still works in that case.
 
+### Health endpoints
+
+| Endpoint | Auth | Purpose | Notes |
+|---|---|---|---|
+| `/health` | none | Readiness (app + database) | `200` healthy, `503` unhealthy; status-only body; DB check cached 10 s; 60/min per IP |
+| `/health/live` | none | Process liveness | Always `200` while the process runs; no database access; no rate limit |
+| `/health/details` | SystemAdmin bearer token | Full per-check report for operators | `401` anonymous, `403` non-admin |
+
+Use `/health` for an uptime monitor and `/health/live` for a container or
+orchestrator liveness probe. The container healthcheck in
+`docker-compose.yml` already uses `/health/live`, so `docker compose ps` shows
+the app's health.
+
+> **Behind a proxy:** if `SD_KNOWN_PROXIES` is unset, every client shares one
+> per-IP rate-limit bucket. A request flood can therefore make `/health`
+> return `429` to your monitor as well as the attacker. Set
+> `SD_KNOWN_PROXIES` to your proxy's address and prefer a dedicated monitor
+> IP. `/health/live` is not rate-limited.
+
 ---
 
 ## Optional features
@@ -206,6 +225,7 @@ The `rc` tag always points at the newest release candidate. To pin a specific on
 | Stop and delete data | `docker compose down -v` ⚠️ |
 | Restart the app | `docker compose restart splitduo-app` |
 | Check container status | `docker compose ps` |
+| Check app health | `curl -fsS http://localhost:3000/health` |
 
 ---
 

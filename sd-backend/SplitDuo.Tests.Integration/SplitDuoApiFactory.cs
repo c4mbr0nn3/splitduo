@@ -125,6 +125,12 @@ public class SplitDuoApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
                     Window = TimeSpan.FromDays(365),
                     QueueLimit = 0,
                 }));
+                options.AddPolicy("health", _ => RateLimitPartition.GetFixedWindowLimiter("test-bypass", _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = int.MaxValue,
+                    Window = TimeSpan.FromDays(365),
+                    QueueLimit = 0,
+                }));
             });
 
             // --- C2: Remove Quartz hosted service to avoid background job side effects ---
