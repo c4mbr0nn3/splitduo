@@ -669,6 +669,36 @@ public class UsersProfileTests : IntegrationTest
     }
 
     [Fact]
+    public async Task UpdateCurrentUser_FirstNameWithHtmlPayload_Returns400()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var client = await CreateAuthenticatedClientAsync();
+
+        var response = await client.PutAsJsonAsync("/api/v1/users/me", new
+        {
+            firstName = "<img src=x onerror=\"document.title='xss'\">",
+        }, ct);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task UpdateCurrentUser_FirstName_IsNormalized()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var client = await CreateAuthenticatedClientAsync();
+
+        var response = await client.PutAsJsonAsync("/api/v1/users/me", new
+        {
+            firstName = "  Mary   Jane  ",
+        }, ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserDto>>(ct);
+        Assert.Equal("Mary Jane", body!.Data!.FirstName);
+    }
+
+    [Fact]
     public async Task UpdateCurrentUser_Unauthenticated_Returns401()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -1053,6 +1083,24 @@ public class UsersProfileTests : IntegrationTest
         var getBody = await get.Content.ReadFromJsonAsync<ApiResponseDto<UserDto>>(ct);
         Assert.Equal("Edited", getBody!.Data!.FirstName);
         Assert.Equal("Name", getBody.Data.LastName);
+    }
+
+    [Fact]
+    public async Task UpdateUser_FirstNameWithHtmlPayload_Returns400()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var adminClient = await CreateAuthenticatedClientAsync();
+
+        var targetEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "namepayload@localhost");
+        var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme123");
+        var target = await targetClient.GetCurrentUserAsync();
+
+        var response = await adminClient.PutAsJsonAsync($"/api/v1/users/{target.Id}", new
+        {
+            firstName = "<img src=x onerror=alert(1)>",
+        }, ct);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]

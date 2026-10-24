@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using SplitDuo.Api.Features.Users.Validation;
 
 namespace SplitDuo.Api.Features.Authentication.Dto;
 
@@ -8,7 +9,7 @@ public class RegisterRequestDto
 
     [Required] [MinLength(8)] public string Password { get; set; } = "";
 
-    [Required] [MaxLength(100)] public string FirstName { get; set; } = "";
+    [Required] [PersonName] [MaxLength(100)] public string FirstName { get; set; } = "";
 
-    [MaxLength(100)] public string? LastName { get; set; }
+    [PersonName] [MaxLength(100)] public string? LastName { get; set; }
 }

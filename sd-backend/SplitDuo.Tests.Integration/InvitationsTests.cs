@@ -353,6 +353,30 @@ public class InvitationsTests : IntegrationTest
     }
 
     [Fact]
+    public async Task AcceptInvitation_FirstNameWithHtmlPayload_Returns400()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var adminClient = await CreateAuthenticatedClientAsync();
+        var group = await adminClient.CreateGroupAsync();
+
+        await adminClient.PostAsJsonAsync(
+            $"/api/v1/groups/{group.Id}/invitations", new { email = "xss@localhost" }, ct);
+        var token = await NotificationTestExtensions
+            .ExtractTokenFromFirstNotificationAsync(Factory.Services, "xss@localhost");
+
+        var response = await Client.PostAsJsonAsync("/api/v1/invitations/accept", new
+        {
+            token,
+            firstName = "<img src=x onerror=alert(1)>",
+            lastName = "User",
+            password = "StrongPass1!",
+            confirmPassword = "StrongPass1!",
+        }, ct);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
     public async Task AcceptInvitation_ResolvesAllPendingInvitationsForEmail()
     {
         var ct = TestContext.Current.CancellationToken;
