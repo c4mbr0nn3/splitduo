@@ -1,7 +1,9 @@
 # ADR-0002: Two-dimensional auth rate limiting (IP + account)
 
 ## Status
-Accepted (2026-10-03)
+Accepted (2026-10-03). Partially superseded by ADR-0003 (2026-10-24) for
+`/health`: the global limiter still returns `NoLimiter` for requests without an
+email, but `/health` and `/health/details` now carry the named `health` policy.
 
 ## Context
 Security review finding SEC-02 (High): the `"auth"` rate-limit policy was a

@@ -1,7 +1,9 @@
 // SEC-02 integration tests. These run against a DEDICATED host where the REAL
 // production limiter is active (the shared fixture's rate limiter is disabled —
 // see the C1 block in SplitDuoApiFactory). They must never share a host with
-// LockoutTests/AuthTests sequences.
+// LockoutTests/AuthTests sequences. Health requests are rate-limited by the
+// named "health" policy (60/min per IP); only the per-account GlobalLimiter
+// stays a no-op for requests without an email.
 using System.Net;
 using System.Net.Http.Json;
 using System.Text;
@@ -220,14 +222,24 @@ public class RateLimitingTests : IntegrationTest
     }
 
     [Fact]
-    public async Task HealthEndpoint_NotRateLimited()
+    public async Task Health_SixtyFirstFromSameIp_Returns429WithRetryAfter()
     {
-        using var client = ClientFor("198.51.100.161");
-        for (var i = 0; i < 50; i++)
-        {
-            var response = await client.GetAsync("/health");
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        }
+        using var client = ClientFor("198.51.100.171");
+        for (var i = 0; i < 60; i++)
+            Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/health")).StatusCode);
+
+        var rejected = await client.GetAsync("/health");
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, rejected.StatusCode);
+        Assert.Equal("60", rejected.Headers.RetryAfter?.ToString());
+    }
+
+    [Fact]
+    public async Task HealthLive_IsNotRateLimited()
+    {
+        using var client = ClientFor("198.51.100.172");
+        for (var i = 0; i < 100; i++)
+            Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/health/live")).StatusCode);
     }
 
     private static async Task<HttpResponseMessage> SendLoginAsync(HttpClient client, string email)
