@@ -4,6 +4,7 @@ using Microsoft.Extensions.Localization;
 using SplitDuo.Api.Features.Authentication.Services;
 using SplitDuo.Api.Features.Common.Services;
 using SplitDuo.Api.Features.Users.Dto;
+using SplitDuo.Api.Features.Users.Validation;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Email;
 using SplitDuo.Core.Domain.Enums;
@@ -102,10 +103,10 @@ public class UsersService(
         }
 
         if (!string.IsNullOrWhiteSpace(request.FirstName))
-            user.FirstName = request.FirstName;
+            user.FirstName = PersonNameRules.Normalize(request.FirstName);
 
         if (request.LastName != null)
-            user.LastName = request.LastName;
+            user.LastName = PersonNameRules.Normalize(request.LastName);
 
         var dto = new UserDto(user);
         dto.HasAvatar = await unitOfWork.UserAvatars.AnyAsync(a => a.UserId == user.Id);
@@ -250,10 +251,10 @@ public class UsersService(
         }
 
         if (!string.IsNullOrWhiteSpace(request.FirstName))
-            user.FirstName = request.FirstName;
+            user.FirstName = PersonNameRules.Normalize(request.FirstName);
 
         if (request.LastName != null)
-            user.LastName = request.LastName;
+            user.LastName = PersonNameRules.Normalize(request.LastName);
 
         if (!request.GlobalRole.HasValue || user.GlobalRole == request.GlobalRole.Value)
         {

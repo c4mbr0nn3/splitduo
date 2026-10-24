@@ -19,6 +19,7 @@
 <script setup lang="ts">
 import type { NormalBalance } from '~/types/domain'
 import { formatCurrency } from '~/utils/currency'
+import { escapeHtml } from '~/utils/html'
 
 interface Props {
   balances: NormalBalance[]
@@ -42,6 +43,7 @@ const chartOptions = computed(() => ({
   theme: { mode: themeMode.value },
   chart: { background: 'transparent', toolbar: { show: false } },
   tooltip: {
+    x: { formatter: (val: string | number) => escapeHtml(val) },
     y: { formatter: (val: number) => formatCurrency(val) },
   },
 }))

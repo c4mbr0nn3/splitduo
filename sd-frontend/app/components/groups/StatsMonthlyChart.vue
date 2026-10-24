@@ -19,6 +19,7 @@
 <script setup lang="ts">
 import type { MonthlyStat } from '~/types/domain'
 import { formatCurrency } from '~/utils/currency'
+import { escapeHtml } from '~/utils/html'
 
 const { t, locale } = useI18n()
 
@@ -51,6 +52,7 @@ const chartOptions = computed(() => ({
   chart: { background: 'transparent', toolbar: { show: false } },
   dataLabels: { enabled: false },
   tooltip: {
+    x: { formatter: (val: string | number) => escapeHtml(val) },
     y: { formatter: (val: number) => formatCurrency(val) },
   },
 }))

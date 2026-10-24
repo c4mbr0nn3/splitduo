@@ -19,6 +19,7 @@
 <script setup lang="ts">
 import type { CategoryStat } from '~/types/domain'
 import { formatCurrency } from '~/utils/currency'
+import { escapeHtml } from '~/utils/html'
 
 interface Props {
   categoryBreakdown: CategoryStat[]
@@ -37,7 +38,10 @@ const chartOptions = computed(() => ({
   chart: { background: 'transparent' },
   dataLabels: { enabled: false },
   tooltip: {
-    y: { formatter: (val: number) => formatCurrency(val) },
+    y: {
+      title: { formatter: (name: string) => `${escapeHtml(name)}: ` },
+      formatter: (val: number) => formatCurrency(val),
+    },
   },
   legend: { position: 'bottom' },
 }))

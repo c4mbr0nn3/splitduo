@@ -6,6 +6,7 @@ using Microsoft.Extensions.Localization;
 using SplitDuo.Api.Features.Common.Dto;
 using SplitDuo.Api.Features.Groups.Dto;
 using SplitDuo.Api.Features.Invitations.Dto;
+using SplitDuo.Api.Features.Users.Validation;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Email;
 using SplitDuo.Core.Domain.Entities;
@@ -446,8 +447,8 @@ public class InvitationsService(
             var user = new User
             {
                 Email = invitation.Email,
-                FirstName = request.FirstName,
-                LastName = request.LastName,
+                FirstName = PersonNameRules.Normalize(request.FirstName),
+                LastName = PersonNameRules.Normalize(request.LastName),
                 PasswordHash = passwordHasher.HashPassword(null!, request.Password),
                 GlobalRoleId = (int)GlobalRole.BaseUser
             };
