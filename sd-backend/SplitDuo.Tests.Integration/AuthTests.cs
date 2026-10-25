@@ -1,7 +1,10 @@
 using System.Net;
 using System.Net.Http.Json;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using SplitDuo.Api.Features.Authentication.Dto;
 using SplitDuo.Api.Features.Common.Dto;
+using SplitDuo.Core.Persistence;
 using SplitDuo.Tests.Integration.Support;
 
 namespace SplitDuo.Tests.Integration;
@@ -531,6 +534,231 @@ public class AuthTests : IntegrationTest
         }, ct);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    private async Task<(HttpStatusCode Status, string Body)> GetResetTokenValidationAsync(
+        string email, string? token, CancellationToken ct)
+    {
+        var url = $"/api/v1/auth/validate-reset-token?email={Uri.EscapeDataString(email)}";
+        if (token is not null)
+            url += $"&token={Uri.EscapeDataString(token)}";
+
+        var response = await Client.GetAsync(url, ct);
+        return (response.StatusCode, await response.Content.ReadAsStringAsync(ct));
+    }
+
+    private async Task<(HttpStatusCode Status, string Body)> PostResetPasswordAsync(
+        string email, string token, CancellationToken ct)
+    {
+        var response = await Client.PostAsJsonAsync("/api/v1/auth/reset-password", new
+        {
+            email,
+            token,
+            newPassword = "NewPass456!",
+            confirmPassword = "NewPass456!",
+        }, ct);
+        return (response.StatusCode, await response.Content.ReadAsStringAsync(ct));
+    }
+
+    [Fact]
+    public async Task ValidateResetToken_UnknownAndKnownEmail_ReturnIdenticalGenericError()
+    {
+        var ct = TestContext.Current.CancellationToken;
+
+        var known = await GetResetTokenValidationAsync("admin@splitduo.local", "garbage-token", ct);
+        var unknown = await GetResetTokenValidationAsync("nobody@nowhere.test", "garbage-token", ct);
+
+        Assert.Equal(HttpStatusCode.BadRequest, known.Status);
+        Assert.Equal(known.Status, unknown.Status);
+        Assert.Equal(known.Body, unknown.Body);
+        Assert.DoesNotContain("email", known.Body, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task ValidateResetToken_MissingToken_ReturnsGenericError()
+    {
+        var ct = TestContext.Current.CancellationToken;
+
+        var response = await Client.GetAsync(
+            "/api/v1/auth/validate-reset-token?email=admin@splitduo.local", ct);
+        var body = await response.Content.ReadAsStringAsync(ct);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Contains("reset link", body, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("email", body, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task ValidateResetToken_ExpiredToken_ReturnsSameGenericErrorAsBadToken()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
+            "expired-reset@localhost", "OldPass123!");
+
+        await Client.PostAsJsonAsync("/api/v1/auth/forgot-password", new { email = userEmail }, ct);
+        var token = await NotificationTestExtensions
+            .ExtractTokenFromFirstNotificationAsync(Factory.Services, userEmail);
+
+        AdvanceTime(TimeSpan.FromHours(2));
+
+        var expired = await GetResetTokenValidationAsync(userEmail, token, ct);
+        var garbage = await GetResetTokenValidationAsync(userEmail, "garbage-token", ct);
+
+        Assert.Equal(HttpStatusCode.BadRequest, expired.Status);
+        Assert.Equal(garbage.Body, expired.Body);
+        Assert.Contains("reset link", expired.Body, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task ValidateResetToken_UsedToken_ReturnsSameGenericErrorAsBadToken()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
+            "used-reset@localhost", "OldPass123!");
+
+        await Client.PostAsJsonAsync("/api/v1/auth/forgot-password", new { email = userEmail }, ct);
+        var token = await NotificationTestExtensions
+            .ExtractTokenFromFirstNotificationAsync(Factory.Services, userEmail);
+
+        var reset = await PostResetPasswordAsync(userEmail, token, ct);
+        Assert.Equal(HttpStatusCode.OK, reset.Status);
+
+        var used = await GetResetTokenValidationAsync(userEmail, token, ct);
+        var garbage = await GetResetTokenValidationAsync(userEmail, "garbage-token", ct);
+
+        Assert.Equal(HttpStatusCode.BadRequest, used.Status);
+        Assert.Equal(garbage.Body, used.Body);
+        Assert.Contains("reset link", used.Body, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task ValidateResetToken_ValidTokenWithUnrelatedEmail_Returns200()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
+            "validate-authority@localhost", "OldPass123!");
+
+        await Client.PostAsJsonAsync("/api/v1/auth/forgot-password", new { email = userEmail }, ct);
+        var token = await NotificationTestExtensions
+            .ExtractTokenFromFirstNotificationAsync(Factory.Services, userEmail);
+
+        // The token identifies the account; the query email is not authoritative.
+        var response = await Client.GetAsync(
+            $"/api/v1/auth/validate-reset-token?email=nobody%40nowhere.test&token={Uri.EscapeDataString(token)}",
+            ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task ValidateResetToken_ValidToken_IsIdempotent()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
+            "idempotent-reset@localhost", "OldPass123!");
+
+        await Client.PostAsJsonAsync("/api/v1/auth/forgot-password", new { email = userEmail }, ct);
+        var token = await NotificationTestExtensions
+            .ExtractTokenFromFirstNotificationAsync(Factory.Services, userEmail);
+
+        for (var i = 0; i < 5; i++)
+        {
+            var response = await Client.GetAsync(
+                $"/api/v1/auth/validate-reset-token?email={Uri.EscapeDataString(userEmail)}&token={Uri.EscapeDataString(token)}",
+                ct);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+    }
+
+    [Fact]
+    public async Task ResetPassword_UnknownAndKnownEmail_ReturnIdenticalGenericError()
+    {
+        var ct = TestContext.Current.CancellationToken;
+
+        var known = await PostResetPasswordAsync("admin@splitduo.local", "garbage-token", ct);
+        var unknown = await PostResetPasswordAsync("nobody@nowhere.test", "garbage-token", ct);
+
+        Assert.Equal(HttpStatusCode.BadRequest, known.Status);
+        Assert.Equal(known.Status, unknown.Status);
+        Assert.Equal(known.Body, unknown.Body);
+    }
+
+    [Fact]
+    public async Task ResetPassword_TokenIsSoleAuthority_EmailDoesNotGateReset()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
+            "token-authority@localhost", "OldPass123!");
+
+        await Client.PostAsJsonAsync("/api/v1/auth/forgot-password", new { email = userEmail }, ct);
+        var token = await NotificationTestExtensions
+            .ExtractTokenFromFirstNotificationAsync(Factory.Services, userEmail);
+
+        // The token identifies the account; a syntactically valid but unrelated
+        // email must not change the outcome.
+        var reset = await PostResetPasswordAsync("nobody@nowhere.test", token, ct);
+        Assert.Equal(HttpStatusCode.OK, reset.Status);
+
+        var login = await Client.PostAsJsonAsync("/api/v1/auth/login", new
+        {
+            email = userEmail,
+            password = "NewPass456!",
+        }, ct);
+        Assert.Equal(HttpStatusCode.OK, login.StatusCode);
+    }
+
+    [Fact]
+    public async Task ResetPassword_DeletedUserWithValidToken_ReturnsGenericError()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
+            "deleted-reset@localhost", "OldPass123!");
+
+        await Client.PostAsJsonAsync("/api/v1/auth/forgot-password", new { email = userEmail }, ct);
+        var token = await NotificationTestExtensions
+            .ExtractTokenFromFirstNotificationAsync(Factory.Services, userEmail);
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var user = await db.Users.SingleAsync(u => u.Email == userEmail, ct);
+            db.Users.Remove(user); // soft-delete interceptor sets DeletedAt
+            await db.SaveChangesAsync(ct);
+        }
+
+        var deleted = await PostResetPasswordAsync(userEmail, token, ct);
+        var deletedValidation = await GetResetTokenValidationAsync(userEmail, token, ct);
+
+        // Pre-fix both paths return "Invalid email or token"; post-fix both return
+        // the single generic reset-link message.
+        Assert.Equal(HttpStatusCode.BadRequest, deleted.Status);
+        Assert.Contains("reset link", deleted.Body, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("email", deleted.Body, StringComparison.OrdinalIgnoreCase);
+
+        Assert.Equal(HttpStatusCode.BadRequest, deletedValidation.Status);
+        Assert.Contains("reset link", deletedValidation.Body, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("email", deletedValidation.Body, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task ResetPassword_ExpiredToken_ReturnsGenericError()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userEmail = await TestDbSeeder.SeedUserAsync(Factory.Services,
+            "expired-reset-submit@localhost", "OldPass123!");
+
+        await Client.PostAsJsonAsync("/api/v1/auth/forgot-password", new { email = userEmail }, ct);
+        var token = await NotificationTestExtensions
+            .ExtractTokenFromFirstNotificationAsync(Factory.Services, userEmail);
+
+        AdvanceTime(TimeSpan.FromHours(2));
+
+        var expired = await PostResetPasswordAsync(userEmail, token, ct);
+        var garbage = await PostResetPasswordAsync(userEmail, "garbage-token", ct);
+
+        Assert.Equal(HttpStatusCode.BadRequest, expired.Status);
+        Assert.Equal(garbage.Body, expired.Body);
+        Assert.Contains("reset link", expired.Body, StringComparison.OrdinalIgnoreCase);
     }
 
     #endregion

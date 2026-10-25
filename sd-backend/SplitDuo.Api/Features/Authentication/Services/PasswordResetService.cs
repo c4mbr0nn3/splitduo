@@ -14,7 +14,7 @@ namespace SplitDuo.Api.Features.Authentication.Services;
 public interface IPasswordResetService
 {
     Task<Result> InitiatePasswordResetAsync(string email);
-    Task<Result<bool>> ValidateResetTokenAsync(string email, string token);
+    Task<Result<bool>> ValidateResetTokenAsync(string? token);
     Task<Result> ResetPasswordAsync(ResetPasswordRequestDto request);
 }
 
@@ -59,7 +59,6 @@ public class PasswordResetService(
             TokenType = "password_reset",
             Purpose = "password_reset",
             ExpiresAt = timeProvider.GetUtcNow().AddHours(1).ToUnixTimeSeconds(), // 1 hour expiration
-            MaxAttempts = 3,
             ClientInfo = "Password Reset"
         };
 
@@ -78,69 +77,55 @@ public class PasswordResetService(
         return Result.Success();
     }
 
-    public async Task<Result<bool>> ValidateResetTokenAsync(string email, string token)
+    public async Task<Result<bool>> ValidateResetTokenAsync(string? token)
     {
-        var user = await unitOfWork.Users
-            .FirstOrDefaultAsync(u => u.Email == email && u.DeletedAt == null);
+        var resetToken = await FindActiveResetTokenAsync(token);
 
-        if (user == null)
-            return Result<bool>.BadRequest(loc["InvalidEmailOrToken"]);
-
-        var hashedToken = HashUtils.Sha256Base64(token);
-        var resetToken = await unitOfWork.TwoFactorTokens
-            .FirstOrDefaultAsync(t =>
-                t.UserId == user.Id &&
-                t.TokenHash == hashedToken &&
-                t.Purpose == "password_reset" &&
-                t.UsedAt == null);
-
-        if (resetToken == null)
+        // One generic failure for every token problem: missing, malformed, unknown,
+        // expired, used, or owned by a deleted user. A distinct message here told an
+        // anonymous caller whether the submitted email belonged to an account
+        // (CWE-204); the token is now the only authority.
+        if (resetToken is null || resetToken.User.DeletedAt is not null)
             return Result<bool>.BadRequest(loc["InvalidOrExpiredResetToken"]);
-
-        var currentTimestamp = timeProvider.GetUtcNow().ToUnixTimeSeconds();
-
-        // Check if token is expired
-        if (resetToken.ExpiresAt < currentTimestamp)
-            return Result<bool>.BadRequest(loc["ResetTokenExpired"]);
-
-        // Check if max attempts reached
-        if (resetToken.Attempts >= resetToken.MaxAttempts)
-            return Result<bool>.BadRequest(loc["MaxValidationAttemptsExceeded"]);
-
-        // Increment attempts
-        resetToken.Attempts++;
 
         return Result<bool>.Success(true);
     }
 
-    public async Task<Result> ResetPasswordAsync(ResetPasswordRequestDto request)
+    /// <summary>
+    /// Resolves an active password-reset token from its hash alone. Expiry and
+    /// single-use are part of the lookup so every inactive token is indistinguishable
+    /// from an unknown one. The owning user is loaded through the token; the caller
+    /// still rejects a soft-deleted owner.
+    /// </summary>
+    private async Task<TwoFactorToken?> FindActiveResetTokenAsync(string? token)
     {
-        var user = await unitOfWork.Users
-            .FirstOrDefaultAsync(u => u.Email == request.Email && u.DeletedAt == null);
+        if (string.IsNullOrWhiteSpace(token))
+            return null;
 
-        if (user == null)
-            return Result.BadRequest(loc["InvalidEmailOrToken"]);
-
-        var hashedToken = HashUtils.Sha256Base64(request.Token);
-        var resetToken = await unitOfWork.TwoFactorTokens
-            .FirstOrDefaultAsync(t =>
-                t.UserId == user.Id &&
-                t.TokenHash == hashedToken &&
-                t.Purpose == "password_reset" &&
-                t.UsedAt == null);
-
-        if (resetToken == null)
-            return Result.BadRequest(loc["InvalidOrExpiredResetToken"]);
-
+        var hashedToken = HashUtils.Sha256Base64(token);
         var currentTimestamp = timeProvider.GetUtcNow().ToUnixTimeSeconds();
 
-        // Check if token is expired
-        if (resetToken.ExpiresAt < currentTimestamp)
-            return Result.BadRequest(loc["ResetTokenExpired"]);
+        return await unitOfWork.TwoFactorTokens
+            .Include(t => t.User)
+            .FirstOrDefaultAsync(t =>
+                t.TokenHash == hashedToken &&
+                t.Purpose == "password_reset" &&
+                t.UsedAt == null &&
+                t.ExpiresAt >= currentTimestamp);
+    }
 
-        // Check if max attempts reached
-        if (resetToken.Attempts >= resetToken.MaxAttempts)
-            return Result.BadRequest(loc["MaxValidationAttemptsExceeded"]);
+    public async Task<Result> ResetPasswordAsync(ResetPasswordRequestDto request)
+    {
+        var resetToken = await FindActiveResetTokenAsync(request.Token);
+
+        // Token-only resolution: the submitted email is accepted for the existing
+        // API contract and rate-limit partitioning, but it must not decide whether
+        // the account exists (CWE-204). Every failure is the same generic error.
+        if (resetToken is null || resetToken.User.DeletedAt is not null)
+            return Result.BadRequest(loc["InvalidOrExpiredResetToken"]);
+
+        var user = resetToken.User;
+        var currentTimestamp = timeProvider.GetUtcNow().ToUnixTimeSeconds();
 
         // Mark token as used
         resetToken.UsedAt = currentTimestamp;
