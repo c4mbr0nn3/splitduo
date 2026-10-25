@@ -1,6 +1,6 @@
 # Configuration
 
-Edit `docker-compose.yml` or pass environment variables directly.
+Edit `.env` next to the compose file (Compose interpolates it), or pass environment variables directly.
 
 ## Required for production
 
@@ -12,7 +12,9 @@ SD_INITIAL_USER_EMAIL: admin@splitduo.local
 SD_INITIAL_USER_PASSWORD: <generate: openssl rand -base64 24>   # required, min 15 chars
 ```
 
-## JWT (optional)
+Set `SD_JWT_SECRET_KEY` **before** anyone enrols in two-factor authentication: the TOTP encryption key is derived from it, so changing it later invalidates existing authenticator enrolments. Keep it with your backups.
+
+## JWT tuning (optional)
 
 Defaults come from `appsettings.json`. Override only if you need custom claims or a different expiry.
 

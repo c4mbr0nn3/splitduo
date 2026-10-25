@@ -18,12 +18,13 @@ That's it. No .NET SDK, no Node.js, no build tools — the app image is [publish
 
 ## Quick start (4 commands)
 
-The compose file pulls the app image from [Docker Hub](https://hub.docker.com/r/j1mm0/splitduo) — no build step. Before starting, you must generate an admin password and put it in a `.env` file next to the compose file — compose fails fast if it is missing.
+The compose file pulls the app image from [Docker Hub](https://hub.docker.com/r/j1mm0/splitduo) — no build step. Before starting, generate the admin password and the JWT signing key into a `.env` file next to the compose file — compose fails fast if the password is missing, and the JWT key otherwise falls back to a published placeholder.
 
 ```bash
 git clone https://gitlab.com/j1mm0/splitduo.git
 cd splitduo
-printf 'SD_INITIAL_USER_PASSWORD=%s\n' "$(openssl rand -base64 24)" > .env
+printf 'SD_INITIAL_USER_PASSWORD=%s\nSD_JWT_SECRET_KEY=%s\n' \
+  "$(openssl rand -base64 24)" "$(openssl rand -base64 48)" > .env
 docker compose up -d
 ```
 
@@ -38,15 +39,12 @@ You're running SplitDuo. See the next section for the other production settings.
 
 ## Before you rely on it: set your secrets
 
-The admin password is **required at first boot** (as above) and the bundled compose file still ships a placeholder JWT secret. Set `SD_JWT_SECRET_KEY` before real use — it protects your JWT tokens.
+The quick start above writes both secrets into `.env`. If you started SplitDuo another way, or you are upgrading a stack created before the JWT key was interpolated from the environment, check that your signing key is not the published placeholder. `SD_INITIAL_USER_PASSWORD` is **required at first boot**; `SD_JWT_SECRET_KEY` protects your JWT tokens and must be set before real use.
 
-Set it in `.env` (or edit `docker-compose.yml`):
+Set it in `.env` next to the compose file — the compose file interpolates it from the environment:
 
-```yaml
-  splitduo-app:
-    environment:
-      # JWT signing key — generate a strong random string
-      SD_JWT_SECRET_KEY: a-long-random-string-at-least-32-chars
+```env
+SD_JWT_SECRET_KEY=a-long-random-string-at-least-32-chars
 ```
 
 Generate a strong JWT secret with, for example:
@@ -54,6 +52,8 @@ Generate a strong JWT secret with, for example:
 ```bash
 openssl rand -base64 48
 ```
+
+> Set this **before** anyone enrols in two-factor authentication. The TOTP encryption key is derived from `SD_JWT_SECRET_KEY`, so changing it later invalidates existing authenticator enrolments until each user falls back to a backup code or re-enrols. Back up the value together with the database.
 
 Then recreate the containers so the new values take effect:
 
