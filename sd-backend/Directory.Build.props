@@ -2,5 +2,13 @@
   <PropertyGroup>
     <!-- Single source of truth for backend version; bumped by scripts/bump-version.sh -->
     <Version>1.16.0</Version>
+
+    <!-- Emit packages.lock.json so security:trivy can scan the NuGet graph: Trivy
+         cannot resolve <PackageReference> from .csproj and only reads lock files
+         (or built .deps.json, which the scan job never produces). Commit the
+         generated lock files; in CI, locked mode fails the build when a package
+         change was not followed by a restore, instead of scanning a stale lock. -->
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <RestoreLockedMode Condition="'$(CI)' == 'true'">true</RestoreLockedMode>
   </PropertyGroup>
 </Project>

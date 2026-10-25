@@ -67,7 +67,10 @@ security:trufflehog:
     # Exclude .git (GitLab runner injects a masked CI token into .git/config
     # during checkout — a false positive, not a repo secret) and common build
     # artifact dirs that contain third-party code or generated files.
-    - printf '.git\nnode_modules\n.nuxt\n.output\n' > /tmp/exclude-paths.txt
+    # These are regexes matched against absolute paths, so anchor them: an
+    # unanchored `.git` also matches `.gitlab-ci.yml`, `.gitlab/` and
+    # `.gitignore`, silently keeping them out of the scan.
+    - printf '(^|/)\\.git(/|$)\n(^|/)node_modules(/|$)\n(^|/)\\.nuxt(/|$)\n(^|/)\\.output(/|$)\n' > /tmp/exclude-paths.txt
     - trufflehog filesystem . --no-verification --fail --exclude-paths=/tmp/exclude-paths.txt
   rules:
     - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+(-rc\.\d+)?$/

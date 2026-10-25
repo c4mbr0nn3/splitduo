@@ -19,7 +19,9 @@ done
 
 "$DOCKER_CMD" image inspect "$IMAGE_NAME" >/dev/null 2>&1 || "$DOCKER_CMD" pull "$IMAGE_NAME"
 
-TRIVY_ARGS=(fs /repo --severity "${SEVERITY}" --format "${FORMAT}" --skip-dirs .git --skip-dirs website --ignorefile /repo/.trivyignore --exit-code 1)
+# `.opencode` holds local agent tooling (gitignored, absent in CI); its
+# lockfile would otherwise add unrelated HIGH findings to local runs.
+TRIVY_ARGS=(fs /repo --severity "${SEVERITY}" --format "${FORMAT}" --skip-dirs .git --skip-dirs website --skip-dirs .opencode --ignorefile /repo/.trivyignore --exit-code 1)
 [ -n "$OUTPUT" ] && TRIVY_ARGS+=(--output "/output/$(basename "$OUTPUT")")
 
 echo "Running Trivy filesystem scan..."
