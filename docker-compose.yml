@@ -11,7 +11,10 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      # Bound to loopback: the app reaches PostgreSQL over the compose network,
+      # so publishing on 0.0.0.0 would only expose the database to the host's
+      # network. Use 127.0.0.1 for local tools such as psql or a GUI client.
+      - "127.0.0.1:5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U splitduo -d splitduo"]
       interval: 30s
@@ -39,8 +42,10 @@ services:
       # Required — set in a .env file next to this compose file
       SD_INITIAL_USER_PASSWORD: ${SD_INITIAL_USER_PASSWORD:?SD_INITIAL_USER_PASSWORD must be set (min 15 chars) - see docs/self-hosting.md}
 
-      # JWT Configuration
-      SD_JWT_SECRET_KEY: your-super-secret-jwt-key-change-this-in-production
+      # JWT signing key. Read from .env; the fallback keeps an existing stack
+      # booting, but it is a published value — set SD_JWT_SECRET_KEY before
+      # anyone enrols in 2FA, which derives its encryption key from this.
+      SD_JWT_SECRET_KEY: "${SD_JWT_SECRET_KEY:-your-super-secret-jwt-key-change-this-in-production}"
 
       # AI Configuration (Optional - for receipt scanning)
       # SD_AI_BASE_URL: ""
