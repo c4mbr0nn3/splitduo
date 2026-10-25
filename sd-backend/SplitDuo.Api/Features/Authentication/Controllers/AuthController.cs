@@ -185,22 +185,18 @@ public class AuthController(
     [HttpGet("validate-reset-token")]
     [ProducesResponseType(typeof(ApiResponseDto<bool>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ApiResponseDto<bool>>> ValidateResetToken([FromQuery] string email,
-        [FromQuery] string token)
+    public async Task<ActionResult<ApiResponseDto<bool>>> ValidateResetToken([FromQuery] string? email,
+        [FromQuery] string? token)
     {
-        logger.LogInformation("Reset token validation attempt for email: {Email}", email);
+        // `email` is accepted for backward-compatible reset links and for the
+        // per-account rate limiter. The token resolves the account; email is never
+        // compared. Keep the parameter so existing links and OpenAPI stay valid.
+        logger.LogInformation("Reset token validation attempt");
 
-        var result = await passwordResetService.ValidateResetTokenAsync(email, token);
+        var result = await passwordResetService.ValidateResetTokenAsync(token);
 
-        if (result.IsSuccess)
-        {
-            await unitOfWork.SaveChangesAsync();
-            logger.LogInformation("Reset token validated successfully for email: {Email}", email);
-        }
-        else
-        {
-            logger.LogWarning("Reset token validation failed for email: {Email}. Error: {Error}", email, result.Error);
-        }
+        if (!result.IsSuccess)
+            logger.LogWarning("Reset token validation failed");
 
         return HandleResult(result, "Reset token is valid");
     }
@@ -212,18 +208,18 @@ public class AuthController(
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult> ResetPassword([FromBody] ResetPasswordRequestDto request)
     {
-        logger.LogInformation("Password reset attempt for email: {Email}", request.Email);
+        logger.LogInformation("Password reset attempt");
 
         var result = await passwordResetService.ResetPasswordAsync(request);
 
         if (result.IsSuccess)
         {
             await unitOfWork.SaveChangesAsync();
-            logger.LogInformation("Password reset successful for email: {Email}", request.Email);
+            logger.LogInformation("Password reset successful");
         }
         else
         {
-            logger.LogWarning("Password reset failed for email: {Email}. Error: {Error}", request.Email, result.Error);
+            logger.LogWarning("Password reset failed");
         }
 
         return HandleResult(result, "Password reset successful. You can now log in with your new password.");
