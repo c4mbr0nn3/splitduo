@@ -4,6 +4,56 @@ All notable changes to SplitDuo will be documented in this file.
 
 Generated with [git-cliff](https://git-cliff.org) from Conventional Commits.
 
+## [1.17.0] - 2026-10-26
+
+### Bug Fixes
+
+- *(ci)* Delete temp Docker Hub tags after manifest merge
+- *(deps)* Update frontend deps and resolve tiptap ReDoS GHSA-j95f-988m-3j2f
+- *(expenses)* Exclude settlements from group expense count
+- *(expenses)* Exclude settlements from group total
+- *(stats)* Localize member paid chart series label
+- *(stats)* Show empty state for alias subgroup balances
+- *(expenses)* Compress manually attached receipt images
+- *(stats)* Dashboard owed figures use per-group net positions
+- *(security)* Clear frontend HIGH CVEs, add trivy ignore list
+- *(users)* Backfill required settings jsonb keys
+- *(security)* Ignore braces CVE-2026-93687 in trivy
+- *(expenses)* Filter group expenses by alias subgroup
+- *(auth)* Persist failed-login lockout state
+- *(security)* Partition auth rate limiter per IP and account
+- *(security)* Stop leaking raw exception details to clients
+- *(security)* Require strong bootstrap admin password in production (SEC-03)
+- *(security)* Reject markup in names and escape chart labels
+- *(security)* Harden health endpoint
+- *(compose)* Read jwt secret from env and bind db to loopback
+- *(security)* Remove reset-token account enumeration oracle
+- *(ci)* Scan backend deps and anchor trufflehog excludes
+
+### Build System
+
+- *(docker)* Add OCI image annotations to Dockerfile
+- *(docker)* Add authors and documentation OCI annotations
+- *(ci)* Attach SBOM and provenance attestations to docker image
+- *(build)* Make branch docker builds manual
+- *(build)* Drop hetzner runner tag
+- *(release)* Add release-candidate workflow
+- *(runners)* Pin all jobs to homelab except arm64
+- *(security)* Align scanner image pins with newest versions
+- *(build)* Run amd64 build on shared runner
+
+### Features
+
+- *(ci)* Publish multi-arch Docker image (amd64 + arm64)
+- *(api)* Admin system notifications (update-available)
+- *(recurring)* Recurring expenses with templates, generation job, and approval queue
+- *(expenses)* Add dedicated loading modal for AI receipt scan
+- *(admin)* Expose AI usage ledger with per-user and reliability reporting
+- *(expenses)* Add expense-only balance reporting fields
+
+### Performance
+
+- *(db)* Align indexes with query patterns
 ## [1.16.0] - 2026-09-02
 
 ### Features
