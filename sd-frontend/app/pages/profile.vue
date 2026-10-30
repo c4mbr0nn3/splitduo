@@ -1,52 +1,47 @@
 <template>
   <div class="flex flex-col items-center py-6 sm:py-8">
-    <UCard class="w-full max-w-2xl">
-      <template #header>
-        <div class="flex items-center justify-between">
-          <UiCardHeader
-            :title="$t('profile.title')"
-            :subtitle="$t('profile.subtitle')"
-          />
-          <UiButtonDropdown
-            v-if="user"
-            icon-only
-            color="neutral"
-            variant="ghost"
-            dropdown-icon="i-lucide-ellipsis-vertical"
-            :items="profileActions"
-          />
-        </div>
-      </template>
-      <div
-        v-if="isLoading"
-        class="flex justify-center py-8"
-      >
-        <USkeleton class="h-4 w-full" />
-      </div>
+    <div class="w-full max-w-2xl">
+      <UiCardHeader
+        size="lg"
+        :title="$t('profile.title')"
+        :subtitle="$t('profile.subtitle')"
+        class="mb-6"
+      />
 
-      <div
-        v-else-if="user"
-        class="space-y-6"
+      <UCard
+        class="sd-surface w-full"
+        :ui="{ body: 'p-0 sm:p-0' }"
       >
-        <UCard
-          class="sd-surface"
-          :ui="{ body: 'p-4 sm:p-5' }"
-        >
-          <div class="flex items-center gap-4">
-            <UserAvatar
-              :user="user"
-              size="3xl"
-            />
-            <div class="space-y-2">
-              <p class="text-sm text-muted">
-                {{ $t('profile.avatar.description') }}
-              </p>
-              <div class="flex gap-2">
+        <template v-if="user">
+          <section class="p-5 sm:p-6">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-5">
+              <UserAvatar
+                :user="user"
+                size="3xl"
+                class="shrink-0"
+              />
+              <div class="min-w-0 flex-1 space-y-1">
+                <p class="truncate text-lg font-semibold text-highlighted">
+                  {{ displayName }}
+                </p>
+                <p class="truncate text-sm text-muted">
+                  {{ user.email }}
+                </p>
+                <UBadge
+                  :color="isGlobalAdmin ? 'secondary' : 'neutral'"
+                  variant="subtle"
+                  size="sm"
+                  class="mt-1"
+                >
+                  {{ roleLabel }}
+                </UBadge>
+              </div>
+              <div class="flex flex-wrap gap-2">
                 <UButton
                   :label="$t('profile.avatar.upload')"
                   icon="i-lucide-upload"
                   size="sm"
-                  :loading="avatarLoading"
+                  :loading="isAvatarLoading"
                   @click="triggerFileInput"
                 />
                 <UButton
@@ -54,9 +49,9 @@
                   :label="$t('profile.avatar.remove')"
                   icon="i-lucide-trash-2"
                   color="error"
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
-                  :loading="avatarLoading"
+                  :loading="isAvatarLoading"
                   @click="confirmRemoveAvatar"
                 />
               </div>
@@ -68,138 +63,258 @@
                 @change="onFileSelected"
               >
             </div>
-          </div>
-        </UCard>
+          </section>
 
-        <UCard
-          class="sd-surface"
-          :ui="{ body: 'p-4 sm:p-5' }"
-        >
-          <p class="text-sm font-medium text-highlighted">
-            {{ $t('profile.preferences') }}
-          </p>
-          <p class="text-sm text-muted mt-1">
-            {{ $t('profile.preferencesDescription') }}
-          </p>
-          <UFormField
-            :label="$t('profile.theme')"
-            class="mt-4"
-          >
-            <SettingsThemeSwitcher />
-          </UFormField>
-          <UFormField
-            :label="$t('profile.language')"
-            class="mt-4"
-          >
-            <SettingsLanguageSwitcher />
-          </UFormField>
-        </UCard>
+          <USeparator />
 
-        <UCard
-          class="sd-surface"
-          :ui="{ body: 'p-4 sm:p-5' }"
-        >
-          <div class="flex items-start justify-between gap-3">
+          <section class="p-5 sm:p-6">
             <div>
-              <p class="text-sm font-medium text-highlighted">
-                {{ $t('profile.twoFactorAuth') }}
-              </p>
+              <h2 class="text-sm font-medium text-highlighted">
+                {{ $t('profile.personalInfo') }}
+              </h2>
               <p class="text-sm text-muted mt-1">
-                {{ user.twoFactorEnabled ? $t('profile.twoFactorEnabled') : $t('profile.twoFactorNotEnabled') }}
+                {{ $t('profile.personalInfoDescription') }}
               </p>
             </div>
-            <UBadge
-              :color="user.twoFactorEnabled ? 'success' : 'neutral'"
-              variant="subtle"
+            <UForm
+              :state="personalForm"
+              class="mt-4 space-y-4"
+              @submit="savePersonalInfo"
             >
-              {{ user.twoFactorEnabled ? $t('profile.on') : $t('profile.off') }}
-            </UBadge>
-          </div>
-          <div class="mt-4">
-            <UButton
-              :to="user.twoFactorEnabled ? '/settings/2fa' : '/settings/2fa/setup'"
-              :label="user.twoFactorEnabled ? $t('profile.twoFactorSettings') : $t('profile.setUp2FA')"
-              variant="outline"
-              color="neutral"
-            />
-          </div>
-        </UCard>
-
-        <div class="grid grid-cols-1 sm:grid-cols-[160px_1fr] gap-x-4 gap-y-3">
-          <template
-            v-for="field in userForm"
-            :key="field.label"
-          >
-            <p class="text-sm text-muted sm:text-right sm:pt-2">
-              {{ field.label }}
-            </p>
-            <UInput
-              v-if="!field.copyable"
-              :value="field.value.value"
-              disabled
-              class="w-full"
-            />
-            <UInput
-              v-else
-              :value="field.value.value"
-              disabled
-              class="w-full"
-              :ui="{ trailing: 'pr-0.5' }"
-            >
-              <template
-                v-if="field.value.value?.length"
-                #trailing
-              >
-                <UTooltip
-                  :text="$t('profile.copyToClipboard')"
-                  :content="{ side: 'right' }"
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <UFormField
+                  :label="$t('profile.firstName')"
+                  name="firstName"
+                  required
                 >
-                  <UButton
-                    :color="copied ? 'success' : 'neutral'"
-                    variant="link"
-                    size="sm"
-                    :icon="copied ? 'i-lucide-copy-check' : 'i-lucide-copy'"
-                    :aria-label="$t('profile.copyToClipboard')"
-                    @click="copy(field.value.value)"
+                  <UInput
+                    v-model="personalForm.firstName"
+                    required
+                    size="lg"
+                    class="w-full"
+                    :disabled="isSavingPersonalInfo"
                   />
-                </UTooltip>
-              </template>
-            </UInput>
-          </template>
-        </div>
-      </div>
+                </UFormField>
+                <UFormField
+                  :label="$t('profile.lastName')"
+                  name="lastName"
+                >
+                  <UInput
+                    v-model="personalForm.lastName"
+                    size="lg"
+                    class="w-full"
+                    :disabled="isSavingPersonalInfo"
+                  />
+                </UFormField>
+              </div>
+              <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                <UButton
+                  :label="$t('common.cancel')"
+                  color="neutral"
+                  variant="ghost"
+                  :disabled="!isPersonalInfoDirty || isSavingPersonalInfo"
+                  @click="resetPersonalInfo"
+                />
+                <UButton
+                  type="submit"
+                  :label="$t('profile.saveChanges')"
+                  :loading="isSavingPersonalInfo"
+                  :disabled="!isPersonalInfoDirty || isSavingPersonalInfo"
+                />
+              </div>
+            </UForm>
+          </section>
 
-      <div
-        v-else
-        class="text-center py-8"
-      >
-        <p class="text-muted">
-          {{ $t('profile.unableToLoad') }}
-        </p>
-        <UButton
-          class="mt-4 w-full sm:w-auto"
-          @click="refreshProfile"
+          <USeparator />
+
+          <section class="p-5 sm:p-6">
+            <div>
+              <h2 class="text-sm font-medium text-highlighted">
+                {{ $t('profile.preferences') }}
+              </h2>
+              <p class="text-sm text-muted mt-1">
+                {{ $t('profile.preferencesDescription') }}
+              </p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+              <UFormField :label="$t('profile.theme')">
+                <SettingsThemeSwitcher />
+              </UFormField>
+              <UFormField :label="$t('profile.language')">
+                <SettingsLanguageSwitcher />
+              </UFormField>
+            </div>
+          </section>
+
+          <USeparator />
+
+          <section class="p-5 sm:p-6 space-y-4">
+            <div>
+              <h2 class="text-sm font-medium text-highlighted">
+                {{ $t('profile.security') }}
+              </h2>
+              <p class="text-sm text-muted mt-1">
+                {{ $t('profile.securityDescription') }}
+              </p>
+            </div>
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+              <div class="flex items-center gap-3">
+                <span class="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <UIcon
+                    name="i-lucide-key"
+                    class="size-5"
+                  />
+                </span>
+                <div class="min-w-0">
+                  <h3 class="text-sm font-medium text-highlighted">
+                    {{ $t('profile.password') }}
+                  </h3>
+                  <p class="text-sm text-muted mt-0.5">
+                    {{ $t('profile.passwordDescription') }}
+                  </p>
+                </div>
+              </div>
+              <UButton
+                :label="$t('profile.changePassword')"
+                variant="outline"
+                color="neutral"
+                size="sm"
+                class="w-full justify-center sm:w-auto"
+                @click="isPasswordModalOpen = true"
+              />
+            </div>
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+              <div class="flex items-center gap-3">
+                <span class="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <UIcon
+                    :name="user.twoFactorEnabled ? 'i-lucide-shield-check' : 'i-lucide-shield'"
+                    class="size-5"
+                  />
+                </span>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2">
+                    <h3 class="text-sm font-medium text-highlighted">
+                      {{ $t('profile.twoFactorAuth') }}
+                    </h3>
+                    <UBadge
+                      :color="user.twoFactorEnabled ? 'success' : 'neutral'"
+                      variant="subtle"
+                      size="sm"
+                    >
+                      {{ user.twoFactorEnabled ? $t('profile.on') : $t('profile.off') }}
+                    </UBadge>
+                  </div>
+                  <p class="text-sm text-muted mt-0.5">
+                    {{ user.twoFactorEnabled ? $t('profile.twoFactorEnabled') : $t('profile.twoFactorNotEnabled') }}
+                  </p>
+                </div>
+              </div>
+              <UButton
+                :label="user.twoFactorEnabled ? $t('profile.twoFactorSettings') : $t('profile.setUp2FA')"
+                variant="outline"
+                color="neutral"
+                size="sm"
+                class="w-full justify-center sm:w-auto"
+                to="/settings/2fa/setup"
+              />
+            </div>
+          </section>
+
+          <USeparator />
+
+          <section class="p-5 sm:p-6">
+            <div>
+              <h2 class="text-sm font-medium text-highlighted">
+                {{ $t('profile.accountDetails') }}
+              </h2>
+              <p class="text-sm text-muted mt-1">
+                {{ $t('profile.accountDetailsDescription') }}
+              </p>
+            </div>
+            <dl class="mt-4 space-y-3">
+              <div class="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                <dt class="text-sm text-muted">
+                  {{ $t('profile.userId') }}
+                </dt>
+                <dd class="flex min-w-0 items-center gap-2">
+                  <span class="min-w-0 flex-1 truncate font-mono text-xs text-highlighted sm:max-w-80 sm:flex-none sm:text-sm">{{ user.id }}</span>
+                  <UTooltip
+                    :text="$t('profile.copyToClipboard')"
+                    :content="{ side: 'left' }"
+                  >
+                    <UButton
+                      :color="copied ? 'success' : 'neutral'"
+                      variant="link"
+                      size="sm"
+                      square
+                      class="shrink-0"
+                      :icon="copied ? 'i-lucide-copy-check' : 'i-lucide-copy'"
+                      :aria-label="$t('profile.copyToClipboard')"
+                      @click="copy(user.id)"
+                    />
+                  </UTooltip>
+                </dd>
+              </div>
+              <div class="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                <dt class="text-sm text-muted">
+                  {{ $t('profile.memberSince') }}
+                </dt>
+                <dd class="text-sm text-highlighted sm:text-right">
+                  {{ formatDate(user.createdAt) }}
+                </dd>
+              </div>
+            </dl>
+          </section>
+        </template>
+
+        <div
+          v-else
+          class="py-8 text-center"
         >
-          {{ $t('profile.retry') }}
-        </UButton>
-      </div>
-    </UCard>
+          <p class="text-muted">
+            {{ $t('profile.unableToLoad') }}
+          </p>
+          <UButton
+            class="mt-4 w-full sm:w-auto"
+            :loading="isRefreshing"
+            @click="refreshProfile"
+          >
+            {{ $t('profile.retry') }}
+          </UButton>
+        </div>
+      </UCard>
+    </div>
+
     <ChangePasswordModal
       v-model:open="isPasswordModalOpen"
-      @success="handlePasswordChangeSuccess"
     />
   </div>
 </template>
 
 <script setup lang="ts">
+import type { User } from '~/types/domain'
 import { useClipboard } from '@vueuse/core'
 
 const { t } = useI18n()
 
-const { user, isLoading } = useAuth()
+const { user, initialize, isGlobalAdmin } = useAuth()
 const { copy, copied } = useClipboard()
-const { uploadAvatar, deleteAvatar, isLoading: avatarLoading } = useUserAvatar()
+const { uploadAvatar, deleteAvatar, isLoading: isAvatarLoading } = useUserAvatar()
+const { updateCurrentUser } = useUsers()
 const modal = useModal()
+
+// ─── Identity (section 1) ────────────────────────────────────────────────────
+
+const displayName = computed(() => {
+  const u = user.value
+  if (!u) return ''
+  return u.fullName?.trim() || `${u.firstName} ${u.lastName ?? ''}`.trim() || u.email
+})
+
+// globalRoleId may arrive as number or string from the backend (union in the DTO),
+// so reuse the composable's canonical admin check instead of a local comparison.
+const roleLabel = computed(() => isGlobalAdmin.value ? t('profile.roleAdmin') : t('profile.roleUser'))
+
 const fileInput = ref<HTMLInputElement | null>(null)
 
 const triggerFileInput = () => {
@@ -212,7 +327,7 @@ const onFileSelected = async (event: Event) => {
   if (!file) return
   try {
     await uploadAvatar(file)
-    await useAuth().initialize() // refresh user data (hasAvatar flag)
+    await initialize() // refresh user data (hasAvatar flag)
   }
   catch {
     // Error shown via toast by the composable
@@ -232,61 +347,90 @@ const confirmRemoveAvatar = async () => {
 
   try {
     await deleteAvatar()
-    await useAuth().initialize() // refresh user data (hasAvatar flag)
+    await initialize() // refresh user data (hasAvatar flag)
   }
   catch {
     // Error shown via toast by the composable
   }
 }
 
-// Password change modal state
-const isPasswordModalOpen = ref(false)
+// ─── Personal information (section 2) ────────────────────────────────────────
 
-const profileActions = computed(() => [
-  {
-    label: t('profile.changePassword'),
-    icon: 'i-lucide-key',
-    onSelect: () => { isPasswordModalOpen.value = true },
-  },
-  {
-    label: user.value?.twoFactorEnabled ? t('profile.twoFactorSettings') : t('profile.setUp2FA'),
-    icon: user.value?.twoFactorEnabled ? 'i-lucide-shield-check' : 'i-lucide-shield',
-    to: '/settings/2fa/setup',
-  },
-] as { label: string, icon: string, [key: string]: unknown }[])
-
-const handlePasswordChangeSuccess = () => {
-  // Modal will handle redirection to login
-  // This is just here for potential future use
+interface PersonalInfoForm {
+  firstName: string
+  lastName: string
 }
 
-const userForm = computed(() => {
-  const u = user.value
-  if (!u) return []
-  return [
-    {
-      label: t('profile.firstName'),
-      value: computed(() => u.firstName),
-    },
-    {
-      label: t('profile.lastName'),
-      value: computed(() => u.lastName || t('profile.notProvided')),
-    },
-    {
-      label: t('profile.emailAddress'),
-      value: computed(() => u.email),
-    },
-    {
-      label: t('profile.userId'),
-      value: computed(() => u.id),
-      copyable: true,
-    },
-  ]
-})
+const personalForm = ref<PersonalInfoForm>({ firstName: '', lastName: '' })
+const personalBaseline = ref<PersonalInfoForm>({ firstName: '', lastName: '' })
+
+function syncPersonalInfo(u: User) {
+  const next: PersonalInfoForm = {
+    firstName: u.firstName,
+    lastName: u.lastName ?? '',
+  }
+  personalForm.value = { ...next }
+  personalBaseline.value = { ...next }
+}
+
+// Declared before the watcher below: with `immediate: true` the callback runs
+// synchronously, so referencing this computed after the watch would hit its TDZ.
+const isPersonalInfoDirty = computed(() =>
+  personalForm.value.firstName !== personalBaseline.value.firstName
+  || personalForm.value.lastName !== personalBaseline.value.lastName,
+)
+
+watch(user, (u) => {
+  // External user updates (avatar upload, refresh) re-sync the form, but never
+  // clobber it while the user has unsaved edits in progress.
+  if (u && !isPersonalInfoDirty.value) syncPersonalInfo(u)
+}, { immediate: true })
+
+const isSavingPersonalInfo = ref(false)
+
+const savePersonalInfo = async () => {
+  if (isSavingPersonalInfo.value) return
+  isSavingPersonalInfo.value = true
+  try {
+    const updated = await updateCurrentUser({
+      firstName: personalForm.value.firstName,
+      lastName: personalForm.value.lastName,
+    })
+    if (!updated) return
+    await initialize() // refresh the global user + cookie
+    // Re-sync both form and baseline from the server response: the backend
+    // normalizes names (e.g. trims whitespace), so the submitted values may
+    // differ from what was stored and would otherwise leave the form dirty.
+    syncPersonalInfo(updated)
+  }
+  catch {
+    // Error shown via toast by the composable
+  }
+  finally {
+    isSavingPersonalInfo.value = false
+  }
+}
+
+const resetPersonalInfo = () => {
+  personalForm.value = { ...personalBaseline.value }
+}
+
+// ─── Security (section 4) ────────────────────────────────────────────────────
+
+const isPasswordModalOpen = ref(false)
+
+// ─── Error/retry state ───────────────────────────────────────────────────────
+
+const isRefreshing = ref(false)
 
 const refreshProfile = async () => {
-  const { initialize } = useAuth()
-  await initialize()
+  isRefreshing.value = true
+  try {
+    await initialize()
+  }
+  finally {
+    isRefreshing.value = false
+  }
 }
 
 useHead({

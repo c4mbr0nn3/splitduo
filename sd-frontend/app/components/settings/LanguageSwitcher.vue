@@ -27,6 +27,6 @@ const selectedLanguage = computed({
     :items="languageItems"
     :placeholder="$t('profile.language')"
     value-key="value"
-    class="w-full sm:w-64"
+    class="w-full"
   />
 </template>

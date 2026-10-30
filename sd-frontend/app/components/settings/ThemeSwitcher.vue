@@ -25,6 +25,6 @@ const selectedTheme = computed({
     :items="themeItems"
     :placeholder="$t('profile.selectTheme')"
     value-key="value"
-    class="w-full sm:w-64"
+    class="w-full"
   />
 </template>
