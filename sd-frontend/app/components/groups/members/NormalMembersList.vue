@@ -20,6 +20,7 @@
             v-for="member in members"
             :key="member.id"
             :member="member"
+            :current-user-id="currentUserId"
           >
             <template
               v-if="isGroupAdmin && member.id !== currentUserId"

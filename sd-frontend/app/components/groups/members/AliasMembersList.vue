@@ -99,6 +99,7 @@
               v-for="member in alias.members"
               :key="member.id"
               :member="member"
+              :current-user-id="currentUserId"
             >
               <template
                 v-if="isGroupAdmin"

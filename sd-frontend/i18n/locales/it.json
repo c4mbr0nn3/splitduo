@@ -335,6 +335,7 @@
   },
   "members": {
     "title": "Membri",
+    "you": "Tu",
     "pendingInvitations": "Inviti in Sospeso",
     "promoteToAdmin": "Promuovi ad Amministratore",
     "demoteToMember": "Retrocedi a Membro",

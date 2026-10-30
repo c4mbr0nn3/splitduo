@@ -335,6 +335,7 @@
   },
   "members": {
     "title": "Members",
+    "you": "You",
     "pendingInvitations": "Pending Invitations",
     "promoteToAdmin": "Promote to Admin",
     "demoteToMember": "Demote to Member",

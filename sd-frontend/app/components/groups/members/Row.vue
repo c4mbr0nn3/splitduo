@@ -16,6 +16,14 @@
             name="i-lucide-crown"
             class="size-3.5 text-primary shrink-0"
           />
+          <UBadge
+            v-if="isCurrentUser"
+            size="xs"
+            variant="soft"
+            color="primary"
+            class="shrink-0"
+            :label="$t('members.you')"
+          />
         </div>
         <p class="text-xs text-muted truncate">
           {{ member.email }}
@@ -45,6 +53,9 @@ interface FlattenedMember {
 
 interface Props {
   member: FlattenedMember
+  currentUserId?: string
 }
-defineProps<Props>()
+const props = defineProps<Props>()
+
+const isCurrentUser = computed(() => props.currentUserId && props.member.id === props.currentUserId)
 </script>
