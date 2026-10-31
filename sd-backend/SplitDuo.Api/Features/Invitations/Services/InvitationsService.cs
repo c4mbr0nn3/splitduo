@@ -75,7 +75,7 @@ public class InvitationsService(
         if (currentUserMembership.Role != GroupRole.Admin)
             return Result<SendInvitationResponseDto>.Forbidden(loc["OnlyAdminsCanInvite"]);
 
-        var email = request.Email.ToLowerInvariant();
+        var email = EmailNormalizer.Normalize(request.Email);
 
         // Check if email belongs to an existing user
         var existingUser = await unitOfWork.Users

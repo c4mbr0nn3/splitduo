@@ -35,21 +35,6 @@
             />
           </UFormField>
           <UFormField
-            :label="$t('admin.email')"
-            name="email"
-            required
-          >
-            <UInput
-              v-model="form.email"
-              type="email"
-              :placeholder="$t('admin.enterEmail')"
-              required
-              size="lg"
-              class="w-full"
-            />
-          </UFormField>
-
-          <UFormField
             :label="$t('admin.role')"
             name="globalRoleId"
             required
@@ -82,10 +67,11 @@
 </template>
 
 <script setup lang="ts">
+// Email is managed separately via the verified email-change flow, so the
+// form owns first name, last name, and role only
 interface UserFormData {
   firstName: string
   lastName: string
-  email: string
   globalRoleId: number
 }
 
@@ -100,7 +86,6 @@ const props = withDefaults(defineProps<Props>(), {
   initialData: () => ({
     firstName: '',
     lastName: '',
-    email: '',
     globalRoleId: UserRole.BASE_USER,
   }),
   loading: false,

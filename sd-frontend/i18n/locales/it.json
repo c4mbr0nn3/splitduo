@@ -487,6 +487,14 @@
     "enterFirstName": "Inserisci nome",
     "enterLastName": "Inserisci cognome (opzionale)",
     "enterEmail": "Inserisci indirizzo email",
+    "changeEmail": "Cambia email",
+    "changeEmailTitle": "Cambia l'email dell'utente",
+    "changeEmailDescription": "L'indirizzo attuale rimane attivo finché il nuovo non conferma il link.",
+    "newEmail": "Nuovo indirizzo email",
+    "currentPassword": "La tua password corrente",
+    "sendVerification": "Invia email di verifica",
+    "pendingEmail": "In attesa di verifica: {email}",
+    "emailChangeRequested": "Email di verifica inviata al nuovo indirizzo.",
     "back": "Indietro",
     "created": "Creato {date}",
     "updated": "Aggiornato {date}",
@@ -857,7 +865,9 @@
       "roleUpdated": "Ruolo utente aggiornato con successo",
       "roleUpdateFailed": "Impossibile aggiornare il ruolo utente",
       "tokensRevoked": "Token utente revocati con successo",
-      "tokensRevokeFailed": "Impossibile revocare i token utente"
+      "tokensRevokeFailed": "Impossibile revocare i token utente",
+      "emailChangeRequested": "Email di verifica inviata al nuovo indirizzo.",
+      "emailChangeRequestFailed": "Impossibile richiedere il cambio email."
     },
     "adminAiUsage": {
       "loadFailed": "Caricamento dell'utilizzo IA non riuscito",
@@ -976,6 +986,14 @@
       "enable": "Attiva",
       "notNow": "Non ora"
     }
+  },
+  "confirmEmailChange": {
+    "title": "Conferma la tua nuova email",
+    "description": "Fai clic sul pulsante qui sotto per completare il cambio del tuo indirizzo email SplitDuo.",
+    "confirm": "Conferma il cambio email",
+    "success": "Email aggiornata. Accedi di nuovo con il tuo nuovo indirizzo.",
+    "error": "Questo link non è valido o è scaduto. Chiedi a un amministratore di inviarne uno nuovo.",
+    "login": "Vai al login"
   },
   "layout": {
     "userFallback": "Utente"

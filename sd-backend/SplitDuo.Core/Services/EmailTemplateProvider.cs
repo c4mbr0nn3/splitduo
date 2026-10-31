@@ -120,6 +120,15 @@ public class EmailTemplateProvider(IOptions<AppOptions> appOptions, TimeProvider
                 placeholders["Timestamp"] = timeProvider.GetUtcNow().ToString("yyyy-MM-dd HH:mm:ss 'UTC'");
                 break;
 
+            case EmailChangeVerificationModel ecv:
+                placeholders["ConfirmUrl"] =
+                    $"{_appOptions.BaseUrl}/confirm-email-change?token={Uri.EscapeDataString(ecv.Token)}";
+                break;
+
+            case EmailChangedModel:
+                placeholders["Timestamp"] = timeProvider.GetUtcNow().ToString("yyyy-MM-dd HH:mm:ss 'UTC'");
+                break;
+
             case GroupInvitationModel gim:
                 placeholders["AcceptUrl"] =
                     $"{_appOptions.BaseUrl}/invite/accept?token={Uri.EscapeDataString(gim.RawToken)}";

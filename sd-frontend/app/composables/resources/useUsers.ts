@@ -1,4 +1,4 @@
-import type { User, ImportStatus, UserStats, UpdateUserRequest, ChangePasswordRequest } from '~/types/domain'
+import type { User, ImportStatus, UserStats, UpdateUserRequest, ChangePasswordRequest, ChangeEmailRequest } from '~/types/domain'
 
 export default function useUsers() {
   const api = useApi()
@@ -139,6 +139,23 @@ export default function useUsers() {
     }
   }
 
+  // Request a verified email change (admin only)
+  const requestEmailChange = async (userId: string, data: ChangeEmailRequest) => {
+    try {
+      await api.post(`/users/${userId}/email-change`, data)
+      showSuccess(t('toasts.users.emailChangeRequested'))
+    }
+    catch (error: unknown) {
+      showError(t('toasts.users.emailChangeRequestFailed'))
+      throw error
+    }
+  }
+
+  // Confirm a pending email change from the public link
+  const confirmEmailChange = async (token: string) => {
+    await api.post('/auth/confirm-email-change', { token })
+  }
+
   // Delete user (admin only)
   const deleteUser = async (userId: string) => {
     try {
@@ -197,6 +214,8 @@ export default function useUsers() {
     fetchUserStats,
     fetchUser,
     updateUser,
+    requestEmailChange,
+    confirmEmailChange,
     changeUserRole,
     deleteUser,
     revokeUserTokens,

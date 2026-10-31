@@ -91,16 +91,11 @@ public class UsersService(
         if (user == null)
             return Result<UserDto>.NotFound(loc["UserNotFound"]);
 
-        if (!string.IsNullOrWhiteSpace(request.Email) && request.Email != user.Email)
-        {
-            var existingUser = await unitOfWork.Users
-                .FirstOrDefaultAsync(u => u.Email == request.Email && u.Id != user.Id);
-
-            if (existingUser != null)
-                return Result<UserDto>.Conflict(loc["EmailAlreadyExists"]);
-
-            user.Email = request.Email;
-        }
+        // Email is an identity: it changes only through the verified admin flow.
+        // Keep the field on the DTO so an attempted change is an explicit 400 rather
+        // than a silently ignored JSON property.
+        if (!string.IsNullOrWhiteSpace(request.Email))
+            return Result<UserDto>.BadRequest(loc["UseEmailChangeFlow"]);
 
         if (!string.IsNullOrWhiteSpace(request.FirstName))
             user.FirstName = PersonNameRules.Normalize(request.FirstName);
@@ -239,16 +234,9 @@ public class UsersService(
         if (user == null)
             return Result<UserDto>.NotFound(loc["UserNotFound"]);
 
-        if (!string.IsNullOrWhiteSpace(request.Email) && request.Email != user.Email)
-        {
-            var existingUser = await unitOfWork.Users
-                .FirstOrDefaultAsync(u => u.Email == request.Email && u.Id != user.Id);
-
-            if (existingUser != null)
-                return Result<UserDto>.Conflict(loc["EmailAlreadyExists"]);
-
-            user.Email = request.Email;
-        }
+        // Email is an identity: it changes only through the verified admin flow.
+        if (!string.IsNullOrWhiteSpace(request.Email))
+            return Result<UserDto>.BadRequest(loc["UseEmailChangeFlow"]);
 
         if (!string.IsNullOrWhiteSpace(request.FirstName))
             user.FirstName = PersonNameRules.Normalize(request.FirstName);

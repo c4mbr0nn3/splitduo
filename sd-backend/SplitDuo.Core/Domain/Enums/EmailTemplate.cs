@@ -12,5 +12,7 @@ public enum EmailTemplate
     GroupDeleted,
     GroupMemberRemoved,
     ExpenseAdded,
-    ExpenseDeleted
+    ExpenseDeleted,
+    EmailChangeVerification,
+    EmailChanged
 }

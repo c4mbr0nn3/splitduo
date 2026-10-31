@@ -21,4 +21,5 @@
   <data name="UserAlreadyHasRole" xml:space="preserve"><value>User already has this role</value></data>
   <data name="CannotChangeOwnRole" xml:space="preserve"><value>You cannot change your own role</value></data>
   <data name="CannotDemoteOnlyAdmin" xml:space="preserve"><value>Cannot demote the only system administrator</value></data>
+  <data name="UseEmailChangeFlow" xml:space="preserve"><value>Email cannot be changed here. Ask a system administrator to change it from the admin user page.</value></data>
 </root>

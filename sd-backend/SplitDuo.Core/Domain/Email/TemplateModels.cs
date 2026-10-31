@@ -187,3 +187,35 @@ public record ExpenseDeletedModel : ITemplateModel
         if (ExpenseAmount <= 0) throw new ArgumentException("ExpenseAmount must be positive");
     }
 }
+
+public record EmailChangeVerificationModel : ITemplateModel
+{
+    public EmailTemplate Template => EmailTemplate.EmailChangeVerification;
+    public required string To { get; init; }
+    public required string FirstName { get; init; }
+    public required string NewEmail { get; init; }
+    public required string Token { get; init; }
+
+    public void Validate()
+    {
+        if (string.IsNullOrWhiteSpace(To)) throw new ArgumentException("To is required");
+        if (string.IsNullOrWhiteSpace(FirstName)) throw new ArgumentException("FirstName is required");
+        if (string.IsNullOrWhiteSpace(NewEmail)) throw new ArgumentException("NewEmail is required");
+        if (string.IsNullOrWhiteSpace(Token)) throw new ArgumentException("Token is required");
+    }
+}
+
+public record EmailChangedModel : ITemplateModel
+{
+    public EmailTemplate Template => EmailTemplate.EmailChanged;
+    public required string To { get; init; }
+    public required string FirstName { get; init; }
+    public required string NewEmail { get; init; }
+
+    public void Validate()
+    {
+        if (string.IsNullOrWhiteSpace(To)) throw new ArgumentException("To is required");
+        if (string.IsNullOrWhiteSpace(FirstName)) throw new ArgumentException("FirstName is required");
+        if (string.IsNullOrWhiteSpace(NewEmail)) throw new ArgumentException("NewEmail is required");
+    }
+}

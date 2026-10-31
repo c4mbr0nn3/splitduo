@@ -30,8 +30,9 @@ public class PasswordResetService(
 {
     public async Task<Result> InitiatePasswordResetAsync(string email)
     {
+        var normalizedEmail = EmailNormalizer.Normalize(email);
         var user = await unitOfWork.Users
-            .FirstOrDefaultAsync(u => u.Email == email && u.DeletedAt == null);
+            .FirstOrDefaultAsync(u => u.Email == normalizedEmail && u.DeletedAt == null);
 
         // Always return success to prevent email enumeration
         if (user == null)

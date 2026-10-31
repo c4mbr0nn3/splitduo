@@ -518,8 +518,9 @@ public class GroupsService(
             return Result<GroupMemberDto>.Forbidden(loc["OnlyAdminsCanAddMembers"]);
 
         // Find user to be added
+        var normalizedEmail = EmailNormalizer.Normalize(request.UserEmail);
         var userToAdd = await unitOfWork.Users
-            .FirstOrDefaultAsync(u => u.Email == request.UserEmail && u.DeletedAt == null);
+            .FirstOrDefaultAsync(u => u.Email == normalizedEmail && u.DeletedAt == null);
 
         if (userToAdd == null)
             return Result<GroupMemberDto>.NotFound(loc["UserWithEmailNotFound"]);

@@ -2,6 +2,7 @@ using System.Globalization;
 using CsvHelper;
 using CsvHelper.Configuration;
 using Microsoft.AspNetCore.Http;
+using SplitDuo.Core.Common;
 using SplitDuo.Core.Dto.Imports;
 
 namespace SplitDuo.Core.Services.Imports.Parser;
@@ -38,11 +39,11 @@ public static class SplitDuoCsvParser
         {
             expenses.Add(expense);
 
-            // Collect unique emails
-            uniqueEmails.Add(expense.PaidByEmail);
+            // Collect unique emails in the same normalized form the users table stores.
+            uniqueEmails.Add(EmailNormalizer.Normalize(expense.PaidByEmail));
             foreach (var owner in expense.ParsedOwers)
             {
-                uniqueEmails.Add(owner.Email);
+                uniqueEmails.Add(EmailNormalizer.Normalize(owner.Email));
             }
         }
 

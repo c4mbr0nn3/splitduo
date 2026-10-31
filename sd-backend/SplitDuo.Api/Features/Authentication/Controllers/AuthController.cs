@@ -6,6 +6,7 @@ using SplitDuo.Api.Features.Authentication.Dto;
 using SplitDuo.Api.Features.Authentication.Services;
 using SplitDuo.Api.Features.Common.Controllers;
 using SplitDuo.Api.Features.Common.Dto;
+using SplitDuo.Api.Features.Users.Services;
 using SplitDuo.Api.Extensions;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Persistence;
@@ -17,6 +18,7 @@ public class AuthController(
     ILogger<AuthController> logger,
     IAuthenticationService authenticationService,
     IPasswordResetService passwordResetService,
+    IEmailChangeService emailChangeService,
     IUnitOfWork unitOfWork) : BaseApiController
 {
     [EnableRateLimiting("auth")]
@@ -223,5 +225,32 @@ public class AuthController(
         }
 
         return HandleResult(result, "Password reset successful. You can now log in with your new password.");
+    }
+
+    [EnableRateLimiting(AuthRateLimiting.AuthPolicyName)]
+    [AllowAnonymous]
+    [HttpPost("confirm-email-change")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult> ConfirmEmailChange([FromBody] ConfirmEmailChangeRequestDto request)
+    {
+        // Public and token-only: the token already identifies the account. The same
+        // generic error covers missing, unknown, expired, used, soft-deleted target,
+        // and an address taken between request and confirmation.
+        logger.LogInformation("Email change confirmation attempt");
+
+        var result = await emailChangeService.ConfirmChangeAsync(request.Token);
+
+        // Save on failure too: the service clears the pending change when the
+        // address was taken between request and confirmation. That cleanup must
+        // persist even though the request returns a generic 400.
+        await unitOfWork.SaveChangesAsync();
+
+        if (result.IsSuccess)
+            logger.LogInformation("Email change confirmed");
+        else
+            logger.LogWarning("Email change confirmation failed");
+
+        return HandleResult(result, "Email changed successfully");
     }
 }

@@ -66,7 +66,8 @@ Base classes: `AuditableEntity` (int Id, Guid Guid, long CreatedAt, long Updated
 Soft-deletable: User, Group, Expense, Settlement, Alias. Others: GroupMember, ExpenseSplit, ExpenseAliasSplit, RefreshToken, TwoFactorToken, Notification, InvitationToken, Import, AiCallLog.
 
 Key conventions:
-- Tokens (refresh, 2FA, invitation) stored as SHA256 hash, never plaintext
+- Tokens (refresh, 2FA, invitation, email change) stored as SHA256 hash, never plaintext
+- Email addresses are trimmed/lowercased by `EmailNormalizer` on every write and lookup. `idx_users_email_lower` is a raw-SQL unique expression index on `lower(email) WHERE deleted_at IS NULL`, not an EF-modeled index — never replace it with a plain unique index on `Email`.
 - `InvitationToken`: 48h expiry, `IsPending` computed, accept resolves ALL pending invitations for that email
 - `Import.TempFile` (byte[]) cleared after processing
 - `RefreshToken`: rotation chain via `ReplacedByToken`, reuse detection revokes all user tokens
@@ -83,6 +84,7 @@ EF interceptors: `AuditSaveChangesInterceptor` (auto CreatedAt/UpdatedAt), `Soft
 - 2FA: TOTP + email codes (6-digit, 10-min) + backup codes (10, hashed). Login: password → RequiresTwoFactor flag → code → tokens.
 - Authorization: single `"SystemAdmin"` policy. Group membership checked in services, not policies.
 - Password reset: SHA256 token in TwoFactorToken (1h expiry, single-use). The token is the sole authority; `validate-reset-token` is read-only/idempotent; every token failure returns one generic error (no email lookup). See ADR-0004.
+- Email change: admin-only and confirm-first. `PUT /users/me` and `PUT /users/{id}` reject `email` with 400. `POST /users/{id}/email-change` requires the acting SystemAdmin's current password and stores the pending address in `users.pending_email*`; the new address receives a 1h single-use SHA-256-hashed link. `POST /auth/confirm-email-change` is public/token-only and returns one generic error for every failure. Apply rotates `SecurityStamp`, revokes all refresh tokens, marks unused password-reset tokens used, and emails the old address. There is no self-service path. See ADR-0005.
 
 ## Invitations
 
@@ -119,6 +121,8 @@ Export: CSV only, CsvHelper. Normal mode: owers encoded as `email:amount|email:a
 ## Email
 
 MailKit SMTP. Queue pattern: `INotificationService.EnqueueAsync()` → Notifications table → Quartz job sends every 2 min (max 3 retries). **Never call SmtpService directly** — use INotificationService.
+
+Email-change notifications: `EmailChangeVerification` goes to the new address with the confirmation link; `EmailChanged` goes to the old address when the change applies. Both use the target user's `UiLanguage` (ADR-0005).
 
 ### Email Template Rules (`EmailTemplateProvider.cs`)
 
@@ -162,6 +166,7 @@ MailKit SMTP. Queue pattern: `INotificationService.EnqueueAsync()` → Notificat
 - **Commit `packages.lock.json` changes** — `Directory.Build.props` enables `RestorePackagesWithLockFile`. Any `PackageReference` change must be followed by `dotnet restore`, and the regenerated per-project lock file committed: `security:trivy` scans those lock files (it cannot read `.csproj`), and CI restores in locked mode, so a stale lock fails the build rather than silently leaving the scan blind.
 - **Tests must surface bugs, never hide them** — a test covering buggy behavior must assert the CORRECT behavior and be allowed to FAIL, not be tweaked to pass against the buggy output. A passing test that documents current buggy behavior is an anti-pattern: it hides the bug and silences the regression signal. Mark such tests with a `// BUG: ...` comment explaining the defect and that the test is EXPECTED TO FAIL until the bug is fixed. Never use `[Fact(Skip = ...)]` for this — skipped tests are invisible. The failing test is the tracker.
 - **Anonymous credential flows must not branch on account existence** — resolve the capability token first, then the account, and return one generic status/body for every failure. Never key the branch on a submitted email (see ADR-0004).
+- **Email is not a profile field** — never accept `email` on `PUT /users/me` or `PUT /users/{id}`. Email changes go through the admin-initiated verified flow (`POST /users/{id}/email-change` + `POST /auth/confirm-email-change`); re-adding the field re-opens the account-takeover path.
 - **Validate enum values from JSON payloads** — `System.Text.Json` accepts out-of-range integers for enum fields by default (e.g., `{ "globalRole": 99 }` deserializes to `(GlobalRole)99` without error). Always add `Enum.IsDefined(value)` check in the service after `HasValue`/null checks, or use `[Range]` validation on the DTO. String-based enum fields parsed via `Enum.TryParse` are safe (reject invalid strings), but numeric enum fields are not.
 - **Last-admin guard ordering** — when implementing role-change guards, the self-demotion guard (`currentUserId == targetUserId`) makes the last-admin guard (`adminCount <= 1`) unreachable via the API: if the caller is a different admin, `adminCount >= 2`. Keep the last-admin guard as defense-in-depth, but don't write tests that expect to trigger it through the normal API path — test the "demote one of two admins succeeds" scenario instead.
 - **i18n — all user-facing strings via `IStringLocalizer<T>`** — never hardcode English in `Result.BadRequest/Unauthorized/NotFound` calls or validation attributes. Inject `IStringLocalizer<ServiceName>` and use `_loc["Key"]`. `.resx` files live in `Resources/{namespace-path}/{TypeName}.{culture}.resx` (en base + .it). Core services need `[assembly: ResourceLocation("Resources")]` + `[assembly: RootNamespace("SplitDuo.Core")]` in `Properties/AssemblyInfo.cs`. Keep en/it key sets identical.

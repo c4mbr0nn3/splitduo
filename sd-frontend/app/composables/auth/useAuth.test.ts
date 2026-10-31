@@ -181,6 +181,18 @@ describe('useAuth', () => {
       expect(warnSpy).toHaveBeenCalledWith('Logout API call failed:', expect.any(Error))
       warnSpy.mockRestore()
     })
+
+    it('clearSession clears local state without navigating', () => {
+      const auth = useAuth()
+      auth.completeTwoFactorLogin(authResponse)
+
+      auth.clearSession()
+
+      expect(authTokenMock.removeToken).toHaveBeenCalled()
+      expect(auth.user.value).toBeNull()
+      expect(useCookie<User | null>('auth-user').value).toBeNull()
+      expect(navigateTo).not.toHaveBeenCalled()
+    })
   })
 
   describe('refreshToken', () => {

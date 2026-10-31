@@ -21,4 +21,5 @@
   <data name="UserAlreadyHasRole" xml:space="preserve"><value>L'utente ha già questo ruolo</value></data>
   <data name="CannotChangeOwnRole" xml:space="preserve"><value>Non puoi cambiare il tuo ruolo</value></data>
   <data name="CannotDemoteOnlyAdmin" xml:space="preserve"><value>Impossibile declassare l'unico amministratore di sistema</value></data>
+  <data name="UseEmailChangeFlow" xml:space="preserve"><value>L'email non può essere modificata qui. Chiedi a un amministratore di sistema di cambiarla dalla pagina utente di amministrazione.</value></data>
 </root>

@@ -253,6 +253,47 @@ describe('useUsers', () => {
     })
   })
 
+  describe('requestEmailChange', () => {
+    it('posts to the admin endpoint and shows a success toast', async () => {
+      apiMock.post.mockResolvedValue({ success: true, data: null })
+      const users = useUsers()
+
+      await users.requestEmailChange('user-1', {
+        newEmail: 'new@example.com',
+        currentPassword: 'secret',
+      })
+
+      expect(apiMock.post).toHaveBeenCalledWith('/users/user-1/email-change', {
+        newEmail: 'new@example.com',
+        currentPassword: 'secret',
+      })
+      expect(notificationsMock.showSuccess).toHaveBeenCalledWith('toasts.users.emailChangeRequested')
+    })
+
+    it('shows an error toast and re-throws when the API call fails', async () => {
+      apiMock.post.mockRejectedValue(new Error('Conflict'))
+      const users = useUsers()
+
+      await expect(users.requestEmailChange('user-1', {
+        newEmail: 'taken@example.com',
+        currentPassword: 'secret',
+      })).rejects.toThrow('Conflict')
+
+      expect(notificationsMock.showError).toHaveBeenCalledWith('toasts.users.emailChangeRequestFailed')
+    })
+  })
+
+  describe('confirmEmailChange', () => {
+    it('posts the token to the public confirmation endpoint', async () => {
+      apiMock.post.mockResolvedValue({ success: true, data: null })
+      const users = useUsers()
+
+      await users.confirmEmailChange('raw-token')
+
+      expect(apiMock.post).toHaveBeenCalledWith('/auth/confirm-email-change', { token: 'raw-token' })
+    })
+  })
+
   describe('deleteUser', () => {
     it('removes the user from the list and shows a success toast', async () => {
       apiMock.get.mockResolvedValue({ success: true, data: [user(), user({ id: 'user-2', firstName: 'Bob' })] })

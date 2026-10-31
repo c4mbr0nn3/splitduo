@@ -7,6 +7,10 @@ public class UserDto
 {
     public string Id { get; set; } = "";
     public string Email { get; set; } = "";
+
+    /// <summary>New address awaiting confirmation. Null when no change is pending.</summary>
+    public string? PendingEmail { get; set; }
+
     public string FirstName { get; set; } = "";
     public string? LastName { get; set; }
     public int GlobalRoleId { get; set; }
@@ -28,6 +32,7 @@ public class UserDto
         Id = user.Guid.ToString();
         OriginalId = user.Id;
         Email = user.Email;
+        PendingEmail = user.PendingEmail;
         FirstName = user.FirstName;
         LastName = user.LastName;
         GlobalRoleId = user.GlobalRoleId;
