@@ -302,6 +302,7 @@ public class CacheInvalidationTests : IntegrationTest
         Assert.Equal(100m, adminAfterUpdate.TotalOwed);
         Assert.Equal(100m, adminAfterUpdate.Balance);
 
+        Assert.NotNull(afterUpdate.Data);
         var user2AfterUpdate = afterUpdate.Data.Single(b => b.UserId == user2Id);
         Assert.Equal(0m, user2AfterUpdate.TotalPaid);
         Assert.Equal(100m, user2AfterUpdate.TotalOwed);
@@ -349,7 +350,8 @@ public class CacheInvalidationTests : IntegrationTest
         Assert.Equal(HttpStatusCode.OK, deleteResponse.StatusCode);
 
         var afterRemove = await GetBalancesAsync(client, group.Id);
-        Assert.Single(afterRemove.Data!);
+        Assert.NotNull(afterRemove.Data);
+        Assert.Single(afterRemove.Data);
         Assert.Equal(0m, afterRemove.Data[0].Balance);
     }
 

@@ -10,7 +10,6 @@ namespace SplitDuo.Api.Features.UserAvatars.Services;
 
 public class UserAvatarsService(
     IUnitOfWork unitOfWork,
-    TimeProvider timeProvider,
     IStringLocalizer<UserAvatarsService> loc) : IUserAvatarsService
 {
     private const long MaxAvatarSizeBytes = 200 * 1024; // 200KB

@@ -27,6 +27,7 @@ public interface IUnitOfWork : IDisposable, IAsyncDisposable
     DbSet<RecurringExpenseInstance> RecurringExpenseInstances { get; }
     DbSet<RecurringExpenseInstanceSplit> RecurringExpenseInstanceSplits { get; }
     DbSet<RecurringExpenseInstanceAliasSplit> RecurringExpenseInstanceAliasSplits { get; }
+    DbSet<PushSubscription> PushSubscriptions { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task BeginTransactionAsync(CancellationToken cancellationToken = default);
@@ -66,6 +67,7 @@ public class UnitOfWork(AppDbContext context) : IUnitOfWork
     public DbSet<RecurringExpenseInstance> RecurringExpenseInstances => context.RecurringExpenseInstances;
     public DbSet<RecurringExpenseInstanceSplit> RecurringExpenseInstanceSplits => context.RecurringExpenseInstanceSplits;
     public DbSet<RecurringExpenseInstanceAliasSplit> RecurringExpenseInstanceAliasSplits => context.RecurringExpenseInstanceAliasSplits;
+    public DbSet<PushSubscription> PushSubscriptions => context.PushSubscriptions;
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

@@ -302,6 +302,11 @@
         "resolved": "1.4.1",
         "contentHash": "UXjZ80T6BfVACJWmEcz4UFZ93hwX3STKojKvVpPk3qUhubjnLwIiZMsI4Hh91HhYxC0JlatNdNrVK2wkv4O9/Q=="
       },
+      "Portable.BouncyCastle": {
+        "type": "Transitive",
+        "resolved": "1.9.0",
+        "contentHash": "eZZBCABzVOek+id9Xy04HhmgykF0wZg9wpByzrWN7q8qEI0Qen9b7tfd7w8VA3dOeesumMG7C5ZPy0jk7PSRHw=="
+      },
       "Quartz": {
         "type": "Transitive",
         "resolved": "4.6.0",
@@ -457,6 +462,14 @@
         "resolved": "10.0.13",
         "contentHash": "a+EovgC1fBnwdlQ6cn3j4JFBfKqiFaFvoAhjisOoSvazLAcIznaBzPQP0oYnvccmeXfqUH1KebVZOxSeH6rMaw=="
       },
+      "WebPush": {
+        "type": "Transitive",
+        "resolved": "1.0.13",
+        "contentHash": "Qyypsk6j+GqncCa/IgbmZLnL7DxqKFGz3jIdquGSLeiD3NtN+HPnIFBMwIJHffDU9ZEztTkaMMYxvW3PJxJL7Q==",
+        "dependencies": {
+          "Portable.BouncyCastle": "1.9.0"
+        }
+      },
       "xunit.analyzers": {
         "type": "Transitive",
         "resolved": "2.2.0",
@@ -523,7 +536,7 @@
           "Scalar.AspNetCore": "[2.18.3, )",
           "Serilog.AspNetCore": "[10.0.0, )",
           "Serilog.Sinks.Postgresql.Alternative": "[4.3.0, )",
-          "SplitDuo.Core": "[1.16.0, )"
+          "SplitDuo.Core": "[1.17.0, )"
         }
       },
       "splitduo.core": {
@@ -539,7 +552,8 @@
           "OpenAI": "[2.14.0, )",
           "Quartz": "[4.6.0, )",
           "Serilog.AspNetCore": "[10.0.0, )",
-          "Serilog.Sinks.Postgresql.Alternative": "[4.3.0, )"
+          "Serilog.Sinks.Postgresql.Alternative": "[4.3.0, )",
+          "WebPush": "[1.0.13, )"
         }
       }
     }

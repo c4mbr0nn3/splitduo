@@ -10,6 +10,7 @@ using SplitDuo.Core.Caching;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Domain.Enums;
 using SplitDuo.Core.Persistence;
+using SplitDuo.Core.Services;
 using SplitDuo.Core.Services.BackgroundJobs;
 using SplitDuo.Core.Services.Expenses;
 using SplitDuo.Tests.Integration.Support;
@@ -36,7 +37,8 @@ public class RecurringExpensesTests : IntegrationTest
             sp.GetRequiredService<IUnitOfWork>(),
             sp.GetRequiredService<TimeProvider>(),
             sp.GetRequiredService<ICacheInvalidator>(),
-            sp.GetRequiredService<IExpenseCreationService>());
+            sp.GetRequiredService<IExpenseCreationService>(),
+            sp.GetRequiredService<IPushNotificationService>());
         await job.Execute(null!);
     }
 
@@ -288,6 +290,7 @@ public class RecurringExpensesTests : IntegrationTest
         balancesResponse.EnsureSuccessStatusCode();
         var balances = await balancesResponse.Content.ReadFromJsonAsync<ApiResponseDto<List<BalanceDto>>>(ct);
         var adminBalance = balances!.Data!.Single(b => b.UserId == admin.Id);
+        Assert.NotNull(balances.Data);
         var user2Balance = balances.Data.Single(b => b.UserId == user2Id);
         Assert.Equal(80m, adminBalance.TotalPaid);
         Assert.Equal(50m, adminBalance.TotalOwed);
@@ -657,13 +660,13 @@ public class RecurringExpensesTests : IntegrationTest
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var templateEntity = await db.RecurringExpenseTemplates
-                .FirstAsync(t => t.Guid.ToString() == template.Id);
+                .FirstAsync(t => t.Guid.ToString() == template.Id, ct);
             var oldInstance = await db.RecurringExpenseInstances
-                .FirstAsync(i => i.TemplateId == templateEntity.Id);
+                .FirstAsync(i => i.TemplateId == templateEntity.Id, ct);
             var oldSplits = await db.RecurringExpenseInstanceSplits
-                .Where(s => s.InstanceId == oldInstance.Id).ToListAsync();
+                .Where(s => s.InstanceId == oldInstance.Id).ToListAsync(ct);
             var oldExpense = await db.Expenses
-                .FirstAsync(e => e.RecurringExpenseTemplateId == templateEntity.Id);
+                .FirstAsync(e => e.RecurringExpenseTemplateId == templateEntity.Id, ct);
 
             Assert.Equal(100m, oldInstance.Amount);
             var oldSplit = Assert.Single(oldSplits);
@@ -728,7 +731,7 @@ public class RecurringExpensesTests : IntegrationTest
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var templateEntity = await db.RecurringExpenseTemplates
                 .Include(t => t.Splits)
-                .FirstAsync(t => t.Guid.ToString() == template.Id);
+                .FirstAsync(t => t.Guid.ToString() == template.Id, ct);
 
             // Template carries the NEW spec after edit
             Assert.Equal("Edited", templateEntity.Title);
@@ -741,22 +744,22 @@ public class RecurringExpensesTests : IntegrationTest
             Assert.Equal(2, templateSplits.Count);
             var templateSplitUsers = await db.Users
                 .Where(u => templateSplits.Select(s => s.UserId).Contains(u.Id))
-                .ToDictionaryAsync(u => u.Id, u => u.Guid.ToString());
+                .ToDictionaryAsync(u => u.Id, u => u.Guid.ToString(), ct);
             Assert.Contains(templateSplits, s => templateSplitUsers[s.UserId] == admin.Id && s.SplitAmount == 30m);
             Assert.Contains(templateSplits, s => templateSplitUsers[s.UserId] == user2Id && s.SplitAmount == 30m);
 
             // Past expense untouched
             var pastExpense = await db.Expenses
                 .FirstAsync(e => e.RecurringExpenseTemplateId == templateEntity.Id
-                                 && e.ExpenseDate == DateOnly.FromDateTime(DateTime.UtcNow));
+                                 && e.ExpenseDate == DateOnly.FromDateTime(DateTime.UtcNow), ct);
             Assert.Equal(100m, pastExpense.Amount);
 
             // Past instance splits untouched (still one admin:100 row)
             var pastInstanceEntity = await db.RecurringExpenseInstances
                 .FirstAsync(i => i.TemplateId == templateEntity.Id
-                                 && i.PeriodDate == DateOnly.FromDateTime(DateTime.UtcNow));
+                                 && i.PeriodDate == DateOnly.FromDateTime(DateTime.UtcNow), ct);
             var pastSplits = await db.RecurringExpenseInstanceSplits
-                .Where(s => s.InstanceId == pastInstanceEntity.Id).ToListAsync();
+                .Where(s => s.InstanceId == pastInstanceEntity.Id).ToListAsync(ct);
             var pastSplit = Assert.Single(pastSplits);
             Assert.Equal(100m, pastSplit.SplitAmount);
         }
@@ -849,10 +852,10 @@ public class RecurringExpensesTests : IntegrationTest
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var templateEntity = await db.RecurringExpenseTemplates
-                .FirstAsync(t => t.Guid.ToString() == template.Id);
+                .FirstAsync(t => t.Guid.ToString() == template.Id, ct);
             var createdExpenses = await db.Expenses
                 .Where(e => e.RecurringExpenseTemplateId == templateEntity.Id)
-                .ToListAsync();
+                .ToListAsync(ct);
             Assert.Equal(4, createdExpenses.Count);
             foreach (var expense in createdExpenses)
             {
@@ -1050,6 +1053,7 @@ public class RecurringExpensesTests : IntegrationTest
     [Fact]
     public async Task Job_Reconciliation_PastDatedOrphan_CreatesExpenseWithOriginalPeriodDate()
     {
+        var ct = TestContext.Current.CancellationToken;
         var client = await CreateAuthenticatedClientAsync();
         var group = await client.CreateGroupAsync();
         var admin = await client.GetCurrentUserAsync();
@@ -1082,10 +1086,10 @@ public class RecurringExpensesTests : IntegrationTest
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var templateEntity = await db.RecurringExpenseTemplates
-                .FirstAsync(t => t.Guid.ToString() == template.Id);
+                .FirstAsync(t => t.Guid.ToString() == template.Id, ct);
             var createdExpenses = await db.Expenses
                 .Where(e => e.RecurringExpenseTemplateId == templateEntity.Id)
-                .ToListAsync();
+                .ToListAsync(ct);
             Assert.Equal(2, createdExpenses.Count);
             Assert.Contains(createdExpenses, e => e.ExpenseDate == p0.AddDays(-7));
             Assert.Contains(createdExpenses, e => e.ExpenseDate == p0);

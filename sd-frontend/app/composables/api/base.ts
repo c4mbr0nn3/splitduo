@@ -95,8 +95,8 @@ export default function useApi() {
     put: <T>(endpoint: string, body?: unknown): Promise<ApiEnvelope<T>> =>
       request<T>(endpoint, { method: 'PUT', body } as Parameters<typeof $fetch.raw>[1]),
 
-    delete: (endpoint: string): Promise<ApiEnvelope<undefined>> =>
-      request<undefined>(endpoint, { method: 'DELETE' } as Parameters<typeof $fetch.raw>[1]),
+    delete: (endpoint: string, body?: unknown): Promise<ApiEnvelope<undefined>> =>
+      request<undefined>(endpoint, { method: 'DELETE', body } as Parameters<typeof $fetch.raw>[1]),
 
     // For binary downloads that need response headers (Content-Disposition)
     getBlob: async (endpoint: string, params?: Record<string, unknown>): Promise<{ blob: Blob, headers: Headers }> => {

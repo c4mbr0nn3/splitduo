@@ -31,8 +31,10 @@ SD_DB_HOST: postgres
 SD_DB_PORT: 5432
 SD_DB_NAME: splitduo
 SD_DB_USERNAME: splitduo
-SD_DB_PASSWORD: splitduo
+SD_DB_PASSWORD: splitduo   # change to a strong value before first startup
 ```
+
+`SD_DB_PASSWORD` must match the `POSTGRES_PASSWORD` set on the `postgres` service in `docker-compose.yml`. PostgreSQL only applies it when the data volume is first initialized.
 
 ## Application
 
@@ -82,6 +84,18 @@ SD_EMAIL_SMTP_USERNAME: ""
 SD_EMAIL_SMTP_PASSWORD: ""
 SD_EMAIL_SSL: "false"
 ```
+
+## Push notifications (optional)
+
+Web push is disabled unless both VAPID keys are set. Generate the keypair once — rotating the keys invalidates all existing subscriptions and users must re-enable notifications.
+
+```yaml
+SD_VAPID_PUBLIC_KEY: your-vapid-public-key   # base64url P-256 public key
+SD_VAPID_PRIVATE_KEY: your-vapid-private-key # base64url P-256 private key
+SD_VAPID_SUBJECT: mailto:admin@splitduo.local # optional, contact for push services
+```
+
+See [Self-hosting guide](../self-hosting.md#push-notifications) for key generation instructions.
 
 ---
 

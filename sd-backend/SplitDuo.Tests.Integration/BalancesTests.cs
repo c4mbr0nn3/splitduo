@@ -96,6 +96,7 @@ public class BalancesTests : IntegrationTest
         var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<List<BalanceDto>>>(ct);
 
         var adminBalance = body!.Data!.Single(b => b.UserId == admin.Id);
+        Assert.NotNull(body.Data);
         // Paid 100, owed (50 + 30) = 80 → net +20
         Assert.Equal(100m, adminBalance.TotalPaid);
         Assert.Equal(80m, adminBalance.TotalOwed);

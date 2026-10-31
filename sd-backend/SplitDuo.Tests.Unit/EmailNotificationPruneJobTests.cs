@@ -54,7 +54,7 @@ public class EmailNotificationPruneJobTests
         var unitOfWork = Substitute.For<IUnitOfWork>();
         var job = CreateJob(notificationService, unitOfWork);
 
-        await job.Execute(Substitute.For<IJobExecutionContext>());
+        await job.Execute(Substitute.For<IJobExecutionContext>(), TestContext.Current.CancellationToken);
 
         notificationService.Received(2).Prune(Arg.Any<Notification>());
         await unitOfWork.Received(2).SaveChangesAsync(Arg.Any<CancellationToken>());
@@ -70,7 +70,7 @@ public class EmailNotificationPruneJobTests
         var unitOfWork = Substitute.For<IUnitOfWork>();
         var job = CreateJob(notificationService, unitOfWork);
 
-        await job.Execute(Substitute.For<IJobExecutionContext>());
+        await job.Execute(Substitute.For<IJobExecutionContext>(), TestContext.Current.CancellationToken);
 
         notificationService.DidNotReceive().Prune(Arg.Any<Notification>());
         await unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
@@ -91,7 +91,7 @@ public class EmailNotificationPruneJobTests
         var unitOfWork = Substitute.For<IUnitOfWork>();
         var job = CreateJob(notificationService, unitOfWork);
 
-        await job.Execute(Substitute.For<IJobExecutionContext>());
+        await job.Execute(Substitute.For<IJobExecutionContext>(), TestContext.Current.CancellationToken);
 
         notificationService.Received(2).Prune(Arg.Any<Notification>());
         await unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());

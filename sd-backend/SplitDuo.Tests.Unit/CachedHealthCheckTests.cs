@@ -55,9 +55,9 @@ public sealed class CachedHealthCheckTests
         var inner = new CountingHealthCheck(_ => Task.FromResult(HealthCheckResult.Healthy()));
         var check = new CachedHealthCheck(inner, time, TimeSpan.FromSeconds(10));
 
-        await check.CheckHealthAsync(Context());
+        await check.CheckHealthAsync(Context(), TestContext.Current.CancellationToken);
         time.Advance(TimeSpan.FromSeconds(11));
-        await check.CheckHealthAsync(Context());
+        await check.CheckHealthAsync(Context(), TestContext.Current.CancellationToken);
 
         Assert.Equal(2, inner.Calls);
     }
@@ -68,8 +68,8 @@ public sealed class CachedHealthCheckTests
         var inner = new CountingHealthCheck(_ => Task.FromResult(HealthCheckResult.Unhealthy("boom")));
         var check = new CachedHealthCheck(inner, new FakeTimeProvider(), TimeSpan.FromSeconds(10));
 
-        var first = await check.CheckHealthAsync(Context());
-        var second = await check.CheckHealthAsync(Context());
+        var first = await check.CheckHealthAsync(Context(), TestContext.Current.CancellationToken);
+        var second = await check.CheckHealthAsync(Context(), TestContext.Current.CancellationToken);
 
         Assert.Equal(1, inner.Calls);
         Assert.Equal(HealthStatus.Unhealthy, first.Status);
@@ -82,8 +82,8 @@ public sealed class CachedHealthCheckTests
         var inner = new CountingHealthCheck(_ => throw new InvalidOperationException("transient"));
         var check = new CachedHealthCheck(inner, new FakeTimeProvider(), TimeSpan.FromSeconds(10));
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => check.CheckHealthAsync(Context()));
-        await Assert.ThrowsAsync<InvalidOperationException>(() => check.CheckHealthAsync(Context()));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => check.CheckHealthAsync(Context(), TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => check.CheckHealthAsync(Context(), TestContext.Current.CancellationToken));
 
         Assert.Equal(2, inner.Calls);
     }
@@ -99,7 +99,7 @@ public sealed class CachedHealthCheckTests
         });
         var check = new CachedHealthCheck(inner, new FakeTimeProvider(), TimeSpan.FromSeconds(10));
 
-        var holder = check.CheckHealthAsync(Context());
+        var holder = check.CheckHealthAsync(Context(), TestContext.Current.CancellationToken);
         using var cts = new CancellationTokenSource();
         var waiter = check.CheckHealthAsync(Context(), cts.Token);
         cts.Cancel();
@@ -108,6 +108,6 @@ public sealed class CachedHealthCheckTests
         await holder;
 
         // Gate still usable: no SemaphoreFullException, cache populated by the holder.
-        await check.CheckHealthAsync(Context());
+        await check.CheckHealthAsync(Context(), TestContext.Current.CancellationToken);
     }
 }

@@ -44,8 +44,6 @@ public class RateLimitingTests : IntegrationTest
         return c;
     }
 
-    private static HttpResponseMessage LoginResponse { get; }
-
     // The email extraction middleware binds these to the per-account bucket;
     // nonexistent emails keep tests DB-clean (401s, no lockout writes).
     [Fact]
@@ -62,6 +60,7 @@ public class RateLimitingTests : IntegrationTest
     [Fact]
     public async Task Login_429HasRetryAfter60AndEmptyBody()
     {
+        var ct = TestContext.Current.CancellationToken;
         using var client = ClientFor("198.51.100.21");
         for (var i = 0; i < 10; i++)
             await SendLoginAsync(client, $"rl-retryafter-{i}@nonexistent.test");
@@ -69,7 +68,7 @@ public class RateLimitingTests : IntegrationTest
         var rejected = await SendLoginAsync(client, "rl-retryafter-11@nonexistent.test");
         Assert.Equal(HttpStatusCode.TooManyRequests, rejected.StatusCode);
         Assert.Equal("60", rejected.Headers.RetryAfter?.ToString());
-        var bodyBytes = await rejected.Content.ReadAsByteArrayAsync();
+        var bodyBytes = await rejected.Content.ReadAsByteArrayAsync(ct);
         Assert.Empty(bodyBytes);
     }
 
@@ -126,16 +125,17 @@ public class RateLimitingTests : IntegrationTest
     [Fact]
     public async Task Login_MalformedBody_StillIpLimited()
     {
+        var ct = TestContext.Current.CancellationToken;
         using var client = ClientFor("198.51.100.101");
         for (var i = 0; i < 10; i++)
         {
             using var content = new StringContent("not-json-at-all", Encoding.UTF8, "application/json");
-            var response = await client.PostAsync("/api/v1/auth/login", content);
+            var response = await client.PostAsync("/api/v1/auth/login", content, ct);
             AssertLoginNot429(response);
         }
 
         using var badContent = new StringContent("not-json-at-all", Encoding.UTF8, "application/json");
-        var eleventh = await client.PostAsync("/api/v1/auth/login", badContent);
+        var eleventh = await client.PostAsync("/api/v1/auth/login", badContent, ct);
         Assert.Equal(HttpStatusCode.TooManyRequests, eleventh.StatusCode);
     }
 
@@ -168,38 +168,41 @@ public class RateLimitingTests : IntegrationTest
     [Fact]
     public async Task ForgotPassword_11thFromSameIp_429()
     {
+        var ct = TestContext.Current.CancellationToken;
         using var client = ClientFor("198.51.100.131");
         for (var i = 0; i < 10; i++)
         {
             var response = await client.PostAsJsonAsync("/api/v1/auth/forgot-password",
-                new { email = $"rl-forgot-{i}@nonexistent.test" });
+                new { email = $"rl-forgot-{i}@nonexistent.test" }, ct);
             AssertLoginNot429(response);
         }
 
         var eleventh = await client.PostAsJsonAsync("/api/v1/auth/forgot-password",
-            new { email = "rl-forgot-11@nonexistent.test" });
+            new { email = "rl-forgot-11@nonexistent.test" }, ct);
         Assert.Equal(HttpStatusCode.TooManyRequests, eleventh.StatusCode);
     }
 
     [Fact]
     public async Task ValidateResetToken_11thFromSameIp_429()
     {
+        var ct = TestContext.Current.CancellationToken;
         using var client = ClientFor("198.51.100.141");
         for (var i = 0; i < 10; i++)
         {
             var response = await client.GetAsync(
-                $"/api/v1/auth/validate-reset-token?email=rl-validate-{i}@nonexistent.test&token=0000000000000000000000000000000000000000000000000000000000000000");
+                $"/api/v1/auth/validate-reset-token?email=rl-validate-{i}@nonexistent.test&token=0000000000000000000000000000000000000000000000000000000000000000", ct);
             AssertLoginNot429(response);
         }
 
         var eleventh = await client.GetAsync(
-            "/api/v1/auth/validate-reset-token?email=rl-validate-11@nonexistent.test&token=0000000000000000000000000000000000000000000000000000000000000000");
+            "/api/v1/auth/validate-reset-token?email=rl-validate-11@nonexistent.test&token=0000000000000000000000000000000000000000000000000000000000000000", ct);
         Assert.Equal(HttpStatusCode.TooManyRequests, eleventh.StatusCode);
     }
 
     [Fact]
     public async Task ResetPassword_11thFromSameIp_429()
     {
+        var ct = TestContext.Current.CancellationToken;
         using var client = ClientFor("198.51.100.151");
         for (var i = 0; i < 10; i++)
         {
@@ -208,7 +211,7 @@ public class RateLimitingTests : IntegrationTest
                 email = $"rl-reset-{i}@nonexistent.test",
                 token = "0000000000000000000000000000000000000000000000000000000000000000",
                 newPassword = "Not-A-Real-Password-1!",
-            });
+            }, ct);
             AssertLoginNot429(response);
         }
 
@@ -217,18 +220,19 @@ public class RateLimitingTests : IntegrationTest
             email = "rl-reset-11@nonexistent.test",
             token = "0000000000000000000000000000000000000000000000000000000000000000",
             newPassword = "Not-A-Real-Password-1!",
-        });
+        }, ct);
         Assert.Equal(HttpStatusCode.TooManyRequests, eleventh.StatusCode);
     }
 
     [Fact]
     public async Task Health_SixtyFirstFromSameIp_Returns429WithRetryAfter()
     {
+        var ct = TestContext.Current.CancellationToken;
         using var client = ClientFor("198.51.100.171");
         for (var i = 0; i < 60; i++)
-            Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/health")).StatusCode);
+            Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/health", ct)).StatusCode);
 
-        var rejected = await client.GetAsync("/health");
+        var rejected = await client.GetAsync("/health", ct);
 
         Assert.Equal(HttpStatusCode.TooManyRequests, rejected.StatusCode);
         Assert.Equal("60", rejected.Headers.RetryAfter?.ToString());
@@ -237,9 +241,10 @@ public class RateLimitingTests : IntegrationTest
     [Fact]
     public async Task HealthLive_IsNotRateLimited()
     {
+        var ct = TestContext.Current.CancellationToken;
         using var client = ClientFor("198.51.100.172");
         for (var i = 0; i < 100; i++)
-            Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/health/live")).StatusCode);
+            Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/health/live", ct)).StatusCode);
     }
 
     private static async Task<HttpResponseMessage> SendLoginAsync(HttpClient client, string email)

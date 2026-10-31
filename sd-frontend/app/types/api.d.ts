@@ -2505,6 +2505,239 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/push/vapid-public-key": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfVapidPublicKeyDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfVapidPublicKeyDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfVapidPublicKeyDto"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Service Unavailable */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/push/subscriptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfListOfPushSubscriptionListDto"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfListOfPushSubscriptionListDto"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfListOfPushSubscriptionListDto"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PushSubscriptionRequestDto"];
+                    "text/json": components["schemas"]["PushSubscriptionRequestDto"];
+                    "application/*+json": components["schemas"]["PushSubscriptionRequestDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseDtoOfObject"];
+                        "application/json": components["schemas"]["ApiResponseDtoOfObject"];
+                        "text/json": components["schemas"]["ApiResponseDtoOfObject"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["DeletePushSubscriptionRequestDto"];
+                    "text/json": components["schemas"]["DeletePushSubscriptionRequestDto"];
+                    "application/*+json": components["schemas"]["DeletePushSubscriptionRequestDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/payment-modes": {
         parameters: {
             query?: never;
@@ -7014,6 +7247,12 @@ export interface components {
             message?: null | string;
             error?: null | components["schemas"]["ApiErrorDto"];
         };
+        ApiResponseDtoOfListOfPushSubscriptionListDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["PushSubscriptionListDto"][];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
         ApiResponseDtoOfListOfRecurringExpenseTemplateDto: {
             success?: boolean;
             data?: null | components["schemas"]["RecurringExpenseTemplateDto"][];
@@ -7095,6 +7334,12 @@ export interface components {
         ApiResponseDtoOfValidateInvitationResponseDto: {
             success?: boolean;
             data?: null | components["schemas"]["ValidateInvitationResponseDto"];
+            message?: null | string;
+            error?: null | components["schemas"]["ApiErrorDto"];
+        };
+        ApiResponseDtoOfVapidPublicKeyDto: {
+            success?: boolean;
+            data?: null | components["schemas"]["VapidPublicKeyDto"];
             message?: null | string;
             error?: null | components["schemas"]["ApiErrorDto"];
         };
@@ -7228,6 +7473,9 @@ export interface components {
             description?: null | string;
             /** Format: int32 */
             paymentModeId?: null | number | string;
+        };
+        DeletePushSubscriptionRequestDto: {
+            endpoint: string;
         };
         DisableTwoFactorDto: {
             password: string;
@@ -7509,6 +7757,24 @@ export interface components {
             detail?: null | string;
             instance?: null | string;
         };
+        PushSubscriptionKeysDto: {
+            p256dh: string;
+            auth: string;
+        };
+        PushSubscriptionListDto: {
+            id?: string;
+            endpoint?: string;
+            userAgent?: null | string;
+            /** Format: int64 */
+            createdAt?: number | string;
+            /** Format: int64 */
+            lastUsedAt?: null | number | string;
+        };
+        PushSubscriptionRequestDto: {
+            endpoint: string;
+            keys: components["schemas"]["PushSubscriptionKeysDto"];
+            userAgent?: null | string;
+        };
         RecurrencePreviewRequestDto: {
             /** Format: int32 */
             recurrenceMode: number | string;
@@ -7772,6 +8038,9 @@ export interface components {
             groupName?: string;
             /** Format: int64 */
             expiresAt?: number | string;
+        };
+        VapidPublicKeyDto: {
+            publicKey?: string;
         };
         VerifyTwoFactorLoginDto: {
             challengeToken: string;

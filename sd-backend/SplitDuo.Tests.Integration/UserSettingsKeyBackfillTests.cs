@@ -42,9 +42,9 @@ public class UserSettingsKeyBackfillTests : IntegrationTest
         // 3. Raw-SQL (through EF's interpolator, so values are parameterized) mutate
         //    the seeded rows into their legacy shapes.
         await db.Database.ExecuteSqlAsync(
-            $"UPDATE users SET settings = '{{}}'::jsonb WHERE email = {emptyEmail}");
+            $"UPDATE users SET settings = '{{}}'::jsonb WHERE email = {emptyEmail}", ct);
         await db.Database.ExecuteSqlAsync(
-            $"UPDATE users SET settings = '{{\"Theme\":\"dark\",\"UiLanguage\":\"de\"}}'::jsonb WHERE email = {partialEmail}");
+            $"UPDATE users SET settings = '{{\"Theme\":\"dark\",\"UiLanguage\":\"de\"}}'::jsonb WHERE email = {partialEmail}", ct);
 
         // 4. Prove the bug reproduces BEFORE backfill: loading a user whose settings
         //    document lacks required keys and saving it throws.
@@ -124,7 +124,7 @@ public class UserSettingsKeyBackfillTests : IntegrationTest
             // Downgrade again (no-op Down), corrupt with a literal null, upgrade again.
             await migrator.MigrateAsync(previousMigrationId, ct);
             await db.Database.ExecuteSqlAsync(
-                $"UPDATE users SET settings = '{{\"Theme\":null}}'::jsonb WHERE email = {nullEmail}");
+                $"UPDATE users SET settings = '{{\"Theme\":null}}'::jsonb WHERE email = {nullEmail}", ct);
             await migrator.MigrateAsync(cancellationToken: ct);
 
             var repaired = await db.Users

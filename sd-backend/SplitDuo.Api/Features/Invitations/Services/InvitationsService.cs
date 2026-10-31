@@ -41,6 +41,7 @@ public class InvitationsService(
     IEmailTemplateProvider emailTemplateProvider,
     IPasswordHasher<User> passwordHasher,
     TimeProvider timeProvider,
+    IPushNotificationService pushNotificationService,
     IStringLocalizer<InvitationsService> loc) : IInvitationsService
 {
     private const int TokenExpirationHours = 48;
@@ -106,6 +107,31 @@ public class InvitationsService(
                 AddedByFirstName = currentUser.FirstName, AddedByLastName = currentUser.LastName,
                 GroupName = group.Name, GroupGuid = group.Guid
             }, existingUserLanguage));
+
+            // Push: notify existing group members that someone joined
+            // (excluding the new member and the acting inviter). Best-effort — must never break the flow.
+            // Note: this query runs BEFORE the new GroupMember is persisted (it is only tracked here);
+            // the explicit Remove(existingUser.Id) is the real guard against notifying the new member.
+            try
+            {
+                var memberUserIds = await unitOfWork.GroupMembers
+                    .Where(gm => gm.GroupId == group.Id && gm.DeletedAt == null)
+                    .Select(gm => gm.UserId)
+                    .ToListAsync();
+                memberUserIds.Remove(existingUser.Id);
+                memberUserIds.Remove(currentUser.Id);
+
+                var payload = new PushPayload(
+                    group.Name, "PushBodyMemberAdded", [existingUser.FirstName],
+                    $"/groups/{group.Guid}", $"group-{group.Guid}-member-added-{existingUser.Guid}");
+
+                foreach (var memberUserId in memberUserIds)
+                    await pushNotificationService.SendAsync(memberUserId, payload);
+            }
+            catch
+            {
+                // Push is non-fatal.
+            }
 
             var hasAvatar = await unitOfWork.UserAvatars.AnyAsync(a => a.UserId == existingUser.Id);
 
@@ -441,10 +467,12 @@ public class InvitationsService(
 
         // Use transaction: need to save user first to get the generated Id,
         // then use that Id for GroupMember records
+        User user;
+        List<InvitationToken> pendingInvitations;
         await unitOfWork.BeginTransactionAsync();
         try
         {
-            var user = new User
+            user = new User
             {
                 Email = invitation.Email,
                 FirstName = PersonNameRules.Normalize(request.FirstName),
@@ -458,7 +486,7 @@ public class InvitationsService(
             await unitOfWork.SaveChangesAsync();
 
             // Find all pending invitations for this email and resolve them
-            var pendingInvitations = await unitOfWork.InvitationTokens
+            pendingInvitations = await unitOfWork.InvitationTokens
                 .Where(it =>
                     it.Email == invitation.Email &&
                     it.AcceptedAt == null &&
@@ -487,6 +515,30 @@ public class InvitationsService(
         {
             await unitOfWork.RollbackTransactionAsync();
             throw;
+        }
+
+        // Push: notify each inviter that their invitation was accepted. Best-effort — must never break the flow.
+        // Runs after the transaction commits so the push sees fully consistent state.
+        try
+        {
+            var inviteeFirstName = user.FirstName;
+
+            foreach (var pending in pendingInvitations)
+            {
+                var pendingGroup = await unitOfWork.Groups
+                    .FirstOrDefaultAsync(g => g.Id == pending.GroupId && g.DeletedAt == null);
+                if (pendingGroup == null) continue;
+
+                var payload = new PushPayload(
+                    pendingGroup.Name, "PushBodyInvitationAccepted", [inviteeFirstName],
+                    $"/groups/{pendingGroup.Guid}", $"group-{pendingGroup.Guid}-invitation-accepted-{user.Guid}");
+
+                await pushNotificationService.SendAsync(pending.InvitedByUserId, payload);
+            }
+        }
+        catch
+        {
+            // Push is non-fatal.
         }
 
         return Result.Success();

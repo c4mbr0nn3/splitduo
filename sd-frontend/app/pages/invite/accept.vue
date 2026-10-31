@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import type { ValidateInvitationResponse } from '~/types/domain'
 
+// Script-side usage of a component requires an explicit import (auto-import
+// registration only covers template usage).
+
 const { t, locale } = useI18n()
 const route = useRoute()
 const { validateInvitationToken, acceptInvitation } = useInvitations()

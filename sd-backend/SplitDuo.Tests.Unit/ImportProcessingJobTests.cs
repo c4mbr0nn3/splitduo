@@ -141,7 +141,7 @@ public class ImportProcessingJobTests
         var cacheInvalidator = Substitute.For<ICacheInvalidator>();
         var job = CreateJob(context, importsService, cacheInvalidator);
 
-        await job.Execute(CreateJobExecutionContext(importGuid.ToString().ToUpperInvariant(), "SplitDuo"));
+        await job.Execute(CreateJobExecutionContext(importGuid.ToString().ToUpperInvariant(), "SplitDuo"), TestContext.Current.CancellationToken);
 
         await cacheInvalidator.Received(1).InvalidateGroupAsync(group.Guid.ToString(), Arg.Any<CancellationToken>());
     }
@@ -163,7 +163,7 @@ public class ImportProcessingJobTests
         var cacheInvalidator = Substitute.For<ICacheInvalidator>();
         var job = CreateJob(context, importsService, cacheInvalidator);
 
-        await job.Execute(CreateJobExecutionContext(importGuid.ToString().ToUpperInvariant(), "SplitDuo"));
+        await job.Execute(CreateJobExecutionContext(importGuid.ToString().ToUpperInvariant(), "SplitDuo"), TestContext.Current.CancellationToken);
 
         await cacheInvalidator.DidNotReceive().InvalidateGroupAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
@@ -178,7 +178,7 @@ public class ImportProcessingJobTests
         var cacheInvalidator = Substitute.For<ICacheInvalidator>();
         var job = CreateJob(context, Substitute.For<IImportsService>(), cacheInvalidator);
 
-        await job.Execute(CreateJobExecutionContext(Guid.NewGuid().ToString(), "SplitDuo"));
+        await job.Execute(CreateJobExecutionContext(Guid.NewGuid().ToString(), "SplitDuo"), TestContext.Current.CancellationToken);
 
         await cacheInvalidator.DidNotReceive().InvalidateGroupAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
@@ -205,7 +205,7 @@ public class ImportProcessingJobTests
         {
             map["ImportGuid"] = "";
             map["ImportType"] = "SplitDuo";
-        }));
+        }), TestContext.Current.CancellationToken);
 
         var importFromDb = context.Imports.Single();
         Assert.Equal((int)ImportStatus.Pending, importFromDb.StatusId);
@@ -227,7 +227,7 @@ public class ImportProcessingJobTests
         var importsService = Substitute.For<IImportsService>();
         var job = CreateJob(context, importsService, Substitute.For<ICacheInvalidator>());
 
-        await job.Execute(CreateJobExecutionContext("not-a-guid", "SplitDuo"));
+        await job.Execute(CreateJobExecutionContext("not-a-guid", "SplitDuo"), TestContext.Current.CancellationToken);
 
         var importFromDb = context.Imports.Single();
         Assert.Equal((int)ImportStatus.Pending, importFromDb.StatusId);
@@ -246,7 +246,7 @@ public class ImportProcessingJobTests
         var importsService = Substitute.For<IImportsService>();
         var job = CreateJob(context, importsService, Substitute.For<ICacheInvalidator>());
 
-        await job.Execute(CreateJobExecutionContext(Guid.NewGuid().ToString(), "SplitDuo"));
+        await job.Execute(CreateJobExecutionContext(Guid.NewGuid().ToString(), "SplitDuo"), TestContext.Current.CancellationToken);
 
         Assert.Empty(context.Imports);
         await importsService.DidNotReceive().ProcessImportAsync(Arg.Any<byte[]>(), Arg.Any<int>(), Arg.Any<int>());
@@ -267,7 +267,7 @@ public class ImportProcessingJobTests
         var importsService = Substitute.For<IImportsService>();
         var job = CreateJob(context, importsService, Substitute.For<ICacheInvalidator>());
 
-        await job.Execute(CreateJobExecutionContext(importGuid.ToString().ToUpperInvariant(), "SplitDuo"));
+        await job.Execute(CreateJobExecutionContext(importGuid.ToString().ToUpperInvariant(), "SplitDuo"), TestContext.Current.CancellationToken);
 
         var importFromDb = context.Imports.Single();
         Assert.Equal((int)ImportStatus.Failed, importFromDb.StatusId);
@@ -296,7 +296,7 @@ public class ImportProcessingJobTests
         {
             map["ImportGuid"] = importGuid.ToString().ToUpperInvariant();
             map["ImportType"] = "";
-        }));
+        }), TestContext.Current.CancellationToken);
 
         var importFromDb = context.Imports.Single();
         Assert.Equal((int)ImportStatus.Failed, importFromDb.StatusId);
@@ -319,7 +319,7 @@ public class ImportProcessingJobTests
         var importsService = Substitute.For<IImportsService>();
         var job = CreateJob(context, importsService, Substitute.For<ICacheInvalidator>());
 
-        await job.Execute(CreateJobExecutionContext(importGuid.ToString().ToUpperInvariant(), "InvalidType"));
+        await job.Execute(CreateJobExecutionContext(importGuid.ToString().ToUpperInvariant(), "InvalidType"), TestContext.Current.CancellationToken);
 
         var importFromDb = context.Imports.Single();
         Assert.Equal((int)ImportStatus.Failed, importFromDb.StatusId);
@@ -345,7 +345,7 @@ public class ImportProcessingJobTests
 
         var job = CreateJob(context, importsService, Substitute.For<ICacheInvalidator>());
 
-        await job.Execute(CreateJobExecutionContext(importGuid.ToString().ToUpperInvariant(), "SplitDuo"));
+        await job.Execute(CreateJobExecutionContext(importGuid.ToString().ToUpperInvariant(), "SplitDuo"), TestContext.Current.CancellationToken);
 
         var importFromDb = context.Imports.Single();
         Assert.Equal((int)ImportStatus.Failed, importFromDb.StatusId);

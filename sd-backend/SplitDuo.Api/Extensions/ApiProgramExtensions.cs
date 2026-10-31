@@ -154,7 +154,26 @@ public static class ApiProgramExtensions
         // Serve static files from wwwroot (.webmanifest needs explicit MIME type)
         var contentTypeProvider = new FileExtensionContentTypeProvider();
         contentTypeProvider.Mappings[".webmanifest"] = "application/manifest+json";
-        app.UseStaticFiles(new StaticFileOptions { ContentTypeProvider = contentTypeProvider });
+
+        // The service worker, manifest, and SPA shell must never be held stale by the browser —
+        // every other static asset keeps its default caching.
+        static void SetNoCacheForAppShell(StaticFileResponseContext context)
+        {
+            var fileName = Path.GetFileName(context.File.Name);
+            if (fileName.Equals("sw.js", StringComparison.OrdinalIgnoreCase) ||
+                fileName.Equals("manifest.webmanifest", StringComparison.OrdinalIgnoreCase) ||
+                fileName.Equals("index.html", StringComparison.OrdinalIgnoreCase))
+            {
+                context.Context.Response.Headers.CacheControl = "no-cache";
+            }
+        }
+
+        var noCacheStaticFileOptions = new StaticFileOptions
+        {
+            ContentTypeProvider = contentTypeProvider,
+            OnPrepareResponse = SetNoCacheForAppShell,
+        };
+        app.UseStaticFiles(noCacheStaticFileOptions);
 
         var databaseOnly = new HealthCheckOptions
         {
@@ -186,7 +205,36 @@ public static class ApiProgramExtensions
         app.UseAuthorization();
         app.MapControllers();
 
-        // Fallback to serve the SPA for client-side routing
-        app.MapFallbackToFile("index.html");
+        // Fallback to serve the SPA for client-side routing (same no-cache rule as static files)
+        app.MapFallbackToFile("index.html", noCacheStaticFileOptions);
+    }
+
+    /// <summary>
+    /// One line at startup so an operator can tell "push turned off" from "push
+    /// misconfigured" without waiting for the first notification to fail. Never logs key
+    /// material — only whether the pair is usable and which variable to look at.
+    /// </summary>
+    public static void LogPushConfiguration(this WebApplication app)
+    {
+        var options = app.Services.GetRequiredService<IOptions<PushOptions>>().Value;
+        var logger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("SplitDuo.Push");
+
+        if (options.IsConfigured)
+        {
+            logger.LogInformation("Web push enabled (VAPID subject: {Subject})", options.Subject);
+            return;
+        }
+
+        if (!options.HasAnyKey)
+        {
+            logger.LogInformation(
+                "Web push disabled — set SD_VAPID_PUBLIC_KEY and SD_VAPID_PRIVATE_KEY to enable notifications");
+            return;
+        }
+
+        logger.LogWarning(
+            "Web push misconfigured — SD_VAPID_PUBLIC_KEY/SD_VAPID_PRIVATE_KEY are set but unusable. " +
+            "The public key must be a 65-byte base64url P-256 point; generate a pair with " +
+            "'npx web-push generate-vapid-keys'. Push stays disabled.");
     }
 }

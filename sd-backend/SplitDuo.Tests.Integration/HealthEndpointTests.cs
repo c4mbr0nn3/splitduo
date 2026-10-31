@@ -24,8 +24,9 @@ public class HealthEndpointTests : IntegrationTest
     [Fact]
     public async Task Health_ReturnsStatusOnly()
     {
-        var response = await Client.GetAsync("/health");
-        var body = await response.Content.ReadAsStringAsync();
+        var ct = TestContext.Current.CancellationToken;
+        var response = await Client.GetAsync("/health", ct);
+        var body = await response.Content.ReadAsStringAsync(ct);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         using var json = JsonDocument.Parse(body);
@@ -38,8 +39,9 @@ public class HealthEndpointTests : IntegrationTest
     [Fact]
     public async Task HealthLive_ReturnsHealthy()
     {
-        var response = await Client.GetAsync("/health/live");
-        var body = await response.Content.ReadAsStringAsync();
+        var ct = TestContext.Current.CancellationToken;
+        var response = await Client.GetAsync("/health/live", ct);
+        var body = await response.Content.ReadAsStringAsync(ct);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("{\"status\":\"Healthy\"}", body);
@@ -48,7 +50,8 @@ public class HealthEndpointTests : IntegrationTest
     [Fact]
     public async Task HealthDetails_Anonymous_Returns401()
     {
-        Assert.Equal(HttpStatusCode.Unauthorized, (await Client.GetAsync("/health/details")).StatusCode);
+        var ct = TestContext.Current.CancellationToken;
+        Assert.Equal(HttpStatusCode.Unauthorized, (await Client.GetAsync("/health/details", ct)).StatusCode);
     }
 
     [Fact]
@@ -56,16 +59,18 @@ public class HealthEndpointTests : IntegrationTest
     {
         var email = await TestDbSeeder.SeedUserAsync(Factory.Services, "health-member@localhost", "changeme123", "Health", "Member");
         using var client = await CreateAuthenticatedClientAsync(email, "changeme123");
+        var ct = TestContext.Current.CancellationToken;
 
-        Assert.Equal(HttpStatusCode.Forbidden, (await client.GetAsync("/health/details")).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await client.GetAsync("/health/details", ct)).StatusCode);
     }
 
     [Fact]
     public async Task HealthDetails_SystemAdmin_ReturnsDatabaseCheck()
     {
         using var client = await CreateAuthenticatedClientAsync();
-        var response = await client.GetAsync("/health/details");
-        var body = await response.Content.ReadAsStringAsync();
+        var ct = TestContext.Current.CancellationToken;
+        var response = await client.GetAsync("/health/details", ct);
+        var body = await response.Content.ReadAsStringAsync(ct);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         using var json = JsonDocument.Parse(body);

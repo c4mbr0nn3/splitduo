@@ -101,9 +101,25 @@ export default defineNuxtConfig({
 
   pwa: {
     registerType: 'prompt',
+    strategies: 'injectManifest',
+    srcDir: 'service-worker',
+    filename: 'sw.ts',
+    injectManifest: {
+      // injectManifest mode only precaches the SW bundle itself + whatever we
+      // tell it here. The Nuxt module injects its own 3-entry manifest (app
+      // manifest JSONs + webmanifest); globDirectory/globPatterns add the
+      // hashed client build assets so offline works like the old generateSW
+      // globPatterns config did.
+      // NOTE: the SPA shell (/index.html) is deliberately NOT precached —
+      // it is served via a NetworkFirst 'app-shell' runtime cache in sw.ts
+      // (a null-revision precache entry would pin a stale shell forever).
+      globDirectory: 'node_modules/.cache/nuxt/.nuxt/dist/client',
+      globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
+    },
     devOptions: {
       enabled: true,
       suppressWarnings: true,
+      type: 'module',
     },
     manifest: {
       id: '/',
@@ -138,17 +154,6 @@ export default defineNuxtConfig({
           sizes: '512x512',
           type: 'image/png',
           purpose: 'maskable',
-        },
-      ],
-    },
-    workbox: {
-      navigateFallback: '/index.html',
-      navigateFallbackDenylist: [/^\/api\//],
-      globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
-      runtimeCaching: [
-        {
-          urlPattern: /^\/api\//,
-          handler: 'NetworkOnly',
         },
       ],
     },

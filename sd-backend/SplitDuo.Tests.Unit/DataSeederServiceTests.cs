@@ -68,7 +68,7 @@ public class DataSeederServiceTests : IDisposable
 
         using var scope = _provider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        Assert.Equal(0, await context.Users.CountAsync());
+        Assert.Equal(0, await context.Users.CountAsync(TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -81,7 +81,7 @@ public class DataSeederServiceTests : IDisposable
 
         using var scope = _provider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var user = await context.Users.SingleAsync();
+        var user = await context.Users.SingleAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(_appOptions.InitialUserEmail, user.Email);
         Assert.Equal(GlobalRole.SystemAdmin, user.GlobalRole);
@@ -107,7 +107,7 @@ public class DataSeederServiceTests : IDisposable
                 FirstName = "Existing",
                 LastName = "User"
             });
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
         }
 
         var seeder = CreateSeeder(Environments.Production);
@@ -116,7 +116,7 @@ public class DataSeederServiceTests : IDisposable
 
         using var scope = _provider.CreateScope();
         var verifyContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        Assert.Equal(1, await verifyContext.Users.CountAsync());
+        Assert.Equal(1, await verifyContext.Users.CountAsync(TestContext.Current.CancellationToken));
     }
 
     private DataSeederService CreateSeeder(string environmentName)

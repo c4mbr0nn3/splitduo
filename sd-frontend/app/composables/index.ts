@@ -26,3 +26,4 @@ export { default as useDebounceSearch } from '@/composables/utils/useDebounceSea
 export { default as useSmartBack } from '@/composables/utils/useSmartBack'
 export { default as useModal } from '@/composables/ui/useModal'
 export { default as useChartTheme } from '@/composables/ui/useChartTheme'
+export { default as usePush } from '@/composables/push/usePush'

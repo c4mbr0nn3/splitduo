@@ -50,9 +50,13 @@ fi
 echo "Creating volume ${VOLUME_NAME} if it doesn't exist..."
 podman volume create "${VOLUME_NAME}" || true
 
-# Pull the latest image
-echo "Pulling latest ${IMAGE_NAME} image..."
-podman pull "${IMAGE_NAME}"
+if podman image exists "${IMAGE_NAME}"; then
+    echo "Image ${IMAGE_NAME} found locally. Checking for updates..."
+    podman pull "${IMAGE_NAME}" || echo "⚠️ Pull failed (rate limit or offline). Using local image."
+else
+    echo "Pulling ${IMAGE_NAME} image..."
+    podman pull "${IMAGE_NAME}"
+fi
 
 # Start the container
 echo "Starting Mailpit container..."

@@ -471,6 +471,7 @@ public class SettlementTests : IntegrationTest
         var list = await adminClient.GetAsync($"/api/v1/groups/{group.Id}/aliases", ct);
         var listBody = await list.Content.ReadFromJsonAsync<ApiResponseDto<List<AliasDto>>>(ct);
         var adminSingletonId = listBody!.Data!.Single(a => a.IsSingleton && a.Members.Any(m => m.Id == admin.Id)).Id;
+        Assert.NotNull(listBody.Data);
         var user2SingletonId = listBody.Data.Single(a => a.IsSingleton && a.Members.Any(m => m.Id == user2.Id)).Id;
 
         var aliasResponse = await adminClient.PostAsJsonAsync(

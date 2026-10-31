@@ -48,8 +48,13 @@ if [ "$DROP_VOLUME" = true ]; then
     fi
 fi
 
-echo "Pulling latest ${IMAGE_NAME} image..."
-podman pull "${IMAGE_NAME}"
+if podman image exists "${IMAGE_NAME}"; then
+    echo "Image ${IMAGE_NAME} found locally. Checking for updates..."
+    podman pull "${IMAGE_NAME}" || echo "⚠️ Pull failed (rate limit or offline). Using local image."
+else
+    echo "Pulling ${IMAGE_NAME} image..."
+    podman pull "${IMAGE_NAME}"
+fi
 
 echo "Starting PostgreSQL container..."
 podman run -dt \
