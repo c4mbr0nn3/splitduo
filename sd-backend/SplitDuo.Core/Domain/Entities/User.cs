@@ -1,19 +1,27 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
+using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Base;
 using SplitDuo.Core.Domain.Enums;
 
 namespace SplitDuo.Core.Domain.Entities;
 
 [Table("users")]
-[Index(nameof(Email), IsUnique = true)]
 [Index(nameof(Guid), IsUnique = true)]
 public class User : AuditableAndSoftDeletableEntity
 {
+    private string _email = "";
+
     [Column("id"), Key] public int Id { get; set; }
     [Column("guid")] public Guid Guid { get; set; } = Guid.CreateVersion7();
-    [Column("email"), MaxLength(255)] public string Email { get; set; } = "";
+
+    [Column("email"), MaxLength(255)]
+    public string Email
+    {
+        get => _email;
+        set => _email = EmailNormalizer.Normalize(value);
+    }
 
     [Column("password_hash"), MaxLength(255)]
     public string PasswordHash { get; set; } = "";
@@ -34,6 +42,12 @@ public class User : AuditableAndSoftDeletableEntity
 
     // Security Stamp
     [Column("security_stamp"), MaxLength(64)] public string SecurityStamp { get; set; } = Guid.CreateVersion7().ToString();
+
+    // Pending email change: set by an admin, consumed only by a token sent to the
+    // new address. The token is stored hashed; the raw value never touches the DB.
+    [Column("pending_email"), MaxLength(255)] public string? PendingEmail { get; set; }
+    [Column("pending_email_token_hash"), MaxLength(255)] public string? PendingEmailTokenHash { get; set; }
+    [Column("pending_email_expires_at")] public long? PendingEmailExpiresAt { get; set; }
 
     public UserSettings Settings { get; set; } = new();
 

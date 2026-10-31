@@ -21,7 +21,10 @@ public class UserSettingsKeyBackfillTests : IntegrationTest
     public async Task Backfill_FillsMissingKeys_PreservesUserValues_RecordsMigration()
     {
         var ct = TestContext.Current.CancellationToken;
-        const string previousMigrationId = "20260927165643_AddAiCallLogFeatureAndLatency";
+        // The migration immediately before the backfill. Downgrading to it keeps the
+        // pending-email columns that the compiled EF model expects; the later
+        // migrations are index-only plus the backfill itself.
+        const string previousMigrationId = "20261001000000_AddVerifiedEmailChange";
         const string backfillMigrationId = "20261003083142_BackfillUserSettingsRequiredKeys";
 
         // One scope stays open for the whole test: the migrator captures its scoped

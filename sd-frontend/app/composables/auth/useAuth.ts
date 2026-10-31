@@ -63,6 +63,15 @@ export default function useAuth() {
     pendingChallengeToken.value = null
   }
 
+  // Clear local auth state without navigating. A flow that must show its own
+  // final message after the server has already revoked the session uses this
+  // instead of logout(), which always navigates home.
+  const clearSession = (): void => {
+    removeToken()
+    user.value = null
+    userCookie.value = null
+  }
+
   // Logout
   const logout = async (): Promise<void> => {
     try {
@@ -75,9 +84,7 @@ export default function useAuth() {
       console.warn('Logout API call failed:', error)
     }
     finally {
-      removeToken()
-      user.value = null
-      userCookie.value = null
+      clearSession()
       await navigateTo('/')
     }
   }
@@ -168,6 +175,7 @@ export default function useAuth() {
     pendingChallengeToken: readonly(pendingChallengeToken),
     login,
     logout,
+    clearSession,
     refreshToken,
     initialize,
     completeTwoFactorLogin,

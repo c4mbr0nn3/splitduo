@@ -38,8 +38,9 @@ public class AuthenticationService(
 
     public async Task<Result<AuthResponseDto>> LoginAsync(LoginRequestDto request)
     {
+        var normalizedEmail = EmailNormalizer.Normalize(request.Email);
         var user = await unitOfWork.Users
-            .FirstOrDefaultAsync(u => u.Email == request.Email && u.DeletedAt == null);
+            .FirstOrDefaultAsync(u => u.Email == normalizedEmail && u.DeletedAt == null);
 
         if (user == null)
             return Result<AuthResponseDto>.Unauthorized(loc["InvalidCredentials"]);

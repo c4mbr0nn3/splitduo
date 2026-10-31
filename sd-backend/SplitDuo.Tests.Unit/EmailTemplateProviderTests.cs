@@ -200,6 +200,87 @@ public class EmailTemplateProviderTests
 
     #endregion
 
+    #region Email change
+
+    [Fact]
+    public void Render_EmailChangeVerificationModel_English_BuildsConfirmUrl()
+    {
+        var provider = CreateProvider();
+        var model = new EmailChangeVerificationModel
+        {
+            To = "new@example.com",
+            FirstName = "John",
+            NewEmail = "new@example.com",
+            Token = "raw token"
+        };
+
+        var result = provider.Render(model);
+
+        Assert.Equal("Confirm your new email", result.Subject);
+        Assert.Equal("new@example.com", result.To);
+        Assert.Contains("Hi John", result.Body);
+        Assert.Contains("new@example.com", result.Body);
+        Assert.Contains("https://test.local/confirm-email-change?token=raw%20token", result.Body);
+    }
+
+    [Fact]
+    public void Render_EmailChangeVerificationModel_Italian_UsesItalianTemplate()
+    {
+        var provider = CreateProvider();
+        var model = new EmailChangeVerificationModel
+        {
+            To = "nuova@example.com",
+            FirstName = "Mario",
+            NewEmail = "nuova@example.com",
+            Token = "abc123"
+        };
+
+        var result = provider.Render(model, "it");
+
+        Assert.Equal("Conferma la tua nuova email", result.Subject);
+        Assert.Contains("Ciao Mario", result.Body);
+        Assert.Contains("https://test.local/confirm-email-change?token=abc123", result.Body);
+    }
+
+    [Fact]
+    public void Render_EmailChangedModel_English_IncludesTimestampAndNewAddress()
+    {
+        var provider = CreateProvider();
+        var model = new EmailChangedModel
+        {
+            To = "old@example.com",
+            FirstName = "John",
+            NewEmail = "new@example.com"
+        };
+
+        var result = provider.Render(model);
+
+        Assert.Equal("Your email was changed", result.Subject);
+        Assert.Equal("old@example.com", result.To);
+        Assert.Contains("new@example.com", result.Body);
+        Assert.Contains("2026-01-01 00:00:00 UTC", result.Body);
+    }
+
+    [Fact]
+    public void Render_EmailChangedModel_Italian_UsesItalianTemplate()
+    {
+        var provider = CreateProvider();
+        var model = new EmailChangedModel
+        {
+            To = "vecchia@example.com",
+            FirstName = "Mario",
+            NewEmail = "nuova@example.com"
+        };
+
+        var result = provider.Render(model, "it");
+
+        Assert.Equal("La tua email è stata cambiata", result.Subject);
+        Assert.Contains("nuova@example.com", result.Body);
+        Assert.Contains("2026-01-01 00:00:00 UTC", result.Body);
+    }
+
+    #endregion
+
     #region Language fallback
 
     [Fact]
@@ -278,7 +359,7 @@ public class EmailTemplateProviderTests
 
     #endregion
 
-    #region All 11 templates exist
+    #region All 13 templates exist
 
     public static IEnumerable<object[]> AllTemplateModels()
     {
@@ -293,6 +374,8 @@ public class EmailTemplateProviderTests
         yield return new object[] { new GroupMemberRemovedModel { To = "a@b.com", RecipientFirstName = "R", RemovedByFirstName = "R", RemovedByLastName = "L", GroupName = "G" } };
         yield return new object[] { new ExpenseAddedModel { To = "a@b.com", RecipientFirstName = "R", AddedByFirstName = "A", AddedByLastName = "L", GroupName = "G", GroupGuid = Guid.NewGuid(), ExpenseTitle = "E", ExpenseAmount = 10m, ExpenseDate = new DateOnly(2026, 1, 1) } };
         yield return new object[] { new ExpenseDeletedModel { To = "a@b.com", RecipientFirstName = "R", DeletedByFirstName = "D", DeletedByLastName = "L", GroupName = "G", GroupGuid = Guid.NewGuid(), ExpenseTitle = "E", ExpenseAmount = 10m, ExpenseDate = new DateOnly(2026, 1, 1) } };
+        yield return new object[] { new EmailChangeVerificationModel { To = "a@b.com", FirstName = "A", NewEmail = "a@b.com", Token = "tok" } };
+        yield return new object[] { new EmailChangedModel { To = "a@b.com", FirstName = "A", NewEmail = "a@b.com" } };
     }
 
     [Theory]

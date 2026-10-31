@@ -59,6 +59,7 @@ public static class ApiProgramExtensions
         builder.Services.AddScoped<ITwoFactorService, TwoFactorService>();
         builder.Services.AddScoped<IUserContextService, UserContextService>();
         builder.Services.AddScoped<IUsersService, UsersService>();
+        builder.Services.AddScoped<IEmailChangeService, EmailChangeService>();
         builder.Services.AddScoped<IGroupsService, GroupsService>();
         builder.Services.AddScoped<IAliasesService, AliasesService>();
         builder.Services.AddScoped<IInvitationsService, InvitationsService>();

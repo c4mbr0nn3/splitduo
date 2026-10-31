@@ -131,8 +131,9 @@ public class SplitDuoImportsService(
                     paymentMode = PaymentMode.Other;
                 }
 
-                // Find payer using dynamic mapping - skip if not found
-                if (!mappingConfig.UserMappings.TryGetValue(exp.PaidByEmail, out var payerIdStr) ||
+                // Find payer using dynamic mapping - skip if not found. Mapping keys are
+                // normalized by SplitDuoCsvParser, so normalize the CSV value to match.
+                if (!mappingConfig.UserMappings.TryGetValue(EmailNormalizer.Normalize(exp.PaidByEmail), out var payerIdStr) ||
                     !Guid.TryParse(payerIdStr, out var payerGuid))
                 {
                     Logger.LogWarning(
@@ -155,7 +156,7 @@ public class SplitDuoImportsService(
                 var splits = new List<ExpenseSplit>();
                 foreach (var owner in exp.ParsedOwers)
                 {
-                    if (!mappingConfig.UserMappings.TryGetValue(owner.Email, out var userIdStr) ||
+                    if (!mappingConfig.UserMappings.TryGetValue(EmailNormalizer.Normalize(owner.Email), out var userIdStr) ||
                         !Guid.TryParse(userIdStr, out var userGuid))
                     {
                         Logger.LogWarning(

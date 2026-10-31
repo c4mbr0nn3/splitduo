@@ -182,6 +182,8 @@ export type RevokeTokenRequest = components['schemas']['RevokeTokenRequestDto']
 export type CreateUserRequest = components['schemas']['AcceptInvitationRequestDto']
 export type UpdateUserRequest = components['schemas']['UpdateUserRequestDto']
 export type ChangePasswordRequest = components['schemas']['ChangePasswordRequestDto']
+
+export type ChangeEmailRequest = components['schemas']['ChangeEmailRequestDto']
 export type UpdateUserSettingsRequest = components['schemas']['UpdateUserSettingsRequestDto']
 export type UpdateUserSettingsResponse = components['schemas']['UpdateUserSettingsResponseDto']
 

@@ -588,40 +588,22 @@ public class UsersProfileTests : IntegrationTest
         Assert.Equal("NewLast", body!.Data!.LastName);
     }
 
-    [Fact]
-    public async Task UpdateCurrentUser_Email_Persists_AndEnforcesUniqueness()
+    [Theory]
+    [InlineData("newemail@localhost")]
+    [InlineData("taken@localhost")]
+    public async Task UpdateCurrentUser_AnyEmail_Returns400(string email)
     {
+        // Email is no longer an editable profile field. It must be rejected even
+        // when the address is valid and free, not silently ignored.
         var ct = TestContext.Current.CancellationToken;
         var client = await CreateAuthenticatedClientAsync();
-
-        // Seed a second user with a different email
         await TestDbSeeder.SeedUserAsync(Factory.Services, "taken@localhost");
 
-        // Try to take that email
-        var response = await client.PutAsJsonAsync("/api/v1/users/me", new
-        {
-            email = "taken@localhost",
-        }, ct);
+        var response = await client.PutAsJsonAsync("/api/v1/users/me", new { email }, ct);
 
-        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserDto>>(ct);
-        Assert.Equal("User with this email already exists", body!.Error!.Message);
-    }
-
-    [Fact]
-    public async Task UpdateCurrentUser_EmailToNewValidEmail_Persists()
-    {
-        var ct = TestContext.Current.CancellationToken;
-        var client = await CreateAuthenticatedClientAsync();
-
-        var response = await client.PutAsJsonAsync("/api/v1/users/me", new
-        {
-            email = "newemail@localhost",
-        }, ct);
-
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserDto>>(ct);
-        Assert.Equal("newemail@localhost", body!.Data!.Email);
+        Assert.Contains("Email cannot be changed here", body!.Error!.Message);
     }
 
     [Fact]
@@ -1053,10 +1035,10 @@ public class UsersProfileTests : IntegrationTest
     #region PUT /users/{userId} (admin edit user)
 
     [Fact]
-    public async Task UpdateUser_AdminEditsNameAndEmailWithUnchangedRole_Succeeds()
+    public async Task UpdateUser_AdminEditsName_WithUnchangedRole_Succeeds()
     {
         // Regression: the admin edit form always sends globalRole (required field).
-        // Editing only name/email must not 400 just because the role is unchanged.
+        // Editing only the name must not 400 just because the role is unchanged.
         var ct = TestContext.Current.CancellationToken;
         var adminClient = await CreateAuthenticatedClientAsync();
 
@@ -1068,7 +1050,6 @@ public class UsersProfileTests : IntegrationTest
         {
             firstName = "Edited",
             lastName = "Name",
-            email = "editname@localhost",
             globalRole = (int)GlobalRole.BaseUser, // unchanged from seeded role
         }, ct);
 
@@ -1116,7 +1097,6 @@ public class UsersProfileTests : IntegrationTest
         var response = await adminClient.PutAsJsonAsync($"/api/v1/users/{target.Id}", new
         {
             firstName = "Promoted",
-            email = "editandpromote@localhost",
             globalRole = (int)GlobalRole.SystemAdmin,
         }, ct);
 
@@ -1145,7 +1125,6 @@ public class UsersProfileTests : IntegrationTest
         var response = await adminClient.PutAsJsonAsync($"/api/v1/users/{target.Id}", new
         {
             firstName = "Demoted",
-            email = "editanddemote@localhost",
             globalRole = (int)GlobalRole.BaseUser,
         }, ct);
 
@@ -1156,25 +1135,26 @@ public class UsersProfileTests : IntegrationTest
     }
 
     [Fact]
-    public async Task UpdateUser_AdminEditsEmailToTaken_Returns409()
+    public async Task UpdateUser_AdminSendsEmail_Returns400()
     {
+        // The admin edit form is name/role only. Email changes go through the
+        // dedicated request endpoint, so a stray email here is an explicit error.
         var ct = TestContext.Current.CancellationToken;
         var adminClient = await CreateAuthenticatedClientAsync();
 
-        await TestDbSeeder.SeedUserAsync(Factory.Services, "taken@localhost");
         var targetEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "editemail@localhost");
         var targetClient = await CreateAuthenticatedClientAsync(targetEmail, "changeme123");
         var target = await targetClient.GetCurrentUserAsync();
 
         var response = await adminClient.PutAsJsonAsync($"/api/v1/users/{target.Id}", new
         {
-            email = "taken@localhost",
+            email = "newemail@localhost",
             globalRole = (int)GlobalRole.BaseUser,
         }, ct);
 
-        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync<ApiResponseDto<UserDto>>(ct);
-        Assert.Equal("User with this email already exists", body!.Error!.Message);
+        Assert.Contains("Email cannot be changed here", body!.Error!.Message);
     }
 
     [Fact]
@@ -1197,7 +1177,7 @@ public class UsersProfileTests : IntegrationTest
     [Fact]
     public async Task UpdateUser_NonAdminEditingSelfName_Succeeds()
     {
-        // Non-admins can edit their own name/email but not their role.
+        // Non-admins can edit their own name but not their role.
         // Sending their own current role (unchanged) must be a no-op, not a 403.
         var ct = TestContext.Current.CancellationToken;
         var memberEmail = await TestDbSeeder.SeedUserAsync(Factory.Services, "selfeditor@localhost");

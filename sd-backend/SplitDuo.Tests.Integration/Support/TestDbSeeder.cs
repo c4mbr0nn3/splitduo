@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Domain.Enums;
 using SplitDuo.Core.Persistence;
@@ -98,8 +99,9 @@ public static class TestDbSeeder
     {
         using var scope = services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var normalizedEmail = EmailNormalizer.Normalize(email);
         return await db.Users
-            .Where(u => u.Email == email)
+            .Where(u => u.Email == normalizedEmail)
             .Select(u => u.Guid)
             .FirstAsync();
     }
@@ -109,8 +111,9 @@ public static class TestDbSeeder
     {
         using var scope = services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var normalizedEmail = EmailNormalizer.Normalize(email);
         return await db.Users
-            .Where(u => u.Email == email)
+            .Where(u => u.Email == normalizedEmail)
             .Select(u => u.Id)
             .FirstAsync();
     }

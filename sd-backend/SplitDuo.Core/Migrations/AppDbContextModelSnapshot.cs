@@ -18,7 +18,7 @@ namespace SplitDuo.Core.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.12")
+                .HasAnnotation("ProductVersion", "10.0.13")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -1343,6 +1343,20 @@ namespace SplitDuo.Core.Migrations
                         .HasColumnType("character varying(255)")
                         .HasColumnName("password_hash");
 
+                    b.Property<string>("PendingEmail")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("pending_email");
+
+                    b.Property<long?>("PendingEmailExpiresAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("pending_email_expires_at");
+
+                    b.Property<string>("PendingEmailTokenHash")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("pending_email_token_hash");
+
                     b.Property<string>("SecurityStamp")
                         .IsRequired()
                         .HasMaxLength(64)
@@ -1390,9 +1404,6 @@ namespace SplitDuo.Core.Migrations
                         });
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Email")
-                        .IsUnique();
 
                     b.HasIndex("Guid")
                         .IsUnique();

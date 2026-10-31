@@ -12,6 +12,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<User>(e =>
         {
             e.ComplexProperty(u => u.Settings, s => s.ToJson("settings"));
+            // The case-insensitive unique index (lower(email) WHERE deleted_at IS NULL)
+            // is a raw-SQL expression index in the AddVerifiedEmailChange migration.
+            // EF Core cannot model an expression index, so it is intentionally absent
+            // here; do not "fix" the snapshot by adding a plain index on Email.
         });
 
         // Partial / mixed-sort-order indexes (not expressible via [Index] attributes).

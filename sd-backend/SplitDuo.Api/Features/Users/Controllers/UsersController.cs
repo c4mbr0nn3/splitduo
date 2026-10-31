@@ -20,6 +20,7 @@ public class UsersController(
     IUsersService usersService,
     IBalancesService balancesService,
     IInvitationsService invitationsService,
+    IEmailChangeService emailChangeService,
     IUnitOfWork unitOfWork,
     ILogger<UsersController> logger) : BaseApiController
 {
@@ -180,6 +181,32 @@ public class UsersController(
             await unitOfWork.SaveChangesAsync();
 
         return HandleResult(result, "User updated successfully");
+    }
+
+    [HttpPost("{userId}/email-change")]
+    [Authorize(Policy = "SystemAdmin")]
+    [ProducesResponseType(StatusCodes.Status202Accepted)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult> RequestEmailChange(string userId,
+        [FromBody] ChangeEmailRequestDto request)
+    {
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+            return HandleResult(NotAuthenticated());
+
+        if (!Guid.TryParse(userId, out var targetGuid))
+            return HandleResult(Result.BadRequest("Invalid user guid"));
+
+        var result = await emailChangeService.RequestChangeAsync(targetGuid, currentUserId.Value, request);
+
+        if (result.IsSuccess)
+            await unitOfWork.SaveChangesAsync();
+
+        return HandleResult(result, "Verification email sent");
     }
 
     [HttpDelete("{userId}")]

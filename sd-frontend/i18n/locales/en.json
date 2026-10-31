@@ -487,6 +487,14 @@
     "enterFirstName": "Enter first name",
     "enterLastName": "Enter last name (optional)",
     "enterEmail": "Enter email address",
+    "changeEmail": "Change Email",
+    "changeEmailTitle": "Change User Email",
+    "changeEmailDescription": "The current address stays active until the new one confirms the link.",
+    "newEmail": "New email address",
+    "currentPassword": "Your current password",
+    "sendVerification": "Send verification email",
+    "pendingEmail": "Pending verification: {email}",
+    "emailChangeRequested": "Verification email sent to the new address.",
     "back": "Back",
     "created": "Created {date}",
     "updated": "Updated {date}",
@@ -857,7 +865,9 @@
       "roleUpdated": "User role updated successfully",
       "roleUpdateFailed": "Failed to update user role",
       "tokensRevoked": "User tokens revoked successfully",
-      "tokensRevokeFailed": "Failed to revoke user tokens"
+      "tokensRevokeFailed": "Failed to revoke user tokens",
+      "emailChangeRequested": "Verification email sent to the new address.",
+      "emailChangeRequestFailed": "Failed to request the email change."
     },
     "adminAiUsage": {
       "loadFailed": "Failed to load AI usage",
@@ -976,6 +986,14 @@
       "enable": "Enable",
       "notNow": "Not now"
     }
+  },
+  "confirmEmailChange": {
+    "title": "Confirm your new email",
+    "description": "Click the button below to finish changing your SplitDuo email address.",
+    "confirm": "Confirm email change",
+    "success": "Email updated. Please log in again with your new address.",
+    "error": "This link is invalid or has expired. Ask an administrator to send a new one.",
+    "login": "Go to login"
   },
   "layout": {
     "userFallback": "User"

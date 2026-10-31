@@ -8,6 +8,10 @@ public class UpdateUserRequestDto
 {
     [PersonName] [MaxLength(100)] public string? FirstName { get; set; }
     [PersonName] [MaxLength(100)] public string? LastName { get; set; }
+
+    // Kept only so the API can reject an attempted email change explicitly.
+    // Removing the property would make System.Text.Json ignore it silently.
     [EmailAddress] public string? Email { get; set; }
+
     public GlobalRole? GlobalRole { get; set; }
 }

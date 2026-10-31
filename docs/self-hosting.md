@@ -220,6 +220,17 @@ docker compose up -d
 
 The database volume is preserved, so your data carries over. EF Core applies any pending migrations automatically on startup.
 
+> **Email-change upgrade check.** The release that adds verified email changes normalizes addresses to lowercase and creates a case-insensitive unique index. If your database contains two live accounts whose addresses differ only by case (`Alice@example.com` and `alice@example.com`), the migration aborts on startup instead of silently merging them. Before upgrading, check with:
+>
+> ```sql
+> SELECT lower(email), count(*) FROM users
+> WHERE deleted_at IS NULL
+> GROUP BY lower(email)
+> HAVING count(*) > 1;
+> ```
+>
+> If it returns rows, rename or merge the duplicates first. Soft-deleted rows are ignored by the index, so their addresses can be reused.
+
 > If you pinned a specific version tag instead of `latest`, edit the `image:` line in `docker-compose.yml` (e.g. `j1mm0/splitduo:1.11.1`) and rerun the commands above. See the [releases page](https://gitlab.com/j1mm0/splitduo/-/releases) for available tags.
 
 ### Testing a release candidate
