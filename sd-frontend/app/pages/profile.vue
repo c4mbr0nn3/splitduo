@@ -148,6 +148,10 @@
 
           <USeparator />
 
+          <SettingsNotificationSettings />
+
+          <USeparator />
+
           <section class="p-5 sm:p-6 space-y-4">
             <div>
               <h2 class="text-sm font-medium text-highlighted">

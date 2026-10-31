@@ -25,14 +25,14 @@ See `docs/agents/backend.md` and `docs/agents/frontend.md` for detailed codebase
 
 ## Required Env Vars (production)
 
-`SD_DB_HOST/PORT/NAME/USERNAME/PASSWORD`, `SD_JWT_SECRET_KEY`, `SD_INITIAL_USER_EMAIL/PASSWORD`.
+`SD_DB_HOST/PORT/NAME/USERNAME/PASSWORD`, `SD_JWT_SECRET_KEY`, `SD_INITIAL_USER_EMAIL/PASSWORD`. Optional-but-recommended: `SD_VAPID_PUBLIC_KEY`/`SD_VAPID_PRIVATE_KEY` (web push disabled without them; generate once via `npx web-push generate-vapid-keys`, rotation invalidates all subscriptions — stale subscriptions fail with non-410 errors and are auto-purged after 5 failed sends each, or operators can TRUNCATE push_subscriptions) and `SD_VAPID_SUBJECT` (optional, defaults to mailto:admin@splitduo.local).
 All others optional — see `sd-backend/SplitDuo.Core/Options/Setup/` for full list.
 
 ## Gotchas
 
 - Frontend dev proxies to `:8080`, not `:5000` — backend runs on 8080 (see `launchSettings.json`)
 - EF migrations: run from `SplitDuo.Api` project (`--startup-project SplitDuo.Api`)
-- Test projects: `SplitDuo.Tests.Unit` (xunit) and `SplitDuo.Tests.Integration` (Testcontainers — needs Docker)
+- Test projects: `SplitDuo.Tests.Unit` (xunit) and `SplitDuo.Tests.Integration` (Testcontainers — needs Docker **or** Podman; `sd-backend/run-integration-tests.sh` preflights the engine, so check it before planning a test run)
 - DB hostname in Docker: `postgres` (Docker network), not localhost
 - Release + CI gotchas: see `docs/agents/release.md` and `docs/agents/ci.md` — read before releasing or touching CI.
 - OpenAPI spec (`docs/api/splitduoapi-v1.yaml`) is auto-generated via Scalar dev UI — never hand-edit it. Run the backend in dev, export from `http://localhost:8080/scalar/v1`, then run `pnpm gen:api` to regenerate frontend types.

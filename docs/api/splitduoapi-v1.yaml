@@ -2295,6 +2295,188 @@ paths:
           description: Bad Gateway
         "503":
           description: Service Unavailable
+  /api/v1/push/vapid-public-key:
+    get:
+      tags:
+        - Push
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfVapidPublicKeyDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfVapidPublicKeyDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfVapidPublicKeyDto"
+        "401":
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "503":
+          description: Service Unavailable
+  /api/v1/push/subscriptions:
+    get:
+      tags:
+        - Push
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfListOfPushSubscriptionListDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfListOfPushSubscriptionListDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfListOfPushSubscriptionListDto"
+        "401":
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+    post:
+      tags:
+        - Push
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PushSubscriptionRequestDto"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/PushSubscriptionRequestDto"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/PushSubscriptionRequestDto"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfObject"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoOfObject"
+        "400":
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "409":
+          description: Conflict
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: Internal Server Error
+    delete:
+      tags:
+        - Push
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeletePushSubscriptionRequestDto"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/DeletePushSubscriptionRequestDto"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/DeletePushSubscriptionRequestDto"
+        required: true
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: Not Found
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: Internal Server Error
   /api/v1/payment-modes:
     get:
       tags:
@@ -6976,6 +7158,25 @@ components:
           oneOf:
             - type: "null"
             - $ref: "#/components/schemas/ApiErrorDto"
+    ApiResponseDtoOfListOfPushSubscriptionListDto:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type:
+            - "null"
+            - array
+          items:
+            $ref: "#/components/schemas/PushSubscriptionListDto"
+        message:
+          type:
+            - "null"
+            - string
+        error:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/ApiErrorDto"
     ApiResponseDtoOfListOfRecurringExpenseTemplateDto:
       type: object
       properties:
@@ -7209,6 +7410,23 @@ components:
           oneOf:
             - type: "null"
             - $ref: "#/components/schemas/ValidateInvitationResponseDto"
+        message:
+          type:
+            - "null"
+            - string
+        error:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/ApiErrorDto"
+    ApiResponseDtoOfVapidPublicKeyDto:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/VapidPublicKeyDto"
         message:
           type:
             - "null"
@@ -7610,6 +7828,14 @@ components:
             - integer
             - string
           format: int32
+    DeletePushSubscriptionRequestDto:
+      required:
+        - endpoint
+      type: object
+      properties:
+        endpoint:
+          maxLength: 500
+          type: string
     DisableTwoFactorDto:
       required:
         - password
@@ -8330,6 +8556,58 @@ components:
             - "null"
             - string
         instance:
+          type:
+            - "null"
+            - string
+    PushSubscriptionKeysDto:
+      required:
+        - p256dh
+        - auth
+      type: object
+      properties:
+        p256dh:
+          maxLength: 255
+          type: string
+        auth:
+          maxLength: 255
+          type: string
+    PushSubscriptionListDto:
+      type: object
+      properties:
+        id:
+          type: string
+        endpoint:
+          type: string
+        userAgent:
+          type:
+            - "null"
+            - string
+        createdAt:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int64
+        lastUsedAt:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int64
+    PushSubscriptionRequestDto:
+      required:
+        - endpoint
+        - keys
+      type: object
+      properties:
+        endpoint:
+          maxLength: 500
+          type: string
+        keys:
+          $ref: "#/components/schemas/PushSubscriptionKeysDto"
+        userAgent:
+          maxLength: 500
           type:
             - "null"
             - string
@@ -9082,6 +9360,11 @@ components:
             - integer
             - string
           format: int64
+    VapidPublicKeyDto:
+      type: object
+      properties:
+        publicKey:
+          type: string
     VerifyTwoFactorLoginDto:
       required:
         - challengeToken
@@ -9110,6 +9393,7 @@ tags:
   - name: Settlements
   - name: RecurringExpenses
   - name: Receipts
+  - name: Push
   - name: PaymentModes
   - name: Invitations
   - name: Imports

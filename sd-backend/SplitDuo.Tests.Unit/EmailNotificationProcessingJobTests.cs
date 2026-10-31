@@ -53,7 +53,7 @@ public class EmailNotificationProcessingJobTests
         var unitOfWork = Substitute.For<IUnitOfWork>();
         var job = CreateJob(notificationService, unitOfWork);
 
-        await job.Execute(Substitute.For<IJobExecutionContext>());
+        await job.Execute(Substitute.For<IJobExecutionContext>(), TestContext.Current.CancellationToken);
 
         await notificationService.Received(2).SendAsync(Arg.Any<Notification>());
         await unitOfWork.Received(2).SaveChangesAsync(Arg.Any<CancellationToken>());
@@ -69,7 +69,7 @@ public class EmailNotificationProcessingJobTests
         var unitOfWork = Substitute.For<IUnitOfWork>();
         var job = CreateJob(notificationService, unitOfWork);
 
-        await job.Execute(Substitute.For<IJobExecutionContext>());
+        await job.Execute(Substitute.For<IJobExecutionContext>(), TestContext.Current.CancellationToken);
 
         await notificationService.DidNotReceive().SendAsync(Arg.Any<Notification>());
         await unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
@@ -90,7 +90,7 @@ public class EmailNotificationProcessingJobTests
         var unitOfWork = Substitute.For<IUnitOfWork>();
         var job = CreateJob(notificationService, unitOfWork);
 
-        await job.Execute(Substitute.For<IJobExecutionContext>());
+        await job.Execute(Substitute.For<IJobExecutionContext>(), TestContext.Current.CancellationToken);
 
         await notificationService.Received(2).SendAsync(Arg.Any<Notification>());
         // RetryCount/ErrorMessage must be flushed for the failed send too.
@@ -108,7 +108,7 @@ public class EmailNotificationProcessingJobTests
         var job = CreateJob(notificationService, unitOfWork);
 
         var exception = await Assert.ThrowsAsync<Exception>(
-            () => job.Execute(Substitute.For<IJobExecutionContext>()).AsTask());
+            () => job.Execute(Substitute.For<IJobExecutionContext>(), TestContext.Current.CancellationToken).AsTask());
 
         Assert.Contains("DB error", exception.Message);
         await notificationService.DidNotReceive().SendAsync(Arg.Any<Notification>());

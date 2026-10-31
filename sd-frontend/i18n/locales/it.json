@@ -946,6 +946,36 @@
       "previewFailed": "Impossibile generare l'anteprima della ricorrenza"
     }
   },
+  "push": {
+    "subscribed": "Notifiche attivate",
+    "subscribeFailed": "Impossibile attivare le notifiche",
+    "unsubscribed": "Notifiche disattivate",
+    "unsubscribeFailed": "Impossibile disattivare le notifiche",
+    "permissionDenied": "Permesso di notifica negato",
+    "subscriptionRemoved": "Dispositivo rimosso",
+    "subscriptionRemoveFailed": "Impossibile rimuovere il dispositivo",
+    "settings": {
+      "title": "Notifiche push",
+      "description": "Ricevi avvisi sull'attività del gruppo, anche con l'app chiusa.",
+      "unsupported": "Questo browser non supporta le notifiche push.",
+      "notConfigured": "Le notifiche push sono attualmente disabilitate dall'amministratore.",
+      "iosHint": "Per ricevere le notifiche, aggiungi SplitDuo alla schermata Home dal menu di condivisione di Safari, poi attiva le notifiche qui.",
+      "devicesTitle": "Dispositivi registrati",
+      "thisDevice": "Questo dispositivo",
+      "registeredOn": "Registrato {date}",
+      "remove": "Rimuovi",
+      "noDevices": "Nessun dispositivo registrato trovato.",
+      "unknownDevice": "Dispositivo sconosciuto",
+      "on": "su"
+    },
+    "optIn": {
+      "title": "Notifiche push",
+      "message": "Vuoi ricevere le notifiche push per {groupName}?",
+      "messageGeneric": "Vuoi ricevere le notifiche push?",
+      "enable": "Attiva",
+      "notNow": "Non ora"
+    }
+  },
   "layout": {
     "userFallback": "Utente"
   }

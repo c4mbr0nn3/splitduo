@@ -73,4 +73,5 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<RecurringExpenseInstance> RecurringExpenseInstances { get; set; }
     public DbSet<RecurringExpenseInstanceSplit> RecurringExpenseInstanceSplits { get; set; }
     public DbSet<RecurringExpenseInstanceAliasSplit> RecurringExpenseInstanceAliasSplits { get; set; }
+    public DbSet<PushSubscription> PushSubscriptions { get; set; }
 }

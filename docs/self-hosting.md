@@ -55,6 +55,10 @@ openssl rand -base64 48
 
 > Set this **before** anyone enrols in two-factor authentication. The TOTP encryption key is derived from `SD_JWT_SECRET_KEY`, so changing it later invalidates existing authenticator enrolments until each user falls back to a backup code or re-enrols. Back up the value together with the database.
 
+The same command (with a shorter length, e.g. `openssl rand -base64 24`) also works for the initial admin password and the database password.
+
+**Database password:** the compose file ships with `SD_DB_PASSWORD: splitduo` (and the matching `POSTGRES_PASSWORD` on the `postgres` service). Change both to the same strong value — e.g. `openssl rand -base64 24` — **before the first startup**. PostgreSQL only applies `POSTGRES_PASSWORD` when it initializes the data volume, so changing it later requires resetting the database volume (see [Common operations](#common-operations)).
+
 Then recreate the containers so the new values take effect:
 
 ```bash
@@ -150,6 +154,29 @@ SD_EMAIL_SMTP_USERNAME: your-smtp-user
 SD_EMAIL_SMTP_PASSWORD: your-smtp-password
 SD_EMAIL_SSL: "false"   # set "true" for port 465
 ```
+
+### Push notifications
+
+Users can receive push notifications for group activity (member joined, invitation accepted, recurring expenses). Push is disabled unless you provide a VAPID keypair — generate it **once** and keep it safe: rotating the keys invalidates all existing subscriptions and every user must re-enable notifications.
+
+Generate the keypair once with the `web-push` CLI (requires [Node.js](https://nodejs.org); no install needed — `npx` fetches it on the fly). The keys are a plain base64url P-256 keypair, also producible by any other VAPID key generator:
+
+```bash
+npx web-push generate-vapid-keys
+```
+
+Then set both in `docker-compose.yml`:
+
+```yaml
+SD_VAPID_PUBLIC_KEY: your-vapid-public-key
+SD_VAPID_PRIVATE_KEY: your-vapid-private-key
+# optional contact address push services may use for abuse reports:
+# SD_VAPID_SUBJECT: mailto:admin@yourdomain.com
+```
+
+Leave them unset to disable the feature — the app runs fine without it.
+
+On startup the app logs exactly one of three lines: `Web push enabled`, `Web push disabled — set SD_VAPID_PUBLIC_KEY and SD_VAPID_PRIVATE_KEY`, or `Web push misconfigured` (keys present but the public key isn't a 65-byte base64url P-256 point — usually a truncated paste or a PEM block). Check that line before debugging notifications: a malformed key is treated as disabled, so the UI shows "disabled by the administrator" rather than offering a toggle that cannot work.
 
 ### Public URL
 

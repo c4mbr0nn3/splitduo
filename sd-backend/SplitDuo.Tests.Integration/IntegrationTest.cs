@@ -30,6 +30,9 @@ public abstract class IntegrationTest : IAsyncLifetime
         // Reset the shared fake clock to real wall-clock before EVERY test so a test
         // that advances time cannot leak that offset into the next test.
         Factory.TimeProvider.SetUtcNow(DateTimeOffset.UtcNow);
+        // The push recorder is a single instance for the whole collection: clear it for
+        // the same reason, so "exactly N sends" cannot count another test's sends.
+        Factory.PushRecorder.Reset();
         return ValueTask.CompletedTask;
     }
 

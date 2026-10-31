@@ -97,7 +97,7 @@ public class RefreshTokenCleanupJobTests
         context.SaveChanges();
 
         var job = CreateJob(context);
-        await job.Execute(CreateJobExecutionContext());
+        await job.Execute(CreateJobExecutionContext(), TestContext.Current.CancellationToken);
 
         Assert.Equal(1, context.RefreshTokens.Count());
         Assert.Equal(3, context.RefreshTokens.Single().Id);
@@ -120,7 +120,7 @@ public class RefreshTokenCleanupJobTests
         context.SaveChanges();
 
         var job = CreateJob(context);
-        await job.Execute(CreateJobExecutionContext());
+        await job.Execute(CreateJobExecutionContext(), TestContext.Current.CancellationToken);
 
         Assert.Equal(2, context.RefreshTokens.Count());
     }

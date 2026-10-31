@@ -21,21 +21,22 @@ public class UpdateNotificationProviderTests
         payload?.GetType().GetProperty(name)?.GetValue(payload)?.ToString();
 
     [Fact]
-    public void NoNotifications_WhenLatestUnknown()
+    public async Task NoNotifications_WhenLatestUnknown()
     {
-        var result = CreateProvider(new UpdateCheckState(), new SemanticVersion(1, 16, 0))
-            .GetPendingAsync(Guid.NewGuid()).Result;
+        var result = await CreateProvider(new UpdateCheckState(), new SemanticVersion(1, 16, 0))
+            .GetPendingAsync(Guid.NewGuid(), TestContext.Current.CancellationToken);
 
         Assert.Empty(result);
     }
 
     [Fact]
-    public void NoNotifications_WhenCurrentVersionUnknown()
+    public async Task NoNotifications_WhenCurrentVersionUnknown()
     {
         var state = new UpdateCheckState();
         state.SetLatestVersion(new SemanticVersion(1, 17, 0));
 
-        var result = CreateProvider(state, null).GetPendingAsync(Guid.NewGuid()).Result;
+        var result = await CreateProvider(state, null)
+            .GetPendingAsync(Guid.NewGuid(), TestContext.Current.CancellationToken);
 
         Assert.Empty(result);
     }
@@ -43,25 +44,25 @@ public class UpdateNotificationProviderTests
     [Theory]
     [InlineData(1, 17, 0, 1, 17, 0)] // equal → none
     [InlineData(1, 18, 0, 1, 17, 0)] // current newer → none
-    public void NoNotifications_WhenCurrentGteLatest(int cm, int cmi, int cp, int lm, int lmi, int lp)
+    public async Task NoNotifications_WhenCurrentGteLatest(int cm, int cmi, int cp, int lm, int lmi, int lp)
     {
         var state = new UpdateCheckState();
         state.SetLatestVersion(new SemanticVersion(lm, lmi, lp));
 
-        var result = CreateProvider(state, new SemanticVersion(cm, cmi, cp))
-            .GetPendingAsync(Guid.NewGuid()).Result;
+        var result = await CreateProvider(state, new SemanticVersion(cm, cmi, cp))
+            .GetPendingAsync(Guid.NewGuid(), TestContext.Current.CancellationToken);
 
         Assert.Empty(result);
     }
 
     [Fact]
-    public void UpdateAvailable_ReturnsWellShapedNotification()
+    public async Task UpdateAvailable_ReturnsWellShapedNotification()
     {
         var state = new UpdateCheckState();
         state.SetLatestVersion(new SemanticVersion(1, 17, 0));
 
-        var result = CreateProvider(state, new SemanticVersion(1, 16, 0))
-            .GetPendingAsync(Guid.NewGuid()).Result;
+        var result = await CreateProvider(state, new SemanticVersion(1, 16, 0))
+            .GetPendingAsync(Guid.NewGuid(), TestContext.Current.CancellationToken);
 
         var notification = Assert.Single(result);
         Assert.Equal(UpdateNotificationProvider.NotificationType, notification.Type);

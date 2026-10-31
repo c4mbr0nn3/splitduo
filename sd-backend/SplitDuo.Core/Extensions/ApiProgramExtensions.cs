@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Quartz;
 using Serilog;
@@ -69,6 +71,7 @@ public static class ApiProgramExtensions
             builder.Services.ConfigureOptions<JwtOptionsSetup>();
             builder.Services.ConfigureOptions<JwtBearerOptionsSetup>();
             builder.Services.ConfigureOptions<SmtpOptionsSetup>();
+            builder.Services.ConfigureOptions<PushOptionsSetup>();
             builder.Services.ConfigureOptions<AiOptionsSetup>();
             builder.Services.ConfigureOptions<UpdateCheckOptionsSetup>();
             builder.Services.ConfigureOptions<RequestLocalizationOptionsSetup>();
@@ -91,6 +94,32 @@ public static class ApiProgramExtensions
             builder.Services.AddScoped<INotificationService, EmailNotificationService>();
             builder.Services.AddScoped<IEmailTemplateProvider, EmailTemplateProvider>();
             builder.Services.AddScoped<IExpenseCreationService, ExpenseCreationService>();
+            builder.Services.AddScoped<IPushSubscriptionService, PushSubscriptionService>();
+            // One pooled HttpClient for all sends: it refuses redirects and non-public
+            // addresses, which is what keeps a client-supplied endpoint from turning
+            // this feature into an internal request primitive.
+            builder.Services.AddSingleton<PushHttpClient>();
+
+            // Web push: real sender only when VAPID keys are configured, otherwise a no-op stub.
+            // (The no-op stub logs a single Information line on its first send — no per-scope warning.)
+            builder.Services.AddScoped<IPushNotificationService>(sp =>
+            {
+                var options = sp.GetRequiredService<IOptions<PushOptions>>().Value;
+                var pushLogger = sp.GetRequiredService<ILogger<PushNotificationService>>();
+                var noopLogger = sp.GetRequiredService<ILogger<NoopPushNotificationService>>();
+
+                if (!options.IsConfigured)
+                    return new NoopPushNotificationService(noopLogger);
+
+                return new PushNotificationService(
+                    pushLogger,
+                    Microsoft.Extensions.Options.Options.Create(options),
+                    sp.GetRequiredService<IPushSubscriptionService>(),
+                    sp.GetRequiredService<IUnitOfWork>(),
+                    sp.GetRequiredService<TimeProvider>(),
+                    sp.GetRequiredService<PushHttpClient>(),
+                    sp.GetRequiredService<IStringLocalizer<PushNotificationService>>());
+            });
 
             // Caching
             builder.Services.AddMemoryCache(o => o.SizeLimit = 10_000);

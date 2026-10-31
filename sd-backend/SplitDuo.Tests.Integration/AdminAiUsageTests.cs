@@ -214,7 +214,7 @@ public class AdminAiUsageTests(SplitDuoApiFactory factory) : IntegrationTest(fac
         Assert.Equal(HttpStatusCode.OK, page2.StatusCode);
         var body2 = await page2.Content.ReadFromJsonAsync<PaginatedResponseDto<AiUsageEntryDto>>(ct);
         Assert.NotNull(body2);
-        Assert.Equal(1, body2!.Data!.Count);
+        Assert.Single(body2!.Data!);
         Assert.False(body2.Pagination.HasNext);
         Assert.True(body2.Pagination.HasPrev);
     }

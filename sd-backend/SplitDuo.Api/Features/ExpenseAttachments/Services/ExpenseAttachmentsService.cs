@@ -19,7 +19,6 @@ public interface IExpenseAttachmentsService
 
 public class ExpenseAttachmentsService(
     IUnitOfWork unitOfWork,
-    TimeProvider timeProvider,
     IStringLocalizer<ExpenseAttachmentsService> loc) : IExpenseAttachmentsService
 {
     private const long MaxAttachmentSizeBytes = 10 * 1024 * 1024; // 10MB

@@ -23,7 +23,8 @@ public sealed class RecurringExpenseGenerationJob(
     IUnitOfWork unitOfWork,
     TimeProvider timeProvider,
     ICacheInvalidator cacheInvalidator,
-    IExpenseCreationService expenseCreationService) : IJob
+    IExpenseCreationService expenseCreationService,
+    IPushNotificationService pushNotificationService) : IJob
 {
     public async ValueTask Execute(IJobExecutionContext context, CancellationToken cancellationToken = default)
     {
@@ -225,17 +226,47 @@ public sealed class RecurringExpenseGenerationJob(
             return;
         }
 
-        if (result.IsSuccess)
+        // Value is declared nullable even though Success always sets it; match on it
+        // so the compiler can prove non-null without a suppression.
+        if (result is { IsSuccess: true, Value: { } createdExpense })
         {
             // Set the navigation (not ExpenseId) — the expense is still Added/unsaved
             // with Id == 0; the navigation lets EF fix up the FK after SaveChanges
             // generates the store id. Assigning ExpenseId = 0 breaks the save.
-            instance.Expense = result.Value;
+            instance.Expense = createdExpense;
             instance.Status = RecurringExpenseInstanceStatus.AutoPublished;
             await unitOfWork.SaveChangesAsync();
             logger.LogInformation(
                 "RecurringExpenseGenerationJob: created expense {ExpenseId} for template {TemplateId} period {Period}",
-                result.Value.Id, template.Id, instance.PeriodDate);
+                createdExpense.Id, template.Id, instance.PeriodDate);
+
+            // Push: notify all active group members the recurring expense materialized.
+            // Backfill periods (before today) are skipped — only notify on fresh generation.
+            // Non-fatal: a push failure must never break the generation loop.
+            if (instance.PeriodDate >= DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime))
+            {
+                try
+                {
+                    var memberUserIds = await unitOfWork.GroupMembers
+                        .Where(gm => gm.GroupId == template.Group.Id && gm.DeletedAt == null)
+                        .Select(gm => gm.UserId)
+                        .ToListAsync();
+
+                    var payload = new PushPayload(
+                        template.Group.Name, "PushBodyRecurringExpense", [template.Title],
+                        $"/groups/{template.Group.Guid}",
+                        $"group-{template.Group.Guid}-recurring-{instance.Id}");
+
+                    foreach (var memberUserId in memberUserIds)
+                        await pushNotificationService.SendAsync(memberUserId, payload);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex,
+                        "RecurringExpenseGenerationJob: push notification failed for template {TemplateId} period {Period}",
+                        template.Id, instance.PeriodDate);
+                }
+            }
         }
         else
         {

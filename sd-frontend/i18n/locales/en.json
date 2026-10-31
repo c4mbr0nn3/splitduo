@@ -946,6 +946,36 @@
       "previewFailed": "Failed to generate recurrence preview"
     }
   },
+  "push": {
+    "subscribed": "Notifications enabled",
+    "subscribeFailed": "Failed to enable notifications",
+    "unsubscribed": "Notifications disabled",
+    "unsubscribeFailed": "Failed to disable notifications",
+    "permissionDenied": "Notification permission was denied",
+    "subscriptionRemoved": "Device removed",
+    "subscriptionRemoveFailed": "Failed to remove device",
+    "settings": {
+      "title": "Push notifications",
+      "description": "Get notified about group activity, even when the app is closed.",
+      "unsupported": "This browser doesn't support push notifications.",
+      "notConfigured": "Push notifications are currently disabled by the administrator.",
+      "iosHint": "To receive notifications, add SplitDuo to your Home Screen from the Safari share menu, then turn notifications on here.",
+      "devicesTitle": "Registered devices",
+      "thisDevice": "This device",
+      "registeredOn": "Registered {date}",
+      "remove": "Remove",
+      "noDevices": "No registered devices found.",
+      "unknownDevice": "Unknown device",
+      "on": "on"
+    },
+    "optIn": {
+      "title": "Push notifications",
+      "message": "Want push notifications for {groupName}?",
+      "messageGeneric": "Want to receive push notifications?",
+      "enable": "Enable",
+      "notNow": "Not now"
+    }
+  },
   "layout": {
     "userFallback": "User"
   }

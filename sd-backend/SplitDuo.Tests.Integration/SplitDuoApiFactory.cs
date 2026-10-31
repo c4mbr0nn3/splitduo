@@ -8,6 +8,7 @@ using SplitDuo.Tests.Integration.Support;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Npgsql;
 using Respawn;
@@ -17,6 +18,7 @@ using SplitDuo.Core.Domain.Enums;
 using SplitDuo.Core.Options;
 using SplitDuo.Core.Persistence;
 using SplitDuo.Core.Persistence.Interceptors;
+using SplitDuo.Core.Services;
 using System.Threading.RateLimiting;
 using Testcontainers.PostgreSql;
 
@@ -39,6 +41,15 @@ public class SplitDuoApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
     public ResettableFakeTimeProvider TimeProvider { get; } = new();
 
     public string ConnectionString => _dbContainer.GetConnectionString();
+
+    /// <summary>
+    /// Replaces the push sender for the whole test host. Registered once here (rather
+    /// than per test through a derived host) because the production registration is a
+    /// factory lambda that a per-test override would have to remove anyway — and because
+    /// <c>PushOptionsSetup</c> reads SD_VAPID_* from the process environment, so a machine
+    /// with those exported would otherwise run the real sender in every invitation test.
+    /// </summary>
+    public RecordingPushNotificationService PushRecorder { get; } = new();
 
     public SplitDuoApiFactory()
     {
@@ -65,6 +76,10 @@ public class SplitDuoApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 
         builder.ConfigureTestServices(services =>
         {
+            // --- B0: Record push sends instead of delivering them (see PushRecorder) ---
+            services.RemoveAll<IPushNotificationService>();
+            services.AddScoped<IPushNotificationService>(_ => PushRecorder);
+
             // --- B1: Override AppDbContext to point at the Testcontainers DB ---
             var dbDescriptor = services.SingleOrDefault(
                 d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));

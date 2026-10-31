@@ -596,6 +596,7 @@ public class AliasesTests : IntegrationTest
         Assert.DoesNotContain(listBody!.Data!, a => a.Id == aliasId);
 
         // Both former members now have singleton aliases
+        Assert.NotNull(listBody.Data);
         Assert.Contains(listBody.Data, a => a.IsSingleton && a.Members.Any(m => m.Id == adminId));
         Assert.Contains(listBody.Data, a => a.IsSingleton && a.Members.Any(m => m.Id == user2Id));
     }

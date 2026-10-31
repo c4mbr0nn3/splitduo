@@ -22,6 +22,7 @@
         <PackageReference Include="Quartz" Version="4.6.0" />
         <PackageReference Include="Serilog.AspNetCore" Version="10.0.0"/>
         <PackageReference Include="Serilog.Sinks.Postgresql.Alternative" Version="4.3.0"/>
+        <PackageReference Include="WebPush" Version="1.0.13" />
     </ItemGroup>
 
     <ItemGroup>
@@ -30,6 +31,10 @@
 
     <ItemGroup>
         <EmbeddedResource Include="EmailTemplates\**\*.html" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="SplitDuo.Tests.Unit" />
     </ItemGroup>
 
 </Project>

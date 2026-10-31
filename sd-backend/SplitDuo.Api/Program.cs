@@ -16,5 +16,6 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.ConfigureServices();
+app.LogPushConfiguration();
 
 app.Run();

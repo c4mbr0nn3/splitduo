@@ -60,6 +60,11 @@ services:
       SD_EMAIL_SMTP_USERNAME: ""
       SD_EMAIL_SMTP_PASSWORD: ""
       SD_EMAIL_SSL: "false"
+
+      # Push Notification Configuration (Optional - for web push)
+      # SD_VAPID_PUBLIC_KEY: ""
+      # SD_VAPID_PRIVATE_KEY: ""
+      # SD_VAPID_SUBJECT: "mailto:admin@splitduo.local"
     ports:
       - "3000:8080"
     depends_on:

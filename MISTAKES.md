@@ -34,3 +34,13 @@ When the same root cause appears 3+ times, graduate it into AGENTS.md / CLAUDE.m
 **Prevention:**
 - Never assume a CLI tool exists inside a CI image — verify against the image's Dockerfile or an actual run (`docker run --rm docker:28 which curl`), or grep the repo's own CI jobs for how they obtain the tool.
 - For CI script changes, the cheapest verification is running the script body locally in the same image before pushing (`docker run --rm -it docker:28 sh`).
+## 2026-10-30 — False red: parallel `dotnet test` and integration run in one working tree
+
+**What happened:** Ran the unit suite and `run-integration-tests.sh` in the same working tree at the same time. The integration run exited 1 with no test summary; the log showed `error MSB4018: The "GetAssemblyAttributes" task failed unexpectedly` and `The process cannot access the file '.../SplitDuo.Api/obj/Debug/net10.0/SplitDuo.Api.dll' because it is being used by another process`. It looked like a code failure at first glance, but the tests never ran.
+
+**Root cause:** Two builds writing the same `obj/`/`bin/` output for the same project. The unit project and the integration project both build `SplitDuo.Api`, so "different test projects" is not isolation.
+
+**Prevention:**
+- Never run two `dotnet build`/`dotnet test` commands concurrently in one working tree — not even for different test projects.
+- A run that fails with MSB4018 / "being used by another process" / no test summary is a build collision, not a regression: re-run it alone before reading anything into the result.
+- If parallel verification is genuinely needed, use a separate git worktree (the repo's `worktrees` skill), not a second command in the same one.

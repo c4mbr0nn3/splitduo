@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+    <xsd:element name="root" msdata:IsDataSet="true"/>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="PushBodyMemberAdded" xml:space="preserve"><value>{0} si è unito al gruppo</value></data>
+  <data name="PushBodyInvitationAccepted" xml:space="preserve"><value>{0} ha accettato il tuo invito al gruppo</value></data>
+  <data name="PushBodyRecurringExpense" xml:space="preserve"><value>La spesa ricorrente "{0}" è stata aggiunta</value></data>
+  <data name="PushSendFailed" xml:space="preserve"><value>Invio della notifica push non riuscito</value></data>
+</root>

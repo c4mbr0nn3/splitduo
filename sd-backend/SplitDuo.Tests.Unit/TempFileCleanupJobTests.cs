@@ -97,7 +97,7 @@ public class TempFileCleanupJobTests
         context.SaveChanges();
 
         var job = CreateJob(context);
-        await job.Execute(Substitute.For<IJobExecutionContext>());
+        await job.Execute(Substitute.For<IJobExecutionContext>(), TestContext.Current.CancellationToken);
 
         Assert.Null(oldCompleted.TempFile);
         Assert.Null(oldFailed.TempFile);
@@ -121,7 +121,7 @@ public class TempFileCleanupJobTests
         context.SaveChanges();
 
         var job = CreateJob(context);
-        await job.Execute(Substitute.For<IJobExecutionContext>());
+        await job.Execute(Substitute.For<IJobExecutionContext>(), TestContext.Current.CancellationToken);
 
         Assert.Null(oldPending.TempFile);
         Assert.Null(oldProcessing.TempFile);
@@ -146,7 +146,7 @@ public class TempFileCleanupJobTests
         context.SaveChanges();
 
         var job = CreateJob(context);
-        await job.Execute(Substitute.For<IJobExecutionContext>());
+        await job.Execute(Substitute.For<IJobExecutionContext>(), TestContext.Current.CancellationToken);
 
         Assert.NotNull(recentCompleted.TempFile);
         Assert.NotNull(recentFailed.TempFile);
@@ -172,6 +172,6 @@ public class TempFileCleanupJobTests
             TestTimeProvider);
 
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => job.Execute(Substitute.For<IJobExecutionContext>()).AsTask());
+            () => job.Execute(Substitute.For<IJobExecutionContext>(), TestContext.Current.CancellationToken).AsTask());
     }
 }
