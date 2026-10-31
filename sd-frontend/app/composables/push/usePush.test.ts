@@ -178,6 +178,73 @@ describe('usePush', () => {
     })
   })
 
+  // Full subscribe flow stubbing: VAPID fetch succeeds, permission granted,
+  // pushManager.subscribe() yields the fake subscription. The POST outcome is
+  // injected so each test can reject/resolve the save independently.
+  // vi.resetModules() + dynamic import starts the singleton state clean —
+  // earlier tests leave isConfigured/isSubscribed non-default.
+  const stubSubscribeFlow = async (postImpl: () => Promise<unknown>) => {
+    vi.resetModules()
+    const pushManager = {
+      getSubscription: () => Promise.resolve(null),
+      subscribe: vi.fn().mockResolvedValue(fakeSubscription),
+    }
+    vi.stubGlobal('Notification', {
+      permission: 'default',
+      requestPermission: vi.fn().mockResolvedValue('granted'),
+    })
+    Object.defineProperty(navigator, 'serviceWorker', {
+      value: { ready: Promise.resolve({ pushManager }) },
+      configurable: true,
+    })
+    Object.defineProperty(window, 'PushManager', { value: {}, configurable: true })
+    apiMock.get.mockResolvedValue({ success: true, data: { publicKey: 'key' } })
+    apiMock.post.mockImplementation(postImpl)
+    const { default: freshUsePush } = await import('./usePush')
+    return { push: freshUsePush(), pushManager }
+  }
+
+  describe('subscribe save outcome', () => {
+    it('on 409 does not unsubscribe, shows the shared-browser message, and stays unsubscribed', async () => {
+      const { push, pushManager } = await stubSubscribeFlow(() =>
+        Promise.reject(Object.assign(new Error('409'), { statusCode: 409 })))
+
+      const result = await push.subscribe()
+
+      expect(pushManager.subscribe).toHaveBeenCalledOnce()
+      expect(fakeSubscription.unsubscribe).not.toHaveBeenCalled()
+      expect(notificationsMock.showError).toHaveBeenCalledWith('push.subscriptionInUse')
+      expect(result).toBe(false)
+      expect(push.isSubscribed.value).toBe(false)
+    })
+
+    it('on other save failures unsubscribes and shows the generic error', async () => {
+      const { push, pushManager } = await stubSubscribeFlow(() =>
+        Promise.reject(Object.assign(new Error('500'), { statusCode: 500 })))
+
+      const result = await push.subscribe()
+
+      expect(pushManager.subscribe).toHaveBeenCalledOnce()
+      expect(fakeSubscription.unsubscribe).toHaveBeenCalledTimes(1)
+      expect(notificationsMock.showError).toHaveBeenCalledWith('push.subscribeFailed')
+      expect(result).toBe(false)
+      expect(push.isSubscribed.value).toBe(false)
+    })
+
+    it('on success shows the enabled toast and marks subscribed', async () => {
+      const { push, pushManager } = await stubSubscribeFlow(() =>
+        Promise.resolve({ success: true, data: null }))
+
+      const result = await push.subscribe()
+
+      expect(pushManager.subscribe).toHaveBeenCalledOnce()
+      expect(fakeSubscription.unsubscribe).not.toHaveBeenCalled()
+      expect(notificationsMock.showSuccess).toHaveBeenCalledWith('push.subscribed')
+      expect(result).toBe(true)
+      expect(push.isSubscribed.value).toBe(true)
+    })
+  })
+
   describe('unsubscribe', () => {
     it('unsubscribes and deletes the server record when a browser subscription exists', async () => {
       stubPushSupport(() => Promise.resolve(fakeSubscription))

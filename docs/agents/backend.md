@@ -37,11 +37,21 @@ Services **do not** call `SaveChangesAsync()` — the controller does, after che
 ### DTO Mapping
 Manual mapping — no AutoMapper. DTOs have constructors that accept entities. **ID convention**: Entities have `int Id` (DB primary key) + `Guid Guid` (API-facing). DTOs expose `Guid` as `string`.
 
+### Test Seams
+
+Test projects may see internals through `InternalsVisibleTo` in the **project
+file** only — never by widening the public API:
+- `SplitDuo.Core` → `SplitDuo.Tests.Unit` (`SplitDuo.Core.csproj`)
+- `SplitDuo.Api` → `SplitDuo.Tests.Integration` (`SplitDuo.Api.csproj`)
+
+Members exposed this way are documented test seams: keep them `internal` and
+explain why (see `PushHttpClient`'s internal constructor — bypassing its
+transport guards in production would defeat the SSRF protection).
+
 ### Admin System Notifications
 `Features/System/` — `GET`/`POST api/v1/admin/notifications` (SystemAdmin policy). To add a notification type: implement `INotificationProvider` (returns `{Type, TargetKey, Payload}`), register it in DI — `AdminNotificationsController` aggregates all providers and filters per-user dismissals (stored in jsonb `UserSettings.DismissedNotifications`, pruned on write). First provider: update check (`UpdateCheckBackgroundService` polls Docker Hub tags with GitHub raw `VERSION` fallback, daily; opt out via `SD_UPDATE_CHECK_DISABLED=true`).
 - `ICurrentVersionProvider` is the single source for the running version — never call `Assembly.GetEntryAssembly()` for version checks elsewhere
 - Dismissals are pending-only (404 for non-pending) + length-validated + capped (64 entries) — see `NotificationDismissalHelper`
-- `SplitDuo.Tests.Unit` has no `InternalsVisibleTo` — keep test seams public
 
 ### Admin List-Endpoint Pagination Convention
 Admin/list endpoints follow the `ExpensesService` precedent for query clamps: `if (page < 1) page = 1; if (limit < 1 || limit > 100) limit = 20;` — an out-of-range `limit` **falls back to the default (20)**, it is not clamped to the boundary. Reference: `AiUsageService.GetUsageAsync`.

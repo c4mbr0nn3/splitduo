@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import type { ValidateInvitationResponse } from '~/types/domain'
 
-// Script-side usage of a component requires an explicit import (auto-import
-// registration only covers template usage).
-
 const { t, locale } = useI18n()
 const route = useRoute()
 const { validateInvitationToken, acceptInvitation } = useInvitations()
@@ -101,6 +98,11 @@ const handleSubmit = async () => {
       confirmPassword: form.value.confirmPassword,
       uiLanguage: locale.value,
     })
+
+    // The account exists but is not authenticated yet, so push endpoints are
+    // out of reach — carry the group name across the login that follows so the
+    // dashboard can prompt then.
+    markPushOptInPending(invitationData.value?.groupName ?? '')
 
     acceptSuccess.value = true
 

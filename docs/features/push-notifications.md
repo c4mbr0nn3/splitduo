@@ -45,7 +45,7 @@ flowchart LR
     user["End user"] -->|"permission + toggle"| web
     web["SplitDuo web app<br/>(Nuxt SPA + usePush)"] -->|"POST /api/v1/push/subscriptions"| api["SplitDuo API"]
     api -->|"reads/writes"| db[("push_subscriptions")]
-    job["Quartz job"] -->|"member added /<br/>recurring expense"| api
+    job["Quartz job"] -->|"recurring expense"| api
     api -->|"encrypted POST<br/>+ VAPID signature"| ps["Push service<br/>(FCM / Mozilla / Apple)"]
     ps -->|"wakes"| sw["Service worker<br/>(sw.ts)"]
     sw -->|"showNotification()"| os["OS notification tray"]
@@ -131,10 +131,16 @@ sequenceDiagram
 
 Where the prompt appears today:
 
-- **`app.vue` on mount** (authenticated only): initialises state and silently heals a
-  drifted subscription (`resubscribeIfNeeded` — idempotent upsert, no toasts).
+- **`app.vue` bootstrap** (authenticated only): runs on mount and again when a login
+  completes without a reload (once per authenticated period); initialises state and
+  silently heals a drifted subscription (`resubscribeIfNeeded` — idempotent upsert,
+  no toasts).
 - **After creating a group** (`groups/add.vue`): contextual modal, still inside the user
   gesture chain, so the browser permission prompt is allowed.
+- **After joining a group**: the invitation accept page creates the account before the
+  user can be prompted, so it stores the group name in
+  `localStorage['push-opt-in-pending']`; the first authenticated dashboard visit after
+  login consumes the marker and shows the modal (one-shot).
 - The dismissal flag is `localStorage['push-prompt-dismissed']`. "Not now" sets it
   (never ask again); closing with X does not (ask next time). The modal never appears
   when permission is already granted or a subscription already exists.
@@ -145,7 +151,7 @@ Where the prompt appears today:
 
 ## 5. From event to notification
 
-Two backend events currently notify. Both build the same payload shape
+Three backend events currently notify. All build the same payload shape
 `{ title, body, url, tag }`; the body text is localised from the **recipient's**
 `uiLanguage` (en/it), not the caller's.
 
@@ -159,8 +165,11 @@ sequenceDiagram
     participant SW as Service worker
     actor U as User
 
-    alt someone joins a group
-        T->>API: InvitationsService: member accepted
+    alt an invitation is accepted
+        T->>API: InvitationsService: AcceptInvitationAsync
+        Note over API: recipients = the user(s) who sent the invitation
+    else an existing user is invited into a group
+        T->>API: InvitationsService: SendMemberAddedPushAsync (after the save)
         Note over API: recipients = active members<br/>minus the new member and the inviter
     else recurring expense generated
         T->>API: RecurringExpenseGenerationJob
@@ -199,6 +208,17 @@ service worker is picked up immediately. Updates are prompt-based: a waiting SW 
 Every device gets its own row. The row is the unit that fails, gets purged, or gets
 re-registered.
 
+The failure counter is approximate by design. Two sends for the same device can
+overlap (an invitation accepted while a recurring-expense job is running); both read
+the same `failure_count`, and last write wins, so an increment can be lost and a dead
+endpoint may take a few extra failures to purge. A concurrent purge can also surface
+as `DbUpdateConcurrencyException` (the row is already gone); the send path treats that
+as benign and drops the losing tracked state. If the counter ever needs to be exact,
+replace the read-modify-write in `ApplyOutcomes` with atomic SQL — `ExecuteUpdateAsync`
+for `failure_count = failure_count + 1` and for the reset-on-success, plus an
+`ExecuteDeleteAsync` predicate at the threshold. Not required while the counter only
+governs best-effort cleanup.
+
 ```mermaid
 stateDiagram-v2
     [*] --> NotSupported: browser lacks Push API
@@ -226,9 +246,12 @@ data, or the user reinstalls the PWA.
 
 1. **App mount** (`resubscribeIfNeeded`) — the reliable one: if permission is granted
    and a browser subscription exists, upsert it. Never auto-subscribes.
-2. **`pushsubscriptionchange` in the service worker** — best-effort: resubscribes and
-   tries to POST, but the SW has no bearer token, so that POST usually 401s. The mount
-   path is what actually repairs the row. (Known limitation, documented in `sw.ts`.)
+2. **`pushsubscriptionchange` in the service worker** — best-effort: when the browser
+   rotates or drops the subscription, the SW re-subscribes locally using the
+   `applicationServerKey` from the event. It does **not** POST the new endpoint — the
+   SW has no bearer token, so that request would always 401. The app's
+   `resubscribeIfNeeded()` on the next mount repairs the server row. (Known limitation,
+   documented in `sw.ts`.)
 
 ---
 

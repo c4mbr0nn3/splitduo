@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Globalization;
 using System.Net;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Time.Testing;
+using NSubstitute;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Domain.Entities;
 using SplitDuo.Core.Options;
@@ -71,7 +73,10 @@ public class PushSendPathTests
                 VapidHelper.GenerateVapidKeys(), logger: Logger);
         }
 
-        public async Task SeedUserAndSubscriptionsAsync(params SeedSubscription[] subscriptions)
+        public Task SeedUserAndSubscriptionsAsync(params SeedSubscription[] subscriptions) =>
+            SeedUserAndSubscriptionsAsync("en", subscriptions);
+
+        public async Task SeedUserAndSubscriptionsAsync(string uiLanguage, SeedSubscription[] subscriptions)
         {
             Context.Users.Add(new User
             {
@@ -81,7 +86,7 @@ public class PushSendPathTests
                 PasswordHash = "hash",
                 FirstName = "Push",
                 LastName = "Target",
-                Settings = new UserSettings { UiLanguage = "en" },
+                Settings = new UserSettings { UiLanguage = uiLanguage },
             });
 
             var vapid = VapidHelper.GenerateVapidKeys();
@@ -123,7 +128,9 @@ public class PushSendPathTests
 
     private static PushNotificationService BuildService(
         AppDbContext context, PushHttpClient httpClient, TimeProvider clock, VapidDetails vapid,
-        bool configured = true, ILogger<PushNotificationService>? logger = null) =>
+        bool configured = true, ILogger<PushNotificationService>? logger = null,
+        IStringLocalizer<PushNotificationService>? localizer = null,
+        IUnitOfWork? unitOfWork = null) =>
         new(
             logger ?? NullLogger<PushNotificationService>.Instance,
             Options.Create(new PushOptions
@@ -137,16 +144,52 @@ public class PushSendPathTests
                 new UnitOfWork(context),
                 clock,
                 new FakeLocalizer<PushSubscriptionService>()),
-            new UnitOfWork(context),
+            unitOfWork ?? new UnitOfWork(context),
             clock,
             httpClient,
-            new FakeLocalizer<PushNotificationService>());
+            localizer ?? new FakeLocalizer<PushNotificationService>());
 
     private sealed class FakeLocalizer<T> : IStringLocalizer<T>
     {
         public LocalizedString this[string name] => new(name, "{0} notification body");
         public LocalizedString this[string name, params object[] arguments] =>
             new(name, string.Format("{0} notification body", arguments));
+        public IEnumerable<LocalizedString> GetAllStrings(bool includeParentCultures) => [];
+    }
+
+    /// <summary>
+    /// Records how the service looks up the body resource: which key, which indexer
+    /// overload, the ambient UI culture at lookup time, and the format arguments passed.
+    /// Pins both halves of the recipient-language regression.
+    /// </summary>
+    private sealed class SpyLocalizer : IStringLocalizer<PushNotificationService>
+    {
+        public sealed record Lookup(string Key, string Overload, string UiCulture, object?[] Arguments);
+
+        public List<Lookup> Lookups { get; } = [];
+
+        public LocalizedString this[string name]
+        {
+            get
+            {
+                lock (Lookups)
+                    Lookups.Add(new Lookup(name, "single",
+                        CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, []));
+                return new(name, "{0} notification body");
+            }
+        }
+
+        public LocalizedString this[string name, params object[] arguments]
+        {
+            get
+            {
+                lock (Lookups)
+                    Lookups.Add(new Lookup(name, "multi",
+                        CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, arguments));
+                return new(name, string.Format("{0} notification body", arguments));
+            }
+        }
+
         public IEnumerable<LocalizedString> GetAllStrings(bool includeParentCultures) => [];
     }
 
@@ -355,6 +398,48 @@ public class PushSendPathTests
         Assert.Equal(3, fixture.Handler.RequestCount);
     }
 
+    // ─── Concurrent bookkeeping race is benign ──────────────────────────────
+
+    [Fact]
+    public async Task SendAsync_WhenSaveLosesConcurrencyRace_TreatsItAsBenign()
+    {
+        // A concurrent send (or device removal) can delete the row between our read and
+        // our save; EF then throws DbUpdateConcurrencyException even without an explicit
+        // token. The database already holds the winning state, so this must not be logged
+        // as a catastrophic send failure — pre-fix, the broad catch did exactly that and
+        // returned InternalServerError. (The lost update race is silent, not this path.)
+        await using var fixture = new Fixture(new Dictionary<string, HttpStatusCode>
+        {
+            [Endpoint("raced")] = HttpStatusCode.Created,
+        });
+        await fixture.SeedUserAndSubscriptionsAsync(new SeedSubscription(Endpoint("raced")));
+
+        var uow = Substitute.For<IUnitOfWork>();
+        // SendAsync reads Users for the recipient language before sending — an
+        // unconfigured substitute returns null and the test would NRE into the outer catch.
+        uow.Users.Returns(fixture.Context.Users);
+        uow.PushSubscriptions.Returns(fixture.Context.PushSubscriptions);
+        uow.SaveChangesAsync(Arg.Any<CancellationToken>())
+            .Returns(Task.FromException<int>(
+                new DbUpdateConcurrencyException("simulated race")));
+
+        var service = BuildService(
+            fixture.Context, new PushHttpClient(fixture.Handler), fixture.Clock,
+            VapidHelper.GenerateVapidKeys(), logger: fixture.Logger, unitOfWork: uow);
+
+        var result = await service.SendAsync(1, Payload(), TestContext.Current.CancellationToken);
+
+        Assert.True(result.IsSuccess);
+        Assert.DoesNotContain(fixture.Logger.Entries, entry => entry.Level == LogLevel.Error);
+        Assert.Single(fixture.Logger.Entries,
+            entry => entry.Level == LogLevel.Debug && entry.Message.Contains("concurrent"));
+        uow.Received(1).ClearChangeTracker();
+
+        // The losing save was never retried: the row keeps its pre-send state.
+        var row = Assert.Single(await fixture.ReadSubscriptionsAsync());
+        Assert.Null(row.LastUsedAt);
+    }
+
     // ─── Negative control ───────────────────────────────────────────────────
 
     [Fact]
@@ -419,4 +504,78 @@ public class PushSendPathTests
 
     private static PushPayload Payload() =>
         new("Test Group", "PushBodyMemberAdded", ["Someone"], "/groups/abc", "group-abc-member-added-xyz");
+
+    private static StringLocalizer<PushNotificationService> RealLocalizer() =>
+        new(new ResourceManagerStringLocalizerFactory(
+            Options.Create(new LocalizationOptions { ResourcesPath = "Resources" }),
+            NullLoggerFactory.Instance));
+
+    [Theory]
+    [InlineData("en", "Mario joined the group")]
+    [InlineData("it", "Mario si è unito al gruppo")]
+    public void ComposeBody_RendersInRecipientLanguageAndRestoresAmbientCulture(
+        string language, string expected)
+    {
+        var other = language == "en" ? "it" : "en";
+
+        // The real resource strings are required: a fake localizer cannot prove that the
+        // culture selection reaches the resource resolution itself.
+        using var context = new AppDbContext(
+            new DbContextOptionsBuilder<AppDbContext>().UseSqlite("DataSource=:memory:").Options);
+        var service = BuildService(
+            context, new PushHttpClient(new FakePushHandler(new Dictionary<string, HttpStatusCode>())),
+            new FakeTimeProvider(FrozenNow), VapidHelper.GenerateVapidKeys(), localizer: RealLocalizer());
+
+        var ambient = new CultureInfo(other);
+        var previous = CultureInfo.CurrentUICulture;
+        CultureInfo.CurrentUICulture = ambient;
+        try
+        {
+            Assert.Equal(expected, service.ComposeBody("PushBodyMemberAdded", language, ["Mario"]));
+            // ComposeBody must leave the ambient culture untouched after formatting.
+            Assert.Equal(ambient, CultureInfo.CurrentUICulture);
+        }
+        finally
+        {
+            CultureInfo.CurrentUICulture = previous;
+        }
+    }
+
+    // ─── Recipient language: the body is rendered in the recipient's language ──
+
+    [Fact]
+    public async Task SendAsync_UsesRecipientLanguage_NotCallerCulture()
+    {
+        var spy = new SpyLocalizer();
+
+        await using var fixture = new Fixture(new Dictionary<string, HttpStatusCode>
+        {
+            [Endpoint("lang")] = HttpStatusCode.Created,
+        });
+        await fixture.SeedUserAndSubscriptionsAsync("it", [new SeedSubscription(Endpoint("lang"))]);
+
+        var previous = CultureInfo.CurrentUICulture;
+        CultureInfo.CurrentUICulture = new CultureInfo("en");
+        try
+        {
+            var service = BuildService(
+                fixture.Context, new PushHttpClient(fixture.Handler), fixture.Clock,
+                VapidHelper.GenerateVapidKeys(), localizer: spy);
+
+            await service.SendAsync(1, Payload(), TestContext.Current.CancellationToken);
+        }
+        finally
+        {
+            CultureInfo.CurrentUICulture = previous;
+        }
+
+        var lookup = Assert.Single(spy.Lookups);
+        Assert.Equal("PushBodyMemberAdded", lookup.Key);
+        Assert.Equal("single", lookup.Overload);
+        Assert.Equal("it", lookup.UiCulture);
+        // The broken call shape passed a CultureInfo as the first format argument —
+        // the resource was never culture-selected. Pin its absence explicitly.
+        Assert.DoesNotContain(spy.Lookups,
+            l => l.Arguments.Any(a => a is CultureInfo));
+    }
 }

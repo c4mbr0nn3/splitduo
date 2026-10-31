@@ -949,6 +949,7 @@
   "push": {
     "subscribed": "Notifications enabled",
     "subscribeFailed": "Failed to enable notifications",
+    "subscriptionInUse": "This browser is already subscribed to another SplitDuo account. Turn notifications off in that account first.",
     "unsubscribed": "Notifications disabled",
     "unsubscribeFailed": "Failed to disable notifications",
     "permissionDenied": "Notification permission was denied",

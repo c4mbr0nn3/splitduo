@@ -949,6 +949,7 @@
   "push": {
     "subscribed": "Notifiche attivate",
     "subscribeFailed": "Impossibile attivare le notifiche",
+    "subscriptionInUse": "Questo browser è già iscritto a un altro account SplitDuo. Disattiva prima le notifiche in quell'account.",
     "unsubscribed": "Notifiche disattivate",
     "unsubscribeFailed": "Impossibile disattivare le notifiche",
     "permissionDenied": "Permesso di notifica negato",
