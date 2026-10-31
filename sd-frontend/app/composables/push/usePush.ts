@@ -69,16 +69,24 @@ export default function usePush() {
     return isConfigured.value
   }
 
-  const saveSubscription = async (subscription: PushSubscriptionJson): Promise<boolean> => {
+  type SaveSubscriptionResult = 'saved' | 'conflict' | 'failed'
+
+  const saveSubscription = async (subscription: PushSubscriptionJson): Promise<SaveSubscriptionResult> => {
     try {
       await api.post('/push/subscriptions', {
         ...subscription,
         userAgent: navigator.userAgent,
       })
-      return true
+      return 'saved'
     }
-    catch {
-      return false
+    catch (error: unknown) {
+      // Same statusCode shape as the 503 handler in getVapidPublicKey:
+      // useApi throws createError({ statusCode, ... }).
+      if (typeof error === 'object' && error !== null && 'statusCode' in error) {
+        const statusCode = (error as { statusCode?: unknown }).statusCode
+        if (statusCode === 409) return 'conflict'
+      }
+      return 'failed'
     }
   }
 
@@ -123,7 +131,15 @@ export default function usePush() {
       const json = pushSubscription.toJSON() as unknown as PushSubscriptionJson
 
       const saved = await saveSubscription(json)
-      if (!saved) {
+      if (saved === 'conflict') {
+        // Do NOT unsubscribe: on a shared browser, a 409 means the subscription
+        // (same VAPID key returns the existing endpoint) already belongs to
+        // another account. Tearing it down here would silently disable their
+        // pushes — surfacing the message is the fix, not cleanup.
+        notifications.showError(t('push.subscriptionInUse'))
+        return false
+      }
+      if (saved === 'failed') {
         await pushSubscription.unsubscribe()
         notifications.showError(t('push.subscribeFailed'))
         return false

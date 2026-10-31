@@ -119,6 +119,10 @@
 <script setup lang="ts">
 import type { QuickAction } from '~/components/dashboard/QuickActionsCard.vue'
 
+// Script-side usage of a component requires an explicit import (auto-import
+// registration only covers template usage).
+import PushOptInModal from '~/components/push/PushOptInModal.vue'
+
 const { t } = useI18n()
 
 const { groups, fetchGroups } = useGroups()
@@ -152,6 +156,22 @@ onMounted(async () => {
   finally {
     showSkeleton.value = false
   }
+})
+
+const push = usePush()
+const pushOptInOverlay = useOverlay().create(PushOptInModal)
+
+onMounted(async () => {
+  const groupName = consumePushOptInPending()
+  if (groupName === null) return
+  // Resolve server configuration before deciding: an unconfigured server
+  // must not show a modal whose Enable action can only fail.
+  await push.checkConfiguration()
+  if (!push.shouldShowPushOptIn()) return
+  // isSubscribed may still be resolving from app.vue's fire-and-forget init();
+  // if the browser holds another account's subscription the Enable action
+  // surfaces the 409 "subscription in use" toast — not a dead end.
+  await pushOptInOverlay.open({ groupName })
 })
 
 const createFirstGroup = () => {

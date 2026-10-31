@@ -13,7 +13,7 @@ Consult this when bumping backend packages.
 | Step | Command | Notes |
 |---|---|---|
 | Build | `dotnet build` | Fast, catches compile breakage — the floor before every commit (per `docs/agents/backend.md`). |
-| Unit tests | `dotnet test SplitDuo.Tests.Unit/SplitDuo.Tests.Unit.csproj` | No container needed. The project has no `InternalsVisibleTo` — keep test seams public. |
+| Unit tests | `dotnet test SplitDuo.Tests.Unit/SplitDuo.Tests.Unit.csproj` | No container needed. `SplitDuo.Core` grants `SplitDuo.Tests.Unit` `InternalsVisibleTo` for test seams — see Test Seams in `docs/agents/backend.md`. |
 | Integration tests | `./run-integration-tests.sh` | Testcontainers PostgreSQL (`postgres:17-alpine`); needs Docker or rootless Podman. The script sets `DOCKER_HOST` and the Ryuk privileged flag, then runs `dotnet test SplitDuo.Tests.Integration/...`. |
 
 Unit tests are not listed in `docs/agents/backend.md`; the invocation above is the one CI uses (`ci/verify.yml`). Prefer the explicit project path over a solution-wide `dotnet test`, which drags in the containerized integration project.

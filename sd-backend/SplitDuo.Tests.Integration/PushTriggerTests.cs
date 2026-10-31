@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SplitDuo.Api.Features.Common.Dto;
@@ -215,5 +216,45 @@ public class PushTriggerTests : IntegrationTest
         Assert.Equal("Existing", send.Payload.BodyArgs[0]);
         Assert.Equal($"/groups/{group.Id}", send.Payload.Url);
         Assert.Equal($"group-{group.Id}-member-added-{newMemberGuid}", send.Payload.Tag);
+    }
+
+    [Fact]
+    public async Task ExistingUserInvited_PushFiresAfterMemberIsPersisted()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        using var adminClient = await CreateAuthenticatedClientAsync();
+        var group = await adminClient.CreateGroupAsync();
+
+        // Third member: the recipient list excludes the invitee and inviter, so without
+        // this member no send fires and the hook can never run.
+        await SeedSecondMemberAsync(adminClient, group.Id);
+
+        await TestDbSeeder.SeedUserAsync(Factory.Services, "persisted-invitee@localhost", "changeme123", "Persisted", "Invitee");
+        var inviteeGuid = await TestDbSeeder.GetUserGuidAsync(Factory.Services, "persisted-invitee@localhost");
+        var groupGuid = Guid.Parse(group.Id);
+
+        bool memberVisibleAtPushTime = false;
+        Factory.PushRecorder.OnSend = async (_, _) =>
+        {
+            using var scope = Factory.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            memberVisibleAtPushTime = await db.GroupMembers
+                .AsNoTracking()
+                .AnyAsync(gm =>
+                    gm.Group.Guid == groupGuid &&
+                    gm.User.Guid == inviteeGuid &&
+                    gm.DeletedAt == null, ct);
+        };
+
+        var invite = await adminClient.PostAsJsonAsync($"/api/v1/groups/{group.Id}/invitations",
+            new { email = "persisted-invitee@localhost" }, ct);
+        Assert.Equal(HttpStatusCode.OK, invite.StatusCode);
+
+        // The push must observe a committed member row: SendAsync persists its own
+        // bookkeeping with SaveChangesAsync, so firing it before the controller's save
+        // would flush unsaved rows mid-request.
+        Assert.True(memberVisibleAtPushTime,
+            "member was not yet persisted when the push fired");
+        Assert.Single(Factory.PushRecorder.Sends);
     }
 }

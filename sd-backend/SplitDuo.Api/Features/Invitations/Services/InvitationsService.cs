@@ -33,6 +33,8 @@ public interface IInvitationsService
     Task<Result> AcceptInvitationAsync(AcceptInvitationRequestDto request);
 
     Task<Result<List<PendingUserDto>>> GetPendingInvitationsAsync();
+
+    Task SendMemberAddedPushAsync(string groupId, Guid currentUserId, string newMemberUserId);
 }
 
 public class InvitationsService(
@@ -108,30 +110,9 @@ public class InvitationsService(
                 GroupName = group.Name, GroupGuid = group.Guid
             }, existingUserLanguage));
 
-            // Push: notify existing group members that someone joined
-            // (excluding the new member and the acting inviter). Best-effort — must never break the flow.
-            // Note: this query runs BEFORE the new GroupMember is persisted (it is only tracked here);
-            // the explicit Remove(existingUser.Id) is the real guard against notifying the new member.
-            try
-            {
-                var memberUserIds = await unitOfWork.GroupMembers
-                    .Where(gm => gm.GroupId == group.Id && gm.DeletedAt == null)
-                    .Select(gm => gm.UserId)
-                    .ToListAsync();
-                memberUserIds.Remove(existingUser.Id);
-                memberUserIds.Remove(currentUser.Id);
-
-                var payload = new PushPayload(
-                    group.Name, "PushBodyMemberAdded", [existingUser.FirstName],
-                    $"/groups/{group.Guid}", $"group-{group.Guid}-member-added-{existingUser.Guid}");
-
-                foreach (var memberUserId in memberUserIds)
-                    await pushNotificationService.SendAsync(memberUserId, payload);
-            }
-            catch
-            {
-                // Push is non-fatal.
-            }
+            // Push is dispatched by the controller after it saves: the sender persists
+            // its own subscription bookkeeping via SaveChangesAsync, so running it here
+            // would flush this method's still-unsaved GroupMember and email rows.
 
             var hasAvatar = await unitOfWork.UserAvatars.AnyAsync(a => a.UserId == existingUser.Id);
 
@@ -212,6 +193,55 @@ public class InvitationsService(
                 ExpiresAt = invitationToken.ExpiresAt
             }
         });
+    }
+
+    public async Task SendMemberAddedPushAsync(string groupId, Guid currentUserId, string newMemberUserId)
+    {
+        // Best-effort post-commit side effect: the invite is already committed when this
+        // runs, so any failure — missing entity, bad id, transient DB error — must never
+        // surface as a 500. Missing or invalid entities are silent no-ops.
+        try
+        {
+            if (!Guid.TryParse(groupId, out var groupGuid))
+                return;
+            if (!Guid.TryParse(newMemberUserId, out var newMemberGuid))
+                return;
+
+            var group = await unitOfWork.Groups
+                .FirstOrDefaultAsync(g => g.Guid == groupGuid && g.DeletedAt == null);
+            if (group == null)
+                return;
+
+            var newMemberUser = await unitOfWork.Users
+                .FirstOrDefaultAsync(u => u.Guid == newMemberGuid && u.DeletedAt == null);
+            if (newMemberUser == null)
+                return;
+
+            var actingUser = await unitOfWork.Users
+                .FirstOrDefaultAsync(u => u.Guid == currentUserId && u.DeletedAt == null);
+            if (actingUser == null)
+                return;
+
+            var memberUserIds = await unitOfWork.GroupMembers
+                .Where(gm => gm.GroupId == group.Id && gm.DeletedAt == null)
+                .Select(gm => gm.UserId)
+                .ToListAsync();
+            memberUserIds.Remove(newMemberUser.Id);
+            // The new member is committed by now, so the query above returned them;
+            // this removal (and the acting user's) is what keeps the payload recipients right.
+            memberUserIds.Remove(actingUser.Id);
+
+            var payload = new PushPayload(
+                group.Name, "PushBodyMemberAdded", [newMemberUser.FirstName],
+                $"/groups/{group.Guid}", $"group-{group.Guid}-member-added-{newMemberUser.Guid}");
+
+            foreach (var memberUserId in memberUserIds)
+                await pushNotificationService.SendAsync(memberUserId, payload);
+        }
+        catch
+        {
+            // Push is non-fatal.
+        }
     }
 
     public async Task<Result<List<InvitationDto>>> GetGroupInvitationsAsync(string groupId, Guid currentUserId)

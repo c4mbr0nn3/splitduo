@@ -27,14 +27,26 @@ public sealed class RecordingPushNotificationService : IPushNotificationService
         }
     }
 
-    public Task<Result> SendAsync(int userId, PushPayload payload, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Test-owned hook awaited at the start of every send, before recording.
+    /// Lets a test observe database state at the exact moment the push fires.
+    /// The hook must not throw (the recorder itself stays never-throwing);
+    /// cleared by <see cref="Reset"/> so the singleton cannot leak it across tests.
+    /// </summary>
+    public Func<int, PushPayload, Task>? OnSend { get; set; }
+
+    public async Task<Result> SendAsync(int userId, PushPayload payload, CancellationToken cancellationToken = default)
     {
+        if (OnSend is { } hook)
+            await hook(userId, payload);
+
         lock (_gate) _sends.Add((userId, payload));
-        return Task.FromResult(Result.Success());
+        return Result.Success();
     }
 
     public void Reset()
     {
         lock (_gate) _sends.Clear();
+        OnSend = null;
     }
 }

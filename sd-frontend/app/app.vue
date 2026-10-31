@@ -5,19 +5,17 @@ const { locale } = useI18n()
 const uiLocales: Record<string, typeof en> = { en, it }
 const uiLocale = computed(() => uiLocales[locale.value] ?? en)
 
-// Web Push: for authenticated users, check server config once per app mount
-// and heal subscription drift (idempotent upsert, silent). Skipped for
+// Web Push: bootstrap once per authenticated period — app mount covers a
+// restored session and the auth watcher (inside usePushSession) covers a
+// login completed without a reload; logout resets the gate. Skipped for
 // anonymous visitors — the push endpoints require auth and would 401 on
-// every public pageview. Then listen for SW notificationclick navigation
-// messages → SPA route change.
+// every public pageview.
 const push = usePush()
 const { isAuthenticated } = useAuth()
+const pushSession = usePushSession(push, isAuthenticated)
 
 onMounted(() => {
-  if (isAuthenticated.value) {
-    push.init()
-    void push.resubscribeIfNeeded()
-  }
+  pushSession.ensure()
 
   // Guarded: browsers and webviews without service-worker support (or a non-secure
   // origin) leave `navigator.serviceWorker` undefined, and an unguarded access would

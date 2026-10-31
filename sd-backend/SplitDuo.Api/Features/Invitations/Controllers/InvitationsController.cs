@@ -33,7 +33,14 @@ public class InvitationsController(
         var result = await invitationsService.SendInvitationAsync(groupId, currentUserId.Value, request);
 
         if (result.IsSuccess)
+        {
             await unitOfWork.SaveChangesAsync();
+
+            // Member-added push runs only after the save: SendAsync persists its own
+            // subscription bookkeeping, so it must never execute over unsaved rows.
+            if (result.Value?.Member is { } member)
+                await invitationsService.SendMemberAddedPushAsync(groupId, currentUserId.Value, member.UserId);
+        }
 
         return HandleResult(result);
     }

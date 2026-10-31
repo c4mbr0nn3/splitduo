@@ -64,7 +64,7 @@ public class PushNotificationService(
                 return Result.Success();
 
             var language = SupportedLanguages.Normalize(user.Settings.UiLanguage);
-            var body = string.Format(loc[payload.BodyKey, Culture(language)].Value, payload.BodyArgs);
+            var body = ComposeBody(payload.BodyKey, language, payload.BodyArgs);
 
             var json = JsonSerializer.Serialize(new
             {
@@ -95,7 +95,32 @@ public class PushNotificationService(
             var outcomes = await Task.WhenAll(tasks);
 
             if (ApplyOutcomes(subscriptions, outcomes))
-                await unitOfWork.SaveChangesAsync(cancellationToken);
+            {
+                try
+                {
+                    await unitOfWork.SaveChangesAsync(cancellationToken);
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    // A concurrent send or device removal got there first and deleted the
+                    // row (410/404 or 5 failures). The database already holds the winning
+                    // state, so this is not a send failure. Drop the losing tracked entries
+                    // — all call sites save their business changes before dispatching push,
+                    // so nothing else is pending — or a later SaveChanges in the same scope
+                    // (the recurring job loop) would retry them and throw again.
+                    //
+                    // FailureCount is deliberately approximate under concurrency; two sends
+                    // can lose an increment (the update race is silent, not this exception).
+                    // The correct fix if it ever needs to be exact is atomic SQL:
+                    // ExecuteUpdateAsync for failure_count = failure_count + 1, the same for
+                    // the reset-on-success, and ExecuteDeleteAsync with the threshold
+                    // predicate — not a retry here.
+                    unitOfWork.ClearChangeTracker();
+                    logger.LogDebug(
+                        "Push bookkeeping for user {UserId} lost a concurrent race; keeping the winning row state",
+                        userId);
+                }
+            }
 
             return Result.Success();
         }
@@ -245,4 +270,28 @@ public class PushNotificationService(
 
     private static CultureInfo Culture(string language) => SupportedLanguages.Cultures
         .First(c => c.TwoLetterISOLanguageName == language);
+
+    /// <summary>
+    /// Test seam: scoped culture selection must be observed at lookup time, which only
+    /// works with the real localizer and the real resource strings. Mirrors the
+    /// internal-constructor seam on <see cref="PushHttpClient"/>.
+    /// </summary>
+    internal string ComposeBody(string bodyKey, string language, object?[] bodyArgs)
+    {
+        var culture = Culture(language);
+        var previous = CultureInfo.CurrentUICulture;
+        try
+        {
+            // IStringLocalizer exposes no culture-aware indexer: the resource is resolved
+            // from the ambient UI culture. Scope it to the recipient's language and restore
+            // it in finally. The scope contains no awaits, so it cannot leak across a
+            // continuation regardless of how the runtime stores the culture.
+            CultureInfo.CurrentUICulture = culture;
+            return string.Format(culture, loc[bodyKey].Value, bodyArgs);
+        }
+        finally
+        {
+            CultureInfo.CurrentUICulture = previous;
+        }
+    }
 }
