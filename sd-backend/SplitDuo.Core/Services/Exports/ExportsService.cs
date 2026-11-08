@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Text;
 using CsvHelper;
 using Microsoft.EntityFrameworkCore;
@@ -54,7 +53,7 @@ public class SplitDuoExportsService(
             // Generate CSV
             using var memoryStream = new MemoryStream();
             await using var writer = new StreamWriter(memoryStream, Encoding.UTF8);
-            await using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
+            await using var csv = CsvWriter.Create(writer);
 
             // Write header
             csv.WriteField("Date");
@@ -65,7 +64,7 @@ public class SplitDuoExportsService(
             csv.WriteField("Category");
             csv.WriteField("PaymentMode");
             csv.WriteField("Owers");
-            await csv.NextRecordAsync();
+            await csv.EndRecordAsync();
 
             // Write expense records
             foreach (var expense in expenses)
@@ -83,9 +82,11 @@ public class SplitDuoExportsService(
                     expense.ExpenseSplits.Select(split => $"{split.User.Email}:{split.SplitAmount:F2}"));
                 csv.WriteField(owersFormatted);
 
-                await csv.NextRecordAsync();
+                await csv.EndRecordAsync();
             }
 
+            // CsvHelper 34 buffers internally, so flush it before reading the stream.
+            await csv.FlushAsync();
             await writer.FlushAsync();
             var csvBytes = memoryStream.ToArray();
 
@@ -135,39 +136,48 @@ public class SplitDuoExportsService(
 
             using var memoryStream = new MemoryStream();
             await using var writer = new StreamWriter(memoryStream, Encoding.UTF8);
-            await using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
+            // The alias export writes sections with different field counts, so the
+            // writer must not enforce a single record shape.
+            await using var csv = CsvWriter.Create(writer,
+                new CsvWriterOptions { ValidateFieldCount = false });
 
             // Section 1: aliases
             csv.WriteField("name");
             csv.WriteField("is_singleton");
-            await csv.NextRecordAsync();
+            await csv.EndRecordAsync();
 
             foreach (var alias in aliases)
             {
                 csv.WriteField(alias.Name);
                 csv.WriteField(alias.IsSingleton == true ? 1 : 0);
-                await csv.NextRecordAsync();
+                await csv.EndRecordAsync();
             }
 
-            // Blank line separator
-            await csv.NextRecordAsync();
+            // Blank line separator. CsvHelper 34 ends a record only when it has a
+            // field and quotes a lone empty field, so flush and write the line
+            // ending directly to keep a real blank line between sections.
+            await csv.FlushAsync();
+            await writer.WriteAsync(csv.Options.NewLine);
 
             // Section 2: members
             csv.WriteField("email");
             csv.WriteField("alias_name");
             csv.WriteField("role");
-            await csv.NextRecordAsync();
+            await csv.EndRecordAsync();
 
             foreach (var member in members)
             {
                 csv.WriteField(member.User?.Email ?? string.Empty);
                 csv.WriteField(member.Alias?.Name ?? string.Empty);
                 csv.WriteField(member.Role.ToString().ToLowerInvariant());
-                await csv.NextRecordAsync();
+                await csv.EndRecordAsync();
             }
 
-            // Blank line separator
-            await csv.NextRecordAsync();
+            // Blank line separator. CsvHelper 34 ends a record only when it has a
+            // field and quotes a lone empty field, so flush and write the line
+            // ending directly to keep a real blank line between sections.
+            await csv.FlushAsync();
+            await writer.WriteAsync(csv.Options.NewLine);
 
             // Section 3: expenses
             csv.WriteField("date");
@@ -179,7 +189,7 @@ public class SplitDuoExportsService(
             csv.WriteField("category");
             csv.WriteField("payment_mode");
             csv.WriteField("alias_splits");
-            await csv.NextRecordAsync();
+            await csv.EndRecordAsync();
 
             foreach (var expense in expenses)
             {
@@ -197,9 +207,11 @@ public class SplitDuoExportsService(
                     expense.ExpenseAliasSplits.Select(eas => $"{eas.Alias.Name}:{eas.SplitAmount:F2}"));
                 csv.WriteField(aliasSplitsFormatted);
 
-                await csv.NextRecordAsync();
+                await csv.EndRecordAsync();
             }
 
+            // CsvHelper 34 buffers internally, so flush it before reading the stream.
+            await csv.FlushAsync();
             await writer.FlushAsync();
             var csvBytes = memoryStream.ToArray();
 

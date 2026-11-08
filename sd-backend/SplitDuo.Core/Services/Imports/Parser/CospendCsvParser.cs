@@ -1,6 +1,4 @@
-using System.Globalization;
 using CsvHelper;
-using CsvHelper.Configuration;
 using Microsoft.AspNetCore.Http;
 using SplitDuo.Core.Dto.Imports;
 
@@ -57,12 +55,11 @@ public static class CospendCsvParser
     private static async Task<CospendParseResult> ParseAsync(Stream stream, List<CospendSection> includeSections)
     {
         using var reader = new StreamReader(stream);
-        var config = new CsvConfiguration(CultureInfo.InvariantCulture)
-        {
-            MissingFieldFound = null,
-            HeaderValidated = null,
-        };
-        using var csvReader = new CsvReader(reader, config);
+        // The file holds several data sets, each with its own header row, and the
+        // parser detects those headers itself; the reader must not consume the first
+        // row as a file header.
+        var options = new CsvReaderOptions { HasHeader = false };
+        using var csvReader = CsvReader.Create(reader, options);
 
         var members = new List<CospendMemberDto>();
         var categories = new List<CospendCategoryDto>();
@@ -73,7 +70,7 @@ public static class CospendCsvParser
 
         while (await csvReader.ReadAsync())
         {
-            var record = csvReader.Parser.Record;
+            var record = CurrentRecord(csvReader);
             if (record == null || IsEmptyOrSectionSeparator(record))
             {
                 currentSection = CospendSection.None;
@@ -125,6 +122,17 @@ public static class CospendCsvParser
             PaymentModes = paymentModes,
             Expenses = expenses
         };
+    }
+
+    private static string[] CurrentRecord(CsvReader csvReader)
+    {
+        var record = new string[csvReader.FieldCount];
+        for (var i = 0; i < record.Length; i++)
+        {
+            record[i] = csvReader.GetString(i);
+        }
+
+        return record;
     }
 
     private static bool IsEmptyOrSectionSeparator(string[] record) =>

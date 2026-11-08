@@ -1,37 +1,40 @@
-using CsvHelper.Configuration.Attributes;
+using CsvHelper;
 
 namespace SplitDuo.Core.Dto.Imports;
 
-public class SplitDuoAliasDto
+[CsvRecord]
+public partial class SplitDuoAliasDto
 {
-    [Name("name")] public string Name { get; set; } = "";
-    [Name("is_singleton")] public int IsSingletonInt { get; set; }
+    [CsvColumn("name", Optional = true)] public string Name { get; set; } = "";
+    [CsvColumn("is_singleton", Optional = true)] public int IsSingletonInt { get; set; }
 
-    [Ignore] public bool IsSingleton => IsSingletonInt == 1;
+    [CsvIgnore] public bool IsSingleton => IsSingletonInt == 1;
 }
 
-public class SplitDuoAliasMemberDto
+[CsvRecord]
+public partial class SplitDuoAliasMemberDto
 {
-    [Name("email")] public string Email { get; set; } = "";
-    [Name("alias_name")] public string AliasName { get; set; } = "";
-    [Name("role")] public string Role { get; set; } = "";
+    [CsvColumn("email", Optional = true)] public string Email { get; set; } = "";
+    [CsvColumn("alias_name", Optional = true)] public string AliasName { get; set; } = "";
+    [CsvColumn("role", Optional = true)] public string Role { get; set; } = "";
 }
 
-public class SplitDuoAliasExpenseDto
+[CsvRecord]
+public partial class SplitDuoAliasExpenseDto
 {
-    [Name("date")] public string Date { get; set; } = "";
-    [Name("title")] public string Title { get; set; } = "";
-    [Name("description")] public string? Description { get; set; }
-    [Name("amount")] public decimal Amount { get; set; }
-    [Name("paid_by_email")] public string PaidByEmail { get; set; } = "";
-    [Name("paid_by_alias_name")] public string PaidByAliasName { get; set; } = "";
-    [Name("category")] public string Category { get; set; } = "";
-    [Name("payment_mode")] public string PaymentMode { get; set; } = "";
-    [Name("alias_splits")] public string AliasSplits { get; set; } = "";
+    [CsvColumn("date", Optional = true)] public string Date { get; set; } = "";
+    [CsvColumn("title", Optional = true)] public string Title { get; set; } = "";
+    [CsvColumn("description", Optional = true)] public string? Description { get; set; }
+    [CsvColumn("amount", Optional = true)] public decimal Amount { get; set; }
+    [CsvColumn("paid_by_email", Optional = true)] public string PaidByEmail { get; set; } = "";
+    [CsvColumn("paid_by_alias_name", Optional = true)] public string PaidByAliasName { get; set; } = "";
+    [CsvColumn("category", Optional = true)] public string Category { get; set; } = "";
+    [CsvColumn("payment_mode", Optional = true)] public string PaymentMode { get; set; } = "";
+    [CsvColumn("alias_splits", Optional = true)] public string AliasSplits { get; set; } = "";
 
-    [Ignore] public DateOnly ParsedDate => DateOnly.Parse(Date);
+    [CsvIgnore] public DateOnly ParsedDate => DateOnly.Parse(Date);
 
-    [Ignore]
+    [CsvIgnore]
     public List<AliasSplitEntry> ParsedAliasSplits
     {
         get

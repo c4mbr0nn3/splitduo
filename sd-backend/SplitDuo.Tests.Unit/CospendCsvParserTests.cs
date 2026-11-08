@@ -195,12 +195,11 @@ public class CospendCsvParserTests
     [Fact]
     public async Task Parse_MissingFields_DoesNotThrow()
     {
-        // MissingFieldFound = null is set via CsvConfiguration (at construction),
-        // so rows with fewer fields than the header are parsed leniently — missing
-        // fields get default values instead of throwing MissingFieldException.
+        // CsvHelper 34's default MissingField = ReturnEmpty parses rows with fewer
+        // fields than the header leniently: a missing field becomes an empty string,
+        // so string members get their default value instead of throwing.
         // (Uses a members row: the expenses DTO's trailing `deleted` field is a
-        // non-nullable int, and CsvHelper still throws TypeConverterException
-        // when a non-nullable value-type field is missing.)
+        // non-nullable int, and parsing an empty field into it fails the record.)
         var csv = """
             name,weight,active,color
             Alice,1,1

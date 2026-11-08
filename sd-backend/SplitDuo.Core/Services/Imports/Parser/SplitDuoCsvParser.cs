@@ -1,6 +1,4 @@
-using System.Globalization;
 using CsvHelper;
-using CsvHelper.Configuration;
 using Microsoft.AspNetCore.Http;
 using SplitDuo.Core.Common;
 using SplitDuo.Core.Dto.Imports;
@@ -24,12 +22,9 @@ public static class SplitDuoCsvParser
     private static async Task<SplitDuoParseResult> ParseAsync(Stream stream)
     {
         using var reader = new StreamReader(stream);
-        var config = new CsvConfiguration(CultureInfo.InvariantCulture)
-        {
-            MissingFieldFound = null,
-            HeaderValidated = null,
-        };
-        using var csvReader = new CsvReader(reader, config);
+        // CsvHelper 34 recovers from malformed records and missing fields by default;
+        // every DTO column is marked optional, so a missing column is not an error.
+        using var csvReader = CsvReader.Create(reader);
 
         var expenses = new List<SplitDuoExpenseDto>();
         var uniqueEmails = new HashSet<string>();

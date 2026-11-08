@@ -165,9 +165,9 @@ public class SplitDuoAliasCsvParserTests
     [Fact]
     public async Task Parse_MissingFields_DoesNotThrow()
     {
-        // MissingFieldFound = null is set via CsvConfiguration (at construction),
-        // so rows with fewer fields than the header are parsed leniently — missing
-        // fields get default values instead of throwing MissingFieldException.
+        // CsvHelper 34's default MissingField = ReturnEmpty parses rows with fewer
+        // fields than the header leniently: a missing field becomes an empty string,
+        // so string members get their default value instead of throwing.
         var csv = """
             date,title,description,amount,paid_by_email,paid_by_alias_name,category,payment_mode,alias_splits
             2026-01-01,Dinner,Team dinner,42.50,alice@example.com,Alice,Food

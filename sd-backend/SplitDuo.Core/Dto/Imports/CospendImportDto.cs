@@ -1,61 +1,65 @@
 using System.Text.Json.Serialization;
-using CsvHelper.Configuration.Attributes;
+using CsvHelper;
 
 namespace SplitDuo.Core.Dto.Imports;
 
-public class CospendExpenseDto
+[CsvRecord]
+public partial class CospendExpenseDto
 {
-    [Name("what")] public string What { get; set; } = "";
-    [Name("amount")] public decimal Amount { get; set; }
-    [Name("date")] public string Date { get; set; } = "";
-    [Name("timestamp")] public long Timestamp { get; set; }
-    [Name("payer_name")] public string PayerName { get; set; } = "";
-    [Name("owers")] public string Owers { get; set; } = "";
-    [Name("categoryid")] public int CategoryId { get; set; }
-    [Name("paymentmodeid")] public int PaymentModeId { get; set; }
-    [Name("comment")] public string Comment { get; set; } = "";
-    [Name("deleted")] public int Deleted { get; set; }
+    [CsvColumn("what", Optional = true)] public string What { get; set; } = "";
+    [CsvColumn("amount", Optional = true)] public decimal Amount { get; set; }
+    [CsvColumn("date", Optional = true)] public string Date { get; set; } = "";
+    [CsvColumn("timestamp", Optional = true)] public long Timestamp { get; set; }
+    [CsvColumn("payer_name", Optional = true)] public string PayerName { get; set; } = "";
+    [CsvColumn("owers", Optional = true)] public string Owers { get; set; } = "";
+    [CsvColumn("categoryid", Optional = true)] public int CategoryId { get; set; }
+    [CsvColumn("paymentmodeid", Optional = true)] public int PaymentModeId { get; set; }
+    [CsvColumn("comment", Optional = true)] public string Comment { get; set; } = "";
+    [CsvColumn("deleted", Optional = true)] public int Deleted { get; set; }
 
-    [Ignore] public bool IsDeleted => Deleted == 1;
+    [CsvIgnore] public bool IsDeleted => Deleted == 1;
 
-    [Ignore] public DateOnly ParsedDate => DateOnly.Parse(Date);
-    [Ignore] public DateTime ParsedTimestamp => DateTimeOffset.FromUnixTimeSeconds(Timestamp).UtcDateTime;
+    [CsvIgnore] public DateOnly ParsedDate => DateOnly.Parse(Date);
+    [CsvIgnore] public DateTime ParsedTimestamp => DateTimeOffset.FromUnixTimeSeconds(Timestamp).UtcDateTime;
 
-    [Ignore]
+    [CsvIgnore]
     public List<string> OwersNames =>
         Owers.Split(',', StringSplitOptions.RemoveEmptyEntries)
             .Select(name => name.Trim())
             .ToList();
 }
 
-public class CospendMemberDto
+[CsvRecord]
+public partial class CospendMemberDto
 {
-    [Name("name")] public string Name { get; set; } = "";
-    [Name("weight")] public int Weight { get; set; }
-    [Name("active")] public int Active { get; set; }
-    [Name("color")] public string Color { get; set; } = "";
+    [CsvColumn("name", Optional = true)] public string Name { get; set; } = "";
+    [CsvColumn("weight", Optional = true)] public int Weight { get; set; }
+    [CsvColumn("active", Optional = true)] public int Active { get; set; }
+    [CsvColumn("color", Optional = true)] public string Color { get; set; } = "";
 
-    [Ignore] public bool IsActive => Active == 1;
+    [CsvIgnore] public bool IsActive => Active == 1;
 
     public KeyValueDto ToKeyValueDto() => new() { Key = Name, Value = Name };
 }
 
-public class CospendCategoryDto
+[CsvRecord]
+public partial class CospendCategoryDto
 {
-    [Name("categoryname")] public string CategoryName { get; set; } = "";
-    [Name("categoryid")] public int CategoryId { get; set; }
-    [Name("icon")] public string Icon { get; set; } = "";
-    [Name("color")] public string Color { get; set; } = "";
+    [CsvColumn("categoryname", Optional = true)] public string CategoryName { get; set; } = "";
+    [CsvColumn("categoryid", Optional = true)] public int CategoryId { get; set; }
+    [CsvColumn("icon", Optional = true)] public string Icon { get; set; } = "";
+    [CsvColumn("color", Optional = true)] public string Color { get; set; } = "";
 
     public KeyValueDto ToKeyValueDto() => new() { Key = CategoryId.ToString(), Value = CategoryName };
 }
 
-public class CospendPaymentModeDto
+[CsvRecord]
+public partial class CospendPaymentModeDto
 {
-    [Name("paymentmodename")] public string PaymentModeName { get; set; } = "";
-    [Name("paymentmodeid")] public int PaymentModeId { get; set; }
-    [Name("icon")] public string Icon { get; set; } = "";
-    [Name("color")] public string Color { get; set; } = "";
+    [CsvColumn("paymentmodename", Optional = true)] public string PaymentModeName { get; set; } = "";
+    [CsvColumn("paymentmodeid", Optional = true)] public int PaymentModeId { get; set; }
+    [CsvColumn("icon", Optional = true)] public string Icon { get; set; } = "";
+    [CsvColumn("color", Optional = true)] public string Color { get; set; } = "";
 
     public KeyValueDto ToKeyValueDto() => new() { Key = PaymentModeId.ToString(), Value = PaymentModeName };
 }

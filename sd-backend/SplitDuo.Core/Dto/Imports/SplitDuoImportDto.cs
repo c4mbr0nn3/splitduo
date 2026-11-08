@@ -1,21 +1,22 @@
-using CsvHelper.Configuration.Attributes;
+using CsvHelper;
 
 namespace SplitDuo.Core.Dto.Imports;
 
-public class SplitDuoExpenseDto
+[CsvRecord]
+public partial class SplitDuoExpenseDto
 {
-    [Name("Date")] public string Date { get; set; } = "";
-    [Name("Title")] public string Title { get; set; } = "";
-    [Name("Description")] public string? Description { get; set; }
-    [Name("Amount")] public decimal Amount { get; set; }
-    [Name("PaidByEmail")] public string PaidByEmail { get; set; } = "";
-    [Name("Category")] public string Category { get; set; } = "";
-    [Name("PaymentMode")] public string PaymentMode { get; set; } = "";
-    [Name("Owers")] public string Owers { get; set; } = "";
+    [CsvColumn("Date", Optional = true)] public string Date { get; set; } = "";
+    [CsvColumn("Title", Optional = true)] public string Title { get; set; } = "";
+    [CsvColumn("Description", Optional = true)] public string? Description { get; set; }
+    [CsvColumn("Amount", Optional = true)] public decimal Amount { get; set; }
+    [CsvColumn("PaidByEmail", Optional = true)] public string PaidByEmail { get; set; } = "";
+    [CsvColumn("Category", Optional = true)] public string Category { get; set; } = "";
+    [CsvColumn("PaymentMode", Optional = true)] public string PaymentMode { get; set; } = "";
+    [CsvColumn("Owers", Optional = true)] public string Owers { get; set; } = "";
 
-    [Ignore] public DateOnly ParsedDate => DateOnly.Parse(Date);
+    [CsvIgnore] public DateOnly ParsedDate => DateOnly.Parse(Date);
 
-    [Ignore]
+    [CsvIgnore]
     public List<OwnerSplit> ParsedOwers
     {
         get
