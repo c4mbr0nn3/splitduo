@@ -2,49 +2,65 @@
 
 ## Overview
 
-This document outlines the technical decisions and architectural patterns used in the SplitDuo frontend solution built with Nuxt 4 and Nuxt UI.
+This document outlines the technical decisions and architectural patterns used in the SplitDuo frontend. The frontend uses Nuxt 4 and Nuxt UI.
 
 ## Project Structure
 
 ### Modern Nuxt 4 Architecture
 
-The `sd-frontend` project follows Nuxt 4's modern app directory structure with Vue 3 Composition API:
+The `sd-frontend` project follows the Nuxt 4 app directory structure with the Vue 3 Composition API:
 
 ```bash
 sd-frontend/
 ├── app/
-│   ├── app.config.ts              # Nuxt UI theme (primary: violet, neutral: zinc)
+│   ├── app.config.ts              # Nuxt UI theme (primary: teal, secondary: rose, neutral: zinc)
 │   ├── app.vue                    # Root component (UApp + NuxtPage)
 │   ├── assets/css/main.css        # Tailwind imports, custom font & color tokens
 │   ├── components/
-│   │   ├── admin/                 # UserCard, UserForm
-│   │   ├── button/                # ColorMode toggle
-│   │   ├── dashboard/             # GroupCard, StatCard + skeletons
-│   │   ├── expenses/              # ExpenseForm
+│   │   ├── admin/                 # UserCard, UserForm, PendingUserCard, ChangeEmailModal
+│   │   ├── dashboard/             # StatCard, GroupCard, BalanceWidget, QuickActionsCard + skeletons
+│   │   ├── expenses/              # ExpenseForm, ExpenseAttachmentsList
 │   │   ├── groups/                # ExpenseCard, GroupForm, StatsCards, charts, members/
 │   │   ├── layout/                # AppHeader, LogoutButton
+│   │   ├── push/                  # PushOptInModal
+│   │   ├── recurring/             # RecurringExpenseForm, RecurrenceBuilder, TemplateCard
+│   │   ├── settings/              # ThemeSwitcher, LanguageSwitcher, NotificationSettings
+│   │   ├── system/                # UpdateBanner
 │   │   └── ui/                    # EmptyState, GenericModal, CardHeader, ButtonDropdown, DatePicker
 │   ├── composables/
-│   │   ├── api/base.js            # useApi — $fetch wrapper with auth headers
+│   │   ├── api/base.ts            # useApi — $fetch wrapper with auth headers
 │   │   ├── auth/                  # useAuth, useAuthToken, use2FA
+│   │   ├── push/                  # usePush, usePushSession
 │   │   ├── resources/             # useGroups, useExpenses, useBalances, useUsers,
 │   │   │                          # useCategories, usePaymentModes, useImportExport, useInvitations
 │   │   ├── ui/                    # useChartTheme, useModal
 │   │   ├── utils/                 # useNotifications, useErrorHandling, usePagination, useDebounceSearch
-│   │   └── index.js               # Barrel export
+│   │   └── index.ts               # Barrel export
 │   ├── layouts/
 │   │   ├── auth.vue               # Minimal centered layout
 │   │   └── default.vue            # AppHeader + content
 │   ├── middleware/
-│   │   ├── auth.js                # Redirect to / if unauthenticated
-│   │   └── admin.js               # Redirect if not global admin
-│   ├── pages/                     # File-based routing (see Routes below)
+│   │   ├── auth.ts                # Redirect to / if unauthenticated
+│   │   └── admin.ts               # Redirect if not global admin
+│   ├── pages/                     # File-based routing (see Page Components below)
 │   ├── plugins/
-│   │   └── auth.client.js         # Restores auth state on page load
+│   │   ├── apexcharts.client.ts   # Registers tree-shaken ApexCharts
+│   │   ├── auth.client.ts         # Restores auth state on page load
+│   │   └── auth-refresh.client.ts # Proactive token refresh before expiry
+│   ├── service-worker/
+│   │   └── sw.ts                  # PWA service worker (injectManifest)
+│   ├── types/                     # api.d.ts (generated), domain.ts
 │   └── utils/
-│       ├── date.js                # Date formatting helpers
-│       ├── enumUtils.js           # Generic enum factory
-│       └── userRoles.js           # User role enums
+│       ├── currency.ts            # Integer-millicent currency math helpers
+│       ├── date.ts                # Date formatting helpers
+│       ├── enumUtils.ts           # Generic enum factory
+│       ├── html.ts                # HTML escaping helpers
+│       ├── imageCompression.ts    # Client-side image compression
+│       ├── jwt.ts                 # JWT exp-claim decoding
+│       ├── pushOptInPending.ts    # Defers the push opt-in prompt
+│       ├── settle.ts              # Settle-confirm URL helpers
+│       ├── userRoles.ts           # User role enums
+│       └── withMinDuration.ts     # Minimum-duration async wrapper
 ├── public/
 ├── nuxt.config.ts
 ├── package.json
@@ -63,17 +79,19 @@ sd-frontend/
 
 ### Core Framework
 
-**Nuxt 4** (`^4.3.1`):
+**Nuxt 4**:
 
 - **Vue 3**: Latest Vue version with Composition API
 - **Auto-imports**: Components, composables, and utilities
-- **Server-Side Rendering**: Full SSR/SPA/Static generation support
+- **SPA Mode**: Client-side rendering with `ssr: false`
 - **File-based Routing**: Zero-config routing system
 - **TypeScript**: First-class TypeScript integration
+- **@vite-pwa/nuxt**: PWA support with a service worker and a web app manifest
+- **@nuxtjs/i18n**: Locale support for English and Italian
 
 ### UI Framework
 
-**Nuxt UI** (`^4.4.0`):
+**Nuxt UI**:
 
 - **Design System**: Built on Tailwind CSS with consistent theming
 - **Component Library**: Pre-built form components, buttons, cards, modals
@@ -85,15 +103,15 @@ sd-frontend/
 
 **Iconify Integration**:
 
-- **@iconify-json/lucide** (`^1.2.66`): Modern, clean line icons
-- **@iconify-json/simple-icons** (`^1.2.50`): Brand and technology icons
+- **@iconify-json/lucide**: Modern, clean line icons
+- **@iconify-json/simple-icons**: Brand and technology icons
 - **Auto-loading**: Icons loaded on-demand to minimize bundle size
 
 ### Development Tools
 
-**ESLint** (`^9.34.0`):
+**ESLint**:
 
-- **@nuxt/eslint** (`^1.9.0`): Nuxt-specific ESLint configuration
+- **@nuxt/eslint**: Nuxt-specific ESLint configuration
 - **Stylistic Rules**: Code formatting and consistency
 - **TypeScript Support**: Full TypeScript linting integration
 
@@ -105,18 +123,23 @@ sd-frontend/
 
 ```typescript
 export default defineAppConfig({
+  // https://ui.nuxt.com/getting-started/theme#design-system
   ui: {
     colors: {
-      primary: "emerald", // Primary brand color
-      neutral: "slate", // Neutral/secondary color
+      primary: 'teal',
+      secondary: 'rose',
+      neutral: 'zinc',
     },
-    button: {
+    card: {
       defaultVariants: {
-        // Customizable component defaults
+        variant: 'outline',
       },
     },
+    button: {
+      defaultVariants: {},
+    },
   },
-});
+})
 ```
 
 **Features:**
@@ -131,19 +154,33 @@ export default defineAppConfig({
 
 ```typescript
 export default defineNuxtConfig({
-  modules: [
-    "@nuxt/ui", // UI component framework
-    "@nuxt/eslint", // Linting integration
-  ],
+  modules: ['@vite-pwa/nuxt', '@nuxt/ui', '@nuxt/eslint', '@nuxtjs/i18n'],
+
+  ssr: false,
+
   devtools: { enabled: true }, // Development tools
-  css: ["~/assets/css/main.css"], // Global styles
-  compatibilityDate: "2025-07-16", // Nuxt version compatibility
+  css: ['~/assets/css/main.css'], // Global styles
+  compatibilityDate: '2025-07-16', // Nuxt version compatibility
+
+  typescript: {
+    typeCheck: false,
+  },
+
   eslint: {
     config: {
       stylistic: true, // Code formatting rules
     },
   },
-});
+
+  i18n: {
+    strategy: 'no_prefix',
+    defaultLocale: 'en',
+    locales: [
+      { code: 'en', file: 'en.json', name: 'English' },
+      { code: 'it', file: 'it.json', name: 'Italiano' },
+    ],
+  },
+})
 ```
 
 **Key Features:**
@@ -164,7 +201,7 @@ export default defineNuxtConfig({
 @import "@nuxt/ui";
 
 @theme static {
-  --font-sans: "Public Sans", sans-serif;
+  --font-sans: 'Geist', sans-serif;
 
   /* Custom Color Palette */
   --color-green-50: #effdf5;
@@ -179,14 +216,15 @@ export default defineNuxtConfig({
 - **Utility-First**: Tailwind CSS for rapid UI development
 - **Custom Theme**: Brand-specific color palette and typography
 - **CSS Variables**: Dynamic theming support
-- **Component Integration**: Seamless Nuxt UI component styling
+- **Component Integration**: The custom theme styles Nuxt UI components directly
 
 ### Color System
 
 **Primary Colors**:
 
-- **Emerald**: Primary brand color for buttons, links, highlights
-- **Slate**: Neutral colors for text, borders, backgrounds
+- **Teal**: Primary brand color for buttons, links, highlights
+- **Rose**: Secondary color for accents
+- **Zinc**: Neutral colors for text, borders, backgrounds
 
 **Custom Green Palette**: Extended green color range (50-950) for nuanced brand expression
 
@@ -196,27 +234,31 @@ export default defineNuxtConfig({
 
 **File-based Routing**:
 
-- `pages/index.vue`: Main dashboard/home page
-- `pages/login.vue`: Authentication page
+- `pages/index.vue`: Authentication page
+- `pages/dashboard.vue`: Main dashboard page
 
-**Login Component Features** (`pages/login.vue`):
+**Authentication Page Features** (`pages/index.vue`):
 
 ```vue
 <template>
-  <div class="flex justify-center items-center h-screen p-4">
-    <UCard class="w-full">
-      <template #header>
-        <div class="text-2xl">Welcome Back</div>
-      </template>
-      <UForm :state="form" @submit="onSubmit">
-        <!-- Form implementation -->
-      </UForm>
-    </UCard>
-  </div>
+  <UAuthForm
+    :title="$t('auth.welcomeBack')"
+    :fields="fields"
+    :submit="{ label: $t('auth.login'), loading: isLoading }"
+    @submit="onSubmit"
+  />
 </template>
 
-<script setup>
-// Composition API implementation
+<script setup lang="ts">
+definePageMeta({
+  layout: 'auth',
+  middleware: defineNuxtRouteMiddleware(() => {
+    const { user } = useAuth()
+    if (user.value) {
+      return navigateTo('/dashboard')
+    }
+  }),
+})
 </script>
 ```
 
@@ -301,15 +343,15 @@ export default defineNuxtConfig({
 
 ### API Integration Preparation
 
-**Current State**: Placeholder login form with simulated authentication
+**Current State**: The frontend is integrated with the backend API
 
-**Integration Requirements for Backend Connection**:
+**Integration Facts**:
 
-1. **HTTP Client Setup**: Nuxt 3's `$fetch` or composable-based API client
-2. **Authentication State**: Pinia store or composables for user state management
-3. **JWT Token Handling**: Automatic token attachment and refresh logic
-4. **API Type Definitions**: TypeScript interfaces for backend DTOs
-5. **Error Handling**: Global error handling and user feedback patterns
+1. **HTTP Client**: A `$fetch`-based client in `app/composables/api/base.ts`
+2. **Authentication State**: Vue composables with `useState` and refs
+3. **JWT Token Handling**: Automatic token attachment and proactive refresh
+4. **API Type Definitions**: Types generated from `docs/api/splitduoapi-v1.yaml`
+5. **Error Handling**: Centralized error handling with user feedback
 
 ### Mobile-First Design
 
@@ -318,13 +360,11 @@ export default defineNuxtConfig({
 - **Tailwind Responsive Classes**: Mobile-first breakpoint system
 - **Nuxt UI Components**: Responsive by default
 - **Touch-Friendly Interface**: Optimized for mobile interaction
-- **Performance**: SSR and hydration for fast mobile loading
+- **Performance**: SPA client-side rendering for fast mobile loading
 
 ## Potential Future Enhancements
 
-- **PWA**: Service worker caching for offline use
 - **Advanced Reporting**: PDF export, multi-period comparison
-- **Recurring Expenses**: Frontend scheduling UI
 
 ## Technical Decisions Summary
 
@@ -337,34 +377,37 @@ export default defineNuxtConfig({
 7. **Design System** - Consistent theming and color palette
 8. **Development Tooling** - ESLint, auto-imports, and DevTools integration
 9. **Modular Architecture** - Extensible structure for future feature expansion
-10. **Performance Focus** - SSR, auto-optimization, and bundle efficiency
+10. **Performance Focus** - SPA rendering, auto-optimization, and bundle efficiency
 
 ## Current Implementation Status
 
-### Completed Features (v0.1.21)
+### Completed Features
 
 - ✅ **Authentication**: Login, logout, JWT/refresh token management, forgot/reset password
 - ✅ **Two-Factor Authentication**: TOTP setup, QR code, backup codes, login challenge
 - ✅ **Dashboard**: Stat cards (total expenses, net balance, group count), group list
-- ✅ **Group Management**: Create, edit, delete groups; invite users; manage members
+- ✅ **Group Management**: Create, edit, and delete groups, invite users, and manage members
 - ✅ **Expense Management**: Full CRUD, split calculations, category and payment mode selection
-- ✅ **Expense Filters**: Text search, date range, category, payment mode; persistent pagination
+- ✅ **Expense Filters**: Text search, date range, category, payment mode, and persistent pagination
 - ✅ **Balance & Settlements**: Per-group balances, settlement suggestions, settlement recording
 - ✅ **Group Statistics**: Category donut chart, monthly bar chart, member paid bar chart
 - ✅ **Data Import**: Two-phase CSV import (Cospend, Splitwise, SplitDuo formats)
 - ✅ **Data Export**: CSV export in SplitDuo format
 - ✅ **Admin Panel**: User management (create, edit, delete users)
 - ✅ **Invitations**: Token-based invitation flow with accept page
-- ✅ **Dark Mode**: Toggle via ColorMode button
+- ✅ **Dark Mode**: Theme switcher on the profile page
 - ✅ **Skeleton Loaders**: Loading states for cards and expense lists
 - ✅ **Responsive Design**: Mobile-first layout with AppHeader navigation
+- ✅ **PWA**: Installable app with service worker, manifest, and offline support
+- ✅ **Recurring Expenses**: Template management with generated instances and approval flow
+- ✅ **Push Notifications**: Web push subscriptions with opt-in prompt and group activity notifications
 
 ## Dependencies Analysis
 
 ### Production Dependencies
 
-- **@nuxt/ui** (`^4.4.0`): Core UI component framework (TailwindCSS v4 built-in)
-- **nuxt** (`^4.3.1`): Main framework and build system
+- **@nuxt/ui**: Core UI component framework (TailwindCSS v4 built-in)
+- **nuxt**: Main framework and build system
 - **@iconify-json/lucide**: Primary icon set (Lucide)
 - **@iconify-json/simple-icons**: Brand icons
 

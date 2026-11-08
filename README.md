@@ -156,7 +156,6 @@ The website renders [Getting started](https://splitduoapp.netlify.app/getting-st
 ### Architecture and design
 
 - [Project specification](docs/project-spec.md)
-- [System architecture](docs/architecture/system-architecture.md)
 - [Backend architecture](docs/architecture/backend-architecture.md)
 - [Frontend architecture](docs/architecture/frontend-architecture.md)
 - [CI/CD pipeline](docs/ci-cd-pipeline.md)

@@ -1,6 +1,6 @@
 # CI/CD Pipeline
 
-SplitDuo uses GitLab CI/CD exclusively (no GitHub Actions). The pipeline is composed from a root `.gitlab-ci.yml` that includes per-concern files under `ci/`.
+SplitDuo uses GitLab CI/CD exclusively (no GitHub Actions). The pipeline consists of a root `.gitlab-ci.yml` that includes per-concern files under `ci/`.
 
 ## Stages
 
@@ -8,12 +8,12 @@ SplitDuo uses GitLab CI/CD exclusively (no GitHub Actions). The pipeline is comp
 verify → test → coverage → build → release
 ```
 
-Each stage gates the next. A job in `build` only starts after every `verify` job passes; `coverage` aggregates the reports produced by `test`; `release` runs last, after the preceding stages (including `build`) succeed.
+Each stage gates the next. A job in `build` starts only after every `verify` job passes. The `coverage` stage aggregates the reports that `test` produces. The `release` stage runs last, after the preceding stages (including `build`) succeed.
 
 | Stage | Purpose | Jobs |
 |---|---|---|
-| `verify` | Quality gates — lint, typecheck, security scans, unit tests | `lint`, `typecheck`, `frontend-unit-tests`, `frontend-contract`, `unit-tests`, `security:trivy`, `security:trufflehog` |
-| `test` | Integration tests (Testcontainers + PostgreSQL) | `integration-tests` |
+| `verify` | Static quality gates: lint, typecheck, security scans | `lint`, `typecheck`, `security:trivy`, `security:trufflehog` |
+| `test` | Unit, contract, and integration tests | `frontend-unit-tests`, `frontend-contract`, `unit-tests`, `integration-tests` |
 | `coverage` | Aggregate unit + integration coverage | `aggregate-coverage` |
 | `build` | Multi-arch Docker image build + push | `build_amd64`, `build_arm64`, `merge_manifest` |
 | `release` | GitLab + GitHub release creation | `extract_release_notes`, `create_gitlab_release`, `create_github_release` |
@@ -24,9 +24,9 @@ Each stage gates the next. A job in `build` only starts after every `verify` job
 |---|---|---|---|---|---|---|
 | `lint` | verify | auto | auto | auto | — | auto |
 | `typecheck` | verify | auto | auto | auto | — | auto |
-| `frontend-unit-tests` | verify | auto | auto | auto | — | auto |
-| `frontend-contract` | verify | auto | auto | auto | — | auto |
-| `unit-tests` | verify | auto | auto | auto | — | auto |
+| `frontend-unit-tests` | test | auto | auto | auto | — | auto |
+| `frontend-contract` | test | auto | auto | auto | — | auto |
+| `unit-tests` | test | auto | auto | auto | — | auto |
 | `security:trivy` / `security:trufflehog` | verify | auto | auto | auto | manual (allow_failure) | manual (allow_failure) |
 | `integration-tests` | test | auto | auto | auto | manual (allow_failure) | manual (allow_failure) |
 | `aggregate-coverage` | coverage | auto | auto | auto | — | manual (allow_failure) |
@@ -40,8 +40,8 @@ Each stage gates the next. A job in `build` only starts after every `verify` job
 ```
 RC tag vX.Y.Z-rc.N pushed (by scripts/bump-rc.sh)
   │
-  ├─ verify stage: lint, typecheck, frontend tests, unit-tests, security scans
-  ├─ test stage:   integration-tests
+  ├─ verify stage: lint, typecheck, security scans
+  ├─ test stage:   frontend tests, unit-tests, integration-tests
   ├─ coverage:     aggregate-coverage
   │
   ├─ build stage:  build_amd64 + build_arm64 → merge_manifest
@@ -50,7 +50,7 @@ RC tag vX.Y.Z-rc.N pushed (by scripts/bump-rc.sh)
   └─ release stage: no jobs match — skipped
 ```
 
-The RC tag pipeline runs the full quality gate but stops before the release stage. RC visibility is limited to git tags, Docker Hub tags, and the README section — no GitLab or GitHub release objects are created, so the GitLab release badge keeps showing the last stable release.
+The RC tag pipeline runs the full quality gate but stops before the release stage. RC releases appear only in git tags, Docker Hub tags, and the README section. The pipeline creates no GitLab or GitHub release objects, so the GitLab release badge keeps showing the last stable release.
 
 ## Pipeline flows
 
@@ -59,8 +59,8 @@ The RC tag pipeline runs the full quality gate but stops before the release stag
 ```
 tag vX.Y.Z pushed
   │
-  ├─ verify stage: lint, typecheck, frontend tests, unit-tests, security scans
-  ├─ test stage:   integration-tests (Testcontainers + PostgreSQL)
+  ├─ verify stage: lint, typecheck, security scans
+  ├─ test stage:   frontend tests, unit-tests, integration-tests (Testcontainers + PostgreSQL)
   ├─ coverage:     aggregate-coverage (unit + integration)
   │
   ├─ build stage:  build_amd64 + build_arm64 → merge_manifest
@@ -78,41 +78,43 @@ This is the only flow where every stage runs. The tag pipeline is the full relea
 ```
 push to main (no tag)
   │
-  ├─ verify stage: lint, typecheck, frontend tests, unit-tests, security scans
-  ├─ test stage:   integration-tests
+  ├─ verify stage: lint, typecheck, security scans
+  ├─ test stage:   frontend tests, unit-tests, integration-tests
   ├─ coverage:     aggregate-coverage
   │
   (build stage: build jobs have no stable/RC tag → not created)
   (release stage: no jobs match — skipped)
 ```
 
-`verify`, `test`, and `coverage` run on every main push so the coverage badge reflects real aggregate coverage. Build and release stay off main to conserve CI quota — main pushes do not build Docker images.
+`verify`, `test`, and `coverage` run on every main push so the coverage badge reflects real aggregate coverage. Build and release stay off main to conserve CI quota. Main pushes do not build Docker images.
 
 ### Merge request flow
 
 ```
 MR opened/updated
   │
-  ├─ verify stage: lint, typecheck, frontend tests, unit-tests (all auto)
+  ├─ verify stage: lint, typecheck (both auto)
   │                security scans (manual, allow_failure)
+  ├─ test stage:   frontend tests, unit-tests (all auto)
+  │                integration-tests (manual, allow_failure)
   │
-  (test stage: integration-tests manual, allow_failure)
   (coverage stage: aggregate-coverage manual, allow_failure)
 ```
 
-MR pipelines run the automatic `verify` jobs; security scans, integration tests, and aggregate coverage are available on manual trigger with `allow_failure: true`.
+MR pipelines run the automatic lint, typecheck, frontend test, and unit test jobs. Security scans, integration tests, and aggregate coverage are available on manual trigger with `allow_failure: true`.
 
 ### Feature branch flow (non-main, non-tag, non-MR)
 
 ```
 push to feature branch
   │
-  (verify stage: verify jobs have no rule for plain feature branches — skipped)
-  (security scans / integration-tests: manual, allow_failure)
+  (verify stage: lint, typecheck have no rule for plain feature branches — skipped)
+  (verify stage: security scans — manual, allow_failure)
+  (test stage:   integration-tests — manual, allow_failure)
   (build stage: build_amd64 + build_arm64 + merge_manifest — manual, builds :<branch>)
 ```
 
-Pipelines on feature branches are opt-in: security scans, integration tests, and the Docker build are all manual. This avoids consuming CI quota for pushes that don't need verification.
+Pipelines on feature branches are opt-in: security scans, integration tests, and the Docker build are all manual. This avoids consuming CI quota for pushes that need no verification.
 
 ## Design decisions
 
@@ -139,19 +141,19 @@ Stage ordering (`verify` → `build`) already enforces that the build jobs wait 
 GitLab shared runners have monthly minute quotas. The current design minimizes quota usage:
 
 - **Main pushes**: `verify` + `test` + `coverage` (no Docker).
-- **MRs**: automatic `verify` jobs; security/integration/coverage manual.
+- **MRs**: automatic lint, typecheck, frontend test, and unit test jobs. Security, integration, and coverage jobs are manual.
 - **Feature branches**: nothing runs automatically.
-- **Stable tags (releases)**: full pipeline — builds Docker images and creates releases.
-- **RC tags**: `verify` + `test` + `coverage` + `build` (rc images only) — no release stage.
+- **Stable tags (releases)**: full pipeline. Builds Docker images and creates releases.
+- **RC tags**: `verify` + `test` + `coverage` + `build` (rc images only). No release stage.
 
-If quota becomes a concern, the first lever is making `integration-tests` on tags manual again (revert `ci/integration-tests.yml` rules to the previous manual-only config). The `verify` stage is cheap and should stay automatic.
+If quota becomes a concern, make `integration-tests` on tags manual again first. Revert the rules in `ci/integration-tests.yml` to the previous manual-only config. Keep the `verify` stage automatic because it is cheap.
 
 ## File layout
 
 ```
 .gitlab-ci.yml          # stages + includes
 ci/
-  verify.yml            # lint, typecheck, frontend tests, unit-tests (verify stage)
+  verify.yml            # lint, typecheck (verify stage), frontend and unit tests (test stage)
   security.yml          # security:trivy, security:trufflehog (verify stage)
   build.yml             # build_amd64, build_arm64, merge_manifest (build stage)
   integration-tests.yml # integration-tests (test stage)
@@ -159,14 +161,14 @@ ci/
   release.yml           # extract_release_notes + create_gitlab_release + create_github_release (release stage)
 ```
 
-Each CI concern is a separate file under `ci/` and included from the root `.gitlab-ci.yml`. Add new CI concerns as new files under `ci/` and include them here.
+The root `.gitlab-ci.yml` includes a separate file under `ci/` for each CI concern. Add new CI concerns as new files under `ci/` and include them here.
 
 ## Required CI variables
 
-Set these in GitLab → Settings → CI/CD → Variables. Two independent flags matter here — do not conflate them:
+Set these in GitLab → Settings → CI/CD → Variables. Two independent flags matter here. Do not conflate them:
 
-- **Protected** — a protected variable is only injected into pipelines running on a **protected ref** (branch or tag). This is what gates *visibility*.
-- **Masked** — only redacts the value from job logs. It has no effect on which refs can see the variable.
+- **Protected**: GitLab injects a protected variable only into pipelines that run on a **protected ref** (branch or tag). This is what gates *visibility*.
+- **Masked**: this flag only redacts the value from job logs. It has no effect on which refs can see the variable.
 
 | Variable | Required by | Purpose |
 |---|---|---|
@@ -174,15 +176,15 @@ Set these in GitLab → Settings → CI/CD → Variables. Two independent flags 
 | `DOCKER_HUB_PASSWORD` | build jobs | Docker Hub login (masked) |
 | `GITHUB_TOKEN` | `create_github_release` | GitHub PAT with `repo` scope, or fine-grained with `Contents: read` + `Releases: write` on `c4mbr0nn3/splitduo` (masked, protected) |
 
-No CI variables are needed for `verify` or `integration-tests` — the integration test job uses a hardcoded JWT secret for its ephemeral Testcontainers database.
+The `verify` and `integration-tests` jobs need no CI variables. The integration test job uses a hardcoded JWT secret for its ephemeral Testcontainers database.
 
-RC tag pipelines run `docker login` too, so `DOCKER_HUB_USERNAME`/`DOCKER_HUB_PASSWORD` must be visible to them. If those variables are **protected**, then the RC tags must match a **protected-tag pattern** or `docker login` will receive empty credentials. GitLab protected-tag patterns are glob-style (not regex): use `v*-rc.*` with "Allowed to create" = Maintainers. If the Docker Hub variables are **not** protected, they resolve on any ref and no tag protection is needed.
+RC tag pipelines run `docker login` too, so they require `DOCKER_HUB_USERNAME`/`DOCKER_HUB_PASSWORD`. If those variables are **protected**, the RC tags must match a **protected-tag pattern**. Without a match, `docker login` receives empty credentials. GitLab protected-tag patterns are glob-style (not regex): use `v*-rc.*` with "Allowed to create" = Maintainers. If the Docker Hub variables are **not** protected, they resolve on any ref and you need no tag protection.
 
-> Verify which applies in your instance: **Settings → CI/CD → Variables** shows each variable's Protected/Masked flags. A masked-*and-protected* variable does surface on a protected tag such as `v1.17.0-rc.1` (that is exactly how `GITHUB_TOKEN` works on stable tags today) — masking is not what blocks it.
+> Verify which applies in your instance: **Settings → CI/CD → Variables** shows each variable's Protected/Masked flags. A masked-*and-protected* variable does surface on a protected tag such as `v1.17.0-rc.1` (that is exactly how `GITHUB_TOKEN` works on stable tags today). Masking is not what blocks it.
 
 ## Release process
 
-Releases are orchestrated by `scripts/bump-version.sh`, which:
+`scripts/bump-version.sh` orchestrates releases:
 
 1. Bumps `VERSION` + `package.json` via `commit-and-tag-version`.
 2. Generates the changelog entry via `git-cliff` and amends the commit.
@@ -191,6 +193,6 @@ Releases are orchestrated by `scripts/bump-version.sh`, which:
 
 The tag push triggers the release pipeline flow (above). The GitLab mirror propagates the tag to `github.com/c4mbr0nn3/splitduo` automatically, so `create_github_release` only needs to create the release object via the API.
 
-For backfilling releases on pre-existing tags (before the CI release jobs existed), use `scripts/backfill-releases.sh`.
+To backfill releases on pre-existing tags that predate the CI release jobs, use `scripts/backfill-releases.sh`.
 
-Release candidates are separate: `scripts/bump-rc.sh` creates and pushes a tag-only `vX.Y.Z-rc.N` tag (no `VERSION`/`package.json` change, no commit). RC pipelines build and publish `:X.Y.Z-rc.N` + `:rc` images but never create GitLab/GitHub releases. The stable flow above is unchanged.
+Release candidates are separate: `scripts/bump-rc.sh` creates and pushes a tag-only `vX.Y.Z-rc.N` tag (no `VERSION`/`package.json` change, no commit). RC pipelines build and publish `:X.Y.Z-rc.N` + `:rc` images but never create GitLab/GitHub releases. The stable flow above does not change.

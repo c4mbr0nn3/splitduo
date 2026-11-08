@@ -8,41 +8,30 @@ This document outlines the technical decisions and architectural patterns used i
 
 ### Vertical Slice Architecture
 
-The `SplitDuo.Api` project follows a **Vertical Slice Architecture** pattern, organizing code by features rather than technical concerns:
+The `SplitDuo.Api` project follows a **Vertical Slice Architecture** pattern. It organizes code by features rather than technical concerns:
 
 ```bash
 SplitDuo.Api/
-├── Features/
-│   ├── Authentication/
-│   │   ├── Controllers/
-│   │   └── Dto/
-│   ├── Users/
-│   │   ├── Controllers/
-│   │   └── Dto/
-│   ├── Groups/
-│   │   ├── Controllers/
-│   │   └── Dto/
-│   ├── Expenses/
-│   │   ├── Controllers/
-│   │   └── Dto/
-│   ├── Settlements/
-│   │   ├── Controllers/
-│   │   └── Dto/
-│   ├── Categories/
-│   │   ├── Controllers/
-│   │   └── Dto/
-│   ├── PaymentModes/
-│   │   ├── Controllers/
-│   │   └── Dto/
-│   ├── Import/
-│   │   ├── Controllers/
-│   │   └── Dto/
-│   ├── Export/
-│   │   ├── Controllers/
-│   │   └── Dto/
-│   └── Common/
-│       ├── Controllers/  # BaseApiController
-│       └── Dto/
+└── Features/
+    ├── Ai/                  # Controllers, Dto, Filters, Services
+    ├── Aliases/             # Controllers, Dto, Services
+    ├── Authentication/      # Controllers, Dto, Services
+    ├── Categories/          # Controllers, Dto
+    ├── Common/              # Controllers (BaseApiController), Dto, Services
+    ├── ExpenseAttachments/  # Controllers, Dto, Services
+    ├── Expenses/            # Controllers, Dto, Services
+    ├── Exports/             # Controllers
+    ├── Groups/              # Controllers, Dto, Services
+    ├── Imports/             # Controllers, Dto
+    ├── Invitations/         # Controllers, Dto, Services
+    ├── PaymentModes/        # Controllers, Dto
+    ├── Push/                # Controllers, Dto
+    ├── Receipts/            # Controllers, Services
+    ├── RecurringExpenses/   # Controllers, Dto, Services
+    ├── Settlements/         # Controllers, Dto, Services
+    ├── System/              # Controllers, Dto, Services
+    ├── UserAvatars/         # Controllers, Dto, Services
+    └── Users/               # Controllers, Dto, Services, Validation
 ```
 
 **Benefits:**
@@ -148,17 +137,22 @@ public class Result<T>
     public bool IsFailure => !IsSuccess;
     public T? Value { get; private set; }
     public string Error { get; private set; } = "";
-    public HttpStatusCode StatusCode { get; private set; } = HttpStatusCode.OK;
+    public HttpStatusCode StatusCode { get; private set; }
 
-    // Convenience methods for common status codes
-    public static Result<T> Success(T value, HttpStatusCode statusCode = HttpStatusCode.OK);
-    public static Result<T> Failure(string error, HttpStatusCode statusCode = HttpStatusCode.BadRequest);
-    public static Result<T> NotFound(string error = "Resource not found");
-    public static Result<T> Unauthorized(string error = "Unauthorized access");
-    public static Result<T> Forbidden(string error = "Forbidden access");
-    public static Result<T> Conflict(string error = "Resource conflict");
-    public static Result<T> UnprocessableEntity(string error = "Unprocessable entity");
-    public static Result<T> InternalServerError(string error = "Internal server error");
+    // Common failure shortcuts
+    public static Result<T> Success(T value, HttpStatusCode statusCode = HttpStatusCode.OK) => new(value, statusCode);
+    public static Result<T> BadRequest(string error = "Bad Request") => new(error);
+    public static Result<T> NotFound(string error = "Resource not found") => new(error, HttpStatusCode.NotFound);
+    public static Result<T> Unauthorized(string error = "Unauthorized access") =>
+        new(error, HttpStatusCode.Unauthorized);
+    public static Result<T> Forbidden(string error = "Forbidden access") => new(error, HttpStatusCode.Forbidden);
+    public static Result<T> Conflict(string error = "Resource conflict") => new(error, HttpStatusCode.Conflict);
+    public static Result<T> UnprocessableEntity(string error = "Unprocessable entity") =>
+        new(error, HttpStatusCode.UnprocessableEntity);
+    public static Result<T> InternalServerError(string error = "Internal server error") =>
+        new(error, HttpStatusCode.InternalServerError);
+    public static Result<T> ServiceUnavailable(string error = "Service unavailable") =>
+        new(error, HttpStatusCode.ServiceUnavailable);
 }
 ```
 
@@ -346,7 +340,7 @@ public class GroupsController(
 | `Forbidden()`              | 403 Forbidden            | `StatusCode(403)` |
 | `Conflict()`               | 409 Conflict             | `Conflict()`      |
 | `UnprocessableEntity()`    | 422 Unprocessable Entity | `StatusCode(422)` |
-| `Failure()`                | 400 Bad Request          | `BadRequest()`    |
+| `BadRequest()`             | 400 Bad Request          | `BadRequest()`    |
 
 ## User Context Service
 
@@ -468,7 +462,7 @@ public class ExpensesService(IUnitOfWork unitOfWork, IUserContextService userCon
 **Database Consistency**:
 
 - User lookups use GUID from JWT (not integer ID)
-- Handles cases where JWT user doesn't exist in database
+- Handles cases where the JWT user does not exist in the database
 - Returns null rather than throwing exceptions
 
 ### Registration & Dependencies
@@ -661,7 +655,7 @@ The following services are needed to implement the core features outlined in the
 
 **AuthenticationService Implementation:**
 
-- **Architecture**: Service located in API project (`SplitDuo.Api/Services/`) to be accessible by controllers
+- **Architecture**: Service located in API project (`SplitDuo.Api/Features/Authentication/Services/`) to be accessible by controllers
 - **Dependencies**: Uses `IUnitOfWork`, `IPasswordHasher<User>`, and `IOptions<JwtOptions>`
 - **DTOs**: Utilizes existing DTOs from `SplitDuo.Api/Features/Authentication/Dto/`
 - **Registration**: Registered in API layer DI container (`ApiProgramExtensions.cs`)
@@ -856,7 +850,7 @@ The following services are needed to implement the core features outlined in the
 **Features**:
 
 - Interface and implementation in single file for tidiness
-- Direct DbSet exposure: `Users`, `Groups`, `GroupMembers`, `Expenses`, `ExpenseSplits`, `Settlements`, `Imports`, `TwoFactorTokens`
+- Direct DbSet exposure, including `Users`, `Groups`, `Expenses`, `ExpenseSplits`, `RefreshTokens`, `Imports`, `Notifications`, `Aliases`, `RecurringExpenseTemplates`, and `PushSubscriptions`
 - Transaction management: `BeginTransactionAsync`, `CommitTransactionAsync`, `RollbackTransactionAsync`
 - Scoped lifetime registration in DI container
 - Proper disposal pattern implementation
@@ -898,7 +892,7 @@ await _unitOfWork.SaveChangesAsync();
 
 ### Secure JWT-Based Authentication with Refresh Tokens
 
-The application implements a modern, secure authentication system using short-lived access tokens with refresh token rotation.
+The application implements a secure authentication system with short-lived access tokens and refresh token rotation.
 
 #### Authentication Flow
 
@@ -935,26 +929,29 @@ The application implements a modern, secure authentication system using short-li
 [Index(nameof(TokenHash), IsUnique = true)]
 [Index(nameof(UserId), nameof(RevokedAt))]
 [Index(nameof(ExpiresAt))]
-[Index(nameof(JwtId))]
 public class RefreshToken : AuditableEntity
 {
     [Column("id"), Key] public int Id { get; set; }
-    [Column("user_id")] public int UserId { get; set; }              // Foreign key to User.Id
+    [Column("user_id")] public int UserId { get; set; }
     [Column("token_hash"), MaxLength(255)] public string TokenHash { get; set; } = "";
-    [Column("jwt_id"), MaxLength(255)] public string JwtId { get; set; } = "";    // GUID v7 for ordering
-    [Column("expires_at")] public long ExpiresAt { get; set; }       // Unix timestamp seconds
-    [Column("revoked_at")] public long? RevokedAt { get; set; }      // Unix timestamp seconds
-    [Column("revoked_reason"), MaxLength(255)] public string? RevokedReason { get; set; }
-    [Column("replaced_by_token"), MaxLength(255)] public string? ReplacedByToken { get; set; }
-    [Column("client_info"), MaxLength(255)] public string ClientInfo { get; set; } = "";
+    [Column("jwt_id"), MaxLength(255)] public string JwtId { get; set; } = "";
+    [Column("family_id"), MaxLength(64)] public string FamilyId { get; set; } = "";
+    [Column("expires_at")] public long ExpiresAt { get; set; }
+    [Column("revoked_at")] public long? RevokedAt { get; set; }
+
+    [Column("revoked_reason"), MaxLength(255)]
+    public string? RevokedReason { get; set; }
+
+    [Column("replaced_by_token"), MaxLength(255)]
+    public string? ReplacedByToken { get; set; }
+
+    [Column("client_info"), MaxLength(255)]
+    public string ClientInfo { get; set; } = "";
+
+    [NotMapped] public bool IsRevoked => RevokedAt.HasValue;
 
     // Navigation properties
     [ForeignKey(nameof(UserId))] public virtual User User { get; set; } = null!;
-
-    // Computed properties
-    [NotMapped] public bool IsExpired => DateTimeOffset.UtcNow.ToUnixTimeSeconds() >= ExpiresAt;
-    [NotMapped] public bool IsRevoked => RevokedAt.HasValue;
-    [NotMapped] public bool IsActive => !IsRevoked && !IsExpired;
 }
 ```
 
@@ -994,7 +991,7 @@ public class RefreshToken : AuditableEntity
 
 #### Implementation Details
 
-**AuthenticationService** (`SplitDuo.Api/Services/AuthenticationService.cs`):
+**AuthenticationService** (`SplitDuo.Api/Features/Authentication/Services/AuthenticationService.cs`):
 
 ```csharp
 // Login flow
@@ -1035,7 +1032,7 @@ public async Task<Result<AuthResponseDto>> RefreshTokenAsync(RefreshTokenRequest
 
 - Password hashing using ASP.NET Core Identity `PasswordHasher<User>`
 - Bearer token authentication for API access
-- No self-registration endpoint - new users onboard via the invitation system
+- No self-registration endpoint. New users onboard via the invitation system.
 - Individual password change capabilities with proper validation
 
 **Configuration Security**:
@@ -1187,22 +1184,26 @@ public class Notification
 
 ### Service Implementation
 
-**EmailNotificationService** (`SplitDuo.Api/Services/EmailNotificationService.cs`):
+**EmailNotificationService** (`SplitDuo.Core/Services/EmailNotificationService.cs`):
 
 ```csharp
 public interface INotificationService
 {
     Task<Result<List<Notification>>> GetUnsentNotifications();
+    Task<Result<List<Notification>>> GetPrunableNotifications();
     Task<Result> SendAsync(Notification notification);
     Task<Result> EnqueueAsync(Notification notification);
+    Result Prune(Notification notification);
 }
 ```
 
 **Key Methods:**
 
 - **`GetUnsentNotifications()`** - Returns notifications where `SentAt IS NULL AND RetryCount < 3`
+- **`GetPrunableNotifications()`** - Returns notifications older than 30 days that are sent or have reached maximum retries
 - **`SendAsync()`** - Attempts to send email via SMTP, handles retry logic and error tracking
 - **`EnqueueAsync()`** - Adds new notifications to the database queue
+- **`Prune()`** - Removes a notification from the database
 
 **SmtpService** (`SplitDuo.Core/Services/SmtpService.cs`):
 
