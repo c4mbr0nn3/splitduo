@@ -4,7 +4,7 @@ Edit `.env` next to the compose file (Compose interpolates it), or pass environm
 
 ## Required for production
 
-Generate secrets with, e.g., `openssl rand -base64 24`.
+For example, generate secrets with `openssl rand -base64 24`.
 
 ```yaml
 SD_JWT_SECRET_KEY: <generate a strong random string>
@@ -12,11 +12,11 @@ SD_INITIAL_USER_EMAIL: admin@splitduo.local
 SD_INITIAL_USER_PASSWORD: <generate: openssl rand -base64 24>   # required, min 15 chars
 ```
 
-Set `SD_JWT_SECRET_KEY` **before** anyone enrols in two-factor authentication: the TOTP encryption key is derived from it, so changing it later invalidates existing authenticator enrolments. Keep it with your backups.
+Set `SD_JWT_SECRET_KEY` **before** anyone enrols in two-factor authentication. The app derives the TOTP encryption key from it, so changing it later invalidates existing authenticator enrolments. Keep it with your backups.
 
 ## JWT tuning (optional)
 
-Defaults come from `appsettings.json`. Override only if you need custom claims or a different expiry.
+Defaults come from `appsettings.json`. Only if you need custom claims or a different expiry, override the defaults.
 
 ```yaml
 SD_JWT_ISSUER: ""        # default: empty
@@ -34,7 +34,7 @@ SD_DB_USERNAME: splitduo
 SD_DB_PASSWORD: splitduo   # change to a strong value before first startup
 ```
 
-`SD_DB_PASSWORD` must match the `POSTGRES_PASSWORD` set on the `postgres` service in `docker-compose.yml`. PostgreSQL only applies it when the data volume is first initialized.
+`SD_DB_PASSWORD` must match the `POSTGRES_PASSWORD` that you set on the `postgres` service in `docker-compose.yml`. PostgreSQL only applies it when it first initializes the data volume.
 
 ## Application
 
@@ -49,11 +49,11 @@ ASPNETCORE_ENVIRONMENT: Production
 SD_KNOWN_PROXIES: 10.0.0.5,192.168.1.0/24   # trusted proxy IPs and/or CIDRs, comma-separated
 ```
 
-Unset (default): `X-Forwarded-For` is ignored (fail-closed). Behind a reverse proxy you **must** set this (and the proxy must forward `X-Forwarded-For`), or per-IP rate limiting on auth endpoints collapses to one shared bucket.
+Unset (default): `X-Forwarded-For` is ignored (fail-closed). Behind a reverse proxy, you **must** set this variable. The proxy must also forward `X-Forwarded-For`. Otherwise, per-IP rate limiting on auth endpoints collapses to one shared bucket.
 
 ## Initial admin user
 
-Created on first startup only. In Production, `SD_INITIAL_USER_PASSWORD` is **required** — it must be at least 15 characters and not a known-weak value, otherwise the app refuses to seed the admin. In Development it falls back to the documented development default (see `docs/readme/development.md`). First/last name and demo-data seeding are optional.
+The app creates the initial admin user on first startup only. In Production, `SD_INITIAL_USER_PASSWORD` is **required**. It must be at least 15 characters and not a known-weak value. Otherwise, the app refuses to seed the admin. In Development it falls back to the documented development default (see `docs/readme/development.md`). The first-name and last-name options and demo-data seeding are optional.
 
 ```yaml
 SD_INITIAL_USER_FIRSTNAME: Admin      # default: Super
@@ -73,7 +73,7 @@ SD_AI_MODEL: gpt-4o
 
 ## Email (optional)
 
-Required for invitation emails and password reset.
+Invitation emails and password reset require these settings.
 
 ```yaml
 SD_EMAIL_SENDER_NAME: SplitDuo
@@ -87,7 +87,7 @@ SD_EMAIL_SSL: "false"
 
 ## Push notifications (optional)
 
-Web push is disabled unless both VAPID keys are set. Generate the keypair once — rotating the keys invalidates all existing subscriptions and users must re-enable notifications.
+The app disables web push unless you set both VAPID keys. Generate the keypair once. Rotating the keys invalidates all existing subscriptions, and users must re-enable notifications.
 
 ```yaml
 SD_VAPID_PUBLIC_KEY: your-vapid-public-key   # base64url P-256 public key

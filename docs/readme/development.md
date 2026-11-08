@@ -15,7 +15,7 @@ dotnet run --project SplitDuo.Api
 cd sd-frontend
 pnpm install
 pnpm dev
-# → http://localhost:3000 (proxies API to :8080)
+# → http://localhost:3000 (calls API at :8080)
 ```
 
 ## Dev services (PostgreSQL + Mailpit)
@@ -41,6 +41,6 @@ dotnet ef database update --project SplitDuo.Core --startup-project SplitDuo.Api
 
 ## Default logins
 
-**Development only** — these credentials are not valid with the Docker Compose quick start, which runs in Production and therefore requires `SD_INITIAL_USER_PASSWORD` (set in a `.env` file next to the compose file).
+**Development only.** These credentials are not valid with the Docker Compose quick start, which runs in Production. The quick start therefore requires `SD_INITIAL_USER_PASSWORD` in a `.env` file next to the compose file.
 
 - Bare `dotnet run` (Development): `admin@splitduo.local` / `changeme123`
