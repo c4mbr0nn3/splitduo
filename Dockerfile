@@ -81,7 +81,9 @@ USER appuser
 EXPOSE 8080
 
 # Set environment variables
-ENV ASPNETCORE_URLS=http://+:8080
+# Bind via the port variable rather than ASPNETCORE_URLS: setting both makes Kestrel
+# log "Overriding HTTP_PORTS ... Binding to values defined by URLS instead" on startup.
+ENV ASPNETCORE_HTTP_PORTS=8080
 ENV ASPNETCORE_ENVIRONMENT=Production
 # Override Alpine image's default invariant mode (icu-data-full installed above)
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false

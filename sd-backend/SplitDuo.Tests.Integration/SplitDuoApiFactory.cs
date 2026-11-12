@@ -61,7 +61,8 @@ public class SplitDuoApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        // Development env disables: Serilog PostgreSQL sink, HTTPS redirection
+        // Development env disables the Serilog PostgreSQL sink (the API itself has no
+        // HTTPS redirection middleware, so that no longer depends on the environment)
         builder.UseEnvironment("Development");
 
         builder.ConfigureAppConfiguration((_, config) =>

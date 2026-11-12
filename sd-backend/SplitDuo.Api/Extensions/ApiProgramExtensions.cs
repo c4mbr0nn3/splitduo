@@ -149,7 +149,11 @@ public static class ApiProgramExtensions
             app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().WithExposedHeaders("Content-Disposition"));
         }
 
-        app.UseHttpsRedirection();
+        // No app-level HTTPS redirect: TLS is terminated by the reverse proxy in front of
+        // the container, and this process only ever listens on plain HTTP. The middleware
+        // therefore has no port to redirect to (logging "Failed to determine the https
+        // port for redirect" on the first request), and would redirect-loop if one were
+        // ever inferred from a proxy. The proxy owns the HTTP->HTTPS redirect.
         app.UseSerilogRequestLogging();
 
         // Serve static files from wwwroot (.webmanifest needs explicit MIME type)
