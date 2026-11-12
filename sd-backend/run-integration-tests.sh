@@ -59,6 +59,15 @@ export SD_SEED_DEMO_DATA=false
 
 echo "Engine: podman=${have_podman} docker=${have_docker} DOCKER_HOST=${DOCKER_HOST:-<default>}"
 echo "Running integration tests..."
+
+# Perf characterization tests are manual-only (Category=Perf). Exclude them from the
+# default run unless the caller passes an explicit --filter of their own.
+filter_args=()
+if [[ "$*" != *"--filter"* ]]; then
+    filter_args=(--filter "Category!=Perf")
+fi
+
 exec dotnet test SplitDuo.Tests.Integration/SplitDuo.Tests.Integration.csproj \
   --verbosity normal \
+  "${filter_args[@]}" \
   "$@"

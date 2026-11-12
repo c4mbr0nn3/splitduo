@@ -45,14 +45,8 @@ public sealed class RecurringExpenseGenerationJob(
         }
 
         var templates = await unitOfWork.RecurringExpenseTemplates
-            .Include(t => t.Group)
-            .Include(t => t.Splits)
-            .Include(t => t.AliasSplits)
-            .Where(t => t.IsActive
-                        && t.DeletedAt == null
-                        && t.AnchorDate <= today
-                        && (t.EndDate == null || t.EndDate >= today)
-                        && t.Group.DeletedAt == null)
+            .DueTemplates(today)
+            .AsSplitQuery()
             .ToListAsync();
 
         foreach (var template in templates)
@@ -299,14 +293,8 @@ public sealed class RecurringExpenseGenerationJob(
     private async Task ReconcileOrphanInstancesAsync(DateOnly today, HashSet<Group> touchedGroups)
     {
         var orphans = await unitOfWork.RecurringExpenseInstances
-            .Include(i => i.Template).ThenInclude(t => t.Group)
-            .Include(i => i.Template).ThenInclude(t => t.Splits)
-            .Include(i => i.Template).ThenInclude(t => t.AliasSplits)
-            .Where(i => i.ExpenseId == null
-                        && i.StatusId == (int)RecurringExpenseInstanceStatus.AutoPublished
-                        && i.DeletedAt == null
-                        && i.Template.DeletedAt == null
-                        && i.Template.IsActive)
+            .OrphanAutoPublishedInstances()
+            .AsSplitQuery()
             .ToListAsync();
 
         foreach (var instance in orphans)

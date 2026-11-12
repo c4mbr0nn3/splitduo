@@ -46,6 +46,7 @@ integration-tests:
     - |
       dotnet test SplitDuo.Tests.Integration/SplitDuo.Tests.Integration.csproj \
         --configuration Release \
+        --filter "Category!=Perf" \
         --collect:"XPlat Code Coverage" \
         --results-directory ./TestResults \
         --logger "junit;LogFilePath=test-results.xml"
