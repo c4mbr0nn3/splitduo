@@ -48,6 +48,8 @@ public sealed class RecurringExpenseGenerationJob(
             .Include(t => t.Group)
             .Include(t => t.Splits)
             .Include(t => t.AliasSplits)
+            // Two collection navigations: split the query (EF Core event 20504).
+            .AsSplitQuery()
             .Where(t => t.IsActive
                         && t.DeletedAt == null
                         && t.AnchorDate <= today
@@ -302,6 +304,8 @@ public sealed class RecurringExpenseGenerationJob(
             .Include(i => i.Template).ThenInclude(t => t.Group)
             .Include(i => i.Template).ThenInclude(t => t.Splits)
             .Include(i => i.Template).ThenInclude(t => t.AliasSplits)
+            // Two collections under Template: split the query (EF Core event 20504).
+            .AsSplitQuery()
             .Where(i => i.ExpenseId == null
                         && i.StatusId == (int)RecurringExpenseInstanceStatus.AutoPublished
                         && i.DeletedAt == null
