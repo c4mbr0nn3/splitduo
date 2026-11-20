@@ -20,6 +20,12 @@ integration-tests:
   stage: test
   tags:
     - homelab
+  # Serialized against security:trivy — see ci/security.yml for the incident.
+  # dind pulls the Postgres image and writes test databases while Trivy
+  # unpacks a ~1.4 GB vulnerability DB; both land on the runner host disk, so
+  # allowing them to run in parallel across pipelines turns into a shared
+  # ENOSPC that surfaces as Postgres error 53100 deep inside a test run.
+  resource_group: homelab-disk-heavy
   image: mcr.microsoft.com/dotnet/sdk:10.0
   services:
     # No explicit alias — `docker` is the default alias GitLab assigns. Setting
@@ -42,6 +48,18 @@ integration-tests:
     SD_JWT_AUDIENCE: "test"
     SD_SEED_DEMO_DATA: "false"
   script:
+    # Log the free space up front: when this job dies with Postgres error
+    # 53100 ("could not extend file … No space left on device") the cause is
+    # the shared runner disk, not the code under test.
+    - df -h /
+    - |
+      avail_kb=$(df -Pk / | awk 'NR==2 {print $4}')
+      echo "Preflight: ${avail_kb} KiB free (need 1572864)"
+      if [ "$avail_kb" -lt 1572864 ]; then
+        echo "ERROR: only ${avail_kb} KiB free on the runner filesystem; dind + Postgres + the test run need over 1 GiB."
+        echo "This is runner capacity, not a code issue: free space on the runner host (e.g. docker system prune) and retry the job."
+        exit 1
+      fi
     - cd sd-backend
     - |
       dotnet test SplitDuo.Tests.Integration/SplitDuo.Tests.Integration.csproj \
