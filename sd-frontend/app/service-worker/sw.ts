@@ -12,6 +12,8 @@ import { cleanupOutdatedCaches, precacheAndRoute } from 'workbox-precaching'
 import { NavigationRoute, registerRoute } from 'workbox-routing'
 import { NetworkFirst, NetworkOnly } from 'workbox-strategies'
 
+import { isSkipWaitingMessage } from './skip-waiting'
+
 declare let self: ServiceWorkerGlobalScope
 
 // Precache all build assets emitted by Vite (injected as __WB_MANIFEST).
@@ -34,8 +36,9 @@ registerRoute(({ url }) => url.origin === self.location.origin && url.pathname.s
 
 // Prompt-update flow: PwaUpdate.vue calls updateServiceWorker(); the new SW
 // waits for SKIP_WAITING before activating (registerType: 'prompt').
+// See skip-waiting.ts for the message shape the client actually sends.
 self.addEventListener('message', (event) => {
-  if (event.data === 'SKIP_WAITING') {
+  if (isSkipWaitingMessage(event.data)) {
     void self.skipWaiting()
   }
 })
@@ -43,15 +46,12 @@ self.addEventListener('message', (event) => {
 clientsClaim()
 
 // Warm the app-shell cache so the first offline visit isn't a miss.
-// Best-effort: failing to fetch (e.g. activated while offline) must not
-// break activation.
-try {
-  void self.caches.open('app-shell').then(cache => cache.add(new URL('/index.html', self.location.origin)))
-}
-catch {
-  // Ignore — NetworkFirst populates the cache on the first successful
-  // navigation anyway.
-}
+// Best-effort: a failed fetch (e.g. activated while offline) must not surface
+// as an unhandled rejection; NetworkFirst populates the cache on the first
+// successful navigation anyway.
+void self.caches.open('app-shell')
+  .then(cache => cache.add(new URL('/index.html', self.location.origin)))
+  .catch(() => {})
 
 // --- Web Push ---------------------------------------------------------------
 
